@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>aj_garage</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="panel" id="panel" hidden>
+      <header class="panel-head">
+        <div>
+          <p class="kind" id="kind">GARAJE</p>
+          <h1 id="title">Garaje</h1>
+        </div>
+        <button class="close" id="close" aria-label="Cerrar">ESC</button>
+      </header>
+
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="Buscar por modelo o matrícula…" autocomplete="off" />
+        <span class="count" id="count"></span>
+      </div>
+
+      <p class="fee" id="fee" hidden></p>
+
+      <ul class="list" id="list"></ul>
+      <p class="empty" id="empty" hidden>No tienes vehículos aquí.</p>
+    </div>
+
+    <template id="card-tpl">
+      <li class="card">
+        <div class="card-main">
+          <div>
+            <p class="model"></p>
+            <p class="plate"></p>
+          </div>
+          <span class="badge"></span>
+        </div>
+        <div class="stats">
+          <div class="stat"><span>Combustible</span><div class="bar"><i data-stat="fuel"></i></div></div>
+          <div class="stat"><span>Motor</span><div class="bar"><i data-stat="engine"></i></div></div>
+          <div class="stat"><span>Carrocería</span><div class="bar"><i data-stat="body"></i></div></div>
+        </div>
+        <button class="take"></button>
+      </li>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>

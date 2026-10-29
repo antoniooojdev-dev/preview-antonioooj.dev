@@ -1,0 +1,749 @@
+---
+// Demo «Sistema de tickets»: panel en #soporte con categorías; al abrir un ticket
+// aparece un canal privado nuevo en la lista, el bot da la bienvenida, el staff entra,
+// lo reclama y contesta. Al cerrarlo hay confirmación, cuenta atrás, el canal se
+// elimina y la transcripción llega a #logs-tickets. Panel derecho con el estado.
+import Shell from "./Shell.astro";
+
+const canales = [
+  { cat: "información", items: [{ n: "normas" }, { n: "anuncios" }] },
+  { cat: "soporte", items: [{ n: "soporte", activo: true }, { n: "logs-tickets" }] },
+  { cat: "tickets", items: [] },
+];
+---
+
+<Shell demo="tickets" canal="soporte" tema="¿Necesitas ayuda? Abre un ticket aquí abajo" canales={canales} conPanel>
+  <div class="dc-welcome">
+    <div class="dc-welcome__icon">🎫</div>
+    <h4>Centro de soporte</h4>
+    <p>Usa el panel de abajo para hablar en privado con el equipo.</p>
+  </div>
+
+  <Fragment slot="panel">
+    <span class="dc__panel-title">tickets</span>
+    <div class="tk-stats">
+      <div><b data-tk="abiertos">0</b><span>abiertos</span></div>
+      <div><b data-tk="cerrados">0</b><span>cerrados</span></div>
+      <div><b data-tk="tiempo">—</b><span>1ª respuesta</span></div>
+    </div>
+    <span class="dc__panel-title">staff en línea — 2</span>
+    <div class="dc-member" style="--n:#e67e22"><span class="dc-ava dc-ava--sm" style="--c:#e67e22">MO</span>Moderadora Ana</div>
+    <div class="dc-member" style="--n:#e67e22;--st:#f0b232"><span class="dc-ava dc-ava--sm" style="--c:#9b59b6">SP</span>Soporte Raúl</div>
+    <span class="dc__panel-title">bot</span>
+    <div class="dc-member" style="--n:#f2f3f5"><span class="dc-ava dc-ava--sm"><img src="/logo.png" alt="" /></span>AntonioooJ Dev</div>
+  </Fragment>
+
+  <div slot="overlay" class="dc-modal" hidden data-confirm>
+    <div class="dc-modal__box">
+      <div class="dc-modal__head">¿Cerrar el ticket?</div>
+      <div class="dc-modal__body">Se guardará una transcripción y el canal se eliminará.</div>
+      <div class="dc-modal__foot">
+        <button type="button" class="dc-btn" data-no>Cancelar</button>
+        <button type="button" class="dc-btn dc-btn--red" data-si>Cerrar ticket</button>
+      </div>
+    </div>
+  </div>
+</Shell>
+
+<script>
+  import { BOT, YO, el, mensaje, escribiendo, sistema, espera, toast, type Autor } from "@/scripts/discord-demo";
+
+  const STAFF: Autor = { nombre: "Moderadora Ana", color: "#e67e22", colorNombre: "#e67e22" };
+  const CATEGORIAS = [
+    { v: "dudas", e: "❓", t: "Dudas generales", d: "Preguntas sobre el servidor o sus normas", c: "#5865f2", resp: "¡Hola! Cuéntame tu duda y te ayudo en un momento 😊" },
+    { v: "reporte", e: "🚨", t: "Reportar a un usuario", d: "Comportamiento tóxico, trampas o spam", c: "#f23f43", resp: "Gracias por avisar. ¿Puedes pasarme su nombre y una captura?" },
+    { v: "compras", e: "💳", t: "Compras y donaciones", d: "Pagos, VIP y recompensas que no llegan", c: "#23a55a", resp: "Hola, ¿me dices el correo con el que hiciste la compra?" },
+    { v: "apelacion", e: "⚖️", t: "Apelar una sanción", d: "Crees que un aviso o baneo no es justo", c: "#f0b232", resp: "Vamos a revisarlo. ¿Qué sanción tienes y por qué crees que no es justa?" },
+  ];
+  type Categoria = (typeof CATEGORIAS)[number];
+
+  const raiz = document.querySelector<HTMLElement>('[data-dc="tickets"]');
+  if (raiz) iniciar(raiz);
+
+  function iniciar(dc: HTMLElement) {
+    const lista = dc.querySelector<HTMLElement>("[data-msgs]")!;
+    const nombreCanal = dc.querySelector<HTMLElement>("[data-canal]")!;
+    const tema = dc.querySelector<HTMLElement>("[data-tema]")!;
+    const form = dc.querySelector<HTMLFormElement>("[data-composer]")!;
+    const input = form.querySelector("input")!;
+    const catTickets = dc.querySelector<HTMLElement>('[data-cat="tickets"]')!;
+    const modal = dc.querySelector<HTMLElement>("[data-confirm]")!;
+
+    // Cada canal guarda sus mensajes para poder cambiar entre ellos
+    const canales = new Map<string, DocumentFragment>();
+    let actual = "soporte";
+    let numero = 0;
+    let abiertos = 0;
+    let cerrados = 0;
+    let ticket: { canal: string; cat: Categoria; mensajes: string[]; abierto: number; reclamado: boolean } | null = null;
+
+    const stat = (k: string, v: string) => (dc.querySelector(`[data-tk="${k}"]`)!.textContent = v);
+
+    function irA(canal: string) {
+      if (canal === actual) return;
+      const frag = document.createDocumentFragment();
+      frag.append(...lista.childNodes);
+      canales.set(actual, frag);
+      lista.replaceChildren(canales.get(canal) ?? document.createDocumentFragment());
+      canales.delete(canal);
+      actual = canal;
+      nombreCanal.textContent = canal;
+      tema.textContent =
+        canal === "soporte" ? "¿Necesitas ayuda? Abre un ticket aquí abajo" : canal === "logs-tickets" ? "Transcripciones de tickets cerrados" : "Canal privado: solo tú y el staff";
+      input.placeholder = `Enviar mensaje a #${canal}`;
+      input.disabled = canal === "soporte" || canal === "logs-tickets";
+      if (input.disabled) input.placeholder = canal === "soporte" ? "Usa el panel para abrir un ticket" : "Canal de solo lectura";
+      dc.querySelectorAll<HTMLElement>(".dc__ch").forEach((c) => {
+        c.classList.toggle("is-on", c.dataset.ch === canal);
+        if (c.dataset.ch === canal) c.classList.remove("is-unread");
+      });
+      lista.scrollTop = lista.scrollHeight;
+    }
+
+    dc.querySelector("[data-chans]")!.addEventListener("click", (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>(".dc__ch");
+      if (b?.dataset.ch && ["soporte", "logs-tickets"].includes(b.dataset.ch) || b?.classList.contains("is-ticket")) irA(b!.dataset.ch!);
+    });
+
+    function marcarNoLeido(canal: string) {
+      if (canal !== actual) dc.querySelector(`.dc__ch[data-ch="${canal}"]`)?.classList.add("is-unread");
+    }
+
+    // ── panel de soporte ──
+    /** Desplegable de categorías al estilo de los menús de Discord, pero con icono,
+     *  color y descripción en cada opción. */
+    function selector(alCambiar: (c: Categoria) => void) {
+      let elegida = CATEGORIAS[0];
+      const caja = el("div", "tk-sel");
+      const boton = el("button", "tk-sel__btn");
+      boton.type = "button";
+      boton.setAttribute("aria-haspopup", "listbox");
+      boton.setAttribute("aria-expanded", "false");
+      const menu = el("ul", "tk-sel__menu");
+      menu.setAttribute("role", "listbox");
+      menu.hidden = true;
+
+      const fila = (c: Categoria, clase: string) => {
+        const f = el("span", clase);
+        f.style.setProperty("--cc", c.c);
+        const ico = el("span", "tk-sel__ico", c.e);
+        const txt = el("span", "tk-sel__txt");
+        txt.append(el("b", "", c.t), el("small", "", c.d));
+        f.append(ico, txt);
+        return f;
+      };
+
+      function pintarBoton() {
+        boton.replaceChildren(fila(elegida, "tk-sel__row"), el("span", "tk-sel__chev", "⌄"));
+        caja.style.setProperty("--cc", elegida.c);
+      }
+
+      function abrir(si: boolean) {
+        if (si) {
+          // Si no cabe debajo dentro del chat, se abre hacia arriba
+          const abajo = lista.getBoundingClientRect().bottom - boton.getBoundingClientRect().bottom;
+          caja.classList.toggle("is-up", abajo < 260);
+        }
+        menu.hidden = !si;
+        caja.classList.toggle("is-open", si);
+        boton.setAttribute("aria-expanded", String(si));
+      }
+
+      menu.append(
+        ...CATEGORIAS.map((c, i) => {
+          const li = el("li", "tk-sel__opt");
+          li.setAttribute("role", "option");
+          li.tabIndex = 0;
+          li.style.setProperty("--i", String(i));
+          li.style.setProperty("--cc", c.c);
+          li.append(fila(c, "tk-sel__row"), el("span", "tk-sel__check", "✓"));
+          const elegir = () => {
+            elegida = c;
+            menu.querySelectorAll("li").forEach((x) => x.setAttribute("aria-selected", String(x === li)));
+            pintarBoton();
+            abrir(false);
+            alCambiar(c);
+            boton.focus();
+          };
+          li.addEventListener("click", elegir);
+          li.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              elegir();
+            } else if (e.key === "ArrowDown") (li.nextElementSibling as HTMLElement | null)?.focus();
+            else if (e.key === "ArrowUp") (li.previousElementSibling as HTMLElement | null)?.focus();
+            else if (e.key === "Escape") abrir(false);
+          });
+          if (i === 0) li.setAttribute("aria-selected", "true");
+          return li;
+        }),
+      );
+
+      boton.addEventListener("click", () => {
+        abrir(!caja.classList.contains("is-open"));
+        if (caja.classList.contains("is-open")) menu.querySelector<HTMLElement>('[aria-selected="true"]')?.focus();
+      });
+      document.addEventListener("click", (e) => {
+        if (!caja.contains(e.target as Node)) abrir(false);
+      });
+
+      pintarBoton();
+      caja.append(boton, menu);
+      return { caja, elegida: () => elegida };
+    }
+
+    function panel() {
+      const p = el("div", "tk-panel");
+
+      const cab = el("div", "tk-panel__banner");
+      const logo = el("img");
+      logo.src = "/logo.png";
+      logo.alt = "";
+      const titulos = el("div");
+      titulos.append(el("b", "", "Centro de soporte"), el("span", "", "AntonioooJ Dev · atención 24/7"));
+      cab.append(logo, titulos, el("span", "tk-panel__online", "● 2 staff en línea"));
+
+      const stats = el("div", "tk-panel__stats");
+      for (const [n, t] of [["~3 min", "respuesta media"], ["128", "resueltos esta semana"], ["4,9 ★", "valoración"]]) {
+        const s = el("div");
+        s.append(el("b", "", n), el("span", "", t));
+        stats.append(s);
+      }
+
+      const etiqueta = el("span", "tk-panel__label", "¿En qué podemos ayudarte?");
+      const abrirBtn = el("button", "tk-open");
+      abrirBtn.type = "button";
+      const sel = selector((c) => {
+        abrirBtn.style.setProperty("--cc", c.c);
+        abrirBtn.querySelector("span")!.textContent = `Abrir ticket · ${c.t}`;
+      });
+      abrirBtn.append(el("span", "", `Abrir ticket · ${CATEGORIAS[0].t}`), el("i", "", "→"));
+      abrirBtn.style.setProperty("--cc", CATEGORIAS[0].c);
+      abrirBtn.addEventListener("click", () => {
+        if (ticket) {
+          toast(dc, "Ya tienes un ticket abierto: #" + ticket.canal);
+          irA(ticket.canal);
+          return;
+        }
+        abrirBtn.classList.remove("is-done");
+        void abrirBtn.offsetWidth;
+        abrirBtn.classList.add("is-done");
+        abrirTicket(sel.elegida());
+      });
+
+      p.append(cab, stats, etiqueta, sel.caja, abrirBtn, el("p", "tk-panel__note", "🔒 Solo tú y el equipo de soporte veréis el ticket."));
+      const m = mensaje(lista, BOT, { embed: { color: "#5865f2", extra: p, pie: "Sistema de tickets" } });
+      m.querySelector(".dc-embed")!.classList.add("tk-embed");
+    }
+
+    async function abrirTicket(cat: Categoria) {
+      numero++;
+      abiertos++;
+      stat("abiertos", String(abiertos));
+      const canal = `ticket-${String(numero).padStart(4, "0")}`;
+      ticket = { canal, cat, mensajes: [], abierto: Date.now(), reclamado: false };
+
+      const b = el("button", "dc__ch is-ticket is-new", canal);
+      b.type = "button";
+      b.dataset.ch = canal;
+      catTickets.append(b);
+      toast(dc, `🎫 Ticket creado: #${canal}`);
+      await espera(500);
+      irA(canal);
+
+      sistema(lista, "→", [{ b: "Tú" }, " y el equipo de soporte tenéis acceso a este canal."], "green");
+      await escribiendo(lista, BOT, 500);
+      const t = ticket;
+      mensaje(lista, BOT, {
+        texto: el("span") as Node,
+        embed: {
+          color: cat.c,
+          titulo: `${cat.e} Ticket #${String(numero).padStart(4, "0")}`,
+          texto: "Gracias por contactar. Describe tu problema con detalle y alguien del staff te atenderá enseguida.",
+          campos: [
+            { k: "Categoría", v: cat.t, inline: true },
+            { k: "Estado", v: "🟢 Abierto", inline: true },
+            { k: "Atendido por", v: "—", inline: true },
+          ],
+          botones: [
+            {
+              t: "🙋 Reclamar",
+              onClick: (bt) => {
+                if (t !== ticket || t.reclamado) return;
+                reclamar(bt);
+              },
+            },
+            { t: "🔒 Cerrar", estilo: "red", onClick: () => t === ticket && (modal.hidden = false) },
+          ],
+        },
+      }).querySelector(".dc-msg__body")!.append(el("span", "dc-mention", "@Tú"), " ", el("span", "dc-mention", "@Soporte"));
+
+      // El staff entra solo a los pocos segundos
+      setTimeout(() => {
+        if (t !== ticket || t.reclamado) return;
+        const boton = [...dc.querySelectorAll<HTMLButtonElement>(".dc-btn")].find((x) => x.textContent?.includes("Reclamar"));
+        reclamar(boton ?? null);
+      }, 3500);
+    }
+
+    async function reclamar(boton: HTMLButtonElement | null) {
+      if (!ticket || ticket.reclamado) return;
+      const t = ticket;
+      t.reclamado = true;
+      if (boton) {
+        boton.disabled = true;
+        boton.textContent = "✓ Reclamado";
+      }
+      const destino = t.canal;
+      const enCanal = () => actual === destino;
+      const donde = () => (enCanal() ? lista : null);
+      if (donde()) sistema(lista, "🙋", [{ b: "Moderadora Ana" }, " ha reclamado el ticket."]);
+      const campo = dc.querySelectorAll(".dc-embed__field span")[2];
+      if (campo) campo.textContent = "Moderadora Ana";
+      const segs = Math.max(1, Math.round((Date.now() - t.abierto) / 1000));
+      stat("tiempo", `${segs} s`);
+      await espera(400);
+      if (donde()) await escribiendo(lista, STAFF, 1200);
+      if (t !== ticket) return;
+      if (enCanal()) mensaje(lista, STAFF, { texto: t.cat.resp });
+      else marcarNoLeido(destino);
+      t.mensajes.push(`Moderadora Ana: ${t.cat.resp}`);
+    }
+
+    // respuestas del staff a lo que escribas
+    const RESPUESTAS = [
+      "Vale, entendido 👍 Lo estoy mirando.",
+      "Perfecto, ya lo tengo. Dame un minuto.",
+      "¡Listo! Ya está solucionado. ¿Necesitas algo más? Si no, puedes cerrar el ticket 🔒",
+    ];
+    let r = 0;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const txt = input.value.trim();
+      if (!txt || !ticket || actual !== ticket.canal) return;
+      input.value = "";
+      mensaje(lista, YO, { texto: txt });
+      ticket.mensajes.push(`Tú: ${txt}`);
+      if (!ticket.reclamado) return;
+      const t = ticket;
+      await espera(500);
+      if (actual === t.canal) await escribiendo(lista, STAFF, 1100);
+      if (t !== ticket) return;
+      const resp = RESPUESTAS[Math.min(r++, RESPUESTAS.length - 1)];
+      if (actual === t.canal) mensaje(lista, STAFF, { texto: resp });
+      else marcarNoLeido(t.canal);
+      t.mensajes.push(`Moderadora Ana: ${resp}`);
+    });
+
+    // ── cerrar ──
+    modal.querySelector("[data-no]")!.addEventListener("click", () => (modal.hidden = true));
+    modal.querySelector("[data-si]")!.addEventListener("click", async () => {
+      modal.hidden = true;
+      if (!ticket) return;
+      const t = ticket;
+      if (actual !== t.canal) irA(t.canal);
+      dc.querySelectorAll<HTMLButtonElement>(".dc-btn").forEach((b) => (b.disabled = true));
+      const cuenta = mensaje(lista, BOT, { embed: { color: "#f23f43", titulo: "🔒 Cerrando ticket…", texto: "Este canal se eliminará en 5 segundos." } });
+      const txt = cuenta.querySelector(".dc-embed__text")!;
+      for (let s = 4; s >= 0; s--) {
+        await espera(1000);
+        txt.textContent = s ? `Este canal se eliminará en ${s} segundo${s === 1 ? "" : "s"}.` : "Guardando transcripción…";
+      }
+      const boton = dc.querySelector<HTMLElement>(`.dc__ch[data-ch="${t.canal}"]`);
+      boton?.classList.add("is-leaving");
+      irA("logs-tickets");
+      canales.delete(t.canal);
+      setTimeout(() => boton?.remove(), 500);
+      ticket = null;
+      abiertos--;
+      cerrados++;
+      stat("abiertos", String(abiertos));
+      stat("cerrados", String(cerrados));
+      r = 0;
+
+      await escribiendo(lista, BOT, 500);
+      const trans = el("pre", "tk-transcript");
+      trans.textContent = [`# ${t.canal} · ${t.cat.e} ${t.cat.t}`, ...(t.mensajes.length ? t.mensajes : ["(sin mensajes)"])].join("\n");
+      mensaje(lista, BOT, {
+        embed: {
+          color: "#80848e",
+          titulo: `📄 Transcripción · #${t.canal}`,
+          campos: [
+            { k: "Abierto por", v: "Tú", inline: true },
+            { k: "Atendido por", v: t.reclamado ? "Moderadora Ana" : "—", inline: true },
+            { k: "Duración", v: `${Math.max(1, Math.round((Date.now() - t.abierto) / 1000))} s`, inline: true },
+          ],
+          extra: trans,
+          pie: "Ticket cerrado",
+        },
+      });
+      toast(dc, "✅ Ticket cerrado · transcripción guardada");
+    });
+
+    // Contenido inicial de #logs-tickets
+    const logs = document.createDocumentFragment();
+    canales.set("logs-tickets", logs);
+    const tmp = el("div");
+    mensaje(tmp, BOT, { texto: "Aquí aparecerán las transcripciones de los tickets cerrados." });
+    logs.append(...tmp.childNodes);
+
+    input.disabled = true;
+    input.placeholder = "Usa el panel para abrir un ticket";
+    panel();
+  }
+</script>
+
+<style is:global>
+  /* ── panel de soporte (embed rediseñado) ── */
+  .tk-embed {
+    max-width: 34rem;
+    padding: 0 0 12px;
+    overflow: visible;
+  }
+
+  .tk-embed .dc-embed__footer {
+    padding: 0 16px;
+  }
+
+  .tk-panel {
+    display: grid;
+    gap: 12px;
+  }
+
+  .tk-panel__banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 0 4px 0 0;
+    background:
+      radial-gradient(circle at 100% 0%, rgb(235 69 158 / 0.45), transparent 55%),
+      linear-gradient(135deg, #5865f2, #4752c4);
+    color: #fff;
+  }
+
+  .tk-panel__banner img {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 0.3);
+  }
+
+  .tk-panel__banner > div {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tk-panel__banner b {
+    font-size: 1.1rem;
+  }
+
+  .tk-panel__banner span {
+    font-size: 0.75rem;
+    opacity: 0.85;
+  }
+
+  .tk-panel__online {
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgb(0 0 0 / 0.25);
+    color: #57f287;
+    font-size: 0.6875rem !important;
+    font-weight: 600;
+    opacity: 1 !important;
+    white-space: nowrap;
+  }
+
+  .tk-panel__stats,
+  .tk-panel__label,
+  .tk-panel > .tk-sel,
+  .tk-open,
+  .tk-panel__note {
+    margin-inline: 16px;
+  }
+
+  .tk-panel__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .tk-panel__stats div {
+    display: grid;
+    justify-items: center;
+    padding: 8px 4px;
+    border-radius: 8px;
+    background: #1e1f22;
+    text-align: center;
+  }
+
+  .tk-panel__stats b {
+    color: #f2f3f5;
+    font-size: 0.95rem;
+  }
+
+  .tk-panel__stats span {
+    color: #949ba4;
+    font-size: 0.6875rem;
+  }
+
+  .tk-panel__label {
+    margin-top: 2px;
+    color: #b5bac1;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .tk-panel__note {
+    color: #949ba4;
+    font-size: 0.75rem;
+  }
+
+  /* desplegable de categorías */
+  .tk-sel {
+    --cc: #5865f2;
+    position: relative;
+  }
+
+  .tk-sel__btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 12px 8px 8px;
+    border-radius: 8px;
+    border: 1px solid #1e1f22;
+    background: #1e1f22;
+    text-align: left;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .tk-sel__btn:hover,
+  .tk-sel.is-open .tk-sel__btn {
+    border-color: var(--cc);
+  }
+
+  .tk-sel.is-open .tk-sel__btn {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cc) 25%, transparent);
+  }
+
+  .tk-sel__row {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .tk-sel__ico {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--cc) 22%, #2b2d31);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cc) 45%, transparent);
+    font-size: 1.1rem;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .tk-sel__txt {
+    display: grid;
+    min-width: 0;
+    line-height: 1.25;
+  }
+
+  .tk-sel__txt b {
+    color: #f2f3f5;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .tk-sel__txt small {
+    overflow: hidden;
+    color: #949ba4;
+    font-size: 0.75rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tk-sel__chev {
+    color: #b5bac1;
+    font-size: 1.1rem;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .tk-sel.is-open .tk-sel__chev {
+    transform: rotate(180deg);
+  }
+
+  .tk-sel__menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 6px);
+    z-index: 15;
+    display: grid;
+    gap: 2px;
+    padding: 6px;
+    border-radius: 10px;
+    background: #2b2d31;
+    border: 1px solid #1e1f22;
+    box-shadow: 0 18px 50px rgb(0 0 0 / 0.55);
+    transform-origin: 50% 0;
+    animation: tk-menu 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .tk-sel__menu[hidden] {
+    display: none;
+  }
+
+  .tk-sel.is-up .tk-sel__menu {
+    top: auto;
+    bottom: calc(100% + 6px);
+    transform-origin: 50% 100%;
+  }
+
+  .tk-sel__opt {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px 6px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: none;
+    animation: tk-opt 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 45ms);
+    transition: background 0.15s ease;
+  }
+
+  .tk-sel__opt:hover,
+  .tk-sel__opt:focus-visible {
+    background: #35373c;
+  }
+
+  .tk-sel__opt:hover .tk-sel__ico,
+  .tk-sel__opt:focus-visible .tk-sel__ico {
+    transform: scale(1.1) rotate(-6deg);
+  }
+
+  .tk-sel__opt[aria-selected="true"] {
+    background: color-mix(in srgb, var(--cc, #5865f2) 14%, #2b2d31);
+  }
+
+  .tk-sel__check {
+    color: #57f287;
+    font-weight: 700;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .tk-sel__opt[aria-selected="true"] .tk-sel__check {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* botón grande de abrir ticket */
+  .tk-open {
+    --cc: #5865f2;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--cc), color-mix(in srgb, var(--cc) 70%, #000));
+    color: #fff !important;
+    font-weight: 600;
+    overflow: hidden;
+    box-shadow: 0 10px 24px -12px var(--cc);
+    transition: transform 0.2s ease, filter 0.2s ease, background 0.4s ease;
+  }
+
+  .tk-open::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.25), transparent 70%);
+    transform: translateX(-100%);
+    animation: tk-shine 3s ease-in-out infinite;
+  }
+
+  .tk-open:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+
+  .tk-open i {
+    font-style: normal;
+    transition: transform 0.25s ease;
+  }
+
+  .tk-open:hover i {
+    transform: translateX(4px);
+  }
+
+  .tk-open.is-done {
+    animation: dc-pop 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes tk-menu {
+    from { opacity: 0; transform: translateY(-6px) scaleY(0.92); }
+  }
+
+  @keyframes tk-opt {
+    from { opacity: 0; transform: translateX(-8px); }
+  }
+
+  @keyframes tk-shine {
+    0%, 60% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .tk-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin: 0 4px 8px;
+  }
+
+  .tk-stats div {
+    display: grid;
+    justify-items: center;
+    padding: 8px 4px;
+    border-radius: 6px;
+    background: #1e1f22;
+  }
+
+  .tk-stats b {
+    color: #f2f3f5;
+    font-size: 1.1rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tk-stats span {
+    color: #949ba4;
+    font-size: 0.6875rem;
+  }
+
+  .tk-transcript {
+    max-height: 9rem;
+    margin: 0;
+    padding: 8px 10px;
+    overflow: auto;
+    border-radius: 6px;
+    background: #1e1f22;
+    color: #b5bac1;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    white-space: pre-wrap;
+  }
+</style>

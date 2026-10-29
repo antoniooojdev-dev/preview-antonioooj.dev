@@ -1,0 +1,2398 @@
+---
+// Caso «Forja Training Club» (gimnasio, marca ficticia): aforo en vivo, horario semanal de
+// clases filtrable con reserva de plaza (se guarda en el navegador), tarifas mensual/anual,
+// calculadoras de IMC y calorías, entrenadores y pase de prueba con código QR.
+
+const tipos = [
+  { id: "fuerza", t: "Fuerza", c: "#84cc16" },
+  { id: "cardio", t: "Cardio", c: "#f97316" },
+  { id: "combate", t: "Combate", c: "#ef4444" },
+  { id: "mente", t: "Cuerpo y mente", c: "#38bdf8" },
+];
+
+const clases = [
+  { id: "c1", n: "Cross Training", tipo: "fuerza", d: 0, h: "07:00", min: 50, coach: "Dani", nivel: "Todos", plazas: 16 },
+  { id: "c2", n: "Spinning", tipo: "cardio", d: 0, h: "09:30", min: 45, coach: "Sara", nivel: "Todos", plazas: 22 },
+  { id: "c3", n: "Yoga Flow", tipo: "mente", d: 0, h: "19:00", min: 60, coach: "Iris", nivel: "Inicio", plazas: 18 },
+  { id: "c4", n: "Boxeo", tipo: "combate", d: 0, h: "20:15", min: 60, coach: "Rubén", nivel: "Medio", plazas: 14 },
+  { id: "c5", n: "Halterofilia", tipo: "fuerza", d: 1, h: "07:00", min: 60, coach: "Dani", nivel: "Avanzado", plazas: 10 },
+  { id: "c6", n: "HIIT", tipo: "cardio", d: 1, h: "13:30", min: 30, coach: "Sara", nivel: "Medio", plazas: 20 },
+  { id: "c7", n: "Pilates", tipo: "mente", d: 1, h: "18:00", min: 50, coach: "Iris", nivel: "Todos", plazas: 14 },
+  { id: "c8", n: "Kickboxing", tipo: "combate", d: 1, h: "20:00", min: 60, coach: "Rubén", nivel: "Todos", plazas: 16 },
+  { id: "c9", n: "Cross Training", tipo: "fuerza", d: 2, h: "07:00", min: 50, coach: "Dani", nivel: "Todos", plazas: 16 },
+  { id: "c10", n: "Spinning", tipo: "cardio", d: 2, h: "19:00", min: 45, coach: "Sara", nivel: "Todos", plazas: 22 },
+  { id: "c11", n: "Movilidad", tipo: "mente", d: 2, h: "13:30", min: 40, coach: "Iris", nivel: "Inicio", plazas: 15 },
+  { id: "c12", n: "Glúteo y pierna", tipo: "fuerza", d: 3, h: "09:30", min: 45, coach: "Marta", nivel: "Todos", plazas: 18 },
+  { id: "c13", n: "HIIT", tipo: "cardio", d: 3, h: "18:00", min: 30, coach: "Sara", nivel: "Medio", plazas: 20 },
+  { id: "c14", n: "Boxeo", tipo: "combate", d: 3, h: "20:15", min: 60, coach: "Rubén", nivel: "Medio", plazas: 14 },
+  { id: "c15", n: "Cross Training", tipo: "fuerza", d: 4, h: "07:00", min: 50, coach: "Dani", nivel: "Todos", plazas: 16 },
+  { id: "c16", n: "Yoga Flow", tipo: "mente", d: 4, h: "19:00", min: 60, coach: "Iris", nivel: "Todos", plazas: 18 },
+  { id: "c17", n: "Spinning", tipo: "cardio", d: 4, h: "13:30", min: 45, coach: "Sara", nivel: "Todos", plazas: 22 },
+  { id: "c18", n: "Open Box", tipo: "fuerza", d: 5, h: "10:00", min: 90, coach: "Marta", nivel: "Todos", plazas: 25 },
+  { id: "c19", n: "Kickboxing", tipo: "combate", d: 5, h: "11:30", min: 60, coach: "Rubén", nivel: "Todos", plazas: 16 },
+  { id: "c20", n: "Yoga Restaurativo", tipo: "mente", d: 6, h: "10:30", min: 60, coach: "Iris", nivel: "Inicio", plazas: 18 },
+];
+
+const planes = [
+  { id: "basico", n: "Básico", m: 29, desc: "Sala de musculación y cardio", inc: [true, false, false, false, false], dest: false },
+  { id: "total", n: "Total", m: 45, desc: "Sala + todas las clases dirigidas", inc: [true, true, true, false, false], dest: true },
+  { id: "elite", n: "Élite", m: 79, desc: "Todo + entrenador personal", inc: [true, true, true, true, true], dest: false },
+];
+const ventajas = ["Sala de fuerza y cardio", "Clases dirigidas ilimitadas", "App con tus rutinas", "2 sesiones PT al mes", "Nutricionista"];
+
+const coaches = [
+  { n: "Dani Roca", r: "Fuerza y halterofilia", ico: "dumbbell", esp: ["Halterofilia olímpica", "Cross Training", "Ex-competidor nacional"], c: "#84cc16" },
+  { n: "Sara León", r: "Cardio y HIIT", ico: "heart-pulse", esp: ["Spinning certificada", "HIIT", "Maratoniana"], c: "#f97316" },
+  { n: "Rubén Díaz", r: "Deportes de combate", ico: "hand-fist", esp: ["Boxeo", "Kickboxing", "Defensa personal"], c: "#ef4444" },
+  { n: "Iris Moll", r: "Yoga y movilidad", ico: "spa", esp: ["Yoga Vinyasa", "Pilates", "Respiración"], c: "#38bdf8" },
+];
+---
+
+<div class="fj" data-fj>
+  <header class="fj-head" data-fj-head>
+    <div class="fj-wrap fj-head__in">
+      <a href="#inicio" class="fj-logo"><span>F</span>FORJA<small>TRAINING CLUB</small></a>
+      <nav class="fj-nav">
+        <a href="#clases">Clases</a>
+        <a href="#tarifas">Tarifas</a>
+        <a href="#calculadora">Calculadora</a>
+        <a href="#equipo">Equipo</a>
+      </nav>
+      <a href="#prueba" class="fj-btn">Prueba gratis</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- portada -->
+    <section class="fj-hero" id="inicio">
+      <div class="fj-hero__fondo" aria-hidden="true">
+        {Array.from({ length: 12 }, (_, i) => <span style={`--i:${i}`} />)}
+      </div>
+      <div class="fj-wrap fj-hero__in">
+        <div class="fj-hero__txt">
+          <span class="fj-etq"><i class="fa-solid fa-bolt"></i> Abierto 6:00 – 23:00 · 365 días</span>
+          <h1>Forja tu <span>mejor</span> versión</h1>
+          <p>1.200 m² de entrenamiento, 60 clases a la semana y coaches que te conocen por tu nombre. Sin permanencia.</p>
+          <div class="fj-hero__ctas">
+            <a href="#prueba" class="fj-btn fj-btn--xl">Primera clase gratis <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="#clases" class="fj-btn fj-btn--linea fj-btn--xl">Ver horario</a>
+          </div>
+        </div>
+
+        <!-- visual de la portada: placa inclinada con anillos y tarjetas flotantes -->
+        <div class="fj-hero__visual" aria-hidden="true">
+          <span class="fj-anillo fj-anillo--1"></span>
+          <span class="fj-anillo fj-anillo--2"></span>
+          <div class="fj-placa">
+            <i class="fa-solid fa-dumbbell"></i>
+            <span>NO PAIN<br />NO FORJA</span>
+          </div>
+          <div class="fj-flota fj-flota--clase">
+            <small>Próxima clase</small>
+            <strong data-fj-prox>–</strong>
+            <span data-fj-prox-t></span>
+          </div>
+          <div class="fj-flota fj-flota--socios">
+            <span class="fj-flota__caras"><i style="--t:#84cc16">D</i><i style="--t:#f97316">S</i><i style="--t:#ef4444">R</i></span>
+            <span><strong>4,9 ★</strong> 900 reseñas</span>
+          </div>
+        </div>
+
+        <div class="fj-hero__datos">
+          <div><strong data-contar="1840">0</strong><span>socios</span></div>
+          <div><strong data-contar="60">0</strong><span>clases / semana</span></div>
+          <div><strong data-contar="1200">0</strong><span>m² de sala</span></div>
+          <div class="fj-aforo">
+            <span class="fj-aforo__t"><i></i> Aforo ahora</span>
+            <strong data-fj-aforo>–</strong>
+            <span class="fj-aforo__barra"><i data-fj-aforo-barra></i></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- cinta en movimiento -->
+    <div class="fj-cinta" aria-hidden="true">
+      <div>
+        {
+          [0, 1].map(() => (
+            <span>
+              Sin matrícula <i class="fa-solid fa-bolt" /> Sin permanencia <i class="fa-solid fa-bolt" /> 60 clases a la semana <i class="fa-solid fa-bolt" /> Abierto 365 días <i class="fa-solid fa-bolt" /> Coaches certificados <i class="fa-solid fa-bolt" /> Primera clase gratis <i class="fa-solid fa-bolt" />
+            </span>
+          ))
+        }
+      </div>
+    </div>
+
+    <!-- clases -->
+    <section class="fj-sec" id="clases">
+      <div class="fj-wrap">
+        <div class="fj-sec__head">
+          <div>
+            <span class="fj-etq fj-etq--n" data-n="01">Horario semanal</span>
+            <h2>Elige tu clase</h2>
+          </div>
+          <div class="fj-filtros" data-fj-tipos>
+            <button type="button" data-tipo="todas" aria-pressed="true">Todas</button>
+            {
+              tipos.map((t) => (
+                <button type="button" data-tipo={t.id} aria-pressed="false" style={`--t:${t.c}`}>
+                  <i /> {t.t}
+                </button>
+              ))
+            }
+          </div>
+        </div>
+        <div class="fj-horario" data-fj-horario>
+          {
+            ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"].map((dia, d) => (
+              <div class="fj-dia" data-d={d}>
+                <span class="fj-dia__t">{dia}</span>
+                {clases
+                  .filter((c) => c.d === d)
+                  .sort((a, b) => a.h.localeCompare(b.h))
+                  .map((c) => {
+                    const t = tipos.find((x) => x.id === c.tipo)!;
+                    return (
+                      <button type="button" class="fj-clase" data-clase={c.id} data-tipo={c.tipo} style={`--t:${t.c}`}>
+                        <span class="fj-clase__h">{c.h}</span>
+                        <strong>{c.n}</strong>
+                        <span class="fj-clase__m">
+                          {c.min} min · {c.coach}
+                        </span>
+                        <span class="fj-clase__ok">
+                          <i class="fa-solid fa-check" /> Reservada
+                        </span>
+                      </button>
+                    );
+                  })}
+              </div>
+            ))
+          }
+        </div>
+        <p class="fj-nota"><i class="fa-solid fa-circle-info"></i> Pulsa una clase para ver los detalles y reservar plaza. Tus reservas se guardan en este navegador.</p>
+      </div>
+      <dialog class="fj-modal" data-fj-modal>
+        <button type="button" class="fj-modal__x" data-fj-modal-x aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+        <span class="fj-modal__tipo" data-m="tipo"></span>
+        <h3 data-m="n"></h3>
+        <dl class="fj-modal__datos">
+          <div><dt><i class="fa-solid fa-clock"></i> Hora</dt><dd data-m="h"></dd></div>
+          <div><dt><i class="fa-solid fa-hourglass-half"></i> Duración</dt><dd data-m="min"></dd></div>
+          <div><dt><i class="fa-solid fa-user"></i> Coach</dt><dd data-m="coach"></dd></div>
+          <div><dt><i class="fa-solid fa-signal"></i> Nivel</dt><dd data-m="nivel"></dd></div>
+        </dl>
+        <div class="fj-plazas">
+          <span>Plazas libres</span>
+          <strong data-m="libres"></strong>
+          <span class="fj-plazas__barra"><i data-m="barra"></i></span>
+        </div>
+        <button type="button" class="fj-btn fj-btn--xl fj-btn--full" data-fj-reservar>Reservar plaza</button>
+      </dialog>
+    </section>
+
+    <!-- tarifas -->
+    <section class="fj-sec fj-tarifas-sec" id="tarifas">
+      <div class="fj-wrap">
+        <div class="fj-sec__head fj-sec__head--centro">
+          <span class="fj-etq fj-etq--n" data-n="02">Tarifas</span>
+          <h2>Sin matrícula. Sin permanencia.</h2>
+          <div class="fj-toggle" data-fj-periodo>
+            <button type="button" data-p="mes" aria-pressed="true">Mensual</button>
+            <button type="button" data-p="anual" aria-pressed="false">Anual <em>-20%</em></button>
+          </div>
+        </div>
+        <div class="fj-planes">
+          {
+            planes.map((p) => (
+              <article class:list={["fj-plan", { "is-dest": p.dest }]}>
+                {p.dest && <span class="fj-plan__dest">El más elegido</span>}
+                <h3>{p.n}</h3>
+                <p>{p.desc}</p>
+                <div class="fj-plan__precio">
+                  <strong data-precio-mes={p.m}>{p.m}</strong>
+                  <span>€/mes</span>
+                </div>
+                <small class="fj-plan__anual" data-anual-txt />
+                <ul role="list">
+                  {ventajas.map((v, i) => (
+                    <li class:list={{ "is-no": !p.inc[i] }}>
+                      <i class={`fa-solid fa-${p.inc[i] ? "check" : "xmark"}`} /> {v}
+                    </li>
+                  ))}
+                </ul>
+                <a href="#prueba" class:list={["fj-btn", "fj-btn--full", { "fj-btn--linea": !p.dest }]}>
+                  Empezar con {p.n}
+                </a>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- calculadora -->
+    <section class="fj-sec" id="calculadora">
+      <div class="fj-wrap fj-calc">
+        <div>
+          <span class="fj-etq fj-etq--n" data-n="03">Herramientas</span>
+          <h2>Calcula tu punto de partida</h2>
+          <div class="fj-tabs" role="tablist" data-fj-calc-tabs>
+            <button type="button" role="tab" data-tab="imc" aria-selected="true">IMC</button>
+            <button type="button" role="tab" data-tab="kcal" aria-selected="false">Calorías diarias</button>
+          </div>
+          <form class="fj-campos" data-fj-calc onsubmit="return false">
+            <div class="fj-seg" data-fj-sexo>
+              <button type="button" data-v="h" aria-pressed="true"><i class="fa-solid fa-mars"></i> Hombre</button>
+              <button type="button" data-v="m" aria-pressed="false"><i class="fa-solid fa-venus"></i> Mujer</button>
+            </div>
+            <label>Peso <output data-out="peso">75 kg</output><input type="range" name="peso" min="40" max="150" value="75" /></label>
+            <label>Altura <output data-out="altura">175 cm</output><input type="range" name="altura" min="140" max="210" value="175" /></label>
+            <label data-solo="kcal">Edad <output data-out="edad">30 años</output><input type="range" name="edad" min="16" max="80" value="30" /></label>
+            <label data-solo="kcal">Actividad
+              <select name="act">
+                <option value="1.2">Sedentaria</option>
+                <option value="1.375">Ligera (1-3 días)</option>
+                <option value="1.55" selected>Moderada (3-5 días)</option>
+                <option value="1.725">Alta (6-7 días)</option>
+              </select>
+            </label>
+            <label data-solo="kcal">Objetivo
+              <select name="obj">
+                <option value="-400">Perder grasa</option>
+                <option value="0" selected>Mantenerme</option>
+                <option value="300">Ganar músculo</option>
+              </select>
+            </label>
+          </form>
+        </div>
+        <div class="fj-resultado" data-fj-res>
+          <svg viewBox="0 0 200 120" class="fj-gauge" aria-hidden="true">
+            <path d="M20 110 A80 80 0 0 1 180 110" pathLength="100" class="fj-gauge__fondo"></path>
+            <path d="M20 110 A80 80 0 0 1 180 110" pathLength="100" class="fj-gauge__valor" data-fj-gauge></path>
+          </svg>
+          <strong class="fj-resultado__n" data-fj-res-n>–</strong>
+          <span class="fj-resultado__u" data-fj-res-u></span>
+          <p class="fj-resultado__t" data-fj-res-t></p>
+          <div class="fj-macros" data-fj-macros hidden>
+            <div><span>Proteína</span><strong data-macro="p"></strong></div>
+            <div><span>Carbohidratos</span><strong data-macro="c"></strong></div>
+            <div><span>Grasas</span><strong data-macro="g"></strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- equipo -->
+    <section class="fj-sec" id="equipo">
+      <div class="fj-wrap">
+        <div class="fj-sec__head">
+          <div>
+            <span class="fj-etq fj-etq--n" data-n="04">Coaches</span>
+            <h2>Quién te va a entrenar</h2>
+          </div>
+        </div>
+        <ul role="list" class="fj-coaches">
+          {
+            coaches.map((c) => (
+              <li class="fj-coach" style={`--t:${c.c}`} tabindex="0">
+                <div class="fj-coach__cara fj-coach__cara--frente" data-ini={c.n[0]}>
+                  <i class={`fa-solid fa-${c.ico}`} />
+                  <strong>{c.n}</strong>
+                  <span>{c.r}</span>
+                </div>
+                <div class="fj-coach__cara fj-coach__cara--dorso">
+                  <strong>{c.n.split(" ")[0]}</strong>
+                  <ul role="list">
+                    {c.esp.map((e) => (
+                      <li>
+                        <i class="fa-solid fa-bolt" /> {e}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+
+    <!-- prueba gratis -->
+    <section class="fj-sec fj-prueba-sec" id="prueba">
+      <div class="fj-wrap fj-prueba">
+        <div>
+          <span class="fj-etq fj-etq--n" data-n="05">Pase de prueba</span>
+          <h2>Tu primera clase, gratis</h2>
+          <p>Elige clase, deja tus datos y enseña el código en recepción. Sin compromiso.</p>
+        </div>
+        <form class="fj-pform" data-fj-prueba novalidate>
+          <label>Clase que quieres probar
+            <select name="clase">{clases.map((c) => <option value={c.id}>{c.n} · {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"][c.d]} {c.h}</option>)}</select>
+          </label>
+          <label>Nombre<input name="nombre" autocomplete="name" /></label>
+          <label>Teléfono<input name="tel" type="tel" autocomplete="tel" /></label>
+          <p class="fj-error" data-fj-error></p>
+          <button type="submit" class="fj-btn fj-btn--xl fj-btn--full">Conseguir mi pase <i class="fa-solid fa-ticket"></i></button>
+        </form>
+        <div class="fj-pase" data-fj-pase hidden>
+          <div class="fj-pase__qr" data-fj-qr></div>
+          <div>
+            <span class="fj-etq">Pase de prueba</span>
+            <strong data-fj-pase-n></strong>
+            <p data-fj-pase-t></p>
+            <code data-fj-pase-c></code>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="fj-pie">
+    <div class="fj-wrap">
+      <div class="fj-pie__cta">
+        <h2>¿Empezamos <span>hoy?</span></h2>
+        <a href="#prueba" class="fj-btn fj-btn--xl">Reservar clase gratis <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+
+      <div class="fj-pie__cols">
+        <div class="fj-pie__marca">
+          <a href="#inicio" class="fj-logo"><span>F</span>FORJA<small>TRAINING CLUB</small></a>
+          <p>1.200 m² para entrenar fuerza, cardio, combate y movilidad. Sin matrícula y sin permanencia.</p>
+          <div class="fj-pie__redes">
+            <a href="#inicio" aria-label="Instagram"><i class="fa-solid fa-camera"></i></a>
+            <a href="#inicio" aria-label="YouTube"><i class="fa-solid fa-play"></i></a>
+            <a href="#inicio" aria-label="WhatsApp"><i class="fa-solid fa-comment-dots"></i></a>
+          </div>
+        </div>
+        <nav class="fj-pie__col" aria-label="Club">
+          <strong>Club</strong>
+          <a href="#clases">Horario de clases</a>
+          <a href="#tarifas">Tarifas</a>
+          <a href="#calculadora">Calculadora</a>
+          <a href="#equipo">Coaches</a>
+        </nav>
+        <div class="fj-pie__col">
+          <strong>Horario</strong>
+          <span>Lunes a domingo</span>
+          <span class="fj-pie__grande">6:00 – 23:00</span>
+          <span>Festivos incluidos</span>
+        </div>
+        <div class="fj-pie__col">
+          <strong>Dónde</strong>
+          <span><i class="fa-solid fa-location-dot"></i> Av. del Deporte 42, Sevilla</span>
+          <span><i class="fa-solid fa-phone"></i> 954 000 000</span>
+          <span><i class="fa-solid fa-square-parking"></i> Parking gratis para socios</span>
+        </div>
+      </div>
+
+      <div class="fj-pie__base">
+        <span>© {new Date().getFullYear()} Forja Training Club</span>
+        <span class="fj-pie__legal"><a href="#inicio">Aviso legal</a><a href="#inicio">Privacidad</a><a href="#inicio">Cookies</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script type="application/json" data-fj-datos set:html={JSON.stringify({ clases, tipos })} />
+</div>
+
+<script>
+  interface Clase {
+    id: string;
+    n: string;
+    tipo: string;
+    d: number;
+    h: string;
+    min: number;
+    coach: string;
+    nivel: string;
+    plazas: number;
+  }
+
+  const raiz = document.querySelector<HTMLElement>("[data-fj]")!;
+  const $ = <T extends Element = HTMLElement>(s: string, el: ParentNode = raiz) => el.querySelector<T>(s)!;
+  const $$ = <T extends Element = HTMLElement>(s: string, el: ParentNode = raiz) => [...el.querySelectorAll<T>(s)];
+  const datos = JSON.parse($("[data-fj-datos]").textContent!) as { clases: Clase[]; tipos: { id: string; t: string; c: string }[] };
+  const CLAVE = "forja-reservas";
+  const reservas = new Set<string>(leer());
+
+  function leer(): string[] {
+    try {
+      return JSON.parse(localStorage.getItem(CLAVE) ?? "[]");
+    } catch {
+      return [];
+    }
+  }
+  function guardar() {
+    try {
+      localStorage.setItem(CLAVE, JSON.stringify([...reservas]));
+    } catch {}
+  }
+
+  addEventListener("scroll", () => $("[data-fj-head]").classList.toggle("is-baja", scrollY > 30), { passive: true });
+
+  // contadores de la portada
+  $$("[data-contar]").forEach((n) => {
+    const fin = Number(n.dataset.contar);
+    const t0 = performance.now();
+    const paso = (t: number) => {
+      const p = Math.min(1, (t - t0) / 1600);
+      n.textContent = Math.round(fin * (1 - Math.pow(1 - p, 3))).toLocaleString("es-ES");
+      if (p < 1) requestAnimationFrame(paso);
+    };
+    requestAnimationFrame(paso);
+  });
+
+  // aforo según la hora (picos a las 8, 14 y 19-21)
+  function aforo() {
+    const h = new Date().getHours() + new Date().getMinutes() / 60;
+    const pct = h < 6 || h >= 23 ? 0 : Math.round(15 + 45 * Math.exp(-((h - 8) ** 2) / 2) + 30 * Math.exp(-((h - 14) ** 2) / 1.5) + 60 * Math.exp(-((h - 19.5) ** 2) / 2.5));
+    const v = Math.min(96, pct);
+    $("[data-fj-aforo]").textContent = h < 6 || h >= 23 ? "Cerrado" : `${v}%`;
+    const barra = $("[data-fj-aforo-barra]");
+    barra.style.width = `${v}%`;
+    barra.style.background = v > 75 ? "#ef4444" : v > 50 ? "#f59e0b" : "#84cc16";
+  }
+  aforo();
+  setInterval(aforo, 60_000);
+
+  // ── horario ─────
+  const clase = (id: string) => datos.clases.find((c) => c.id === id)!;
+  // ocupación fija por clase (para que «plazas libres» no cambie cada vez)
+  const ocupadas = (c: Clase) => Math.floor(((Math.sin(c.id.length * 31 + c.d * 7 + Number(c.h.slice(0, 2))) + 1) / 2) * (c.plazas - 2)) + (reservas.has(c.id) ? 1 : 0);
+
+  function pintarReservas() {
+    $$<HTMLButtonElement>("[data-clase]").forEach((b) => b.classList.toggle("is-reservada", reservas.has(b.dataset.clase!)));
+  }
+  pintarReservas();
+
+  // marca hoy
+  const hoy = (new Date().getDay() + 6) % 7;
+  $(`.fj-dia[data-d="${hoy}"]`).classList.add("is-hoy");
+
+  // próxima clase (para la tarjeta de la portada): la primera que empiece a partir de ahora
+  function proxima() {
+    const ahora = new Date();
+    const min = ahora.getHours() * 60 + ahora.getMinutes();
+    const DIAS_C = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+    for (let i = 0; i < 8; i++) {
+      const d = (hoy + i) % 7;
+      const del = datos.clases
+        .filter((c) => c.d === d)
+        .map((c) => ({ c, m: Number(c.h.slice(0, 2)) * 60 + Number(c.h.slice(3)) }))
+        .filter((x) => i > 0 || x.m > min)
+        .sort((a, b) => a.m - b.m)[0];
+      if (!del) continue;
+      $("[data-fj-prox]").textContent = del.c.n;
+      $("[data-fj-prox-t]").textContent = `${i === 0 ? "Hoy" : i === 1 ? "Mañana" : DIAS_C[d]} · ${del.c.h} · con ${del.c.coach}`;
+      return;
+    }
+  }
+  proxima();
+  setInterval(proxima, 60_000);
+
+  $$<HTMLButtonElement>("[data-fj-tipos] button").forEach((b) =>
+    b.addEventListener("click", () => {
+      $$("[data-fj-tipos] button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      const t = b.dataset.tipo!;
+      $$<HTMLElement>("[data-clase]").forEach((c) => c.classList.toggle("is-fuera", t !== "todas" && c.dataset.tipo !== t));
+    }),
+  );
+
+  const modal = $<HTMLDialogElement>("[data-fj-modal]");
+  let abierta = "";
+  function pintarModal() {
+    const c = clase(abierta);
+    const t = datos.tipos.find((x) => x.id === c.tipo)!;
+    modal.style.setProperty("--t", t.c);
+    $('[data-m="tipo"]', modal).textContent = t.t;
+    $('[data-m="n"]', modal).textContent = c.n;
+    $('[data-m="h"]', modal).textContent = `${["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"][c.d]} ${c.h}`;
+    $('[data-m="min"]', modal).textContent = `${c.min} min`;
+    $('[data-m="coach"]', modal).textContent = c.coach;
+    $('[data-m="nivel"]', modal).textContent = c.nivel;
+    const libres = c.plazas - ocupadas(c);
+    $('[data-m="libres"]', modal).textContent = `${libres} de ${c.plazas}`;
+    $('[data-m="barra"]', modal).style.width = `${(1 - libres / c.plazas) * 100}%`;
+    const b = $<HTMLButtonElement>("[data-fj-reservar]", modal);
+    const mia = reservas.has(c.id);
+    b.textContent = mia ? "Cancelar mi reserva" : libres ? "Reservar plaza" : "Clase completa";
+    b.disabled = !mia && !libres;
+    b.classList.toggle("fj-btn--linea", mia);
+  }
+  $$<HTMLButtonElement>("[data-clase]").forEach((b) =>
+    b.addEventListener("click", () => {
+      abierta = b.dataset.clase!;
+      pintarModal();
+      modal.showModal();
+    }),
+  );
+  $("[data-fj-reservar]", modal).addEventListener("click", () => {
+    reservas.has(abierta) ? reservas.delete(abierta) : reservas.add(abierta);
+    guardar();
+    pintarReservas();
+    pintarModal();
+  });
+  // al cerrar, la ficha se encoge y se desvanece (lo pinta .is-cierra) antes de quitarla
+  function cerrarModal() {
+    if (!modal.open || modal.classList.contains("is-cierra")) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return modal.close();
+    modal.classList.add("is-cierra");
+    setTimeout(() => {
+      modal.classList.remove("is-cierra");
+      modal.close();
+    }, 260);
+  }
+  modal.addEventListener("cancel", (e) => {
+    e.preventDefault();
+    cerrarModal();
+  });
+  $("[data-fj-modal-x]", modal).addEventListener("click", cerrarModal);
+  modal.addEventListener("click", (e) => e.target === modal && cerrarModal());
+
+  // ── tarifas ─────
+  $$<HTMLButtonElement>("[data-fj-periodo] button").forEach((b) =>
+    b.addEventListener("click", () => {
+      $$("[data-fj-periodo] button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      const anual = b.dataset.p === "anual";
+      $$<HTMLElement>("[data-precio-mes]").forEach((s) => {
+        const m = Number(s.dataset.precioMes);
+        const fin = anual ? Math.round(m * 0.8) : m;
+        const ini = Number(s.textContent);
+        const t0 = performance.now();
+        const paso = (t: number) => {
+          const p = Math.min(1, (t - t0) / 400);
+          s.textContent = String(Math.round(ini + (fin - ini) * p));
+          if (p < 1) requestAnimationFrame(paso);
+        };
+        requestAnimationFrame(paso);
+        const txt = s.closest(".fj-plan")!.querySelector<HTMLElement>("[data-anual-txt]")!;
+        txt.textContent = anual ? `${fin * 12} € al año · ahorras ${(m - fin) * 12} €` : "Pago mensual, cancela cuando quieras";
+      });
+    }),
+  );
+  $$<HTMLElement>("[data-anual-txt]").forEach((t) => (t.textContent = "Pago mensual, cancela cuando quieras"));
+
+  // ── calculadora ─────
+  const form = $<HTMLFormElement>("[data-fj-calc]");
+  let tab = "imc";
+  let sexo = "h";
+  function calcular() {
+    const v = (n: string) => Number((form.elements.namedItem(n) as HTMLInputElement).value);
+    const peso = v("peso");
+    const altura = v("altura");
+    const edad = v("edad");
+    $('[data-out="peso"]').textContent = `${peso} kg`;
+    $('[data-out="altura"]').textContent = `${altura} cm`;
+    $('[data-out="edad"]').textContent = `${edad} años`;
+    $$<HTMLInputElement>('input[type="range"]', form).forEach((r) => r.style.setProperty("--p", `${((Number(r.value) - Number(r.min)) / (Number(r.max) - Number(r.min))) * 100}%`));
+    const gauge = $("[data-fj-gauge]");
+    if (tab === "imc") {
+      const imc = peso / (altura / 100) ** 2;
+      const [txt, color] = imc < 18.5 ? ["Bajo peso", "#38bdf8"] : imc < 25 ? ["Peso saludable", "#84cc16"] : imc < 30 ? ["Sobrepeso", "#f59e0b"] : ["Obesidad", "#ef4444"];
+      $("[data-fj-res-n]").textContent = imc.toFixed(1);
+      $("[data-fj-res-u]").textContent = "IMC";
+      $("[data-fj-res-t]").textContent = `${txt}. El IMC es orientativo: no distingue músculo de grasa.`;
+      gauge.style.strokeDasharray = `${Math.min(100, ((imc - 15) / 25) * 100)} 100`;
+      gauge.style.stroke = color;
+      $("[data-fj-macros]").hidden = true;
+    } else {
+      // Mifflin-St Jeor
+      const bmr = 10 * peso + 6.25 * altura - 5 * edad + (sexo === "h" ? 5 : -161);
+      const kcal = Math.round(bmr * v("act") + v("obj"));
+      $("[data-fj-res-n]").textContent = kcal.toLocaleString("es-ES");
+      $("[data-fj-res-u]").textContent = "kcal al día";
+      $("[data-fj-res-t]").textContent = v("obj") < 0 ? "Déficit suave para perder grasa sin perder fuerza." : v("obj") > 0 ? "Superávit ligero para ganar músculo." : "Para mantener tu peso actual.";
+      gauge.style.strokeDasharray = `${Math.min(100, ((kcal - 1200) / 2800) * 100)} 100`;
+      gauge.style.stroke = "#84cc16";
+      const prot = Math.round(peso * 2);
+      const gras = Math.round((kcal * 0.25) / 9);
+      const carb = Math.round((kcal - prot * 4 - gras * 9) / 4);
+      $('[data-macro="p"]').textContent = `${prot} g`;
+      $('[data-macro="c"]').textContent = `${carb} g`;
+      $('[data-macro="g"]').textContent = `${gras} g`;
+      $("[data-fj-macros]").hidden = false;
+    }
+  }
+  form.addEventListener("input", calcular);
+  $$<HTMLButtonElement>("[data-fj-calc-tabs] button").forEach((b) =>
+    b.addEventListener("click", () => {
+      tab = b.dataset.tab!;
+      $$("[data-fj-calc-tabs] button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+      $$("[data-solo]").forEach((x) => (x.hidden = x.dataset.solo !== tab));
+      $("[data-fj-sexo]").hidden = tab === "imc";
+      calcular();
+    }),
+  );
+  $$<HTMLButtonElement>("[data-fj-sexo] button").forEach((b) =>
+    b.addEventListener("click", () => {
+      sexo = b.dataset.v!;
+      $$("[data-fj-sexo] button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      calcular();
+    }),
+  );
+  $$("[data-solo]").forEach((x) => (x.hidden = true));
+  $("[data-fj-sexo]").hidden = true;
+  calcular();
+
+  // ── pase de prueba con «QR» ─────
+  const fp = $<HTMLFormElement>("[data-fj-prueba]");
+  fp.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const fd = new FormData(fp);
+    const err = $("[data-fj-error]");
+    if (String(fd.get("nombre")).trim().length < 2) return (err.textContent = "Escribe tu nombre.");
+    if (!/^[0-9 +]{9,}$/.test(String(fd.get("tel")))) return (err.textContent = "Revisa el teléfono.");
+    err.textContent = "";
+    const c = clase(String(fd.get("clase")));
+    const codigo = "FJ" + Math.random().toString(36).slice(2, 8).toUpperCase();
+    // dibujo tipo QR a partir del código (decorativo)
+    const qr = $("[data-fj-qr]");
+    qr.replaceChildren();
+    let s = [...codigo].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7);
+    for (let i = 0; i < 121; i++) {
+      s = (s * 1103515245 + 12345) & 0x7fffffff;
+      const fila = Math.floor(i / 11);
+      const col = i % 11;
+      const esquina = (fila < 3 && col < 3) || (fila < 3 && col > 7) || (fila > 7 && col < 3);
+      const celda = document.createElement("i");
+      if (esquina || s % 2) celda.className = "is-on";
+      qr.append(celda);
+    }
+    $("[data-fj-pase-n]").textContent = String(fd.get("nombre"));
+    $("[data-fj-pase-t]").textContent = `${c.n} · ${["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"][c.d]} a las ${c.h}`;
+    $("[data-fj-pase-c]").textContent = codigo;
+    fp.hidden = true;
+    $("[data-fj-pase]").hidden = false;
+  });
+
+  const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && (e.target.classList.add("is-visto"), io.unobserve(e.target))), { threshold: 0.1 });
+  $$(".fj-sec").forEach((s) => io.observe(s));
+</script>
+
+<style is:global>
+  .fj {
+    --c: #84cc16;
+    --fondo: #0c0f0a;
+    --panel: #151a12;
+    --panel2: #1d2419;
+    --linea: #2a3324;
+    --txt: #eef2ea;
+    --gris: #8c9a84;
+    background: var(--fondo);
+    color: var(--txt);
+    font-family: "Inter", system-ui, sans-serif;
+    line-height: 1.55;
+  }
+
+  .fj h1,
+  .fj h2,
+  .fj h3 {
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 0.95;
+  }
+
+  .fj-wrap {
+    width: min(100% - 2.5rem, 76rem);
+    margin-inline: auto;
+  }
+
+  .fj ::selection {
+    background: var(--c);
+    color: var(--fondo);
+  }
+
+  /* barra de desplazamiento: negra con tirador lima */
+  @supports not selector(::-webkit-scrollbar) {
+    html:has(.fj) {
+      scrollbar-width: thin;
+      scrollbar-color: #84cc16 #0c0f0a;
+    }
+  }
+
+  html:has(.fj)::-webkit-scrollbar {
+    width: 14px;
+    height: 12px;
+  }
+
+  html:has(.fj)::-webkit-scrollbar-track {
+    background: #0c0f0a;
+  }
+
+  html:has(.fj)::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #a3e635, #4d7c0f) padding-box;
+  }
+
+  html:has(.fj)::-webkit-scrollbar-thumb:hover {
+    background: #a3e635 padding-box;
+  }
+
+  .fj ::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+  }
+
+  .fj ::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: #3a4732 padding-box;
+  }
+
+  .fj ::-webkit-scrollbar-thumb:hover {
+    background: var(--c) padding-box;
+  }
+
+  .fj-etq {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.8rem;
+    color: var(--c);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* etiqueta numerada de sección: «01 ——— HORARIO SEMANAL» */
+  .fj-etq--n {
+    gap: 0.6rem;
+  }
+
+  .fj-etq--n::before {
+    content: attr(data-n);
+    order: -2;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    background: var(--c);
+    color: var(--fondo);
+    font-size: 0.72rem;
+    transform: skewX(-10deg);
+  }
+
+  .fj-etq--n::after {
+    content: "";
+    order: -1;
+    width: 2rem;
+    height: 2px;
+    background: linear-gradient(90deg, var(--c), transparent);
+  }
+
+  .fj-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.2rem;
+    border: 2px solid var(--c);
+    border-radius: 6px;
+    background: var(--c);
+    color: #0c0f0a;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.85rem;
+    text-decoration: none;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s;
+  }
+
+  /* destello que cruza el botón al pasar el ratón */
+  .fj-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 35%, rgb(255 255 255 / 0.45) 50%, transparent 65%);
+    transform: translateX(-120%);
+    transition: transform 0.6s;
+    pointer-events: none;
+  }
+
+  .fj-btn:hover:not(:disabled)::after {
+    transform: translateX(120%);
+  }
+
+  .fj-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px -10px var(--c);
+  }
+
+  .fj-btn i {
+    transition: transform 0.25s;
+  }
+
+  .fj-btn:hover i.fa-arrow-right {
+    transform: translateX(4px);
+  }
+
+  .fj-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .fj-btn--linea {
+    background: transparent;
+    color: var(--c);
+  }
+
+  .fj-btn--xl {
+    padding: 1rem 1.6rem;
+    font-size: 0.95rem;
+  }
+
+  .fj-btn--full {
+    width: 100%;
+  }
+
+  .fj-head {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    transition: background 0.3s, border-color 0.3s;
+    border-bottom: 1px solid transparent;
+  }
+
+  .fj-head.is-baja {
+    background: rgb(12 15 10 / 0.9);
+    backdrop-filter: blur(10px);
+    border-color: var(--linea);
+  }
+
+  .fj-head__in {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    height: 4.6rem;
+  }
+
+  .fj-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+  }
+
+  .fj-logo span {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 6px;
+    background: var(--c);
+    color: var(--fondo);
+    transform: skewX(-8deg);
+  }
+
+  .fj-logo small {
+    align-self: flex-end;
+    margin-bottom: 0.4rem;
+    font-family: "Inter", sans-serif;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--gris);
+  }
+
+  .fj-nav {
+    display: flex;
+    gap: 1.8rem;
+    margin-left: auto;
+  }
+
+  .fj-nav a {
+    position: relative;
+    padding-block: 0.4rem;
+    color: var(--gris);
+    font-weight: 600;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    transition: color 0.2s;
+  }
+
+  .fj-nav a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--c);
+    transform: scaleX(0) skewX(-20deg);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .fj-nav a:hover {
+    color: var(--txt);
+  }
+
+  .fj-nav a:hover::after {
+    transform: scaleX(1) skewX(-20deg);
+  }
+
+  /* portada */
+  .fj-hero {
+    position: relative;
+    overflow: hidden;
+    margin-top: -4.6rem;
+    padding-top: 4.6rem;
+  }
+
+  .fj-hero__fondo {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: space-between;
+    opacity: 0.5;
+    mask-image: radial-gradient(70% 70% at 70% 40%, #000, transparent);
+  }
+
+  .fj-hero__fondo span {
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(transparent, var(--c), transparent);
+    background-size: 100% 40%;
+    background-repeat: no-repeat;
+    animation: fj-lluvia 4s calc(var(--i) * -0.37s) linear infinite;
+  }
+
+  .fj-hero::before {
+    content: "";
+    position: absolute;
+    top: -10rem;
+    right: -10rem;
+    width: 44rem;
+    height: 44rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(132 204 22 / 0.18), transparent 65%);
+    pointer-events: none;
+  }
+
+  .fj-hero__in {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    align-items: center;
+    gap: 2rem 3rem;
+    padding-block: 5rem 4.5rem;
+  }
+
+  .fj-hero__txt > * {
+    animation: fj-sube 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .fj-hero__txt > :nth-child(2) {
+    animation-delay: 0.08s;
+  }
+
+  .fj-hero__txt > :nth-child(3) {
+    animation-delay: 0.16s;
+  }
+
+  .fj-hero__txt > :nth-child(4) {
+    animation-delay: 0.24s;
+  }
+
+  .fj-hero h1 {
+    font-size: clamp(4rem, 2rem + 8vw, 9.5rem);
+    text-transform: uppercase;
+  }
+
+  .fj-hero h1 span {
+    color: transparent;
+    -webkit-text-stroke: 2px var(--c);
+    background: linear-gradient(90deg, var(--c), #d9f99d) 0 100% / 0 0.12em no-repeat;
+    animation: fj-subraya 1s 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .fj-hero__txt > p {
+    max-width: 34rem;
+    margin-top: 1.2rem;
+    color: var(--gris);
+    font-size: 1.15rem;
+  }
+
+  /* visual de la derecha */
+  .fj-hero__visual {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    animation: fj-pop 0.9s 0.2s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  }
+
+  .fj-anillo {
+    position: absolute;
+    inset: 4%;
+    border: 1.5px dashed rgb(132 204 22 / 0.35);
+    border-radius: 50%;
+    animation: fj-gira 30s linear infinite;
+  }
+
+  .fj-anillo--2 {
+    inset: 16%;
+    border-style: solid;
+    border-color: rgb(132 204 22 / 0.15);
+    animation-duration: 18s;
+    animation-direction: reverse;
+  }
+
+  .fj-anillo--1::after {
+    content: "";
+    position: absolute;
+    top: 12%;
+    left: 12%;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--c);
+    box-shadow: 0 0 18px var(--c);
+  }
+
+  .fj-placa {
+    position: relative;
+    display: grid;
+    place-items: center;
+    gap: 0.6rem;
+    width: 56%;
+    aspect-ratio: 0.82;
+    border-radius: 18px;
+    background:
+      repeating-linear-gradient(-45deg, rgb(0 0 0 / 0.07) 0 10px, transparent 10px 20px),
+      linear-gradient(160deg, #bef264, var(--c) 45%, #4d7c0f);
+    color: var(--fondo);
+    transform: rotate(-8deg) skewX(-4deg);
+    box-shadow:
+      0 0 0 6px rgb(132 204 22 / 0.12),
+      0 40px 80px -30px rgb(132 204 22 / 0.7);
+    animation: fj-flota 6s ease-in-out infinite;
+  }
+
+  .fj-placa i {
+    font-size: 4.5rem;
+    transform: rotate(-20deg);
+  }
+
+  .fj-placa span {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.9rem;
+    line-height: 0.9;
+    text-align: center;
+  }
+
+  .fj-flota {
+    position: absolute;
+    display: grid;
+    gap: 0.1rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--linea);
+    border-radius: 14px;
+    background: rgb(21 26 18 / 0.92);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 24px 40px -20px rgb(0 0 0 / 0.8);
+    animation: fj-flota 5s ease-in-out infinite;
+  }
+
+  .fj-flota--clase {
+    left: -4%;
+    bottom: 14%;
+    min-width: 12rem;
+    border-left: 3px solid var(--c);
+  }
+
+  .fj-flota--clase small {
+    color: var(--c);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .fj-flota--clase strong {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .fj-flota--clase span {
+    color: var(--gris);
+    font-size: 0.78rem;
+  }
+
+  .fj-flota--socios {
+    top: 8%;
+    right: -2%;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.8rem;
+    color: var(--gris);
+    animation-delay: -2.5s;
+  }
+
+  .fj-flota--socios strong {
+    color: var(--txt);
+  }
+
+  .fj-flota__caras {
+    display: flex;
+  }
+
+  .fj-flota__caras i {
+    display: grid;
+    place-items: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    margin-left: -0.4rem;
+    border: 2px solid var(--panel);
+    border-radius: 50%;
+    background: var(--t);
+    color: var(--fondo);
+    font-size: 0.7rem;
+    font-style: normal;
+    font-weight: 800;
+  }
+
+  .fj-flota__caras i:first-child {
+    margin-left: 0;
+  }
+
+  /* cinta en movimiento */
+  .fj-cinta {
+    position: relative;
+    z-index: 2;
+    padding-block: 0.9rem;
+    background: var(--c);
+    color: var(--fondo);
+    overflow: hidden;
+    transform: rotate(-1.5deg) scale(1.03);
+    box-shadow: 0 20px 40px -20px rgb(132 204 22 / 0.6);
+  }
+
+  .fj-cinta > div {
+    display: flex;
+    width: max-content;
+    animation: fj-cinta 30s linear infinite;
+  }
+
+  .fj-cinta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.6rem;
+    padding-right: 1.6rem;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.7rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .fj-cinta i {
+    font-size: 1rem;
+  }
+
+  .fj-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 2.2rem;
+  }
+
+  .fj-hero__datos {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, auto) 1fr;
+    gap: 2.5rem;
+    margin-top: 1.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--linea);
+  }
+
+  .fj-hero__datos strong {
+    display: block;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 3rem;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .fj-hero__datos span {
+    color: var(--gris);
+    font-size: 0.85rem;
+  }
+
+  .fj-aforo {
+    justify-self: end;
+    min-width: 14rem;
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--linea);
+    border-radius: 12px;
+    background: var(--panel);
+  }
+
+  .fj-aforo__t {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .fj-aforo__t i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: fj-parpadeo 1.2s infinite;
+  }
+
+  .fj-aforo__barra {
+    display: block;
+    height: 6px;
+    margin-top: 0.5rem;
+    border-radius: 99px;
+    background: var(--linea);
+    overflow: hidden;
+  }
+
+  .fj-aforo__barra i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    transition: width 1s;
+  }
+
+  /* secciones */
+  .fj-sec {
+    padding-block: 5.5rem;
+  }
+
+  .fj-sec > .fj-wrap {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .fj-sec.is-visto > .fj-wrap {
+    opacity: 1;
+    transform: none;
+  }
+
+  .fj-sec h2 {
+    font-size: clamp(2.8rem, 1.8rem + 3.5vw, 4.6rem);
+    text-transform: uppercase;
+  }
+
+  .fj-sec__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.2rem;
+    margin-bottom: 2.4rem;
+  }
+
+  .fj-sec__head--centro {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .fj-filtros,
+  .fj-toggle,
+  .fj-tabs,
+  .fj-seg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.3rem;
+    border: 1px solid var(--linea);
+    border-radius: 10px;
+    background: var(--panel);
+  }
+
+  .fj-filtros button,
+  .fj-toggle button,
+  .fj-tabs button,
+  .fj-seg button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.9rem;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--gris);
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+
+  .fj-filtros button i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--t);
+  }
+
+  :is(.fj-filtros, .fj-toggle, .fj-seg) button[aria-pressed="true"],
+  .fj-tabs button[aria-selected="true"] {
+    background: var(--txt);
+    color: var(--fondo);
+  }
+
+  .fj-toggle em {
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    background: var(--c);
+    color: var(--fondo);
+    font-style: normal;
+    font-size: 0.7rem;
+  }
+
+  /* horario */
+  .fj-horario {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .fj-dia {
+    display: grid;
+    align-content: start;
+    gap: 0.5rem;
+    padding: 0.6rem;
+    border: 1px solid var(--linea);
+    border-radius: 14px;
+    background: linear-gradient(180deg, var(--panel), color-mix(in srgb, var(--panel) 60%, var(--fondo)));
+  }
+
+  .fj-dia.is-hoy {
+    border-color: var(--c);
+    background:
+      linear-gradient(180deg, rgb(132 204 22 / 0.12), transparent 40%),
+      var(--panel);
+    box-shadow: 0 20px 40px -26px var(--c);
+  }
+
+  .fj-dia__t {
+    padding: 0.2rem 0.3rem 0.4rem;
+    border-bottom: 1px solid var(--linea);
+    color: var(--gris);
+    font-weight: 800;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .fj-dia.is-hoy .fj-dia__t::after {
+    content: " · hoy";
+    color: var(--c);
+  }
+
+  .fj-clase {
+    position: relative;
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.6rem 0.65rem;
+    border: 0;
+    border-left: 3px solid var(--t);
+    border-radius: 8px;
+    background: var(--panel2);
+    text-align: left;
+    transition: transform 0.2s, opacity 0.3s, background 0.2s;
+  }
+
+  .fj-clase:hover {
+    transform: translateY(-2px) scale(1.02);
+    background: color-mix(in srgb, var(--t) 15%, var(--panel2));
+    box-shadow: 0 12px 22px -14px var(--t);
+  }
+
+  .fj-clase.is-fuera {
+    opacity: 0.15;
+    pointer-events: none;
+  }
+
+  .fj-clase__h {
+    color: var(--t);
+    font-weight: 800;
+    font-size: 0.78rem;
+  }
+
+  .fj-clase strong {
+    font-size: 0.88rem;
+    line-height: 1.2;
+  }
+
+  .fj-clase__m {
+    color: var(--gris);
+    font-size: 0.72rem;
+  }
+
+  .fj-clase__ok {
+    display: none;
+    margin-top: 0.2rem;
+    color: var(--t);
+    font-size: 0.7rem;
+    font-weight: 800;
+  }
+
+  .fj-clase.is-reservada {
+    background: color-mix(in srgb, var(--t) 22%, var(--panel2));
+  }
+
+  .fj-clase.is-reservada .fj-clase__ok {
+    display: block;
+  }
+
+  .fj-nota {
+    margin-top: 1rem;
+    color: var(--gris);
+    font-size: 0.85rem;
+  }
+
+  .fj-modal {
+    width: min(28rem, 92vw);
+    padding: 2rem;
+    border: 1px solid var(--linea);
+    border-top: 4px solid var(--t);
+    border-radius: 18px;
+    background:
+      radial-gradient(80% 60% at 100% 0%, color-mix(in srgb, var(--t) 22%, transparent), transparent 65%),
+      var(--panel);
+    color: var(--txt);
+    box-shadow: 0 50px 100px -30px rgb(0 0 0 / 0.9);
+  }
+
+  .fj-modal[open] {
+    display: grid;
+    gap: 1rem;
+    animation: fj-pop 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+
+  .fj-modal[open].is-cierra {
+    animation: fj-cierra 0.26s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+    pointer-events: none;
+  }
+
+  .fj-modal::backdrop {
+    background: rgb(0 0 0 / 0.75);
+    backdrop-filter: blur(6px);
+  }
+
+  .fj-modal[open]::backdrop {
+    animation: fj-fondo-entra 0.3s ease-out;
+  }
+
+  .fj-modal.is-cierra::backdrop {
+    animation: fj-fondo-sale 0.26s ease-in forwards;
+  }
+
+  .fj-modal__x {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: grid;
+    place-items: center;
+    width: 2.3rem;
+    height: 2.3rem;
+    border: 0;
+    border-radius: 50%;
+    background: var(--panel2);
+    transition:
+      transform 0.25s,
+      background 0.25s,
+      color 0.25s;
+  }
+
+  .fj-modal__x:hover {
+    background: var(--t);
+    color: var(--fondo);
+    transform: rotate(90deg);
+  }
+
+  .fj-modal__tipo {
+    color: var(--t);
+    font-weight: 800;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .fj-modal h3 {
+    font-size: 2.6rem;
+  }
+
+  .fj-modal__datos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .fj-modal__datos div {
+    padding: 0.7rem;
+    border-radius: 10px;
+    background: var(--panel2);
+  }
+
+  .fj-modal__datos dt {
+    color: var(--gris);
+    font-size: 0.75rem;
+  }
+
+  .fj-modal__datos dd {
+    font-weight: 700;
+  }
+
+  .fj-plazas {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.4rem;
+  }
+
+  .fj-plazas__barra {
+    grid-column: 1 / -1;
+    height: 8px;
+    border-radius: 99px;
+    background: var(--linea);
+    overflow: hidden;
+  }
+
+  .fj-plazas__barra i {
+    display: block;
+    height: 100%;
+    background: var(--t);
+    transition: width 0.5s;
+  }
+
+  /* tarifas */
+  .fj-tarifas-sec {
+    background: var(--panel);
+  }
+
+  .fj-planes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .fj-plan {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 0.8rem;
+    padding: 2rem;
+    border: 1px solid var(--linea);
+    border-radius: 18px;
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.02), transparent 40%),
+      var(--fondo);
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.3s,
+      box-shadow 0.35s;
+  }
+
+  .fj-plan:hover {
+    transform: translateY(-6px);
+    border-color: #3d4a35;
+    box-shadow: 0 30px 50px -34px rgb(0 0 0 / 0.9);
+  }
+
+  .fj-plan.is-dest {
+    border: 2px solid var(--c);
+    background:
+      radial-gradient(90% 50% at 50% 0%, rgb(132 204 22 / 0.18), transparent 70%),
+      var(--fondo);
+    box-shadow: 0 30px 60px -30px var(--c);
+  }
+
+  .fj-plan.is-dest:hover {
+    box-shadow: 0 40px 70px -30px var(--c);
+  }
+
+  .fj-plan__dest {
+    position: absolute;
+    top: -0.8rem;
+    left: 50%;
+    padding: 0.25rem 0.8rem;
+    border-radius: 4px;
+    background: var(--c);
+    color: var(--fondo);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    translate: -50% 0;
+  }
+
+  .fj-plan h3 {
+    font-size: 2.6rem;
+  }
+
+  .fj-plan > p {
+    color: var(--gris);
+  }
+
+  .fj-plan__precio {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+  }
+
+  .fj-plan__precio strong {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 4.2rem;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .fj-plan__precio span {
+    color: var(--gris);
+  }
+
+  .fj-plan__anual {
+    min-height: 1.2em;
+    color: var(--c);
+    font-weight: 600;
+  }
+
+  .fj-plan ul {
+    display: grid;
+    gap: 0.55rem;
+    margin-block: 0.8rem;
+  }
+
+  .fj-plan li i {
+    width: 1.2rem;
+    color: var(--c);
+  }
+
+  .fj-plan li.is-no {
+    color: #55604f;
+    text-decoration: line-through;
+  }
+
+  .fj-plan li.is-no i {
+    color: #55604f;
+  }
+
+  /* calculadora */
+  .fj-calc {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .fj-tabs {
+    width: fit-content;
+    margin-block: 1.4rem;
+  }
+
+  .fj-campos {
+    display: grid;
+    gap: 1.1rem;
+  }
+
+  .fj-campos label {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    font-weight: 700;
+  }
+
+  .fj-campos label[hidden],
+  .fj-seg[hidden] {
+    display: none;
+  }
+
+  .fj-campos output {
+    color: var(--c);
+  }
+
+  /* deslizadores con pista rellena (el relleno se dibuja con --p desde el script) */
+  .fj-campos input[type="range"] {
+    grid-column: 1 / -1;
+    height: 8px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--c) var(--p, 50%), var(--linea) var(--p, 50%));
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .fj-campos input[type="range"]::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+    border: 4px solid var(--fondo);
+    border-radius: 50%;
+    background: var(--c);
+    box-shadow: 0 0 0 2px var(--c), 0 6px 14px -4px var(--c);
+    appearance: none;
+    transition: transform 0.2s;
+  }
+
+  .fj-campos input[type="range"]:active::-webkit-slider-thumb {
+    transform: scale(1.2);
+  }
+
+  .fj-campos input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: 4px solid var(--fondo);
+    border-radius: 50%;
+    background: var(--c);
+    box-shadow: 0 0 0 2px var(--c);
+  }
+
+  .fj-campos select {
+    grid-column: 1 / -1;
+    padding: 0.7rem;
+    border: 1px solid var(--linea);
+    border-radius: 8px;
+    background: var(--panel);
+  }
+
+  .fj-seg {
+    width: fit-content;
+  }
+
+  .fj-resultado {
+    display: grid;
+    justify-items: center;
+    padding: 2.5rem;
+    border: 1px solid var(--linea);
+    border-radius: 24px;
+    background:
+      radial-gradient(70% 60% at 50% 30%, rgb(132 204 22 / 0.12), transparent 70%),
+      var(--panel);
+    text-align: center;
+    box-shadow: 0 40px 70px -45px rgb(132 204 22 / 0.5);
+  }
+
+  .fj-campos select {
+    color: var(--txt);
+  }
+
+  .fj-gauge {
+    width: 100%;
+    max-width: 18rem;
+  }
+
+  .fj-gauge path {
+    fill: none;
+    stroke-width: 16;
+    stroke-linecap: round;
+  }
+
+  .fj-gauge__fondo {
+    stroke: var(--linea);
+  }
+
+  .fj-gauge__valor {
+    stroke: var(--c);
+    stroke-dasharray: 0 100;
+    transition: stroke-dasharray 0.6s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.3s;
+  }
+
+  .fj-resultado__n {
+    margin-top: -2.8rem;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 4.5rem;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .fj-resultado__u {
+    color: var(--gris);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+  }
+
+  .fj-resultado__t {
+    max-width: 22rem;
+    margin-top: 1rem;
+    color: var(--gris);
+  }
+
+  .fj-macros {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    width: 100%;
+    margin-top: 1.4rem;
+  }
+
+  .fj-macros[hidden] {
+    display: none;
+  }
+
+  .fj-macros div {
+    padding: 0.7rem;
+    border-radius: 10px;
+    background: var(--panel2);
+  }
+
+  .fj-macros span {
+    display: block;
+    color: var(--gris);
+    font-size: 0.72rem;
+  }
+
+  /* coaches */
+  .fj-coaches {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .fj-coach {
+    position: relative;
+    height: 21rem;
+    perspective: 900px;
+    outline: none;
+  }
+
+  /* inicial gigante de fondo en la cara delantera */
+  .fj-coach__cara--frente::before {
+    content: attr(data-ini);
+    position: absolute;
+    left: 1rem;
+    top: 0.5rem;
+    color: color-mix(in srgb, var(--t) 14%, transparent);
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 11rem;
+    line-height: 1;
+  }
+
+  .fj-coach__cara--frente::after {
+    content: "Pasa el ratón ↻";
+    position: absolute;
+    right: 1.2rem;
+    bottom: 1.2rem;
+    color: var(--gris);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .fj-coach__cara--frente > * {
+    position: relative;
+  }
+
+  .fj-coach__cara {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: end;
+    gap: 0.3rem;
+    padding: 1.5rem;
+    border-radius: 16px;
+    backface-visibility: hidden;
+    transition: transform 0.7s cubic-bezier(0.3, 1.2, 0.4, 1);
+  }
+
+  .fj-coach__cara--frente {
+    background:
+      radial-gradient(circle at 70% 30%, color-mix(in srgb, var(--t) 45%, transparent), transparent 60%),
+      var(--panel);
+    border: 1px solid var(--linea);
+  }
+
+  .fj-coach__cara--frente i {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    font-size: 3.5rem;
+    color: var(--t);
+    opacity: 0.9;
+  }
+
+  .fj-coach__cara strong {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 2rem;
+    font-weight: 400;
+  }
+
+  .fj-coach__cara--frente span {
+    color: var(--t);
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .fj-coach__cara--dorso {
+    align-content: center;
+    background: var(--t);
+    color: var(--fondo);
+    transform: rotateY(180deg);
+  }
+
+  .fj-coach__cara--dorso ul {
+    display: grid;
+    gap: 0.5rem;
+    font-weight: 700;
+  }
+
+  .fj-coach:hover .fj-coach__cara--frente,
+  .fj-coach:focus-visible .fj-coach__cara--frente {
+    transform: rotateY(-180deg);
+  }
+
+  .fj-coach:hover .fj-coach__cara--dorso,
+  .fj-coach:focus-visible .fj-coach__cara--dorso {
+    transform: rotateY(0);
+  }
+
+  /* prueba */
+  .fj-prueba-sec {
+    background:
+      linear-gradient(120deg, color-mix(in srgb, var(--c) 18%, transparent), transparent 60%),
+      var(--panel);
+  }
+
+  .fj-prueba {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .fj-prueba p {
+    margin-top: 1rem;
+    color: var(--gris);
+  }
+
+  .fj-pform {
+    display: grid;
+    gap: 0.9rem;
+    padding: 2rem;
+    border: 1px solid var(--linea);
+    border-radius: 20px;
+    background: var(--fondo);
+    box-shadow: 0 40px 70px -40px rgb(0 0 0 / 0.9);
+  }
+
+  .fj-pform :is(input, select) {
+    color: var(--txt);
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .fj-pform :is(input, select):focus {
+    box-shadow: 0 0 0 4px rgb(132 204 22 / 0.18);
+  }
+
+  .fj-pform[hidden],
+  .fj-pase[hidden] {
+    display: none;
+  }
+
+  .fj-pform label {
+    display: grid;
+    gap: 0.35rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .fj-pform :is(input, select) {
+    padding: 0.8rem;
+    border: 1px solid var(--linea);
+    border-radius: 8px;
+    background: var(--panel);
+    outline: none;
+  }
+
+  .fj-pform :is(input, select):focus {
+    border-color: var(--c);
+  }
+
+  .fj-error {
+    min-height: 1.2em;
+    color: #f87171;
+    font-size: 0.85rem;
+  }
+
+  .fj-pase {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.5rem;
+    align-items: center;
+    padding: 2rem;
+    border-radius: 16px;
+    background: var(--txt);
+    color: var(--fondo);
+    animation: fj-pop 0.5s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+
+  .fj-pase__qr {
+    display: grid;
+    grid-template-columns: repeat(11, 10px);
+    gap: 1px;
+    padding: 8px;
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  .fj-pase__qr i {
+    width: 10px;
+    height: 10px;
+  }
+
+  .fj-pase__qr i.is-on {
+    background: #0c0f0a;
+  }
+
+  .fj-pase strong {
+    display: block;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 2.4rem;
+    font-weight: 400;
+  }
+
+  .fj-pase p {
+    margin-top: 0;
+    color: #4b5545;
+  }
+
+  .fj-pase code {
+    display: inline-block;
+    margin-top: 0.6rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    background: var(--fondo);
+    color: var(--c);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+
+  .fj-pie {
+    position: relative;
+    padding-block: 0 6rem;
+    border-top: 1px solid var(--linea);
+    background:
+      radial-gradient(40rem 20rem at 0% 0%, rgb(132 204 22 / 0.1), transparent 70%),
+      var(--fondo);
+    color: var(--gris);
+    overflow: hidden;
+  }
+
+  /* «FORJA» gigante de fondo */
+  .fj-pie::after {
+    content: "FORJA";
+    position: absolute;
+    left: 50%;
+    bottom: -3.5rem;
+    color: transparent;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: clamp(8rem, 26vw, 22rem);
+    line-height: 1;
+    white-space: nowrap;
+    -webkit-text-stroke: 1px rgb(132 204 22 / 0.12);
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  .fj-pie__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 4rem 3rem;
+    border-bottom: 1px solid var(--linea);
+  }
+
+  .fj-pie__cta h2 {
+    color: var(--txt);
+    font-size: clamp(3rem, 2rem + 4vw, 5.5rem);
+    text-transform: uppercase;
+  }
+
+  .fj-pie__cta h2 span {
+    color: transparent;
+    -webkit-text-stroke: 2px var(--c);
+  }
+
+  .fj-pie__cols {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1.3fr;
+    gap: 2.5rem;
+    padding-block: 3rem;
+  }
+
+  .fj-pie__marca {
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+  }
+
+  .fj-pie__marca .fj-logo {
+    color: var(--txt);
+  }
+
+  .fj-pie__marca p {
+    max-width: 20rem;
+    font-size: 0.9rem;
+  }
+
+  .fj-pie__redes {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .fj-pie__redes a {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--linea);
+    border-radius: 8px;
+    color: var(--txt);
+    transform: skewX(-8deg);
+    transition:
+      background 0.2s,
+      color 0.2s,
+      border-color 0.2s,
+      transform 0.2s;
+  }
+
+  .fj-pie__redes a:hover {
+    border-color: var(--c);
+    background: var(--c);
+    color: var(--fondo);
+    transform: skewX(-8deg) translateY(-2px);
+  }
+
+  .fj-pie__col {
+    display: grid;
+    align-content: start;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .fj-pie__col strong {
+    margin-bottom: 0.3rem;
+    color: var(--c);
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .fj-pie__col a {
+    justify-self: start;
+    text-decoration: none;
+    transition:
+      color 0.2s,
+      transform 0.2s;
+  }
+
+  .fj-pie__col a:hover {
+    color: var(--c);
+    transform: translateX(3px);
+  }
+
+  .fj-pie__col i {
+    width: 1.2rem;
+    color: var(--c);
+  }
+
+  .fj-pie__grande {
+    color: var(--txt);
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 2.4rem;
+    line-height: 1;
+  }
+
+  .fj-pie__base {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.6rem 1.5rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--linea);
+    font-size: 0.8rem;
+  }
+
+  .fj-pie__legal {
+    display: flex;
+    gap: 1.2rem;
+  }
+
+  .fj-pie__legal a {
+    text-decoration: none;
+  }
+
+  .fj-pie__legal a:hover {
+    color: var(--c);
+  }
+
+  @keyframes fj-sube {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+  }
+
+  @keyframes fj-subraya {
+    to {
+      background-size: 100% 0.12em;
+    }
+  }
+
+  @keyframes fj-gira {
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  @keyframes fj-flota {
+    50% {
+      translate: 0 -10px;
+    }
+  }
+
+  @keyframes fj-cinta {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes fj-cierra {
+    to {
+      opacity: 0;
+      transform: scale(0.92) translateY(10px);
+    }
+  }
+
+  @keyframes fj-fondo-entra {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fj-fondo-sale {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fj-lluvia {
+    from {
+      background-position: 0 -40%;
+    }
+    to {
+      background-position: 0 140%;
+    }
+  }
+
+  @keyframes fj-parpadeo {
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  @keyframes fj-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+  }
+
+  @media (max-width: 64rem) {
+    .fj-nav {
+      display: none;
+    }
+
+    .fj-head__in > .fj-btn {
+      margin-left: auto;
+    }
+
+    .fj-horario {
+      grid-template-columns: repeat(7, 11rem);
+      overflow-x: auto;
+      padding-bottom: 0.6rem;
+    }
+
+    .fj-planes,
+    .fj-calc,
+    .fj-prueba {
+      grid-template-columns: 1fr;
+    }
+
+    .fj-coaches {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .fj-hero__datos {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .fj-aforo {
+      grid-column: 1 / -1;
+      justify-self: stretch;
+    }
+
+    .fj-hero__in {
+      grid-template-columns: 1fr;
+    }
+
+    .fj-hero__visual {
+      width: min(100%, 24rem);
+      justify-self: center;
+    }
+
+    .fj-pie__cols {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .fj-pie__marca {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .fj-coaches {
+      grid-template-columns: 1fr;
+    }
+
+    .fj-hero__datos strong {
+      font-size: 2.2rem;
+    }
+
+    .fj-pase {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      text-align: center;
+    }
+
+    .fj-pie__cols {
+      grid-template-columns: 1fr;
+    }
+
+    .fj-flota--clase {
+      left: 0;
+    }
+
+    .fj-flota--socios {
+      right: 0;
+    }
+  }
+</style>

@@ -1,0 +1,157 @@
+/* =====================================================================
+   desplegables.css · Desplegables de filtro / categoría con el diseño y la
+   animación del filtro de "Anuncios y Novedades" de home.html:
+   - Botón: fondo oscuro, borde morado, icono de embudo morado; al pasar el
+     ratón o con el menú abierto, el borde brilla con el color del icono de la
+     opción elegida ("Todas" al cargar); ese color lo pone src/components/desplegables.js.
+   - Menú: fondo #13141f con borde y halo morados; aparece con un fundido,
+     bajando y creciendo un poco (0,25 s).
+   - Opciones: texto gris claro con su icono de color; al pasar el ratón,
+     fondo morado suave y texto blanco.
+
+   Se aplica a:
+     comercios.html, post-ilegales.html  .filter-dropdown-btn / -options / -option  (abierto: .open)
+     lspd-academia.html                  .filter-dropdown-btn + .custom-dropdown-menu / -item (abierto: contenedor .open)
+     sugerencias.html                    .sg-dd-btn / .sg-dd-menu / .sg-dd-item        (abierto: .sg-dd.abierto)
+     tickets.html                        .select-selected / .select-items              (cerrado: .select-hide)
+   (home.html ya tiene este diseño de serie.)
+
+   El #desplegables dentro de :is() da a todas las reglas la prioridad de un ID,
+   para que manden sobre los estilos que cada página tenía.
+   ===================================================================== */
+
+/* ---------- Botón ---------- */
+:is(#desplegables, .filter-dropdown-btn, .sg-dd-btn, .select-selected) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #0f1016;
+    border: 1px solid rgba(168, 85, 247, 0.45);
+    border-radius: 14px;
+    padding: 9px 14px;
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: none;
+    transform: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+:is(#desplegables, .filter-dropdown-btn, .sg-dd-btn) i.fa-filter { color: #a855f7; }
+:is(#desplegables, .filter-dropdown-btn, .sg-dd-btn, .select-selected) i.fa-chevron-down { color: #94a3b8; font-size: 11px; transition: transform 0.25s ease; }
+
+:is(#desplegables,
+    .filter-dropdown-btn:hover,
+    .sg-dd-btn:hover,
+    .select-selected:hover,
+    .filter-dropdown-container:has(.filter-dropdown-options.open) .filter-dropdown-btn,
+    .filter-dropdown-container.active .filter-dropdown-btn,
+    .custom-dropdown-container.open .filter-dropdown-btn,
+    .sg-dd.abierto .sg-dd-btn,
+    .custom-select.open .select-selected) {
+    /* --dd-c: color del icono de la opción elegida (lo pone src/components/desplegables.js) */
+    background: #0f1016;
+    border-color: var(--dd-c, #a855f7);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--dd-c, #a855f7) 40%, transparent);
+    transform: none;
+    color: #fff;
+}
+/* La flecha gira al abrir */
+:is(#desplegables,
+    .filter-dropdown-container:has(.filter-dropdown-options.open) .filter-dropdown-btn,
+    .filter-dropdown-container.active .filter-dropdown-btn,
+    .custom-dropdown-container.open .filter-dropdown-btn,
+    .sg-dd.abierto .sg-dd-btn) i.fa-chevron-down { transform: rotate(180deg); }
+:is(#desplegables, .filter-dropdown-btn, .sg-dd-btn, .select-selected):focus-visible { outline: 2px solid #a855f7; outline-offset: 2px; }
+
+/* ---------- Menú (cerrado) ---------- */
+:is(#desplegables, .filter-dropdown-options, .custom-dropdown-container .custom-dropdown-menu, .sg-dd-menu, .select-items) {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 6px 0;
+    background: #13141f;
+    border: 1px solid rgba(168, 85, 247, 0.5);
+    border-radius: 14px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 30px rgba(168, 85, 247, 0.4);
+    overflow: hidden;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transform-origin: top center;
+    pointer-events: none;
+    animation: none;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0s linear 0.25s;
+}
+/* El de tickets tiene muchas categorías: puede desplazarse */
+:is(#desplegables, .select-items) { overflow-y: auto; }
+
+/* ---------- Menú (abierto) ---------- */
+:is(#desplegables,
+    .filter-dropdown-options.open,
+    .custom-dropdown-container.open .custom-dropdown-menu,
+    .sg-dd.abierto .sg-dd-menu,
+    .select-items:not(.select-hide)) {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0s linear 0s;
+}
+
+/* ---------- Opciones ---------- */
+:is(#desplegables, .filter-dropdown-option, .custom-dropdown-container .custom-dropdown-item, .sg-dd-item, .select-items > div) {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #cbd5e1;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    text-align: left;
+    cursor: pointer;
+    transform: none;
+    transition: background 0.2s, color 0.2s;
+}
+:is(#desplegables, .filter-dropdown-option, .custom-dropdown-container .custom-dropdown-item, .sg-dd-item, .select-items > div) i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    flex-shrink: 0;
+}
+:is(#desplegables,
+    .filter-dropdown-option:hover,
+    .custom-dropdown-container .custom-dropdown-item:hover,
+    .sg-dd-item:hover,
+    .select-items > div:hover,
+    .select-items > div.highlighted-match) {
+    background: rgba(168, 85, 247, 0.2);
+    color: #fff;
+    padding-left: 16px;
+    transform: none;
+}
+/* La opción elegida queda marcada */
+:is(#desplegables, .custom-dropdown-container .custom-dropdown-item.active, .sg-dd-item.on) {
+    background: rgba(168, 85, 247, 0.14);
+    color: #fff;
+    font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(#desplegables, .filter-dropdown-options, .custom-dropdown-container .custom-dropdown-menu, .sg-dd-menu, .select-items,
+        .filter-dropdown-btn, .sg-dd-btn, .select-selected) { transition: none; }
+}

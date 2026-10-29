@@ -1,0 +1,58 @@
+---
+import SectionHead from "./SectionHead.astro";
+import { testimonials } from "@/data/testimonials";
+---
+
+{
+  testimonials.length > 0 && (
+    <section id="opiniones" class="section">
+      <div class="container">
+        <SectionHead label="Opiniones" title="Lo que dicen mis clientes" />
+        <ul role="list" class="grid">
+          {testimonials.map((t, i) => (
+            <li class="card item" data-reveal style={`--i:${i}`}>
+              <blockquote>
+                <p>“{t.quote}”</p>
+              </blockquote>
+              <p class="author">
+                <strong>{t.author}</strong>
+                <span class="mono">{t.role}</span>
+              </p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-4);
+  }
+
+  .item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: var(--space-6);
+  }
+
+  blockquote p {
+    font-size: var(--fs-md);
+    line-height: 1.5;
+  }
+
+  .author {
+    display: grid;
+    margin-top: auto;
+    font-size: var(--fs-sm);
+  }
+
+  .author span {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+</style>

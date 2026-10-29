@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipo | Nyx Community</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lexend:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/src/assets/home.css">
+    <link rel="stylesheet" href="/src/assets/perfil.css">
+
+    <style>
+        /* =====================================================================
+           equipo1.html · Equipo administrativo (versión mejorada)
+           1. Cabecera con totales, buscador y filtro por categoría.
+           2. Tarjetas del staff: anillo del color de su categoría, rango,
+              especialidades y redes. Se abren con clic o con Enter.
+           3. Perfil de cada miembro (misma lógica de privacidad que equipo.html).
+           Datos: /api/staff, /api/perfiles-publicos, /api/perfil-settings,
+           /api/sugerencias y /api/fotografias.
+           ===================================================================== */
+        :root {
+            --eq-purple: #a855f7;
+            --eq-purple-soft: #c084fc;
+            --eq-pink: #ec4899;
+            --eq-card: rgba(20, 16, 30, 0.72);
+            --eq-line: rgba(255, 255, 255, 0.08);
+            --eq-muted: #94a3b8;
+        }
+        body { color: #fff; margin: 0; padding: 0; overflow-x: clip; }
+
+        /* Fondo del listado: el mismo que servidor.html (cuadrícula de perfil.css).
+           Al abrir el perfil de un miembro (html.en-perfil) se usa el fondo con resplandor morado. */
+        html.en-perfil { background-color: #12101c; }
+        html.en-perfil .grid-background {
+            position: fixed !important; inset: 0 !important; z-index: 0 !important; pointer-events: none;
+            background-color: #12101c;
+            background-image:
+                radial-gradient(900px 500px at 85% -10%, rgba(168, 85, 247, 0.18), transparent 70%),
+                radial-gradient(700px 450px at 0% 100%, rgba(236, 72, 153, 0.10), transparent 70%),
+                linear-gradient(to right, rgba(168, 85, 247, 0.07) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(168, 85, 247, 0.07) 1px, transparent 1px);
+            background-size: auto, auto, 40px 40px, 40px 40px;
+        }
+        .app-container { position: relative; z-index: 1; }
+
+        /* Menú lateral: sin animación al cargar (sí se anima al cerrarlo/abrirlo) */
+        aside.sidebar, .sidebar { animation: none !important; }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.35); border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(168, 85, 247, 0.6); }
+
+        .eq-wrap { width: 100%; max-width: 1180px; margin: 0 auto; }
+
+        /* ---------- 1. Cabecera ---------- */
+        .eq-hero {
+            position: relative; overflow: hidden;
+            padding: 30px; margin-bottom: 22px;
+            border-radius: 20px;
+            background: var(--eq-card);
+            -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+            border: 1px solid rgba(168, 85, 247, 0.28);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        }
+        .eq-hero::before {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background:
+                radial-gradient(520px 240px at 0% 0%, rgba(168, 85, 247, 0.2), transparent 70%),
+                radial-gradient(420px 240px at 100% 100%, rgba(236, 72, 153, 0.12), transparent 70%);
+        }
+        .eq-hero > * { position: relative; }
+        .eq-kicker { font-size: 11.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--eq-purple-soft); }
+        .eq-title { margin: 8px 0 6px; font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; }
+        .eq-title span {
+            background: linear-gradient(90deg, var(--eq-purple), var(--eq-pink));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .eq-sub { margin: 0; color: var(--eq-muted); font-size: 0.95rem; line-height: 1.6; max-width: 560px; }
+
+        /* Buscador, a la derecha */
+        .eq-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 26px; }
+        .eq-search {
+            flex: 1 1 260px; max-width: 360px;
+            display: flex; align-items: center; gap: 10px;
+            padding: 0 14px; height: 42px; border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(168, 85, 247, 0.35);
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+        .eq-search:focus-within { border-color: var(--eq-purple); box-shadow: 0 0 16px rgba(168, 85, 247, 0.35); }
+        .eq-search i { color: var(--eq-muted); font-size: 13px; }
+        .eq-search input {
+            flex: 1; min-width: 0; background: transparent; border: 0; outline: 0;
+            color: #fff; font: 500 13.5px 'Inter', sans-serif;
+        }
+        .eq-search input::placeholder { color: #64748b; }
+
+        /* ---------- 2. Secciones y tarjetas (mismo estilo de tarjeta que servidor.html) ---------- */
+        .eq-section { margin-bottom: 34px; }
+        .eq-section-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .eq-section-ico {
+            width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; font-size: 15px;
+            color: var(--eq-purple-soft); background: rgba(168, 85, 247, 0.15);
+        }
+        .eq-section-head h2 { margin: 0; font-size: 1.2rem; font-weight: 700; color: #fff; }
+
+        .eq-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+
+        .eq-card {
+            position: relative;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            padding: 24px 18px 18px; border-radius: 18px; cursor: pointer;
+            background: var(--eq-card); border: 1px solid var(--eq-line);
+            -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+            transition: border-color .25s ease, background .25s ease;
+            animation: eqIn .45s cubic-bezier(0.16, 1, 0.3, 1) both;
+            animation-delay: calc(var(--i, 0) * 45ms);
+        }
+        @keyframes eqIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+        .eq-card:hover { border-color: rgba(168, 85, 247, 0.45); background: rgba(28, 20, 42, 0.78); }
+        .eq-card:focus-visible { outline: 2px solid var(--eq-purple); outline-offset: 3px; }
+
+        .eq-avatar {
+            position: relative; width: 88px; height: 88px; border-radius: 50%;
+            box-shadow: 0 8px 22px -8px rgba(0, 0, 0, 0.7);
+        }
+        .eq-avatar img {
+            width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; background: #13141f;
+        }
+        .eq-name {
+            margin: 14px 0 6px; font-size: 1.05rem; font-weight: 800; letter-spacing: .02em;
+            max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .eq-rank {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 11px; border-radius: 999px;
+            font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+            color: #e9d5ff; background: rgba(168, 85, 247, 0.14);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+        }
+        .eq-specs { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 10px; min-height: 22px; }
+        .eq-spec {
+            font-size: 11px; font-weight: 600; color: #cbd5e1;
+            padding: 3px 9px; border-radius: 7px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--eq-line);
+        }
+        /* Redes centradas debajo de la tarjeta */
+        .eq-card-foot {
+            width: 100%; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--eq-line);
+            display: flex; align-items: center; justify-content: center; min-height: 45px;
+        }
+        .eq-socials { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
+        .eq-social {
+            width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+            color: #94a3b8; font-size: 14px; text-decoration: none;
+            background: rgba(255, 255, 255, 0.04); border: 1px solid var(--eq-line);
+            transition: transform .25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        /* Al pasar el ratón: solo se hace un poco más grande, sin cambiar de color */
+        .eq-social:hover, .eq-social:focus-visible { transform: scale(1.12); }
+        .eq-social:focus-visible { outline: 2px solid var(--eq-purple); outline-offset: 2px; }
+        .eq-nosocial { font-size: 11.5px; color: #64748b; }
+
+        /* Cargando / vacío / error */
+        .eq-skel { pointer-events: none; animation: none; }
+        .eq-skel .eq-avatar, .eq-skel .sk {
+            background: linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.09), rgba(255,255,255,.04));
+            background-size: 200% 100%; animation: eqShimmer 1.4s linear infinite; box-shadow: none;
+        }
+        .eq-skel .sk { border-radius: 8px; height: 14px; margin-top: 12px; }
+        @keyframes eqShimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+        .eq-empty {
+            text-align: center; padding: 44px 20px; border-radius: 18px;
+            background: rgba(20, 16, 30, 0.45); border: 1px dashed rgba(255, 255, 255, 0.12); color: var(--eq-muted);
+        }
+        .eq-empty i { font-size: 26px; color: var(--eq-purple-soft); margin-bottom: 10px; display: block; }
+        .eq-empty b { display: block; color: #fff; font-size: 15px; margin-bottom: 4px; }
+        .eq-empty button {
+            margin-top: 14px; padding: 8px 16px; border-radius: 10px; cursor: pointer;
+            font: 600 13px 'Plus Jakarta Sans', sans-serif; color: #e9d5ff;
+            background: rgba(168, 85, 247, 0.14); border: 1px solid rgba(168, 85, 247, 0.4);
+        }
+        .eq-empty button:hover { background: rgba(168, 85, 247, 0.3); color: #fff; }
+
+        /* ---------- 3. Perfil de un miembro ---------- */
+        .breadcrumb a { color: #94a3b8; text-decoration: none; cursor: pointer; }
+        .breadcrumb a:hover { color: #fff; }
+        .breadcrumb .bc-sep { margin: 0 8px; opacity: .5; }
+
+        .pv { max-width: 1100px; margin: 0 auto; animation: pvIn .5s cubic-bezier(.16,1,.3,1) both; }
+        @keyframes pvIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+        .pv-banner {
+            position: relative; height: 200px; border-radius: 20px; overflow: hidden;
+            background:
+                url('https://i.imgur.com/KNIw6K5.png') center / cover no-repeat,
+                linear-gradient(135deg, #5865f2, #a855f7 55%, #ec4899);
+            box-shadow: 0 10px 30px rgba(0,0,0,.45);
+        }
+        .pv-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(18, 16, 28, .75)); }
+
+        /* Cabecera del perfil: avatar montado sobre el banner */
+        .pv-head { display: flex; align-items: flex-end; gap: 22px; margin: -62px 0 0; padding: 0 26px; position: relative; z-index: 2; flex-wrap: wrap; }
+        .pv-avatar-ring {
+            width: 132px; height: 132px; border-radius: 26px; flex-shrink: 0;
+            box-shadow: 0 12px 30px -6px rgba(0, 0, 0, 0.7);
+        }
+        .pv-avatar { width: 100%; height: 100%; border-radius: 26px; object-fit: cover; display: block; background: #13141f; }
+        .pv-head-info { flex: 1; min-width: 0; padding-bottom: 6px; }
+        .pv-name { margin: 0 0 6px; font-size: 28px; font-weight: 800; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; word-break: break-word; }
+        .pv-id {
+            margin: 0; padding: 0; background: none; border: 0; cursor: pointer; font-family: inherit;
+            color: #94a3b8; font-size: 13.5px; word-break: break-all; text-align: left;
+            display: inline-flex; align-items: center; gap: 7px; transition: color .2s;
+        }
+        .pv-id i { font-size: 12px; opacity: 0; transition: opacity .2s; }
+        .pv-id:hover, .pv-id:focus-visible { color: #fff; }
+        .pv-id:hover i, .pv-id:focus-visible i { opacity: 1; }
+        .pv-id:focus-visible { outline: 2px solid var(--eq-purple); outline-offset: 3px; border-radius: 4px; }
+        .pv-copy {
+            background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #cbd5e1;
+            width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 12px; transition: all .2s;
+        }
+        .pv-copy:hover { background: rgba(168,85,247,.25); border-color: #a855f7; color: #fff; }
+        .pv-head-pills { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 8px; }
+
+        .pv-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; margin-top: 26px; align-items: start; }
+        @media (max-width: 900px) { .pv-grid { grid-template-columns: 1fr; } }
+        .pv-side {
+            padding: 20px; border-radius: 18px; background: var(--eq-card); border: 1px solid var(--eq-line);
+            position: sticky; top: 20px;
+        }
+        @media (max-width: 900px) { .pv-side { position: static; } }
+        .pv-label { margin: 20px 0 10px; font-size: 11.5px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: #94a3b8; }
+        .pv-label:first-child { margin-top: 0; }
+        .pv-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+        .pv-pill {
+            display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border-radius: 999px;
+            background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); font-size: 12.5px; font-weight: 600;
+        }
+        .pv-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .pv-info { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+        .pv-info li { display: flex; align-items: center; gap: 12px; font-size: 13.5px; color: #e2e8f0; }
+        .pv-info li i { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: var(--eq-purple-soft); background: rgba(168,85,247,.12); flex-shrink: 0; }
+
+        .pv-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media (max-width: 560px) { .pv-stats { grid-template-columns: 1fr; } }
+        .pv-stat {
+            display: flex; align-items: center; gap: 16px; padding: 18px 20px; border-radius: 18px;
+            background: var(--eq-card); border: 1px solid rgba(255,255,255,.08);
+        }
+        .pv-stat-ico { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .pv-stat small { display: block; color: #94a3b8; font-size: 13px; }
+        .pv-stat strong { display: block; font-size: 24px; font-weight: 800; margin-top: 2px; }
+
+        .pv-sections { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .pv-sec { border-radius: 16px; background: var(--eq-card); border: 1px solid var(--eq-line); overflow: hidden; }
+        .pv-sec-head {
+            width: 100%; display: flex; align-items: center; gap: 12px; background: transparent; border: none;
+            color: #fff; padding: 16px 18px; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 15px; font-weight: 700; text-align: left; transition: background .2s;
+        }
+        .pv-sec-head:hover { background: rgba(255,255,255,.02); }
+        .pv-sec-head:focus-visible { outline: 2px solid var(--eq-purple); outline-offset: -2px; }
+        .pv-sec-head > i:first-child { color: var(--eq-purple-soft); width: 18px; text-align: center; }
+        .pv-sec-head span { flex: 1; }
+        .pv-chev { color: #94a3b8; transition: transform .35s cubic-bezier(.16,1,.3,1); }
+        .pv-sec.open .pv-chev { transform: rotate(180deg); }
+        .pv-sec-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .4s cubic-bezier(.16,1,.3,1); }
+        .pv-sec.open .pv-sec-body { grid-template-rows: 1fr; }
+        .pv-sec-inner { overflow: hidden; min-height: 0; }
+        .pv-sec-pad { padding: 0 18px 18px; }
+
+        .pv-empty { text-align: center; padding: 26px 16px; border: 1px dashed rgba(255,255,255,.14); border-radius: 14px; color: #94a3b8; font-size: 13.5px; }
+        .pv-empty b { display: block; color: #fff; margin-bottom: 6px; font-size: 14px; }
+        .pv-socials { display: flex; flex-wrap: wrap; gap: 10px; }
+        .pv-social {
+            display: inline-flex; align-items: center; gap: 9px; padding: 9px 16px; border-radius: 12px; text-decoration: none;
+            background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); color: #e2e8f0; font-size: 13.5px; font-weight: 600;
+            transition: border-color .2s;
+        }
+        /* Al pasar el ratón: sin moverse, solo se pinta el borde del color de la red */
+        .pv-social:hover { border-color: var(--s, #a855f7); }
+        .pv-social:focus-visible { outline: 2px solid var(--eq-purple); outline-offset: 2px; }
+        .pv-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+        .pv-photo { display: block; aspect-ratio: 3 / 2; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,.1); background: #13141f; }
+        .pv-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s ease; }
+        .pv-photo:hover img { transform: scale(1.07); }
+        .pv-sug {
+            display: block; width: 100%; text-align: left; cursor: pointer; color: #fff; font-family: inherit;
+            padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07);
+            margin-bottom: 10px; border-left: 3px solid var(--c, #fbbf24);
+            transition: background .2s, border-color .2s;
+        }
+        .pv-sug:hover { background: rgba(168,85,247,.08); border-color: rgba(168,85,247,.45); border-left-color: var(--c, #fbbf24); }
+        .pv-sug:focus-visible { outline: 2px solid var(--eq-purple); outline-offset: 2px; }
+
+        /* Ventana con una sugerencia completa */
+        .sug-modal {
+            position: fixed; inset: 0; z-index: 3000;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+            background: rgba(0, 0, 0, 0); pointer-events: none;
+            transition: background .3s ease, backdrop-filter .3s ease;
+        }
+        .sug-modal.active { background: rgba(0, 0, 0, 0.75); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); pointer-events: auto; }
+        .sug-modal-box {
+            position: relative; width: 100%; max-width: 580px; max-height: calc(100vh - 40px); overflow-y: auto; overscroll-behavior: contain;
+            padding: 26px; border-radius: 20px; background: #13141f; color: #fff;
+            border: 1px solid rgba(168, 85, 247, 0.5); box-shadow: 0 0 35px rgba(168, 85, 247, 0.3);
+            opacity: 0; transform: scale(.94) translateY(16px);
+            transition: transform .3s cubic-bezier(0.16, 1, 0.3, 1), opacity .3s ease;
+        }
+        .sug-modal.active .sug-modal-box { opacity: 1; transform: none; }
+        .sug-modal-x {
+            position: absolute; top: 18px; right: 18px; width: 34px; height: 34px; border-radius: 50%;
+            display: grid; place-items: center; cursor: pointer; color: #cbd5e1;
+            background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3);
+            transition: background .2s, color .2s, border-color .2s;
+        }
+        .sug-modal-x:hover { background: rgba(168, 85, 247, 0.35); border-color: rgba(168, 85, 247, 0.7); color: #fff; }
+        .sug-modal-x:focus-visible { outline: 2px solid var(--eq-purple); outline-offset: 2px; }
+        .sug-modal-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; padding-right: 44px; }
+        .sug-modal-estado {
+            display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; border-radius: 999px;
+            font-size: 12px; font-weight: 700; color: var(--c);
+            background: color-mix(in srgb, var(--c) 14%, transparent); border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+        }
+        .sug-modal-estado::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+        .sug-modal-id { font-size: 12px; color: #64748b; font-weight: 600; }
+        .sug-modal-titulo { font-size: 20px; font-weight: 800; line-height: 1.3; margin: 0 0 12px; word-break: break-word; }
+        .sug-modal-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 13px; color: #94a3b8; }
+        .sug-modal-meta strong { color: #fff; font-weight: 600; }
+        .sug-modal-cat {
+            padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600;
+            color: #d8b4fe; background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+        .sug-modal-desc {
+            margin: 18px 0; padding: 16px; border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07);
+            color: #cbd5e1; font-size: 14.5px; line-height: 1.65; white-space: pre-wrap; word-break: break-word;
+        }
+        .sug-modal-votos { display: flex; gap: 10px; flex-wrap: wrap; }
+        .sug-modal-voto {
+            display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 10px;
+            font-size: 13px; font-weight: 600; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+        }
+        .sug-modal-voto.up { color: #34d399; }
+        .sug-modal-voto.down { color: #f87171; }
+        .sug-modal-staff {
+            margin-top: 18px; padding: 14px 16px; border-radius: 12px;
+            border: 1px solid color-mix(in srgb, var(--c) 35%, transparent); background: color-mix(in srgb, var(--c) 8%, transparent);
+        }
+        .sug-modal-staff h4 { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; margin: 0 0 6px; color: var(--c); }
+        .sug-modal-staff p { margin: 0; color: #cbd5e1; font-size: 13.5px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+        .sug-modal-foot { margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: flex-end; }
+        .sug-modal-link {
+            display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 10px;
+            font-size: 13px; font-weight: 600; color: #fff; text-decoration: none;
+            background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); transition: background .2s, border-color .2s;
+        }
+        .sug-modal-link:hover { background: rgba(168, 85, 247, 0.3); border-color: #a855f7; }
+        .pv-sug-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; word-break: break-word; }
+        .pv-sug-meta { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: #94a3b8; }
+        .pv-sug-meta .up { color: #34d399; margin-right: 10px; }
+        .pv-sug-meta .down { color: #f87171; }
+        .pv-more { text-align: center; font-size: 12.5px; color: #94a3b8; margin-top: 4px; }
+
+        /* Carga / privado / error: mensaje centrado */
+        .pv-center {
+            min-height: 62vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; gap: 14px; padding: 30px 20px; animation: pvIn .5s cubic-bezier(.16,1,.3,1) both;
+        }
+        .pv-center i.spin { font-size: 28px; color: #a855f7; }
+        .pv-lock {
+            width: 92px; height: 92px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 34px; color: #f87171; background: radial-gradient(circle, rgba(239,68,68,.22), rgba(239,68,68,.05));
+            border: 1px solid rgba(239,68,68,.35); box-shadow: 0 0 44px rgba(239,68,68,.2); animation: pvPulse 2.6s ease-in-out infinite;
+        }
+        .pv-lock.warn { color: #fbbf24; background: radial-gradient(circle, rgba(251,191,36,.2), rgba(251,191,36,.04)); border-color: rgba(251,191,36,.35); box-shadow: 0 0 44px rgba(251,191,36,.18); }
+        @keyframes pvPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+        .pv-center h3 { margin: 0; font-family: 'Lexend', sans-serif; font-size: 22px; }
+        .pv-center p { margin: 0; max-width: 360px; font-size: 14px; line-height: 1.6; color: #94a3b8; }
+        .pv-btn {
+            margin-top: 6px; background: transparent; border: 1px solid rgba(168,85,247,.55); color: #c084fc;
+            padding: 10px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .2s;
+        }
+        .pv-btn:hover { background: rgba(168,85,247,.15); color: #fff; box-shadow: 0 0 16px rgba(168,85,247,.35); }
+
+        /* Aviso superior */
+        .custom-toast-notification {
+            position: fixed; top: 25px; left: 50%; transform: translateX(-50%) translateY(-30px);
+            background: rgba(18, 16, 26, 0.95); border: 1px solid rgba(139, 92, 246, 0.6);
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.4); border-radius: 40px; padding: 12px 24px; color: #ffffff;
+            font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 12px;
+            z-index: 9999; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(10px);
+        }
+        .custom-toast-notification.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+        /* El círculo del icono toma el color de cada aviso (--t): verde = hecho, rojo = error, morado = información */
+        .toast-icon-wrapper {
+            width: 22px; height: 22px; background: var(--t, #23a55a); border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; color: #12101a; font-size: 11px; flex-shrink: 0;
+        }
+
+        /* Menú de Soporte (el botón y el tamaño del menú vienen de soporte.css) */
+        .support-dropdown-container { position: relative; display: inline-block; }
+        .support-dropdown-menu {
+            position: fixed; width: 250px; background: #13141f; border: 1px solid rgba(168, 85, 247, 0.5);
+            border-radius: 14px; box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 30px rgba(168, 85, 247, 0.4);
+            display: flex; flex-direction: column; z-index: 2147483647; overflow: hidden; opacity: 0;
+            transform: translateY(-10px) scale(0.95); pointer-events: none;
+            transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1); padding: 6px 0;
+        }
+        .support-dropdown-menu.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+        .support-menu-section { padding: 4px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+        .support-menu-section:last-child { border-bottom: none; }
+        .support-menu-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #94a3b8; padding: 6px 16px 4px 16px; letter-spacing: 0.5px; }
+        .support-dropdown-item {
+            display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 13px; color: #cbd5e1;
+            text-decoration: none; transition: background 0.2s, color 0.2s; font-weight: 500;
+        }
+        .support-dropdown-item:hover { background: rgba(168, 85, 247, 0.2); color: #fff; }
+        .support-dropdown-item i { color: #a855f7; width: 16px; text-align: center; }
+
+        /* ---------- Pantallas pequeñas ---------- */
+        @media (max-width: 760px) {
+            .eq-hero { grid-template-columns: minmax(0, 1fr); padding: 22px; }
+            .eq-title { font-size: 1.6rem; }
+            .eq-search { max-width: none; }
+            .pv-head { padding: 0 14px; margin-top: -54px; }
+            .pv-avatar-ring { width: 108px; height: 108px; border-radius: 24px; }
+            .pv-name { font-size: 23px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .eq-card, .pv, .pv-center, .pv-lock, .eq-skel .eq-avatar, .eq-skel .sk { animation: none !important; }
+            .eq-card, .eq-social, .pv-sec-body, .pv-chev, .sug-modal, .sug-modal-box { transition: none; }
+        }
+    </style>
+    <link rel="stylesheet" href="/src/assets/soporte.css">
+    <link rel="stylesheet" href="/src/assets/iconos.css">
+    <link rel="stylesheet" href="/src/assets/cabecera.css">
+    <link rel="stylesheet" href="/src/assets/comun.css">
+</head>
+<body>
+
+    <div class="grid-background"></div>
+
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-logo-title" style="display: flex; align-items: center; gap: 10px;">
+                    <img src="https://i.imgur.com/VPqGp7U.png" alt="Nyx Community Logo" class="sidebar-logo" style="width: 32px; height: 32px; object-fit: contain;">
+                    <span class="server-main-title">Nyx Community</span>
+                </div>
+                <button class="sidebar-toggle-icon" id="sidebarToggleBtn" title="Colapsar menú">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-category">General</div>
+                <a href="/home.html" class="nav-item"><i class="fa-solid fa-house"></i> <span>Home</span></a>
+                <a href="/equipo.html" class="nav-item active"><i class="fa-solid fa-users"></i> <span>Equipo</span></a>
+                <a href="/calendario.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i> <span>Calendario</span></a>
+                <a href="/comercios.html" class="nav-item"><i class="fa-solid fa-store"></i> <span>Comercios</span></a>
+                <a href="/postulaciones/post-ilegales.html" class="nav-item"><i class="fa-solid fa-skull"></i> <span>Postulaciones ilegales</span></a>
+
+                <div class="nav-category">Espacio de trabajo</div>
+                <a href="/grupos.html" class="nav-item"><i class="fa-solid fa-people-group"></i> <span>Grupos</span></a>
+                <a href="/documentos.html" class="nav-item"><i class="fa-solid fa-book"></i> <span>Documentos</span></a>
+                <a href="/whitelist.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> <span>Whitelist</span></a>
+
+                <div class="nav-category">Mi Cuenta</div>
+                <a href="/perfil.html" class="nav-item"><i class="fa-solid fa-user"></i> <span>Mi Perfil</span></a>
+                <a href="/historias.html" class="nav-item"><i class="fa-solid fa-feather-pointed"></i> <span>Historias personaje</span></a>
+                <a href="/tickets.html" class="nav-item"><i class="fa-solid fa-ticket"></i> <span>Tickets</span></a>
+
+                <div class="nav-category">SASP</div>
+                <a href="/lspd-academia.html" class="nav-item"><i class="fa-solid fa-shield-halved"></i> <span>Academia LSPD</span></a>
+                <a href="/lssd-academia.html" class="nav-item"><i class="fa-solid fa-star-badge"></i> <span>Academia LSSD</span></a>
+                <a href="/defcon.html" class="nav-item"><i class="fa-solid fa-triangle-exclamation"></i> <span>Defcon</span></a>
+                <a href="/codigo-penal.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> <span>Código penal</span></a>
+                <a href="/organigrama.html" class="nav-item"><i class="fa-solid fa-sitemap"></i> <span>Organigrama</span></a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile-mini" id="userProfileMini">
+                    <div class="avatar-placeholder" id="userAvatarContainer">
+                        <span id="userAvatarFallback">?</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="username" id="userNameDisplay">Usuario</span>
+                        <span class="user-handle" id="userHandleDisplay" style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block;">@tag</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <button class="sidebar-reveal-trigger" id="sidebarRevealBtn" title="Abrir menú">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <main class="main-content">
+            <header class="top-action-bar animate-fade-down">
+                <div class="breadcrumb" id="breadcrumbBar">Equipo</div>
+                <div class="top-buttons">
+                    <div class="support-dropdown-container" id="supportDropdownContainer">
+                        <button class="top-btn highlight-btn" id="supportDropdownBtn">
+                            <i class="fa-solid fa-circle-question"></i> Soporte
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="support-dropdown-menu" id="supportDropdownMenu">
+                <div class="support-menu-section">
+                    <div class="support-menu-title">Soporte</div>
+                    <a href="/tickets.html" class="support-dropdown-item"><i class="fa-solid fa-ticket"></i> Crear un ticket</a>
+                </div>
+                <div class="support-menu-section">
+                    <div class="support-menu-title">Apoyo</div>
+                    <a href="/sugerencias.html" class="support-dropdown-item"><i class="fa-solid fa-lightbulb"></i> Enviar una sugerencia</a>
+                    <a href="/feedback.html" class="support-dropdown-item"><i class="fa-solid fa-comment-dots"></i> Dar tu feedback</a>
+                    <a href="/perfil.html" class="support-dropdown-item"><i class="fa-solid fa-user"></i> Acceder al perfil</a>
+                    <a href="/index.html" class="support-dropdown-item"><i class="fa-solid fa-house-chimney"></i> Acceder al panel principal</a>
+                </div>
+                <div class="support-menu-section">
+                    <div class="support-menu-title">Información</div>
+                    <a href="/normativa.html" class="support-dropdown-item"><i class="fa-solid fa-book"></i> Normativa general</a>
+                    <a href="/pol-privacidad.html" class="support-dropdown-item"><i class="fa-solid fa-shield-halved"></i> Política de privacidad</a>
+                    <a href="/terminos.html" class="support-dropdown-item"><i class="fa-solid fa-file-contract"></i> Términos y condiciones</a>
+                </div>
+            </div>
+
+            <!-- Listado del equipo -->
+            <div id="teamView" class="eq-wrap">
+                <!-- Cabecera estilo Sugerencias (src/assets/cabecera.css) -->
+                <header class="cab-head">
+                    <div>
+                        <h1>Equipo administrativo</h1>
+                        <p>Conoce a los miembros encargados de moderar y gestionar Nyx Community. Pulsa sobre cualquiera para ver su perfil.</p>
+                    </div>
+                </header>
+                <div class="cab-toolbar">
+                    <label class="cab-search">
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        <input type="search" id="eqBuscar" placeholder="Buscar por nombre, rango o especialidad" autocomplete="off" aria-label="Buscar miembro del equipo">
+                    </label>
+                    <!-- Los botones de cada categoría los añade renderPublicTeam() según las que haya -->
+                    <div class="cab-seg" id="eqCategorias" role="group" aria-label="Filtrar por categoría">
+                        <button type="button" class="on" data-cat="" aria-pressed="true">Todos</button>
+                    </div>
+                    <span class="cab-total" id="eqTotal"></span>
+                </div>
+
+                <section class="animate-fade-up delay-2">
+                    <div id="teamContainer"></div>
+                </section>
+            </div>
+
+            <!-- Página de perfil de un miembro -->
+            <div id="profileView" style="display: none;"></div>
+        </main>
+    </div>
+
+    <!-- Ventana con una sugerencia completa (se abre desde "Actividad" en el perfil) -->
+    <div class="sug-modal" id="sugModal" role="dialog" aria-modal="true" aria-labelledby="sugModalTitulo" aria-hidden="true">
+        <div class="sug-modal-box">
+            <button type="button" class="sug-modal-x" id="sugModalCerrar" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            <div id="sugModalContenido"></div>
+        </div>
+    </div>
+
+    <div id="topToastNotification" class="custom-toast-notification" role="status" aria-live="polite">
+        <div class="toast-icon-wrapper" id="toastIcono"><i class="fa-solid fa-check"></i></div>
+        <span id="toastMessageText">Información copiada con éxito al portapapeles</span>
+    </div>
+
+    <script>
+    /* ---------------- Sesión (barra lateral) ----------------
+       El inicio de sesión con Discord lo hace el servidor (/auth/discord/callback),
+       así que aquí solo se lee la sesión guardada. */
+    function loadDiscordSessionData() {
+        const storedUser = localStorage.getItem('discord_user');
+        const avatarContainer = document.getElementById('userAvatarContainer');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const userHandleDisplay = document.getElementById('userHandleDisplay');
+
+        if (!storedUser) {
+            if (userNameDisplay) userNameDisplay.textContent = 'Usuario';
+            if (userHandleDisplay) userHandleDisplay.textContent = '@invitado';
+            return;
+        }
+        try {
+            const discordUser = JSON.parse(storedUser);
+            if (userNameDisplay) userNameDisplay.textContent = discordUser.displayName || discordUser.username || 'Usuario';
+            if (userHandleDisplay) userHandleDisplay.textContent = `@${discordUser.username || 'discord'}`;
+            if (avatarContainer && /^https:\/\//i.test(String(discordUser.avatarUrl || ''))) {
+                const img = document.createElement('img');
+                img.src = discordUser.avatarUrl;
+                img.alt = 'Avatar';
+                img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
+                avatarContainer.innerHTML = '';
+                avatarContainer.appendChild(img);
+            }
+        } catch (e) {
+            console.error('Error al cargar sesión en sidebar:', e);
+        }
+    }
+
+    function getDiscordCreationDate(discordId) {
+        if (!discordId || !/^\d+$/.test(discordId)) return 'Desconocida';
+        try {
+            const DISCORD_EPOCH = 1420070400000n;
+            const timestamp = Number((BigInt(discordId) >> 22n) + DISCORD_EPOCH);
+            return new Date(timestamp).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        } catch (e) {
+            return 'Desconocida';
+        }
+    }
+
+    function copyToClipboard(textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            showTopToast('Nombre copiado al portapapeles', { icono: 'fa-copy' });
+        }).catch(err => {
+            console.error('Error al copiar al portapapeles: ', err);
+            showTopToast('No se ha podido copiar. Cópialo a mano.', { tipo: 'error', icono: 'fa-triangle-exclamation' });
+        });
+    }
+
+    /* Aviso superior: el mismo diseño, animación y posición para todos los avisos de la página.
+       Cada uno con su texto, su icono (Font Awesome) y su color:
+         tipo 'ok' (verde, por defecto) · 'error' (rojo) · 'info' (morado) */
+    const TOAST_COLORES = { ok: '#23a55a', error: '#ef4444', info: '#a855f7' };
+    const TOAST_ICONOS = { ok: 'fa-check', error: 'fa-xmark', info: 'fa-circle-info' };
+    function showTopToast(message, opciones = {}) {
+        const toast = document.getElementById('topToastNotification');
+        const textSpan = document.getElementById('toastMessageText');
+        const icono = document.getElementById('toastIcono');
+        if (!toast || !textSpan || !icono) return;
+        const tipo = TOAST_COLORES[opciones.tipo] ? opciones.tipo : 'ok';
+        icono.style.setProperty('--t', TOAST_COLORES[tipo]);
+        icono.innerHTML = `<i class="fa-solid ${opciones.icono || TOAST_ICONOS[tipo]}" aria-hidden="true"></i>`;
+        textSpan.textContent = message;
+        // Si ya había un aviso a la vista, se reinicia la entrada para que se note el nuevo
+        toast.classList.remove('show');
+        void toast.offsetWidth;
+        toast.classList.add('show');
+        clearTimeout(window._toastTimeout);
+        window._toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function getRankWeight(categoria, rango) {
+        if (!rango) return 99;
+        const r = String(rango).toLowerCase().trim();
+        if (categoria === 'Administración') {
+            if (r.includes('game master') || r.includes('gm')) return 1;
+            if (r.includes('administrador') || r.includes('admin')) return 2;
+            if (r.includes('moderador') || r.includes('mod')) return 3;
+            if (r.includes('soporte')) return 4;
+            return 5;
+        } else if (categoria === 'Dirección') {
+            if (r.includes('fundador') || r.includes('owner')) return 1;
+            if (r.includes('director')) return 2;
+            return 3;
+        } else if (categoria === 'Desarrollo') {
+            if (r.includes('lead') || r.includes('head')) return 1;
+            if (r.includes('desarrollador') || r.includes('dev')) return 2;
+            return 3;
+        }
+        return 99;
+    }
+
+    // ===== Utilidades =====
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const AVATAR_DEFECTO = 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+    const PF_BASE = {
+        instagram: { label: 'Instagram', base: 'https://instagram.com/', icon: 'fa-brands fa-instagram', color: '#e1306c' },
+        youtube:   { label: 'YouTube',   base: 'https://youtube.com/@',  icon: 'fa-brands fa-youtube',   color: '#ff0000' },
+        twitch:    { label: 'Twitch',    base: 'https://twitch.tv/',     icon: 'fa-brands fa-twitch',    color: '#9146ff' },
+        kick:      { label: 'Kick',      base: 'https://kick.com/',      icon: 'fa-solid fa-k',          color: '#53fc18' }
+    };
+
+    // Categorías: nombre, icono y color de cada una (orden en el que salen)
+    const CATEGORIAS = {
+        'Dirección':      { titulo: 'Dirección',      icono: 'fa-crown',         color: '#fbbf24' },
+        'Desarrollo':     { titulo: 'Desarrollo',     icono: 'fa-code',          color: '#60a5fa' },
+        'Administración': { titulo: 'Administración', icono: 'fa-shield-halved', color: '#a855f7' }
+    };
+    const CAT_OTRA = { icono: 'fa-users', color: '#ec4899' };
+
+    // Nombres antiguos del panel de staff → categoría actual
+    function categoriaDe(s) {
+        let c = String(s.categoria || 'Administración');
+        if (c === 'Dirección y Fundadores') c = 'Dirección';
+        if (c === 'Desarrollo & Tecnologia') c = 'Desarrollo';
+        if (c === 'Moderación y Soporte') c = 'Administración';
+        return c;
+    }
+    const infoCategoria = c => CATEGORIAS[c] || { titulo: c, ...CAT_OTRA };
+
+    function especialidadesDe(member) {
+        const raw = String(member.especialidad || 'Ninguna');
+        return raw === 'Ninguna' ? [] : raw.split(',').map(e => e.trim()).filter(e => e && e !== 'Ninguna');
+    }
+
+    function safeSocialUrl(key, val) {
+        val = String(val || '').trim();
+        if (!val || !PF_BASE[key]) return '';
+        if (/^https?:\/\//i.test(val)) return val;
+        if (/^[a-z][a-z0-9+.-]*:/i.test(val)) return '';
+        const user = val.replace(/^@/, '').replace(/[^\w.\-]/g, '');
+        return user ? PF_BASE[key].base + user : '';
+    }
+
+    async function fetchJson(url) {
+        try {
+            const r = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
+            if (!r.ok) return { ok: false, status: r.status };
+            return { ok: true, data: await r.json() };
+        } catch (e) {
+            return { ok: false, status: 0 };
+        }
+    }
+
+    // ===== Datos del equipo =====
+    // El equipo sale de /api/staff, la misma base de datos donde guarda el panel "Gestión de Staff".
+    let globalStaffList = [];
+    let perfilesPublicos = {};
+    let staffCargado = false;
+    let staffError = false;
+    let ultimoStaffJson = '';
+    let filtroTexto = '';
+
+    const esPerfilPropio = s => String((s && s.id) || '').startsWith('self-');
+
+    function staffActivo(s) {
+        const status = s.status ? String(s.status).toLowerCase().trim() : 'activo';
+        return !['inactivo', 'inactive', '0', 'false'].includes(status);
+    }
+
+    // Devuelve true si el equipo ya estaba cargado y ha cambiado (para avisar de la actualización)
+    function aplicarStaff(lista) {
+        const limpia = (Array.isArray(lista) ? lista : []).filter(s => s && typeof s === 'object');
+        const json = JSON.stringify(limpia);
+        const yaCargado = staffCargado;
+        const sinCambios = staffCargado && json === ultimoStaffJson;
+
+        // Se conserva el perfil propio abierto por URL (?perfil=...) aunque no sea staff
+        const propios = globalStaffList.filter(esPerfilPropio)
+            .filter(p => !limpia.some(s => String(s.discordId || '').trim() === String(p.discordId)));
+
+        globalStaffList = limpia.concat(propios);
+        ultimoStaffJson = json;
+        staffCargado = true;
+        staffError = false;
+        if (!sinCambios) renderPublicTeam();
+        return yaCargado && !sinCambios;
+    }
+
+    const avisarActualizado = () => showTopToast('El equipo se ha actualizado', { tipo: 'info', icono: 'fa-rotate' });
+
+    async function cargarStaff() {
+        const res = await fetchJson('/api/staff');
+        if (res.ok && Array.isArray(res.data)) {
+            if (aplicarStaff(res.data)) avisarActualizado();
+        } else if (!staffCargado) {
+            staffError = true;
+            renderPublicTeam();
+            showTopToast('No se ha podido cargar el equipo', { tipo: 'error', icono: 'fa-wifi' });
+        }
+    }
+
+    // Actualización en directo desde el panel de staff
+    try {
+        const adminSyncChannel = new BroadcastChannel('click_sense_admin_sync');
+        adminSyncChannel.onmessage = (event) => {
+            if (event.data && event.data.type === 'STAFF_DATA_UPDATED' && aplicarStaff(event.data.payload)) avisarActualizado();
+        };
+    } catch (e) { /* navegador sin BroadcastChannel: se actualiza al volver a la pestaña */ }
+
+    async function cargarPerfilesPublicos() {
+        const res = await fetchJson('/api/perfiles-publicos');
+        if (res.ok && res.data && typeof res.data === 'object' && !Array.isArray(res.data)) {
+            perfilesPublicos = res.data;
+            renderPublicTeam();
+        }
+    }
+
+    function avatarDe(member, loggedUser) {
+        const dId = String(member.discordId || '').trim();
+        let url = AVATAR_DEFECTO;
+        if (loggedUser && loggedUser.id && dId && String(loggedUser.id) === dId && /^https:\/\//i.test(String(loggedUser.avatarUrl || ''))) {
+            url = loggedUser.avatarUrl;
+        } else if (dId && /^\d+$/.test(dId)) {
+            try { url = `https://cdn.discordapp.com/embed/avatars/${Number((BigInt(dId) >> 22n) % 6n)}.png`; } catch (err) {}
+        }
+        return url;
+    }
+
+    // ---------- Pintado del listado ----------
+    function skeletonHtml() {
+        const card = `<div class="eq-card eq-skel" aria-hidden="true"><div class="eq-avatar"></div><div class="sk" style="width:60%"></div><div class="sk" style="width:40%"></div><div class="sk" style="width:80%;margin-top:22px"></div></div>`;
+        return `<div class="eq-grid" aria-busy="true">${card.repeat(4)}</div>`;
+    }
+
+
+    function tarjetaHtml(member, info, i, loggedUser) {
+        const nombre = member.usuario || 'Sin nombre';
+        const dId = String(member.discordId || '').trim();
+        const avatar = avatarDe(member, loggedUser);
+        const specs = especialidadesDe(member);
+
+        const pubEntry = dId ? perfilesPublicos[dId] : null;
+        const pub = pubEntry ? (pubEntry.redes || {}) : {};
+        let redes = '';
+        ['instagram', 'youtube', 'twitch', 'kick'].forEach(k => {
+            const hideKey = 'hide' + k.charAt(0).toUpperCase() + k.slice(1);
+            if (member[hideKey]) return;
+            const url = safeSocialUrl(k, member[k]) || (pub[k] ? safeSocialUrl(k, pub[k]) : '');
+            if (url) redes += `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="eq-social" data-red="${k}" style="--s:${PF_BASE[k].color};" title="${PF_BASE[k].label}" aria-label="${PF_BASE[k].label} de ${esc(nombre)}"><i class="${PF_BASE[k].icon}"></i></a>`;
+        });
+
+        return `
+            <article class="eq-card" role="button" tabindex="0" style="--i:${i};"
+                     data-id="${esc(member.id)}" data-avatar="${esc(avatar)}" aria-label="Ver perfil de ${esc(nombre)}">
+                <div class="eq-avatar">
+                    <img src="${esc(avatar)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${AVATAR_DEFECTO}';">                </div>
+                <div class="eq-name" title="${esc(nombre)}">${esc(nombre)}</div>
+                <span class="eq-rank">${esc(member.rango || 'Staff')}</span>
+                <div class="eq-specs">${specs.slice(0, 2).map(e => `<span class="eq-spec">${esc(e)}</span>`).join('')}${specs.length > 2 ? `<span class="eq-spec">+${specs.length - 2}</span>` : ''}</div>
+                <div class="eq-card-foot">
+                    ${redes ? `<div class="eq-socials">${redes}</div>` : '<span class="eq-nosocial">Sin redes</span>'}
+                </div>
+            </article>`;
+    }
+
+    function renderPublicTeam() {
+        const container = document.getElementById('teamContainer');
+        if (!container) return;
+
+        if (!staffCargado) {
+            container.innerHTML = staffError
+                ? `<div class="eq-empty"><i class="fa-solid fa-triangle-exclamation"></i><b>No se ha podido cargar el equipo</b>Vuelve a intentarlo en unos segundos.<br><button type="button" id="eqReintentar">Reintentar</button></div>`
+                : skeletonHtml();
+            const re = document.getElementById('eqReintentar');
+            if (re) re.addEventListener('click', () => { staffError = false; renderPublicTeam(); cargarStaff(); });
+            return;
+        }
+
+        let loggedUser = null;
+        try { loggedUser = JSON.parse(localStorage.getItem('discord_user') || 'null'); } catch (e) {}
+
+        // Agrupar por categoría (las conocidas primero, en su orden)
+        const porCat = {};
+        globalStaffList.filter(s => !esPerfilPropio(s) && staffActivo(s)).forEach(s => {
+            const c = categoriaDe(s);
+            (porCat[c] = porCat[c] || []).push(s);
+        });
+        const orden = Object.keys(CATEGORIAS).concat(Object.keys(porCat).filter(c => !CATEGORIAS[c]));
+        const grupos = orden.filter(c => porCat[c] && porCat[c].length).map(c => {
+            const miembros = porCat[c].sort((a, b) => {
+                const wA = getRankWeight(c, a.rango), wB = getRankWeight(c, b.rango);
+                return wA !== wB ? wA - wB : String(a.usuario || '').localeCompare(String(b.usuario || ''));
+            });
+            return { id: c, info: infoCategoria(c), miembros };
+        });
+        const total = grupos.reduce((t, g) => t + g.miembros.length, 0);
+
+        pintarCategorias(grupos);
+
+        if (!total) {
+            document.getElementById('eqTotal').textContent = '';
+            container.innerHTML = `<div class="eq-empty"><i class="fa-solid fa-user-group"></i><b>Todavía no hay equipo</b>No hay miembros del staff registrados actualmente.</div>`;
+            return;
+        }
+
+        // Búsqueda por nombre, rango o especialidad
+        const q = norm(filtroTexto.trim());
+        const coincide = m => !q || [m.usuario, m.rango, m.especialidad].some(v => norm(v).includes(q));
+
+        let html = '', mostrados = 0, i = 0;
+        grupos.forEach(g => {
+            if (filtroCategoria && g.id !== filtroCategoria) return;
+            const visibles = g.miembros.filter(coincide);
+            if (!visibles.length) return;
+            mostrados += visibles.length;
+            html += `
+                <section class="eq-section" aria-label="${esc(g.info.titulo)}">
+                    <div class="eq-section-head">
+                        <span class="eq-section-ico"><i class="fa-solid ${g.info.icono}"></i></span>
+                        <h2>${esc(g.info.titulo)}</h2>                    </div>
+                    <div class="eq-grid">
+                        ${visibles.map(m => tarjetaHtml(m, g.info, i++, loggedUser)).join('')}
+                    </div>
+                </section>`;
+        });
+
+        document.getElementById('eqTotal').textContent = `${mostrados} ${mostrados === 1 ? 'miembro' : 'miembros'}`;
+        container.innerHTML = mostrados ? html
+            : `<div class="eq-empty"><i class="fa-solid fa-magnifying-glass"></i><b>Sin resultados</b>No hay nadie que coincida con la búsqueda.<br><button type="button" id="eqLimpiar">Quitar filtros</button></div>`;
+        const limpiar = document.getElementById('eqLimpiar');
+        if (limpiar) limpiar.addEventListener('click', () => {
+            filtroTexto = '';
+            filtroCategoria = '';
+            document.getElementById('eqBuscar').value = '';
+            renderPublicTeam();
+        });
+    }
+
+    // Botones del selector: "Todos" + una por cada categoría que tenga miembros.
+    // Solo se rehacen si cambian las categorías (así no se pierde el pulgar ni la selección).
+    let filtroCategoria = '';
+    let categoriasPintadas = '';
+    function pintarCategorias(grupos) {
+        const seg = document.getElementById('eqCategorias');
+        if (filtroCategoria && !grupos.some(g => g.id === filtroCategoria)) filtroCategoria = '';
+        const firma = grupos.map(g => g.id).join('|');
+        if (firma !== categoriasPintadas) {
+            categoriasPintadas = firma;
+            seg.innerHTML = [{ id: '', titulo: 'Todos' }].concat(grupos.map(g => ({ id: g.id, titulo: g.info.titulo })))
+                .map(c => `<button type="button" data-cat="${esc(c.id)}" class="${c.id === filtroCategoria ? 'on' : ''}" aria-pressed="${c.id === filtroCategoria}">${esc(c.titulo)}</button>`)
+                .join('');
+        }
+        // Con una sola categoría el selector no aporta nada
+        seg.hidden = grupos.length < 2;
+        if (window.cabMoverPulgar) window.cabMoverPulgar(seg);
+    }
+    document.getElementById('eqCategorias').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-cat]');
+        if (!b) return;
+        filtroCategoria = b.dataset.cat;
+        renderPublicTeam();
+    });
+
+    // Abrir perfil: clic en la tarjeta (menos en las redes) o Enter / Espacio
+    const teamContainer = document.getElementById('teamContainer');
+    teamContainer.addEventListener('click', (e) => {
+        if (e.target.closest('.eq-social')) return;
+        const card = e.target.closest('.eq-card[data-id]');
+        if (card) openProfile(card.dataset.id, card.dataset.avatar, true);
+    });
+    teamContainer.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const card = e.target.closest('.eq-card[data-id]');
+        if (!card || e.target !== card) return;
+        e.preventDefault();
+        openProfile(card.dataset.id, card.dataset.avatar, true);
+    });
+
+    document.getElementById('eqBuscar').addEventListener('input', (e) => {
+        filtroTexto = e.target.value;
+        renderPublicTeam();
+    });
+
+    // ===== Página de perfil =====
+    let profileToken = 0;
+
+    function setBreadcrumb(nombre) {
+        const bc = document.getElementById('breadcrumbBar');
+        bc.innerHTML = nombre
+            ? `<a onclick="closeProfile(true)">Equipo</a><span class="bc-sep">›</span><span style="color:#fff;">${esc(nombre)}</span>`
+            : 'Equipo';
+    }
+
+    function showProfileShell(html) {
+        document.documentElement.classList.add('en-perfil');   // fondo con resplandor morado solo en el perfil
+        document.getElementById('teamView').style.display = 'none';
+        const pv = document.getElementById('profileView');
+        pv.style.display = 'block';
+        pv.innerHTML = html;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+
+    function renderLoading() {
+        showProfileShell(`<div class="pv-center"><i class="fa-solid fa-circle-notch fa-spin spin"></i><span style="color:#94a3b8;">Cargando perfil...</span></div>`);
+    }
+    function renderPrivate() {
+        showProfileShell(`
+            <div class="pv-center">
+                <div class="pv-lock"><i class="fa-solid fa-lock"></i></div>
+                <h3>Este perfil es privado</h3>
+                <p>Este usuario ha decidido no mostrar su información en la web, así que no puedes acceder a su perfil.</p>
+                <button class="pv-btn" onclick="closeProfile(true)">Volver al equipo</button>
+            </div>`);
+    }
+    function renderError(id, av) {
+        showProfileShell(`
+            <div class="pv-center">
+                <div class="pv-lock warn"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <h3>No se puede mostrar el perfil</h3>
+                <p>No hemos podido comprobar la privacidad de este perfil. Por seguridad no se muestra su información.</p>
+                <div style="display:flex;gap:10px;">
+                    <button class="pv-btn" id="pvRetry">Reintentar</button>
+                    <button class="pv-btn" style="border-color:#3f4147;color:#cbd5e1;" onclick="closeProfile(true)">Volver</button>
+                </div>
+            </div>`);
+        document.getElementById('pvRetry').addEventListener('click', () => openProfile(id, av, false));
+    }
+
+    function pvSection(icon, title, body, open) {
+        return `
+            <div class="pv-sec ${open ? 'open' : ''}">
+                <button class="pv-sec-head" aria-expanded="${open}" onclick="const s=this.parentElement; s.classList.toggle('open'); this.setAttribute('aria-expanded', s.classList.contains('open'));">
+                    <i class="${icon}"></i><span>${title}</span><i class="fa-solid fa-chevron-down pv-chev"></i>
+                </button>
+                <div class="pv-sec-body"><div class="pv-sec-inner"><div class="pv-sec-pad">${body}</div></div></div>
+            </div>`;
+    }
+
+    function buildEspecialidadesHtml(member) {
+        const list = especialidadesDe(member);
+        return list.length
+            ? `<div class="pv-pills">${list.map(e => `<span class="pv-pill"><span class="pv-dot" style="background:#3b82f6;"></span>${esc(e)}</span>`).join('')}</div>`
+            : '<div class="pv-empty">Sin especialidades.</div>';
+    }
+
+    // Redes del perfil: mandan las del perfil del usuario y, si falta alguna,
+    // se usa la registrada en el panel de staff (salvo que esté marcada como "Ocultar").
+    function redesDe(member, redesPerfil) {
+        const out = {};
+        Object.keys(PF_BASE).forEach(k => {
+            const hideKey = 'hide' + k.charAt(0).toUpperCase() + k.slice(1);
+            out[k] = (redesPerfil && redesPerfil[k]) || (!member[hideKey] && member[k]) || '';
+        });
+        return out;
+    }
+
+    function buildRedesHtml(redes) {
+        let html = '';
+        Object.keys(PF_BASE).forEach(k => {
+            const url = safeSocialUrl(k, redes && redes[k]);
+            if (url) html += `<a class="pv-social" href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="--s:${PF_BASE[k].color};"><i class="${PF_BASE[k].icon}" style="color:${PF_BASE[k].color};"></i> ${PF_BASE[k].label}</a>`;
+        });
+        return html ? `<div class="pv-socials">${html}</div>` : `<div class="pv-empty"><b>Sin redes</b>No ha añadido redes sociales.</div>`;
+    }
+
+    function buildFotosHtml(lista) {
+        const urls = (Array.isArray(lista) ? lista : [])
+            .map(f => typeof f === 'string' ? f : (f && (f.url || f.src)))
+            .filter(u => typeof u === 'string' && (/^https?:\/\//i.test(u) || /^\/fotos\/[\w-]+\.(jpg|png|webp)$/i.test(u))).slice(0, 12);
+        if (!urls.length) return `<div class="pv-empty"><b>Sin fotos</b>Aún no ha publicado imágenes.</div>`;
+        return `<div class="pv-photos">${urls.map(u => `<a class="pv-photo" href="${esc(u)}" target="_blank" rel="noopener noreferrer"><img src="${esc(u)}" alt="" loading="lazy"></a>`).join('')}</div>`;
+    }
+
+    // Estado de una sugerencia: mismos estados y colores que sugerencias.html y Home
+    function estadoSugerencia(s) {
+        const raw = String((s && s.status) || '').trim();
+        const e = norm(raw);
+        if (e.includes('rechaz') || e.includes('deneg')) return { texto: raw || 'Rechazada', color: '#f87171' };
+        if (e.includes('implement') || e.includes('complet')) return { texto: raw || 'Implementada', color: '#34d399' };
+        if (e.includes('revis') || e.includes('aprob') || e.includes('acept') || e.includes('proceso')) return { texto: raw || 'En revisión', color: '#fbbf24' };
+        return { texto: 'Nueva', color: '#60a5fa' };
+    }
+
+    // Sugerencias del perfil abierto (para abrir una entera al pulsarla)
+    let sugPerfil = [];
+
+    function buildSugerenciasHtml(mias) {
+        sugPerfil = mias.slice(0, 6);
+        if (!mias.length) return `<div class="pv-empty"><b>Sin actividad</b>No ha enviado sugerencias.</div>`;
+        const items = sugPerfil.map((s, n) => {
+            const est = estadoSugerencia(s);
+            return `
+                <button type="button" class="pv-sug" data-sug="${n}" style="--c:${est.color};" title="Ver sugerencia completa">
+                    <div class="pv-sug-title">${esc(s.titulo)}</div>
+                    <div class="pv-sug-meta">
+                        <span style="color:${est.color};font-weight:700;"><i class="fa-solid fa-circle" style="font-size:7px;"></i> ${esc(est.texto)}</span>
+                        <span><span class="up"><i class="fa-solid fa-thumbs-up"></i> ${Number(s.upvotes) || 0}</span><span class="down"><i class="fa-solid fa-thumbs-down"></i> ${Number(s.downvotes) || 0}</span></span>
+                    </div>
+                </button>`;
+        }).join('');
+        return items + (mias.length > 6 ? `<div class="pv-more">+${mias.length - 6} sugerencias más</div>` : '');
+    }
+
+    // ---------- Ventana con la sugerencia completa ----------
+    function nombreStaffSugerencia(s) {
+        const o = s && (s.staff || s.revisadoPor || s.gestionadoPor);
+        if (o && typeof o === 'object') return String(o.usuario || o.nombre || o.username || '').trim();
+        if (typeof o === 'string') return o.trim();
+        return String((s && (s.staffNombre || s.staffUsuario)) || '').trim();
+    }
+    function fechaLarga(f) {
+        const d = new Date(f || 0);
+        return isNaN(d.getTime()) || !d.getTime() ? '' : d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    let sugFocoPrevio = null;
+    function abrirSugModal(s) {
+        const est = estadoSugerencia(s);
+        const nueva = est.texto === 'Nueva';
+        const staff = nueva ? '' : nombreStaffSugerencia(s);
+        const respuesta = String(s.respuestaStaff || '').trim();
+        const fecha = fechaLarga(s.fechaRegistro);
+        const enlace = '/sugerencias.html' + (s.id ? '?sugerencia=' + encodeURIComponent(s.id) : '');
+
+        let bloqueStaff = '';
+        if (!nueva && (staff || respuesta)) {
+            const fechaEstado = fechaLarga(s.fechaEstado);
+            bloqueStaff = `
+                <div class="sug-modal-staff" style="--c:${est.color};">
+                    <h4><i class="fa-solid fa-user-shield"></i> ${esc(est.texto)}${staff ? ' por ' + esc(staff) : ''}${fechaEstado ? ' · ' + esc(fechaEstado) : ''}</h4>
+                    ${respuesta ? `<p>${esc(respuesta)}</p>` : ''}
+                </div>`;
+        }
+
+        document.getElementById('sugModalContenido').innerHTML = `
+            <div class="sug-modal-bar">
+                <span class="sug-modal-estado" style="--c:${est.color};">${esc(est.texto)}</span>
+                ${s.id ? `<span class="sug-modal-id">${esc(s.id)}</span>` : ''}
+            </div>
+            <h2 class="sug-modal-titulo" id="sugModalTitulo">${esc(s.titulo)}</h2>
+            <div class="sug-modal-meta">
+                <span>Por <strong>${esc(s.usuario || 'Anónimo')}</strong>${fecha ? ' el ' + esc(fecha) : ''}</span>
+                ${s.categoria ? `<span class="sug-modal-cat">${esc(s.categoria)}</span>` : ''}
+            </div>
+            <div class="sug-modal-desc">${esc(s.descripcion || 'Sin descripción.')}</div>
+            <div class="sug-modal-votos">
+                <span class="sug-modal-voto up"><i class="fa-solid fa-thumbs-up"></i> A favor <b>${Number(s.upvotes) || 0}</b></span>
+                <span class="sug-modal-voto down"><i class="fa-solid fa-thumbs-down"></i> En contra <b>${Number(s.downvotes) || 0}</b></span>
+            </div>
+            ${bloqueStaff}
+            <div class="sug-modal-foot">
+                <a class="sug-modal-link" href="${esc(enlace)}"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver en Sugerencias</a>
+            </div>`;
+
+        sugFocoPrevio = document.activeElement;
+        const modal = document.getElementById('sugModal');
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+        document.getElementById('sugModalCerrar').focus();
+    }
+    function cerrarSugModal() {
+        const modal = document.getElementById('sugModal');
+        if (!modal.classList.contains('active')) return false;
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+        if (sugFocoPrevio && sugFocoPrevio.focus) sugFocoPrevio.focus();
+        return true;
+    }
+    document.getElementById('sugModalCerrar').addEventListener('click', cerrarSugModal);
+    document.getElementById('sugModal').addEventListener('click', (e) => { if (e.target.id === 'sugModal') cerrarSugModal(); });
+    document.getElementById('profileView').addEventListener('click', (e) => {
+        const idBtn = e.target.closest('[data-copiar-id]');
+        if (idBtn) {
+            navigator.clipboard.writeText(idBtn.dataset.copiarId)
+                .then(() => showTopToast('ID de Discord copiado al portapapeles', { icono: 'fa-id-card' }))
+                .catch(() => showTopToast('No se ha podido copiar. Cópialo a mano.', { tipo: 'error', icono: 'fa-triangle-exclamation' }));
+            return;
+        }
+        const b = e.target.closest('.pv-sug[data-sug]');
+        if (b && sugPerfil[Number(b.dataset.sug)]) abrirSugModal(sugPerfil[Number(b.dataset.sug)]);
+    });
+
+    async function openProfile(staffId, passedAvatar, pushState) {
+        const member = globalStaffList.find(s => String(s.id) === String(staffId));
+        if (!member) return;
+
+        const myToken = ++profileToken;
+        const avatar = passedAvatar || AVATAR_DEFECTO;
+        const dId = String(member.discordId || '').trim();
+
+        if (pushState) { try { history.pushState({ perfil: dId || staffId }, '', '?perfil=' + encodeURIComponent(dId || staffId)); } catch (e) {} }
+        setBreadcrumb(member.usuario);
+        renderLoading();
+
+        let ajustes = { redes: {}, publico: true, mostrar: {} };
+        let sugerencias = [], fotos = [];
+
+        if (dId) {
+            const res = await fetchJson('/api/perfil-settings?userId=' + encodeURIComponent(dId));
+            if (myToken !== profileToken) return;
+
+            // 404 = staff registrado que aún no ha configurado su perfil: se usan los ajustes por defecto.
+            const sinAjustes = !res.ok && res.status === 404;
+            if (!sinAjustes) {
+                if (!res.ok || !res.data || typeof res.data !== 'object') { renderError(staffId, avatar); return; }   // no comprobado: no se muestra nada
+                if (res.data.publico === false) { renderPrivate(); return; }
+                ajustes = res.data;
+            }
+
+            const m = ajustes.mostrar || {};
+            const [sug, fot] = await Promise.all([
+                m.sugerencias === false ? Promise.resolve({ ok: false }) : fetchJson('/api/sugerencias'),
+                m.fotos === false ? Promise.resolve({ ok: false }) : fetchJson('/api/fotografias?userId=' + encodeURIComponent(dId))
+            ]);
+            if (myToken !== profileToken) return;
+            if (sug.ok && Array.isArray(sug.data)) sugerencias = sug.data;
+            if (fot.ok) fotos = fot.data;
+        }
+
+        const mostrar = ajustes.mostrar || {};
+        const showRedes = mostrar.redes !== false, showFotos = mostrar.fotos !== false, showSug = mostrar.sugerencias !== false;
+
+        const mias = sugerencias
+            .filter(s => s && String(s.discordId || s.discord_id || '').trim() === dId)
+            .sort((a, b) => new Date(b.fechaRegistro || 0) - new Date(a.fechaRegistro || 0));
+        const votos = mias.reduce((t, s) => t + (Number(s.upvotes) || 0), 0);
+
+        let webDate = 'No registrada';
+        if (member.fechaRegistro) webDate = new Date(member.fechaRegistro).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const discordDate = getDiscordCreationDate(dId);
+        const info = infoCategoria(categoriaDe(member));
+        const nameForCopy = JSON.stringify(String(member.usuario || '')).replace(/"/g, '&quot;');
+
+        const stat = (ico, color, bg, label, val) => `
+            <div class="pv-stat"><div class="pv-stat-ico" style="background:${bg};color:${color};"><i class="${ico}"></i></div>
+            <div><small>${label}</small><strong>${val}</strong></div></div>`;
+
+        const secciones = [
+            showRedes ? pvSection('fa-solid fa-share-nodes', 'Redes sociales', buildRedesHtml(redesDe(member, ajustes.redes)), true) : '',
+            showSug ? pvSection('fa-solid fa-wave-square', 'Actividad', buildSugerenciasHtml(mias), false) : '',
+            showFotos ? pvSection('fa-regular fa-images', 'Fotografías', buildFotosHtml(fotos), true) : ''
+        ].join('');
+
+        showProfileShell(`
+            <div class="pv" style="--c:${info.color};">
+                <div class="pv-banner"></div>
+
+                <div class="pv-head">
+                    <div class="pv-avatar-ring">
+                        <img class="pv-avatar" src="${esc(avatar)}" alt="${esc(member.usuario)}" onerror="this.onerror=null;this.src='${AVATAR_DEFECTO}';">
+                    </div>
+                    <div class="pv-head-info">
+                        <h1 class="pv-name">${esc(member.usuario)}
+                            <button class="pv-copy" onclick="copyToClipboard(${nameForCopy})" title="Copiar nombre" aria-label="Copiar nombre"><i class="fa-solid fa-copy"></i></button>
+                        </h1>
+                        ${dId ? `<button type="button" class="pv-id" data-copiar-id="${esc(dId)}" title="Copiar ID de Discord">${esc(dId)} <i class="fa-regular fa-copy" aria-hidden="true"></i></button>` : ''}
+                    </div>
+                    <div class="pv-head-pills">
+                        <span class="pv-pill" style="border-color:${info.color}66;"><span class="pv-dot" style="background:${info.color};"></span>${esc(member.rango || 'Staff')}</span>                    </div>
+                </div>
+
+                <div class="pv-grid">
+                    <aside class="pv-side">
+                        <div class="pv-label">Especialidades</div>
+                        ${buildEspecialidadesHtml(member)}
+                        <div class="pv-label">Información</div>
+                        <ul class="pv-info">
+                            <li><i class="fa-regular fa-calendar"></i> <span>Registro en la web <b>${esc(webDate)}</b></span></li>
+                            <li><i class="fa-brands fa-discord"></i> <span>Cuenta creada en Discord el <b>${esc(discordDate)}</b></span></li>
+                        </ul>
+                    </aside>
+
+                    <div>
+                        <div class="pv-stats">
+                            ${stat('fa-regular fa-lightbulb', '#a855f7', 'rgba(168,85,247,.15)', 'Sugerencias enviadas', showSug ? mias.length : 'Oculto')}
+                            ${stat('fa-regular fa-thumbs-up', '#34d399', 'rgba(16,185,129,.15)', 'Votos a favor recibidos', showSug ? votos : 'Oculto')}
+                        </div>
+                        <div class="pv-sections">${secciones}</div>
+                    </div>
+                </div>
+            </div>`);
+    }
+
+    function closeProfile(updateUrl) {
+        profileToken++;
+        cerrarSugModal();
+        sugPerfil = [];
+        document.documentElement.classList.remove('en-perfil');
+        document.getElementById('profileView').style.display = 'none';
+        document.getElementById('profileView').innerHTML = '';
+        document.getElementById('teamView').style.display = 'block';
+        setBreadcrumb('');
+        if (updateUrl) { try { history.pushState({}, '', window.location.pathname); } catch (e) {} }
+    }
+
+    function abrirDesdeUrl() {
+        const id = new URLSearchParams(window.location.search).get('perfil');
+        if (!id) return;
+        let logged = null;
+        try { logged = JSON.parse(localStorage.getItem('discord_user') || 'null'); } catch (e) {}
+
+        let m = globalStaffList.find(s => String(s.discordId || '').trim() === id || String(s.id) === id);
+        if (!m && logged && String(logged.id) === id) {
+            m = {
+                id: 'self-' + id, discordId: id,
+                usuario: logged.displayName || logged.username || 'Usuario',
+                rango: 'Miembro', categoria: 'Comunidad', especialidad: 'Ninguna', fechaRegistro: null
+            };
+            globalStaffList.push(m);
+        }
+        if (m) openProfile(m.id, avatarDe(m, logged), false);
+    }
+
+    window.addEventListener('popstate', () => {
+        if (new URLSearchParams(window.location.search).get('perfil')) abrirDesdeUrl();
+        else closeProfile(false);
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        // Esc: primero cierra la sugerencia abierta; si no hay, vuelve al equipo
+        // (salvo si está abierto el buscador de páginas, que se cierra él solo)
+        if (cerrarSugModal()) return;
+        if (document.getElementById('profileView').style.display !== 'none' && !document.querySelector('.hx-palette.show')) closeProfile(true);
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        renderPublicTeam();                 // tarjetas de carga
+        loadDiscordSessionData();
+        await cargarStaff();                // staff real desde /api/staff
+        abrirDesdeUrl();
+        cargarPerfilesPublicos();
+
+        // Si cambia la sesión de Discord en otra pestaña, se repintan los avatares
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'discord_user') renderPublicTeam();
+        });
+        // Al volver a la pestaña se vuelve a pedir el staff (cambios desde otro dispositivo)
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') cargarStaff();
+        });
+    });
+
+    /* ---------------- Menú lateral colapsable ---------------- */
+    const toggleBtn = document.getElementById('sidebarToggleBtn');
+    const revealBtn = document.getElementById('sidebarRevealBtn');
+    const sidebar = document.getElementById('sidebar');
+    if (toggleBtn && revealBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => sidebar.classList.add('collapsed'));
+        revealBtn.addEventListener('click', () => sidebar.classList.remove('collapsed'));
+    }
+
+    /* ---------------- Menú desplegable de Soporte ---------------- */
+    const supportBtn = document.getElementById('supportDropdownBtn');
+    const supportMenu = document.getElementById('supportDropdownMenu');
+    if (supportBtn && supportMenu) {
+        supportBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = supportMenu.classList.contains('show');
+            if (!isOpen) {
+                if (supportMenu.parentElement !== document.body) document.body.appendChild(supportMenu);
+                const rect = supportBtn.getBoundingClientRect();
+                supportMenu.style.top = (rect.bottom + 8) + 'px';
+                supportMenu.style.right = (window.innerWidth - rect.right) + 'px';
+                supportMenu.classList.add('show');
+            } else {
+                supportMenu.classList.remove('show');
+            }
+        });
+        window.addEventListener('click', () => supportMenu.classList.remove('show'));
+        window.addEventListener('resize', () => supportMenu.classList.remove('show'));
+    }
+    </script>
+
+    <script src="/guards.js"></script>
+    <!-- Menú lateral común: logo, lupa y buscador de páginas por categorías -->
+    <script src="/src/components/hx-sidebar.js"></script>
+    <script src="/src/components/cabecera.js"></script>
+</body>
+</html>

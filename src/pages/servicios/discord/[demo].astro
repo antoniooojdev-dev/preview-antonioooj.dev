@@ -1,0 +1,415 @@
+---
+// Demos propias de «Bots de Discord» (/servicios/discord/<demo>): una pantalla tipo
+// Discord a todo el ancho centrada en una sola función. Se llega desde «qué incluye»
+// de /servicios/discord. Datos en discordDemos (src/data/services.ts).
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Icono from "@/components/servicios/Icono.astro";
+import DemoComandos from "@/components/servicios/discord/DemoComandos.astro";
+import DemoTickets from "@/components/servicios/discord/DemoTickets.astro";
+import DemoAutomod from "@/components/servicios/discord/DemoAutomod.astro";
+import DemoVerificacion from "@/components/servicios/discord/DemoVerificacion.astro";
+import DemoEconomia from "@/components/servicios/discord/DemoEconomia.astro";
+import { discordDemos, type DiscordDemo } from "@/data/services";
+
+export const getStaticPaths = (() => discordDemos.map((demo) => ({ params: { demo: demo.id }, props: { demo } }))) satisfies GetStaticPaths;
+
+interface Props {
+  demo: DiscordDemo;
+}
+
+const { demo } = Astro.props;
+const componentes = {
+  comandos: DemoComandos,
+  tickets: DemoTickets,
+  automod: DemoAutomod,
+  verificacion: DemoVerificacion,
+  economia: DemoEconomia,
+} as const;
+const Demo = componentes[demo.id as keyof typeof componentes];
+const indice = discordDemos.findIndex((d) => d.id === demo.id);
+const siguiente = discordDemos[(indice + 1) % discordDemos.length];
+---
+
+<BaseLayout title={`${demo.titulo} · Bot de Discord`} description={demo.lead}>
+  <!-- Dirección de la animación: si vienes de una demo anterior entra desde la derecha,
+       si vuelves a una anterior, desde la izquierda. Va inline para que esté antes de pintar. -->
+  <script is:inline define:vars={{ indice }}>
+    try {
+      const antes = Number(sessionStorage.getItem("dc-demo"));
+      const desdeDemo = /\/servicios\/discord\/\w+/.test(document.referrer);
+      if (desdeDemo && !Number.isNaN(antes) && sessionStorage.getItem("dc-demo") !== null && antes !== indice) {
+        document.documentElement.dataset.dcDir = antes < indice ? "next" : "prev";
+      }
+      sessionStorage.setItem("dc-demo", String(indice));
+    } catch {}
+  </script>
+  <article class="page">
+    <div class="glow" aria-hidden="true"></div>
+    <div class="container">
+      <a href="/servicios/discord" class="back mono">← cd ../bots-de-discord</a>
+
+      <header class="head">
+        <div class="head-text">
+          <span class="eyebrow mono"><span class="live"><i aria-hidden="true"></i> demo en vivo</span> bot de discord · {indice + 1}/{discordDemos.length}</span>
+          <h1>
+            <span class="h1-icon" aria-hidden="true"><Icono nombre={demo.icono} size={30} /></span>
+            {demo.titulo}
+          </h1>
+          <p class="lead">{demo.lead}</p>
+        </div>
+        <ol role="list" class="pasos">
+          {
+            demo.pasos.map((p, i) => (
+              <li style={`--i:${i}`}>
+                <span class="mono">{i + 1}</span>
+                {p}
+              </li>
+            ))
+          }
+        </ol>
+      </header>
+
+      <nav class="tabs" aria-label="Otras demos del bot">
+        {
+          discordDemos.map((d) => (
+            <a href={`/servicios/discord/${d.id}`} class:list={["tab", { "is-on": d.id === demo.id }]} aria-current={d.id === demo.id ? "page" : undefined}>
+              <Icono nombre={d.icono} size={16} />
+              {d.titulo}
+            </a>
+          ))
+        }
+      </nav>
+
+      <div class="frame-wrap">
+        <div class="frame">
+          <Demo />
+        </div>
+      </div>
+      <p class="note mono">Demo simulada en tu navegador: no se conecta a Discord y nada se guarda ni se envía.</p>
+
+      <aside class="cta">
+        <div>
+          <p class="cta-title">¿Quieres un bot así para tu servidor?</p>
+          <p class="cta-sub mono">hecho a medida · alojado 24/7</p>
+        </div>
+        <div class="cta-actions">
+          <a href={`/servicios/discord/${siguiente.id}`} class="btn btn-ghost">Siguiente: {siguiente.titulo} <span class="arrow" aria-hidden="true">→</span></a>
+          <a href="/contacto?tipo=Bot%20de%20Discord" class="btn btn-primary">Pedir presupuesto <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </aside>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .page {
+    --acc: #5865f2;
+    position: relative;
+    padding-block: var(--space-7) var(--section);
+    overflow-x: clip;
+  }
+
+  .glow {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 560px;
+    background:
+      radial-gradient(ellipse 55% 60% at 20% 0%, rgb(88 101 242 / 0.25), transparent 70%),
+      radial-gradient(ellipse 40% 50% at 85% 10%, rgb(235 69 158 / 0.12), transparent 70%);
+    pointer-events: none;
+  }
+
+  .container {
+    position: relative;
+  }
+
+  .back {
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .back:hover {
+    color: var(--fg);
+  }
+
+  .head {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: var(--space-7);
+    align-items: end;
+    margin-block: var(--space-6) var(--space-5);
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgb(88 101 242 / 0.45);
+    background: rgb(88 101 242 / 0.12);
+    color: #7983f5;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .live i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--acc);
+    animation: ping 1.8s ease-out infinite;
+  }
+
+  h1 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-block: var(--space-4) var(--space-3);
+    font-size: clamp(2.2rem, 1.5rem + 3vw, 3.75rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+  }
+
+  .h1-icon {
+    display: grid;
+    place-items: center;
+    width: 3.6rem;
+    height: 3.6rem;
+    flex-shrink: 0;
+    border-radius: 18px;
+    color: #fff;
+    background: linear-gradient(145deg, #8c95f7, #5865f2 55%, #3c45a5);
+    box-shadow: 0 18px 40px -16px #5865f2;
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .lead {
+    max-width: 40rem;
+    font-size: var(--fs-md);
+    color: var(--fg-muted);
+  }
+
+  .pasos {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .pasos li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    font-size: var(--fs-sm);
+    animation: in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 90ms + 150ms);
+  }
+
+  .pasos .mono {
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--acc);
+    color: #fff;
+    font-size: var(--fs-xs);
+  }
+
+  /* pestañas (centradas; se quedan quietas al cambiar de demo y la pestaña activa se
+     desliza hasta su sitio con View Transitions) */
+  .tabs {
+    display: flex;
+    gap: var(--space-2);
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto var(--space-5);
+    padding: 5px;
+    overflow-x: auto;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    box-shadow: 0 16px 40px -28px rgb(0 0 0 / 0.5);
+    scrollbar-width: none;
+    view-transition-name: dc-tabs;
+  }
+
+  .tab.is-on {
+    view-transition-name: dc-tab-on;
+  }
+
+  /* ── entrada del contenido al cambiar de demo ── */
+  .head-text > *,
+  .pasos,
+  .frame-wrap,
+  .note {
+    animation: dc-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .head-text > :nth-child(2) { animation-delay: 0.06s; }
+  .head-text > :nth-child(3) { animation-delay: 0.12s; }
+  .frame-wrap { animation-delay: 0.18s; }
+  .note { animation-delay: 0.3s; }
+
+  :global(html[data-dc-dir="next"]) .head-text > *,
+  :global(html[data-dc-dir="next"]) .frame-wrap {
+    animation-name: dc-in-next;
+  }
+
+  :global(html[data-dc-dir="prev"]) .head-text > *,
+  :global(html[data-dc-dir="prev"]) .frame-wrap {
+    animation-name: dc-in-prev;
+  }
+
+  @keyframes dc-in {
+    from { opacity: 0; transform: translateY(24px); filter: blur(4px); }
+  }
+
+  @keyframes dc-in-next {
+    from { opacity: 0; transform: translateX(60px) scale(0.98); filter: blur(6px); }
+  }
+
+  @keyframes dc-in-prev {
+    from { opacity: 0; transform: translateX(-60px) scale(0.98); filter: blur(6px); }
+  }
+
+  :global(::view-transition-group(dc-tab-on)) {
+    animation-duration: 0.45s;
+    animation-timing-function: cubic-bezier(0.34, 1.3, 0.5, 1);
+  }
+
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    padding: 0.55rem 0.95rem;
+    border-radius: 10px;
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+
+  .tab:hover {
+    color: var(--fg);
+    background: var(--bg-code);
+  }
+
+  .tab.is-on {
+    background: var(--acc);
+    color: #fff;
+    box-shadow: 0 10px 24px -12px var(--acc);
+  }
+
+  /* marco de la demo */
+  .frame {
+    position: relative;
+    padding: 1.5px;
+    border-radius: 16px;
+    background: conic-gradient(from var(--ang, 0deg), #5865f2, transparent 25%, transparent 50%, #eb459e, transparent 75%, #5865f2);
+    box-shadow: 0 60px 120px -60px rgb(88 101 242 / 0.8);
+    animation: spin-border 8s linear infinite;
+  }
+
+  .frame > :global(*) {
+    border-radius: 15px;
+    overflow: hidden;
+  }
+
+  .note {
+    margin-top: var(--space-3);
+    text-align: center;
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    margin-top: var(--space-8);
+    padding: var(--space-6);
+    border-radius: 24px;
+    border: 1px solid rgb(88 101 242 / 0.35);
+    background:
+      radial-gradient(ellipse 60% 120% at 100% 50%, rgb(88 101 242 / 0.2), transparent 70%),
+      var(--bg-elev);
+  }
+
+  .cta-title {
+    font-size: var(--fs-lg);
+    font-weight: 600;
+  }
+
+  .cta-sub {
+    margin-top: var(--space-1);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  @property --ang {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+
+  @keyframes spin-border {
+    to { --ang: 360deg; }
+  }
+
+  @keyframes float {
+    50% { transform: translateY(-5px) rotate(-4deg); }
+  }
+
+  @keyframes ping {
+    0% { box-shadow: 0 0 0 0 rgb(88 101 242 / 0.7); }
+    80%, 100% { box-shadow: 0 0 0 8px transparent; }
+  }
+
+  @keyframes in {
+    from { opacity: 0; transform: translateX(12px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .frame,
+    .frame-wrap,
+    .h1-icon,
+    .live i,
+    .pasos,
+    .pasos li,
+    .head-text > *,
+    .note {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 52rem) {
+    .head {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+    }
+  }
+</style>

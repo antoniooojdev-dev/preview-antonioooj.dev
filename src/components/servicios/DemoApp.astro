@@ -1,0 +1,1482 @@
+---
+// Ejemplo de «Aplicación web»: panel de reservas de un centro de fisioterapia.
+//  - Roles (admin / recepción / fisio) con permisos distintos.
+//  - Vista de lista (búsqueda, filtros, cambio de estado, borrar) y vista de agenda
+//    (línea del día con las citas de hoy colocadas por hora).
+//  - Ficha lateral de cada reserva con su historial.
+//  - Cada cierto tiempo entra una reserva «online» nueva: notificación, campana con
+//    contador y fila resaltada. Estadísticas animadas y barras de scroll propias.
+// Todo vive en memoria.
+const reservas = [
+  { id: 1, cliente: "Lucía Martín", servicio: "Fisioterapia", fecha: "Hoy", hora: "09:30", estado: "confirmada", precio: 45 },
+  { id: 2, cliente: "Javier Ruiz", servicio: "Masaje deportivo", fecha: "Hoy", hora: "11:00", estado: "pendiente", precio: 50 },
+  { id: 3, cliente: "Marta Gil", servicio: "Pilates", fecha: "Hoy", hora: "12:30", estado: "confirmada", precio: 30 },
+  { id: 4, cliente: "Pablo Serrano", servicio: "Punción seca", fecha: "Hoy", hora: "16:00", estado: "confirmada", precio: 55 },
+  { id: 5, cliente: "Andrés López", servicio: "Fisioterapia", fecha: "Mañana", hora: "10:00", estado: "pendiente", precio: 45 },
+  { id: 6, cliente: "Sara Núñez", servicio: "Punción seca", fecha: "Mañana", hora: "17:30", estado: "cancelada", precio: 55 },
+];
+const servicios = ["Fisioterapia", "Masaje deportivo", "Pilates", "Punción seca"];
+const precios: Record<string, number> = { Fisioterapia: 45, "Masaje deportivo": 50, Pilates: 30, "Punción seca": 55 };
+---
+
+<div class="da" data-demo-app data-reservas={JSON.stringify(reservas)} data-precios={JSON.stringify(precios)} data-rol="admin">
+  <aside class="da__side">
+    <strong class="da__brand"><span aria-hidden="true">🩺</span> FisioCentro</strong>
+    <nav class="da__nav mono" aria-label="Menú de la app">
+      <button type="button" class="is-on" data-vista="lista">▦ Reservas</button>
+      <button type="button" data-vista="agenda">🗓 Agenda de hoy</button>
+      <span>👥 Clientes</span>
+      <span class="da__only-admin">📈 Informes</span>
+    </nav>
+    <label class="da__role">
+      <span class="mono">entrar como</span>
+      <select class="da__rol">
+        <option value="admin">👑 Admin</option>
+        <option value="recepcion">🧾 Recepción</option>
+        <option value="fisio">🩺 Fisio (solo lectura)</option>
+      </select>
+    </label>
+    <p class="da__perm mono"></p>
+  </aside>
+
+  <div class="da__main">
+    <!-- barra superior -->
+    <header class="da__top">
+      <div class="da__hello">
+        <span class="mono da__today"></span>
+        <strong class="da__greet">Buenos días 👋</strong>
+      </div>
+      <div class="da__top-tools">
+        <span class="da__live mono"><i aria-hidden="true"></i> reservas online activas</span>
+        <button type="button" class="da__bell" aria-label="Notificaciones" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+          <b class="da__badge" hidden>0</b>
+        </button>
+        <span class="da__avatar" aria-hidden="true"></span>
+      </div>
+
+      <div class="da__notifs" hidden>
+        <div class="da__notifs-head">
+          <strong>Notificaciones</strong>
+          <button type="button" class="da__readall">marcar leídas</button>
+        </div>
+        <ul role="list" class="da__notifs-list"></ul>
+        <p class="da__notifs-empty">Todo al día ✨</p>
+      </div>
+    </header>
+
+    <div class="da__scroll">
+      <div class="da__stats">
+        <div data-k="hoy"><span class="mono">reservas hoy</span><strong>0</strong><i class="da__spark" aria-hidden="true"></i></div>
+        <div data-k="conf"><span class="mono">confirmadas</span><strong>0</strong><i class="da__spark" aria-hidden="true"></i></div>
+        <div data-k="pend"><span class="mono">pendientes</span><strong>0</strong><i class="da__spark" aria-hidden="true"></i></div>
+        <div data-k="eur" class="da__only-admin"><span class="mono">ingresos previstos</span><strong>0 €</strong><i class="da__spark" aria-hidden="true"></i></div>
+      </div>
+
+      <!-- vista lista -->
+      <section class="da__view" data-vista="lista">
+        <div class="da__tools">
+          <input type="search" class="da__search" placeholder="Buscar cliente o servicio…" aria-label="Buscar" />
+          <div class="da__chips" role="group" aria-label="Estado">
+            <button type="button" class="is-on" data-f="">todas</button>
+            <button type="button" data-f="confirmada">confirmadas</button>
+            <button type="button" data-f="pendiente">pendientes</button>
+            <button type="button" data-f="cancelada">canceladas</button>
+          </div>
+          <button type="button" class="da__new da__can-edit">+ Nueva reserva</button>
+        </div>
+
+        <form class="da__form" hidden>
+          <input name="cliente" type="text" placeholder="Nombre del cliente" autocomplete="off" required />
+          <select name="servicio">{servicios.map((s) => <option>{s}</option>)}</select>
+          <select name="fecha"><option>Hoy</option><option>Mañana</option></select>
+          <input name="hora" type="time" value="18:00" min="09:00" max="20:00" required />
+          <button type="submit">Guardar</button>
+        </form>
+
+        <div class="da__table-wrap">
+          <table class="da__table">
+            <thead>
+              <tr><th>Cliente</th><th>Servicio</th><th>Cuándo</th><th>Estado</th><th class="da__only-admin"><span class="visually-hidden">Acciones</span></th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <p class="da__none mono" hidden>Sin resultados</p>
+        </div>
+      </section>
+
+      <!-- vista agenda -->
+      <section class="da__view" data-vista="agenda" hidden>
+        <div class="da__agenda">
+          <div class="da__hours mono" aria-hidden="true"></div>
+          <div class="da__lane">
+            <span class="da__now" aria-hidden="true"><b class="mono">ahora</b></span>
+          </div>
+        </div>
+        <p class="da__agenda-note mono">Pulsa una cita para ver su ficha · las canceladas no aparecen</p>
+      </section>
+
+      <div class="da__log">
+        <span class="mono">// actividad</span>
+        <ul role="list"></ul>
+      </div>
+    </div>
+
+    <!-- ficha de la reserva -->
+    <aside class="da__sheet" hidden aria-label="Ficha de la reserva">
+      <div class="da__sheet-head">
+        <span class="da__sheet-ava" aria-hidden="true"></span>
+        <div>
+          <strong class="da__sheet-name"></strong>
+          <span class="mono da__sheet-sub"></span>
+        </div>
+        <button type="button" class="da__sheet-close" aria-label="Cerrar">✕</button>
+      </div>
+      <dl class="da__sheet-data mono"></dl>
+      <span class="mono da__sheet-kicker">// historial</span>
+      <ol role="list" class="da__sheet-hist"></ol>
+      <div class="da__sheet-actions da__can-edit">
+        <button type="button" data-set="confirmada">✓ Confirmar</button>
+        <button type="button" data-set="cancelada" class="is-danger">Cancelar</button>
+      </div>
+    </aside>
+  </div>
+
+  <div class="da__toasts" aria-live="polite"></div>
+</div>
+
+<script>
+  interface Reserva {
+    id: number;
+    cliente: string;
+    servicio: string;
+    fecha: string;
+    hora: string;
+    estado: "confirmada" | "pendiente" | "cancelada";
+    precio: number;
+    historial?: { t: string; h: string }[];
+    nueva?: boolean;
+  }
+
+  const PERMISOS: Record<string, string> = {
+    admin: "Puede crear, cambiar estados, borrar y ver ingresos.",
+    recepcion: "Puede crear reservas y cambiar estados. No ve ingresos ni puede borrar.",
+    fisio: "Solo consulta su agenda: no puede modificar nada.",
+  };
+  const ROLES: Record<string, string> = { admin: "Admin", recepcion: "Recepción", fisio: "Fisio" };
+  const AVATAR: Record<string, string> = { admin: "AJ", recepcion: "RC", fisio: "FS" };
+  const NOMBRES = ["Carmen Vidal", "Hugo Torres", "Irene Campos", "Diego Molina", "Nuria Blanco", "Álvaro Ramos", "Paula Ortega", "Rubén Castro"];
+  const INICIO = 9;
+  const FIN = 20;
+
+  const ahoraHHMM = () => new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+
+  document.querySelectorAll<HTMLElement>("[data-demo-app]").forEach((demo) => {
+    const reservas = JSON.parse(demo.dataset.reservas!) as Reserva[];
+    const precios = JSON.parse(demo.dataset.precios!) as Record<string, number>;
+    const $ = <T extends Element>(s: string) => demo.querySelector<T>(s)!;
+    const tbody = $<HTMLTableSectionElement>(".da__table tbody");
+    const form = $<HTMLFormElement>(".da__form");
+    const avisos: { t: string; i: string; h: string; leido: boolean }[] = [];
+    let filtro = "";
+    let vista = "lista";
+    let siguiente = reservas.length + 1;
+    let abierta: Reserva | null = null;
+    const previo: Record<string, number> = {};
+
+    reservas.forEach((r) => (r.historial = [{ t: "Reserva creada", h: "08:12" }, ...(r.estado === "confirmada" ? [{ t: "Confirmada por recepción", h: "08:40" }] : [])]));
+
+    const rol = () => demo.dataset.rol ?? "admin";
+    const puedeEditar = () => rol() !== "fisio";
+
+    // ── avisos ──
+    function toast(t: string, icono = "🔔") {
+      const el = document.createElement("div");
+      el.className = "da__toast";
+      el.textContent = `${icono}  ${t}`;
+      $(".da__toasts").append(el);
+      setTimeout(() => el.classList.add("is-out"), 3000);
+      setTimeout(() => el.remove(), 3400);
+    }
+
+    function notificar(t: string, i: string) {
+      avisos.unshift({ t, i, h: ahoraHHMM(), leido: false });
+      toast(t, i);
+      pintarAvisos();
+      const b = $<HTMLElement>(".da__bell");
+      b.classList.remove("is-ring");
+      void b.offsetWidth;
+      b.classList.add("is-ring");
+    }
+
+    function pintarAvisos() {
+      const n = avisos.filter((a) => !a.leido).length;
+      const badge = $<HTMLElement>(".da__badge");
+      badge.hidden = !n;
+      badge.textContent = String(n);
+      $<HTMLElement>(".da__notifs-empty").hidden = avisos.length > 0;
+      $(".da__notifs-list").replaceChildren(
+        ...avisos.slice(0, 10).map((a) => {
+          const li = document.createElement("li");
+          if (!a.leido) li.className = "is-new";
+          const i = document.createElement("span");
+          i.textContent = a.i;
+          const p = document.createElement("p");
+          p.textContent = a.t;
+          const h = document.createElement("small");
+          h.textContent = a.h;
+          li.append(i, p, h);
+          return li;
+        }),
+      );
+    }
+
+    const panelAvisos = $<HTMLElement>(".da__notifs");
+    $(".da__bell").addEventListener("click", (e) => {
+      e.stopPropagation();
+      panelAvisos.hidden = !panelAvisos.hidden;
+      $(".da__bell").setAttribute("aria-expanded", String(!panelAvisos.hidden));
+    });
+    $(".da__readall").addEventListener("click", () => {
+      avisos.forEach((a) => (a.leido = true));
+      pintarAvisos();
+    });
+    demo.addEventListener("click", (e) => {
+      if (!panelAvisos.hidden && !(e.target as HTMLElement).closest(".da__notifs, .da__bell")) panelAvisos.hidden = true;
+    });
+
+    function log(t: string) {
+      const li = document.createElement("li");
+      li.textContent = `${ahoraHHMM()} · ${ROLES[rol()]} · ${t}`;
+      $(".da__log ul").prepend(li);
+      while ($(".da__log ul").children.length > 5) $(".da__log ul").lastElementChild!.remove();
+    }
+
+    function anotar(r: Reserva, t: string) {
+      r.historial = [...(r.historial ?? []), { t, h: ahoraHHMM() }];
+    }
+
+    // ── estadísticas animadas ──
+    function stat(k: string, valor: number, sufijo = "") {
+      const caja = $<HTMLElement>(`.da__stats [data-k="${k}"]`);
+      const el = caja.querySelector("strong")!;
+      const desde = previo[k] ?? 0;
+      previo[k] = valor;
+      if (desde === valor && el.textContent !== "0" + sufijo) return;
+      if (desde !== valor) {
+        caja.classList.remove("is-bump");
+        void caja.offsetWidth;
+        caja.classList.add("is-bump");
+      }
+      const t0 = performance.now();
+      const paso = (t: number) => {
+        const p = Math.min(1, (t - t0) / 600);
+        el.textContent = `${Math.round(desde + (valor - desde) * (1 - (1 - p) ** 3))}${sufijo}`;
+        if (p < 1) requestAnimationFrame(paso);
+      };
+      requestAnimationFrame(paso);
+    }
+
+    // ── lista ──
+    function fila(r: Reserva): HTMLTableRowElement {
+      const tr = document.createElement("tr");
+      tr.dataset.estado = r.estado;
+      tr.dataset.id = String(r.id);
+      if (r.nueva) tr.classList.add("is-new");
+      const celda = (t: string) => {
+        const td = document.createElement("td");
+        td.textContent = t;
+        return td;
+      };
+      const tdCliente = document.createElement("td");
+      const ini = document.createElement("span");
+      ini.className = "da__ini";
+      ini.textContent = r.cliente.split(" ").map((x) => x[0]).join("").slice(0, 2);
+      tdCliente.append(ini, r.cliente);
+      if (r.nueva) {
+        const nuevo = document.createElement("span");
+        nuevo.className = "da__nuevo mono";
+        nuevo.textContent = "online";
+        tdCliente.append(nuevo);
+      }
+      const tdEstado = document.createElement("td");
+      if (puedeEditar()) {
+        const sel = document.createElement("select");
+        sel.className = "da__estado";
+        sel.setAttribute("aria-label", `Estado de ${r.cliente}`);
+        for (const e of ["confirmada", "pendiente", "cancelada"]) sel.add(new Option(e, e, false, e === r.estado));
+        sel.addEventListener("click", (e) => e.stopPropagation());
+        sel.addEventListener("change", () => cambiarEstado(r, sel.value as Reserva["estado"]));
+        tdEstado.append(sel);
+      } else {
+        const b = document.createElement("span");
+        b.className = "da__badge-st";
+        b.textContent = r.estado;
+        tdEstado.append(b);
+      }
+      const tdAcc = document.createElement("td");
+      tdAcc.className = "da__only-admin";
+      const borrar = document.createElement("button");
+      borrar.type = "button";
+      borrar.className = "da__del";
+      borrar.textContent = "🗑";
+      borrar.setAttribute("aria-label", `Borrar reserva de ${r.cliente}`);
+      borrar.addEventListener("click", (e) => {
+        e.stopPropagation();
+        tr.classList.add("is-leaving");
+        setTimeout(() => {
+          reservas.splice(reservas.indexOf(r), 1);
+          log(`borró la reserva de ${r.cliente}`);
+          toast("Reserva eliminada", "🗑");
+          if (abierta === r) abrirFicha(null);
+          pintar();
+        }, 300);
+      });
+      tdAcc.append(borrar);
+      tr.append(tdCliente, celda(r.servicio), celda(`${r.fecha} · ${r.hora}`), tdEstado, tdAcc);
+      tr.addEventListener("click", () => abrirFicha(r));
+      return tr;
+    }
+
+    function cambiarEstado(r: Reserva, estado: Reserva["estado"]) {
+      if (r.estado === estado) return;
+      r.estado = estado;
+      anotar(r, `${estado[0].toUpperCase()}${estado.slice(1)} por ${ROLES[rol()].toLowerCase()}`);
+      log(`${r.cliente} → ${estado}`);
+      notificar(`Reserva de ${r.cliente} ${estado}`, estado === "confirmada" ? "✅" : estado === "cancelada" ? "✕" : "⏳");
+      pintar();
+      if (abierta === r) abrirFicha(r);
+    }
+
+    // ── agenda ──
+    const horasCol = $<HTMLElement>(".da__hours");
+    horasCol.replaceChildren(
+      ...Array.from({ length: FIN - INICIO + 1 }, (_, i) => {
+        const s = document.createElement("span");
+        s.textContent = `${String(INICIO + i).padStart(2, "0")}:00`;
+        s.style.setProperty("--y", String(i / (FIN - INICIO)));
+        return s;
+      }),
+    );
+
+    function pintarAgenda() {
+      const lane = $<HTMLElement>(".da__lane");
+      lane.querySelectorAll(".da__slot").forEach((x) => x.remove());
+      reservas
+        .filter((r) => r.fecha === "Hoy" && r.estado !== "cancelada")
+        .forEach((r, i) => {
+          const [h, m] = r.hora.split(":").map(Number);
+          const y = (h + m / 60 - INICIO) / (FIN - INICIO);
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "da__slot";
+          b.dataset.estado = r.estado;
+          b.style.setProperty("--y", String(Math.max(0, Math.min(0.96, y))));
+          b.style.setProperty("--i", String(i));
+          const t = document.createElement("strong");
+          t.textContent = `${r.hora} · ${r.cliente}`;
+          const s = document.createElement("span");
+          s.textContent = `${r.servicio} · ${r.estado}`;
+          b.append(t, s);
+          b.addEventListener("click", () => abrirFicha(r));
+          lane.append(b);
+        });
+      const ahora = new Date();
+      const y = (ahora.getHours() + ahora.getMinutes() / 60 - INICIO) / (FIN - INICIO);
+      const marca = $<HTMLElement>(".da__now");
+      marca.hidden = y < 0 || y > 1;
+      marca.style.setProperty("--y", String(Math.max(0, Math.min(1, y))));
+    }
+
+    // ── ficha ──
+    function abrirFicha(r: Reserva | null) {
+      abierta = r;
+      const ficha = $<HTMLElement>(".da__sheet");
+      ficha.hidden = !r;
+      demo.querySelectorAll("tbody tr").forEach((tr) => tr.classList.toggle("is-sel", !!r && (tr as HTMLElement).dataset.id === String(r.id)));
+      if (!r) return;
+      $(".da__sheet-ava").textContent = r.cliente.split(" ").map((x) => x[0]).join("").slice(0, 2);
+      $(".da__sheet-name").textContent = r.cliente;
+      $(".da__sheet-sub").textContent = `reserva #${String(r.id).padStart(4, "0")}`;
+      const datos: [string, string][] = [
+        ["servicio", r.servicio],
+        ["cuándo", `${r.fecha} · ${r.hora}`],
+        ["estado", r.estado],
+      ];
+      if (rol() === "admin") datos.push(["importe", `${r.precio} €`]);
+      $(".da__sheet-data").replaceChildren(
+        ...datos.map(([k, v]) => {
+          const d = document.createElement("div");
+          const dt = document.createElement("dt");
+          dt.textContent = k;
+          const dd = document.createElement("dd");
+          dd.textContent = v;
+          d.append(dt, dd);
+          return d;
+        }),
+      );
+      $(".da__sheet-hist").replaceChildren(
+        ...(r.historial ?? []).map((h) => {
+          const li = document.createElement("li");
+          const b = document.createElement("b");
+          b.textContent = h.h;
+          li.append(b, ` ${h.t}`);
+          return li;
+        }),
+      );
+    }
+    $(".da__sheet-close").addEventListener("click", () => abrirFicha(null));
+    demo.querySelectorAll<HTMLButtonElement>(".da__sheet-actions button").forEach((b) =>
+      b.addEventListener("click", () => abierta && cambiarEstado(abierta, b.dataset.set as Reserva["estado"])),
+    );
+
+    // ── pintar todo ──
+    function pintar() {
+      const q = $<HTMLInputElement>(".da__search").value.trim().toLowerCase();
+      const lista = reservas.filter(
+        (r) => (!filtro || r.estado === filtro) && (!q || `${r.cliente} ${r.servicio}`.toLowerCase().includes(q)),
+      );
+      tbody.replaceChildren(...lista.map(fila));
+      $<HTMLElement>(".da__none").hidden = lista.length > 0;
+      if (abierta) abrirFicha(reservas.includes(abierta) ? abierta : null);
+
+      stat("hoy", reservas.filter((r) => r.fecha === "Hoy" && r.estado !== "cancelada").length);
+      stat("conf", reservas.filter((r) => r.estado === "confirmada").length);
+      stat("pend", reservas.filter((r) => r.estado === "pendiente").length);
+      stat("eur", reservas.filter((r) => r.estado !== "cancelada").reduce((s, r) => s + r.precio, 0), " €");
+      pintarAgenda();
+      reservas.forEach((r) => delete r.nueva);
+    }
+
+    // ── controles ──
+    $<HTMLSelectElement>(".da__rol").addEventListener("change", (e) => {
+      demo.dataset.rol = (e.target as HTMLSelectElement).value;
+      $(".da__perm").textContent = PERMISOS[rol()];
+      $(".da__avatar").textContent = AVATAR[rol()];
+      form.hidden = true;
+      toast(`Has entrado como ${ROLES[rol()]}`, "👤");
+      log("inició sesión");
+      pintar();
+    });
+
+    $<HTMLInputElement>(".da__search").addEventListener("input", pintar);
+
+    demo.querySelectorAll<HTMLButtonElement>(".da__chips button").forEach((b) =>
+      b.addEventListener("click", () => {
+        filtro = b.dataset.f ?? "";
+        demo.querySelectorAll(".da__chips button").forEach((x) => x.classList.toggle("is-on", x === b));
+        pintar();
+      }),
+    );
+
+    demo.querySelectorAll<HTMLButtonElement>(".da__nav [data-vista]").forEach((b) =>
+      b.addEventListener("click", () => {
+        vista = b.dataset.vista!;
+        demo.querySelectorAll(".da__nav [data-vista]").forEach((x) => x.classList.toggle("is-on", x === b));
+        demo.querySelectorAll<HTMLElement>(".da__view").forEach((v) => (v.hidden = v.dataset.vista !== vista));
+        pintarAgenda();
+      }),
+    );
+
+    $(".da__new").addEventListener("click", () => {
+      form.hidden = !form.hidden;
+      if (!form.hidden) form.querySelector<HTMLInputElement>('[name="cliente"]')!.focus();
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const d = new FormData(form);
+      const cliente = String(d.get("cliente") ?? "").trim().slice(0, 40);
+      if (!cliente) return;
+      const servicio = String(d.get("servicio"));
+      const r: Reserva = {
+        id: siguiente++,
+        cliente,
+        servicio,
+        fecha: String(d.get("fecha")),
+        hora: String(d.get("hora") || "18:00"),
+        estado: "pendiente",
+        precio: precios[servicio] ?? 40,
+        historial: [{ t: `Creada por ${ROLES[rol()].toLowerCase()}`, h: ahoraHHMM() }],
+        nueva: true,
+      };
+      reservas.unshift(r);
+      log(`creó una reserva para ${cliente}`);
+      notificar(`Reserva creada para ${cliente} · email de confirmación enviado`, "📨");
+      form.reset();
+      form.hidden = true;
+      pintar();
+    });
+
+    // ── reservas online que entran solas ──
+    let entrada = 0;
+    const llegar = () => {
+      if (document.hidden || !demo.isConnected || entrada >= 6) return;
+      entrada++;
+      const servicio = servicios()[Math.floor(Math.random() * 4)];
+      const hora = `${String(10 + Math.floor(Math.random() * 9)).padStart(2, "0")}:${Math.random() > 0.5 ? "00" : "30"}`;
+      const r: Reserva = {
+        id: siguiente++,
+        cliente: NOMBRES[(entrada - 1) % NOMBRES.length],
+        servicio,
+        fecha: Math.random() > 0.4 ? "Hoy" : "Mañana",
+        hora,
+        estado: "pendiente",
+        precio: precios[servicio] ?? 40,
+        historial: [{ t: "Reservada online desde la web", h: ahoraHHMM() }],
+        nueva: true,
+      };
+      reservas.unshift(r);
+      notificar(`Nueva reserva online: ${r.cliente} · ${r.servicio} ${r.fecha.toLowerCase()} ${r.hora}`, "🆕");
+      log(`entró una reserva online de ${r.cliente}`);
+      pintar();
+    };
+    function servicios() {
+      return Object.keys(precios);
+    }
+    const t1 = window.setTimeout(llegar, 5000);
+    const t2 = window.setInterval(llegar, 16000);
+    window.addEventListener(
+      "pagehide",
+      () => {
+        clearTimeout(t1);
+        clearInterval(t2);
+      },
+      { once: true },
+    );
+
+    // ── inicio ──
+    const hoy = new Date();
+    $(".da__today").textContent = hoy.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+    const h = hoy.getHours();
+    $(".da__greet").textContent = h < 14 ? "Buenos días 👋" : h < 21 ? "Buenas tardes 👋" : "Buenas noches 👋";
+    $(".da__perm").textContent = PERMISOS[rol()];
+    $(".da__avatar").textContent = AVATAR[rol()];
+    pintarAvisos();
+    pintar();
+  });
+</script>
+
+<style>
+  .da {
+    --app: #0d9488;
+    position: relative;
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    height: 600px;
+  }
+
+  /* barras de scroll propias */
+  .da__scroll,
+  .da__table-wrap,
+  .da__notifs-list,
+  .da__sheet {
+    scrollbar-width: thin;
+    scrollbar-color: var(--app) transparent;
+  }
+
+  .da__scroll::-webkit-scrollbar,
+  .da__table-wrap::-webkit-scrollbar,
+  .da__notifs-list::-webkit-scrollbar,
+  .da__sheet::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+
+  .da__scroll::-webkit-scrollbar-thumb,
+  .da__table-wrap::-webkit-scrollbar-thumb,
+  .da__notifs-list::-webkit-scrollbar-thumb,
+  .da__sheet::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: linear-gradient(var(--app), #0f766e);
+  }
+
+  /* lateral */
+  .da__side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    background:
+      radial-gradient(circle at 0% 0%, rgb(45 212 191 / 0.18), transparent 50%),
+      #0f172a;
+    color: #e2e8f0;
+  }
+
+  .da__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--fs-md);
+  }
+
+  .da__nav {
+    display: grid;
+    gap: 0.2rem;
+    font-size: var(--fs-xs);
+  }
+
+  .da__nav > * {
+    padding: 0.5rem 0.6rem;
+    border-radius: 8px;
+    color: #94a3b8;
+    text-align: left;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+
+  .da__nav button:hover {
+    color: #fff;
+    background: rgb(255 255 255 / 0.05);
+  }
+
+  .da__nav .is-on {
+    background: color-mix(in srgb, var(--app) 35%, transparent);
+    color: #fff;
+    box-shadow: inset 3px 0 0 #2dd4bf;
+  }
+
+  .da__role {
+    display: grid;
+    gap: 0.3rem;
+    margin-top: auto;
+    font-size: var(--fs-xs);
+  }
+
+  .da__role .mono {
+    color: #94a3b8;
+    font-size: 0.6875rem;
+  }
+
+  .da__role select {
+    padding: 0.45rem;
+    border-radius: 8px;
+    background: #1e293b;
+    color: #fff;
+    border: 1px solid #334155;
+  }
+
+  .da__perm {
+    font-size: 0.6875rem;
+    color: #94a3b8;
+    line-height: 1.5;
+  }
+
+  /* principal */
+  .da__main {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-width: 0;
+    min-height: 0;
+    background: var(--bg-code);
+  }
+
+  .da__top {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-5);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elev);
+    z-index: 3;
+  }
+
+  .da__hello {
+    display: grid;
+  }
+
+  .da__today {
+    font-size: 0.625rem;
+    color: var(--fg-subtle);
+  }
+
+  .da__today::first-letter {
+    text-transform: uppercase;
+  }
+
+  .da__greet {
+    font-size: var(--fs-md);
+  }
+
+  .da__top-tools {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .da__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.625rem;
+    color: var(--fg-subtle);
+  }
+
+  .da__live i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: da-ping 2s ease-out infinite;
+  }
+
+  .da__bell {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-code);
+    color: var(--fg);
+  }
+
+  .da__bell.is-ring svg {
+    animation: da-ring 0.8s ease;
+    transform-origin: 50% 10%;
+  }
+
+  .da__badge {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.625rem;
+    line-height: 17px;
+    text-align: center;
+    box-shadow: 0 0 0 2px var(--bg-elev);
+    animation: da-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .da__badge[hidden] {
+    display: none;
+  }
+
+  .da__avatar {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2dd4bf, var(--app));
+    color: #fff;
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  .da__notifs {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: var(--space-4);
+    width: min(21rem, calc(100% - 2rem));
+    padding: 0.6rem;
+    border-radius: 14px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    box-shadow: 0 24px 50px -20px rgb(0 0 0 / 0.45);
+    animation: da-drop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .da__notifs[hidden] {
+    display: none;
+  }
+
+  .da__notifs-head {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.2rem 0.4rem 0.5rem;
+    font-size: var(--fs-sm);
+  }
+
+  .da__readall {
+    color: var(--app);
+    font-size: 0.6875rem;
+  }
+
+  .da__notifs-list {
+    display: grid;
+    gap: 2px;
+    max-height: 16rem;
+    overflow-y: auto;
+  }
+
+  .da__notifs-list :global(li) {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.6rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    animation: da-in 0.3s ease;
+  }
+
+  .da__notifs-list :global(li.is-new) {
+    background: color-mix(in srgb, var(--app) 12%, transparent);
+  }
+
+  .da__notifs-list :global(small) {
+    color: var(--fg-subtle);
+    font-size: 0.625rem;
+  }
+
+  .da__notifs-empty {
+    padding: 0.6rem 0.4rem;
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .da__notifs-empty[hidden] {
+    display: none;
+  }
+
+  .da__scroll {
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    overflow-y: auto;
+    min-height: 0;
+  }
+
+  /* estadísticas */
+  .da__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: var(--space-3);
+  }
+
+  .da__stats > div {
+    position: relative;
+    display: grid;
+    gap: 0.2rem;
+    padding: var(--space-3) var(--space-4);
+    border-radius: 12px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: border-color 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .da__stats > div:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--app) 40%, var(--border));
+  }
+
+  .da__stats > div.is-bump {
+    animation: da-bump 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    border-color: var(--app);
+  }
+
+  .da__stats .mono {
+    font-size: 0.625rem;
+    color: var(--fg-subtle);
+  }
+
+  .da__stats strong {
+    font-size: var(--fs-lg);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .da__spark {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 46px;
+    height: 18px;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 18'%3E%3Cpath d='M0 14 L8 10 L16 12 L24 5 L32 8 L40 2 L46 4 L46 18 L0 18Z'/%3E%3C/svg%3E") center / 100% 100%;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 18'%3E%3Cpath d='M0 14 L8 10 L16 12 L24 5 L32 8 L40 2 L46 4 L46 18 L0 18Z'/%3E%3C/svg%3E") center / 100% 100%;
+    background: color-mix(in srgb, var(--app) 30%, transparent);
+  }
+
+  .da[data-rol="recepcion"] .da__only-admin,
+  .da[data-rol="fisio"] .da__only-admin,
+  .da[data-rol="fisio"] .da__can-edit {
+    display: none !important;
+  }
+
+  .da__view[hidden] {
+    display: none;
+  }
+
+  .da__view {
+    display: grid;
+    gap: var(--space-3);
+    animation: da-in 0.35s ease;
+  }
+
+  .da__tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .da__search {
+    flex: 1 1 12rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    font-size: var(--fs-sm);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .da__search:focus-visible {
+    outline: none;
+    border-color: var(--app);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--app) 20%, transparent);
+  }
+
+  .da__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    font-size: var(--fs-xs);
+  }
+
+  .da__chips button {
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    color: var(--fg-muted);
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+
+  .da__chips .is-on {
+    color: #fff;
+    background: var(--app);
+  }
+
+  .da__new,
+  .da__form button {
+    padding: 0.55rem 0.9rem;
+    border-radius: 10px;
+    background: var(--app);
+    color: #fff;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    box-shadow: 0 8px 18px -10px var(--app);
+    transition: transform 0.25s ease;
+  }
+
+  .da__new:hover {
+    transform: translateY(-1px);
+  }
+
+  .da__form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border-radius: 12px;
+    border: 1px dashed var(--app);
+    background: var(--bg-elev);
+    animation: da-in 0.3s ease;
+  }
+
+  .da__form[hidden] {
+    display: none;
+  }
+
+  .da__form input,
+  .da__form select {
+    flex: 1 1 8rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: var(--fs-xs);
+  }
+
+  /* tabla */
+  .da__table-wrap {
+    overflow: auto;
+    max-height: 17rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+  }
+
+  .da__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-xs);
+  }
+
+  .da__table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    background: var(--bg-elev);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 0.625rem;
+    color: var(--fg-subtle);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .da__table :global(td) {
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .da__table :global(tbody tr) {
+    cursor: pointer;
+    transition: background 0.2s ease, opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .da__table :global(tbody tr:hover) {
+    background: color-mix(in srgb, var(--app) 6%, transparent);
+  }
+
+  .da__table :global(tbody tr.is-sel) {
+    background: color-mix(in srgb, var(--app) 12%, transparent);
+    box-shadow: inset 3px 0 0 var(--app);
+  }
+
+  .da__table :global(tbody tr.is-new) {
+    animation: da-flash 2s ease;
+  }
+
+  .da__table :global(tbody tr.is-leaving) {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  .da__table :global(.da__ini) {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    margin-right: 0.5rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--app) 18%, var(--bg));
+    color: var(--app);
+    font-size: 0.625rem;
+    font-weight: 700;
+  }
+
+  .da__table :global(.da__nuevo) {
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.35rem;
+    border-radius: 4px;
+    background: #22c55e;
+    color: #fff;
+    font-size: 0.5625rem;
+  }
+
+  .da__table :global(tr[data-estado="cancelada"] td:nth-child(-n + 3)) {
+    color: var(--fg-subtle);
+    text-decoration: line-through;
+  }
+
+  .da__table :global(.da__estado),
+  .da__table :global(.da__badge-st) {
+    padding: 0.2rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 0.6875rem;
+  }
+
+  .da__table :global(tr[data-estado="confirmada"] :is(.da__estado, .da__badge-st)) {
+    background: color-mix(in srgb, #16a34a 15%, transparent);
+    color: #16a34a;
+  }
+
+  .da__table :global(tr[data-estado="pendiente"] :is(.da__estado, .da__badge-st)) {
+    background: color-mix(in srgb, #d97706 15%, transparent);
+    color: #d97706;
+  }
+
+  .da__table :global(tr[data-estado="cancelada"] :is(.da__estado, .da__badge-st)) {
+    background: color-mix(in srgb, #dc2626 12%, transparent);
+    color: #dc2626;
+  }
+
+  .da__table :global(.da__del) {
+    opacity: 0.45;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .da__table :global(.da__del:hover) {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+
+  .da__none {
+    padding: var(--space-4);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .da__none[hidden] {
+    display: none;
+  }
+
+  /* agenda */
+  .da__agenda {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: var(--space-2);
+    height: 22rem;
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-2);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+  }
+
+  .da__hours {
+    position: relative;
+  }
+
+  .da__hours :global(span) {
+    position: absolute;
+    top: calc(var(--y) * 100%);
+    right: 0;
+    transform: translateY(-50%);
+    font-size: 0.5625rem;
+    color: var(--fg-subtle);
+  }
+
+  .da__lane {
+    position: relative;
+    border-left: 1px solid var(--border);
+    background: repeating-linear-gradient(transparent 0 calc(100% / 11 - 1px), var(--border) calc(100% / 11 - 1px) calc(100% / 11));
+  }
+
+  .da__lane :global(.da__slot) {
+    position: absolute;
+    top: calc(var(--y) * 100%);
+    left: 8px;
+    right: 8px;
+    display: grid;
+    gap: 1px;
+    padding: 0.35rem 0.6rem;
+    border-radius: 8px;
+    border-left: 3px solid #16a34a;
+    background: color-mix(in srgb, #16a34a 12%, var(--bg-elev));
+    text-align: left;
+    font-size: 0.6875rem;
+    animation: da-slot 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 70ms);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .da__lane :global(.da__slot[data-estado="pendiente"]) {
+    border-left-color: #d97706;
+    background: color-mix(in srgb, #d97706 12%, var(--bg-elev));
+  }
+
+  .da__lane :global(.da__slot:hover) {
+    transform: translateX(4px);
+    box-shadow: 0 10px 20px -14px rgb(0 0 0 / 0.5);
+    z-index: 1;
+  }
+
+  .da__lane :global(.da__slot span) {
+    color: var(--fg-muted);
+    font-size: 0.625rem;
+  }
+
+  .da__now {
+    position: absolute;
+    top: calc(var(--y, 0) * 100%);
+    left: -4px;
+    right: 0;
+    height: 2px;
+    background: #ef4444;
+    z-index: 2;
+  }
+
+  .da__now[hidden] {
+    display: none;
+  }
+
+  .da__now::before {
+    content: "";
+    position: absolute;
+    left: -3px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: da-ping-red 2s ease-out infinite;
+  }
+
+  .da__now b {
+    position: absolute;
+    right: 0;
+    top: -1.1rem;
+    font-size: 0.5625rem;
+    color: #ef4444;
+  }
+
+  .da__agenda-note {
+    font-size: 0.625rem;
+    color: var(--fg-subtle);
+  }
+
+  /* actividad */
+  .da__log {
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.6875rem;
+    color: var(--fg-muted);
+  }
+
+  .da__log .mono {
+    color: var(--fg-subtle);
+  }
+
+  .da__log :global(li) {
+    animation: da-in 0.3s ease;
+  }
+
+  /* ficha */
+  .da__sheet {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    width: min(19rem, 100%);
+    padding: var(--space-4);
+    overflow-y: auto;
+    background: var(--bg-elev);
+    border-left: 1px solid var(--border);
+    box-shadow: -20px 0 50px -24px rgb(0 0 0 / 0.5);
+    animation: da-slide 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .da__sheet[hidden] {
+    display: none;
+  }
+
+  .da__sheet-head {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-3);
+    align-items: center;
+  }
+
+  .da__sheet-head > div {
+    display: grid;
+  }
+
+  .da__sheet-ava {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2dd4bf, var(--app));
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .da__sheet-sub {
+    font-size: 0.625rem;
+    color: var(--fg-subtle);
+  }
+
+  .da__sheet-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-code);
+  }
+
+  .da__sheet-data {
+    display: grid;
+    gap: 0.4rem;
+    padding: var(--space-3);
+    border-radius: 10px;
+    background: var(--bg-code);
+    font-size: var(--fs-xs);
+  }
+
+  .da__sheet-data :global(div) {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .da__sheet-data :global(dt) {
+    color: var(--fg-subtle);
+  }
+
+  .da__sheet-data :global(dd) {
+    margin: 0;
+  }
+
+  .da__sheet-kicker {
+    font-size: 0.625rem;
+    color: var(--fg-subtle);
+  }
+
+  .da__sheet-hist {
+    position: relative;
+    display: grid;
+    gap: 0.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid color-mix(in srgb, var(--app) 40%, var(--border));
+    font-size: var(--fs-xs);
+  }
+
+  .da__sheet-hist :global(li) {
+    position: relative;
+    animation: da-in 0.3s ease;
+  }
+
+  .da__sheet-hist :global(li::before) {
+    content: "";
+    position: absolute;
+    left: calc(-1rem - 6px);
+    top: 0.35em;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--app);
+    box-shadow: 0 0 0 3px var(--bg-elev);
+  }
+
+  .da__sheet-hist :global(b) {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--fg-subtle);
+  }
+
+  .da__sheet-actions {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: auto;
+  }
+
+  .da__sheet-actions button {
+    flex: 1;
+    padding: 0.55rem;
+    border-radius: 10px;
+    background: var(--app);
+    color: #fff;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+  }
+
+  .da__sheet-actions .is-danger {
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+  }
+
+  /* avisos flotantes */
+  .da__toasts {
+    position: absolute;
+    right: var(--space-4);
+    bottom: var(--space-4);
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    pointer-events: none;
+  }
+
+  .da__toasts :global(.da__toast) {
+    max-width: 22rem;
+    padding: 0.65rem 0.9rem;
+    border-radius: 10px;
+    background: #0f172a;
+    color: #fff;
+    font-size: var(--fs-xs);
+    box-shadow: 0 16px 40px -14px rgb(0 0 0 / 0.5);
+    border-left: 3px solid #2dd4bf;
+    animation: da-toast 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+
+  .da__toasts :global(.da__toast.is-out) {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  @keyframes da-in { from { opacity: 0; transform: translateY(-4px); } }
+  @keyframes da-drop { from { opacity: 0; transform: translateY(-8px) scale(0.97); } }
+  @keyframes da-slide { from { transform: translateX(100%); } }
+  @keyframes da-toast { from { opacity: 0; transform: translateY(14px) scale(0.96); } }
+  @keyframes da-pop { 0% { transform: scale(0.5); } 60% { transform: scale(1.2); } }
+  @keyframes da-bump { 40% { transform: scale(1.04); } }
+  @keyframes da-flash { 0%, 30% { background: color-mix(in srgb, #22c55e 22%, transparent); } }
+  @keyframes da-slot { from { opacity: 0; transform: translateX(-12px); } }
+  @keyframes da-ring { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(18deg); } 40% { transform: rotate(-16deg); } 60% { transform: rotate(10deg); } 80% { transform: rotate(-6deg); } }
+  @keyframes da-ping {
+    0% { box-shadow: 0 0 0 0 rgb(34 197 94 / 0.6); }
+    80%, 100% { box-shadow: 0 0 0 7px transparent; }
+  }
+  @keyframes da-ping-red {
+    0% { box-shadow: 0 0 0 0 rgb(239 68 68 / 0.6); }
+    80%, 100% { box-shadow: 0 0 0 8px transparent; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .da *,
+    .da *::before {
+      animation: none !important;
+    }
+  }
+
+  @media (max-width: 52rem) {
+    .da {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+      height: 720px;
+    }
+
+    .da__side {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-3);
+    }
+
+    .da__nav {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .da__nav span,
+    .da__perm,
+    .da__live {
+      display: none;
+    }
+
+    .da__role {
+      margin: 0 0 0 auto;
+    }
+
+    .da__scroll {
+      padding: var(--space-3);
+    }
+
+    .da__top {
+      padding: var(--space-3);
+    }
+  }
+</style>

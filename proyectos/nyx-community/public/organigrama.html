@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organigrama Institucional | Nyx Community</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="/src/assets/admin.css">
+<link rel="stylesheet" href="/src/assets/perfil.css">
+<style>
+/* Scrollbar moderna y bonita */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(14, 10, 20, 0.9);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(168, 85, 247, 0.3);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(168, 85, 247, 0.6);
+}
+
+/* Animación de entrada general para toda la página */
+@keyframes pageEntrance {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.99);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+.main-content {
+    animation: pageEntrance 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Estilos específicos con tonos rosados/morados */
+:root {
+    --purple-primary: #a855f7;
+    --purple-glow: rgba(168, 85, 247, 0.3);
+    --pink-accent: #ec4899;
+}
+
+/* Botón de información (ícono I) */
+.info-icon-btn {
+    background: rgba(168, 85, 247, 0.15);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    color: #c084fc;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+.info-icon-btn:hover {
+    background: #a855f7;
+    color: #fff;
+    border-color: #a855f7;
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+}
+
+/* Modales personalizados */
+.custom-modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(5, 3, 10, 0.85); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100000; padding: 20px; opacity: 0; visibility: hidden;
+    transition: all 0.3s;
+}
+.custom-modal-overlay.open { opacity: 1; visibility: visible; }
+.modal-card {
+    background: #140f1d;
+    border: 1px solid var(--border-color);
+    border-radius: 18px; padding: 28px;
+    max-width: 520px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.85);
+    color: #fff; transform: translateY(20px) scale(0.97);
+    transition: all 0.35s;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.custom-modal-overlay.open .modal-card { transform: translateY(0) scale(1); }
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border-color); padding-bottom: 12px;
+    margin-bottom: 20px;
+}
+.modal-title { font-size: 18px; font-weight: 700; color: #c084fc; display: flex; align-items: center; gap: 8px; }
+.close-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; transition: color 0.2s; }
+.close-btn:hover { color: #fff; }
+
+/* Botones de selección de Organigrama */
+.org-tabs-container {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.org-tab-btn {
+    background: rgba(18, 12, 28, 0.85);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: inherit;
+}
+.org-tab-btn:hover {
+    border-color: rgba(168, 85, 247, 0.5);
+    color: #fff;
+    background: rgba(25, 15, 35, 0.9);
+}
+.org-tab-btn.active {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(147, 51, 234, 0.18) 100%);
+    border-color: rgba(168, 85, 247, 0.5);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.2);
+}
+
+/* Estructura del Árbol Jerárquico Vertical */
+.tree-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 36px;
+    padding: 20px 10px;
+    animation: fadein 0.35s ease-in-out;
+    overflow-x: auto;
+}
+@keyframes fadein {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tree-level {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    position: relative;
+    flex-wrap: wrap;
+}
+
+/* Línea conectora vertical entre niveles */
+.tree-level:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    bottom: -36px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 36px;
+    background: rgba(168, 85, 247, 0.5);
+}
+
+.tree-card {
+    background: rgba(18, 12, 28, 0.9);
+    border: 1px solid rgba(168, 85, 247, 0.35);
+    border-radius: 14px;
+    padding: 16px 22px;
+    text-align: center;
+    min-width: 200px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5), 0 0 15px rgba(168, 85, 247, 0.1);
+    transition: all 0.3s ease;
+}
+.tree-card:hover {
+    border-color: #ec4899;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(236, 72, 153, 0.2);
+}
+
+.tree-card-role {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #c084fc;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.tree-card-name {
+    font-size: 14px;
+    color: #fff;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.tree-card-name i {
+    color: #ec4899;
+    font-size: 13px;
+}
+
+/* Estilo exacto del botón activo en la barra lateral */
+.sidebar-nav .nav-item.active {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(147, 51, 234, 0.18) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.2);
+}
+</style>
+    <link rel="stylesheet" href="/src/assets/comun.css">
+</head>
+<body>
+<div class="grid-background"></div>
+
+<div class="custom-modal-overlay" id="infoModal">
+    <div class="modal-card" style="border-color: rgba(168, 85, 247, 0.4);">
+        <div class="modal-header">
+            <div class="modal-title"><i class="fa-solid fa-circle-info"></i> Información de Utilización IC</div>
+            <button class="close-btn" onclick="closeModal('infoModal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="font-size: 13px; color: var(--text-muted); line-height: 1.6; display: flex; flex-direction: column; gap: 14px;">
+            <p style="margin: 0; color: #fff;">
+                Esta información puede utilizarse en entorno <strong>IC (In-Character)</strong> siempre y cuando siga estrictamente la línea argumental y la historia del personaje que la emplea, justificando debidamente cómo y para qué la ha conseguido.
+            </p>
+            <p style="margin: 0;">
+                Queda totalmente prohibido utilizar este contenido como <strong>MetaGaming (MG)</strong>, aprovechando el conocimiento externo de rangos o posiciones de los agentes para sacar ventaja de forma antirreglamentaria.
+            </p>
+            <p style="margin: 0; color: #ec4899; font-weight: 700;">
+                Cualquier incumplimiento o uso malintencionado de estos datos podrá acarrear una sanción administrativa directa por parte del equipo de moderación.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="app-container">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-logo-title" style="display: flex; align-items: center; gap: 10px;">
+                <img src="https://i.imgur.com/VPqGp7U.png" alt="Nyx Community Logo" class="sidebar-logo" style="width: 32px; height: 32px; object-fit: contain;">
+                <span class="server-main-title">Nyx Community</span>
+            </div>
+            <button class="sidebar-toggle-icon" id="sidebarToggleBtn"><i class="fa-solid fa-bars"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-category">General</div>
+            <a href="/home.html" class="nav-item"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="/equipo.html" class="nav-item"><i class="fa-solid fa-users"></i> Equipo</a>
+            <a href="/calendario.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i> Calendario</a>
+            <a href="/comercios.html" class="nav-item"><i class="fa-solid fa-store"></i> Comercios</a>
+            <a href="/postulaciones/post-ilegales.html" class="nav-item"><i class="fa-solid fa-skull"></i> Postulaciones ilegales</a>
+            <div class="nav-category">Espacio de trabajo</div>
+            <a href="/grupos.html" class="nav-item"><i class="fa-solid fa-people-group"></i> Grupos</a>
+            <a href="/documentos.html" class="nav-item"><i class="fa-solid fa-book"></i> Documentos</a>
+            <a href="/whitelist.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Whitelist</a>
+            <div class="nav-category">Mi Cuenta</div>
+            <a href="/perfil.html" class="nav-item"><i class="fa-solid fa-user"></i> Mi Perfil</a>
+            <a href="/historias.html" class="nav-item"><i class="fa-solid fa-feather-pointed"></i> Historias personaje</a>
+            <a href="/tickets.html" class="nav-item"><i class="fa-solid fa-ticket"></i> Tickets</a>
+            <a href="/tienda.html" class="nav-item"><i class="fa-solid fa-cart-shopping"></i> Tienda</a>
+            <div class="nav-category">SASP</div>
+            <a href="/lspd-academia.html" class="nav-item"><i class="fa-solid fa-shield-halved"></i> Academia LSPD</a>
+            <a href="/lssd-academia.html" class="nav-item" style="padding-left: 2.2rem; font-size: 13px;">Academia LSSD</a>
+            <a href="/public/defcon.html" class="nav-item"><i class="fa-solid fa-triangle-exclamation"></i> Defcon</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Código penal</a>
+            <a href="/public/organigrama.html" class="nav-item active"><i class="fa-solid fa-sitemap"></i> Organigrama</a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-profile-mini" id="userProfileMini">
+                <div class="avatar-placeholder" id="userAvatarContainer">
+                    <span id="userAvatarFallback">?</span>
+                </div>
+                <div class="user-info">
+                    <span class="username" id="userNameDisplay">Usuario</span>
+                    <span class="user-handle" id="userHandleDisplay" style="font-size: 11px; color: var(--text-muted); display: block;">@tag</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <button class="sidebar-reveal-trigger" id="sidebarRevealBtn" title="Abrir menú">
+        <i class="fa-solid fa-chevron-right"></i>
+    </button>
+    <main class="main-content">
+        <header class="top-action-bar">
+            <div class="breadcrumb">Estructura del Estado / Organigrama</div>
+        </header>
+
+        <div class="admin-card" style="border-color: rgba(168, 85, 247, 0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 14px; margin-bottom: 20px;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-sitemap" style="color: #a855f7;"></i> Organigrama Institucional de San Andreas</h3>
+                <button class="info-icon-btn" onclick="openInfoModal()" title="Información sobre el uso IC / OOC"><i class="fa-solid fa-circle-info"></i></button>
+            </div>
+            <p style="margin-bottom: 24px; font-size: 13px; color: var(--text-muted);">Consulta la estructura jerárquica y el árbol operativo de las instituciones policiales seleccionando un departamento.</p>
+            
+            <div class="org-tabs-container">
+                <button class="org-tab-btn" id="btn-lspd" onclick="switchOrg('lspd')">
+                    <i class="fa-solid fa-shield-halved"></i> Organigrama LSPD
+                </button>
+                <button class="org-tab-btn" id="btn-lssd" onclick="switchOrg('lssd')">
+                    <i class="fa-solid fa-star-badge"></i> Organigrama LSSD
+                </button>
+            </div>
+
+            <div id="organigramContent">
+                <div style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;">
+                    <i class="fa-solid fa-hand-pointer" style="font-size: 24px; margin-bottom: 10px; display: block; color: #a855f7;"></i>
+                    Selecciona un departamento arriba para visualizar su organigrama.
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+async function loadDiscordSessionData() {
+    const storedUser = localStorage.getItem('discord_user');
+    const avatarContainer = document.getElementById('userAvatarContainer');
+    const userNameDisplay = document.getElementById('userNameDisplay');
+    const userHandleDisplay = document.getElementById('userHandleDisplay');
+    if (!storedUser) return;
+    try {
+        const discordUser = JSON.parse(storedUser);
+        if (userNameDisplay) userNameDisplay.textContent = discordUser.displayName || discordUser.username || "Usuario";
+        if (userHandleDisplay) userHandleDisplay.textContent = "@" + (discordUser.username || "discord");
+        if (avatarContainer && discordUser.avatarUrl) {
+            avatarContainer.innerHTML = `<img src="${discordUser.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        }
+    } catch (e) {
+        console.error("Error al cargar sesión de Discord", e);
+    }
+}
+loadDiscordSessionData();
+
+const toggleBtn = document.getElementById('sidebarToggleBtn');
+const revealBtn = document.getElementById('sidebarRevealBtn');
+const sidebar = document.getElementById('sidebar');
+if (toggleBtn && revealBtn && sidebar) {
+    toggleBtn.addEventListener('click', () => sidebar.classList.add('collapsed'));
+    revealBtn.addEventListener('click', () => sidebar.classList.remove('collapsed'));
+}
+
+/* Control del Modal de Información */
+function openInfoModal() {
+    document.getElementById('infoModal').classList.add('open');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('open');
+}
+
+/* Datos de la jerarquía en árbol para LSPD y LSSD */
+const orgData = {
+    lspd: {
+        director: ["Chief John Miller"],
+        subdirector: ["Assistant Chief Alex Vance"],
+        capitanes: ["Captain Marcus Wright", "Captain Elena Rostova"],
+        tenientes: ["Lieutenant David Brooks", "Lieutenant Sarah Connor"],
+        sargentos: ["Sergeant Michael Knight", "Sergeant Jessica Pearson", "Sergeant Thomas Shelby"]
+    },
+    lssd: {
+        director: ["Sheriff Robert Taylor"],
+        subdirector: ["Undersheriff William Wallace"],
+        capitanes: ["Captain Jack Cooper", "Captain Samantha Carter"],
+        tenientes: ["Lieutenant Frank Castle", "Lieutenant Ryan O'Reilly"],
+        sargentos: ["Sergeant Hank Voight", "Sergeant Antonio Dawson", "Sergeant Erin Lindsay"]
+    }
+};
+
+function switchOrg(dept) {
+    document.getElementById('btn-lspd').classList.toggle('active', dept === 'lspd');
+    document.getElementById('btn-lssd').classList.toggle('active', dept === 'lssd');
+
+    const data = orgData[dept];
+    const container = document.getElementById('organigramContent');
+
+    let html = `
+        <div class="tree-container">
+            <div class="tree-level">
+                ${data.director.map(name => `
+                    <div class="tree-card">
+                        <div class="tree-card-role"><i class="fa-solid fa-chess-king"></i> Director</div>
+                        <div class="tree-card-name"><i class="fa-solid fa-user-shield"></i> ${name}</div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="tree-level">
+                ${data.subdirector.map(name => `
+                    <div class="tree-card">
+                        <div class="tree-card-role"><i class="fa-solid fa-chess-queen"></i> Subdirector</div>
+                        <div class="tree-card-name"><i class="fa-solid fa-user-tie"></i> ${name}</div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="tree-level">
+                ${data.capitanes.map(name => `
+                    <div class="tree-card">
+                        <div class="tree-card-role"><i class="fa-solid fa-chess-rook"></i> Capitán</div>
+                        <div class="tree-card-name"><i class="fa-solid fa-user-gear"></i> ${name}</div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="tree-level">
+                ${data.tenientes.map(name => `
+                    <div class="tree-card">
+                        <div class="tree-card-role"><i class="fa-solid fa-chess-knight"></i> Teniente</div>
+                        <div class="tree-card-name"><i class="fa-solid fa-user"></i> ${name}</div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="tree-level">
+                ${data.sargentos.map(name => `
+                    <div class="tree-card">
+                        <div class="tree-card-role"><i class="fa-solid fa-chess-pawn"></i> Sargento</div>
+                        <div class="tree-card-name"><i class="fa-solid fa-user-check"></i> ${name}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = html;
+}
+</script>
+
+<script src="/guards.js"></script>
+    <!-- Menú lateral común: logo, lupa y buscador de páginas por categorías -->
+    <script src="src/components/hx-sidebar.js"></script>
+</body>
+</html>

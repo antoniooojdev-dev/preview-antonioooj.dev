@@ -1,0 +1,62 @@
+#scene svg.world { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.car {
+    position: absolute;
+    left: 640px;
+    top: 470px;
+    width: 760px;
+    filter: drop-shadow(0 40px 30px rgba(0, 0, 0, 0.55));
+    transition: filter 0.4s;
+}
+.car-shadow {
+    position: absolute;
+    left: 650px;
+    top: 800px;
+    width: 740px;
+    height: 70px;
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.7), transparent 70%);
+}
+
+/* Depósito del coche (lo que ves al mirar el coche) */
+.tank-chip {
+    position: absolute;
+    left: 1105px;
+    top: 392px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 18px 12px 12px;
+    background: rgba(24, 25, 28, 0.9);
+    border: 1px solid #2c2e33;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+    transform: translateX(-50%);
+}
+.tank-chip > i { display: grid; place-items: center; width: 40px; height: 40px; font-size: 17px; color: #18191c; background: #fff; border-radius: 12px; }
+.tank-chip small { display: block; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #9a9ca3; }
+.tank-chip b { font-size: 21px; font-weight: 800; }
+.tank-chip .bar { width: 150px; height: 6px; margin-top: 6px; background: #2c2e33; border-radius: 4px; overflow: hidden; }
+.tank-chip .bar i { display: block; height: 100%; width: 0; background: #fff; border-radius: 4px; transition: width 0.15s linear; }
+.tank-chip.low .bar i { background: #ef4444; }
+.tank-chip::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -9px;
+    width: 16px;
+    height: 16px;
+    background: rgba(24, 25, 28, 0.9);
+    border-right: 1px solid #2c2e33;
+    border-bottom: 1px solid #2c2e33;
+    transform: translateX(-50%) rotate(45deg);
+}
+
+/* Manguera */
+.hose { fill: none; stroke: #111214; stroke-width: 11; stroke-linecap: round; }
+.hose-hi { fill: none; stroke: rgba(255, 255, 255, 0.12); stroke-width: 3; stroke-linecap: round; }
+.nozzle { transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+.drip { animation: drip 0.6s linear infinite; }
+@keyframes drip { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -28; } }
+
+.lamp { animation: flicker 7s infinite; }
+@keyframes flicker { 0%, 92%, 100% { opacity: 1; } 93% { opacity: 0.55; } 95% { opacity: 0.9; } }

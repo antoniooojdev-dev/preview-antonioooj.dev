@@ -1,0 +1,117 @@
+---
+// Marco tipo Discord para las demos de /servicios/discord/<demo>: servidores, canales,
+// chat y (opcional) panel derecho. El estilo está en src/styles/discord-demo.css y los
+// mensajes se crean con src/scripts/discord-demo.ts.
+//   slots: (por defecto) contenido inicial del chat · "composer" (sustituye a la caja de
+//          escribir) · "panel" (columna derecha) · "overlay" (modales encima de todo)
+import "@/styles/discord-demo.css";
+
+interface Canal {
+  n: string;
+  activo?: boolean;
+  bloqueado?: boolean;
+  id?: string;
+}
+
+interface Props {
+  canal: string;
+  tema?: string;
+  canales: { cat: string; items: Canal[] }[];
+  placeholder?: string;
+  rolesYo?: string;
+  conPanel?: boolean;
+  /** Atributo data-* para que el script de la demo encuentre su raíz. */
+  demo: string;
+}
+
+const { canal, tema, canales, placeholder, rolesYo = "miembro", conPanel = false, demo } = Astro.props;
+---
+
+<div class:list={["dc", { "has-panel": conPanel }]} data-dc={demo}>
+  <!-- barra de título de la app de escritorio (decorativa) -->
+  <div class="dc__titlebar" aria-hidden="true">
+    <span class="dc__titlebar-app">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M19.7 5.3A17.7 17.7 0 0 0 15.4 4l-.5 1.1a16.4 16.4 0 0 0-5 0L9.4 4a17.6 17.6 0 0 0-4.4 1.3C2.2 9.5 1.5 13.6 1.8 17.6a17.8 17.8 0 0 0 5.4 2.7l1.2-1.9a11.5 11.5 0 0 1-1.8-.9l.4-.3a12.6 12.6 0 0 0 10.8 0l.4.3c-.6.4-1.2.7-1.8.9l1.2 1.9a17.7 17.7 0 0 0 5.4-2.7c.4-4.7-.7-8.7-3.3-12.3ZM8.9 15.2c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2Zm6.2 0c-1 0-1.9-1-1.9-2.2s.8-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2Z"></path></svg>
+      Discord
+    </span>
+    <span class="dc__titlebar-search">🔍 Buscar en AntonioooJ Dev</span>
+    <span class="dc__titlebar-win"><i></i><i></i><i></i></span>
+  </div>
+
+  <nav class="dc__rail" aria-hidden="true">
+    <span class="dc__srv" style="background:#5865f2;color:#fff">💬</span>
+    <span class="dc__sep"></span>
+    <span class="dc__srv is-on"><img src="/logo.png" alt="" /></span>
+    <span class="dc__srv">🎮</span>
+    <span class="dc__srv">🎨</span>
+    <span class="dc__srv dc__srv--add">+</span>
+  </nav>
+
+  <aside class="dc__side">
+    <header class="dc__guild"><span><span class="dc-verified">✓</span>AntonioooJ Dev</span><span aria-hidden="true">⌄</span></header>
+    <div class="dc__chans" data-chans>
+      {
+        canales.map((g) => (
+          <div data-cat={g.cat}>
+            <span class="dc__cat">⌄ {g.cat}</span>
+            {g.items.map((c) => (
+              <button
+                type="button"
+                class:list={["dc__ch", { "is-on": c.activo, "is-locked": c.bloqueado }]}
+                data-ch={c.id ?? c.n}
+                disabled={c.bloqueado}
+              >
+                {c.n}
+              </button>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+    <div class="dc__me">
+      <span class="dc-ava dc-ava--sm dc__me-ava" style="--c:#f0b232">TÚ</span>
+      <div class="dc__me-info">
+        <strong>Tú</strong>
+        <span data-me-roles>{rolesYo}</span>
+      </div>
+      <span class="dc__me-ctrl" aria-hidden="true"><i>🎙️</i><i>🎧</i><i>⚙️</i></span>
+    </div>
+  </aside>
+
+  <main class="dc__chat">
+    <header class="dc__top">
+      <span class="dc__top-hash" aria-hidden="true">#</span>
+      <span data-canal>{canal}</span>
+      {tema && <span class="dc__top-topic" data-tema>{tema}</span>}
+      <span class="dc__top-tools" aria-hidden="true">
+        <i title="Hilos">🧵</i>
+        <i title="Notificaciones">🔔</i>
+        <i title="Mensajes fijados">📌</i>
+        <i title="Miembros">👥</i>
+        <span class="dc__top-search">Buscar <b>🔍</b></span>
+      </span>
+    </header>
+    <div class="dc__msgs" data-msgs aria-live="polite">
+      <slot />
+    </div>
+    <slot name="composer">
+      <form class="dc__composer" data-composer>
+        <div class="dc__input">
+          <span class="dc__input-plus" aria-hidden="true">+</span>
+          <input type="text" maxlength="200" autocomplete="off" placeholder={placeholder ?? `Enviar mensaje a #${canal}`} aria-label="Mensaje" />
+          <span class="dc__input-tools" aria-hidden="true"><i>🎁</i><b>GIF</b><i>🗒️</i><i>😊</i></span>
+        </div>
+      </form>
+    </slot>
+  </main>
+
+  {
+    conPanel && (
+      <aside class="dc__panel" data-panel>
+        <slot name="panel" />
+      </aside>
+    )
+  }
+
+  <slot name="overlay" />
+</div>

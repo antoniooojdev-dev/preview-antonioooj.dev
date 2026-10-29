@@ -1,0 +1,47 @@
+#road { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* En la demo el velocímetro va un poco más grande para que se lea bien dentro de la web */
+#speedo { transform: scale(1.3); transform-origin: bottom right; }
+
+/* Fuera del coche */
+.sc-exit {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px 13px 12px;
+    font-size: 19px;
+    font-weight: 500;
+    color: #fff;
+    background: rgba(12, 12, 12, 0.9);
+    border: 1px solid #2c2e33;
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    transform: translateX(-50%);
+    cursor: pointer;
+    animation: exitIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.sc-exit i { display: grid; place-items: center; width: 34px; height: 34px; font-size: 15px; color: #18191c; background: #fff; border-radius: 10px; }
+.sc-exit kbd { padding: 2px 9px; font-family: inherit; font-weight: 800; color: #18191c; background: #fff; border-radius: 7px; }
+@keyframes exitIn { from { transform: translate(-50%, -100%); } }
+
+/* Golpe y salir despedido */
+.flash { position: fixed; inset: 0; z-index: 40; background: #fff; opacity: 0; pointer-events: none; }
+.flash.go { animation: flash 0.9s ease-out; }
+@keyframes flash { 0% { opacity: 0.85; } 100% { opacity: 0; } }
+.eject {
+    position: fixed;
+    inset: 0;
+    z-index: 41;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(circle, rgba(120, 0, 0, 0.25), rgba(0, 0, 0, 0.85));
+    animation: fadeIn 0.3s ease;
+}
+.eject div { text-align: center; }
+.eject b { display: block; font-size: 54px; font-weight: 900; letter-spacing: -0.02em; }
+.eject span { font-size: 22px; color: #d4d4d8; }
+@keyframes fadeIn { from { opacity: 0; } }

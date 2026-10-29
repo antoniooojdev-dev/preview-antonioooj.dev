@@ -1,0 +1,430 @@
+---
+// Demo «Verificación y roles»: en #verificación pulsas «Verificarme» y sale un captcha
+// (elegir el emoji correcto). Al acertar, se te dan los roles, los canales bloqueados se
+// desbloquean uno a uno y pasas a #roles, donde eliges tus roles con botones y el color
+// de tu nombre con un menú. Tu perfil (panel derecho) se actualiza con animación.
+import Shell from "./Shell.astro";
+
+const canales = [
+  { cat: "bienvenida", items: [{ n: "verificación", id: "verificacion", activo: true }, { n: "normas" }] },
+  { cat: "comunidad", items: [{ n: "roles", bloqueado: true }, { n: "general", bloqueado: true }, { n: "clips", bloqueado: true }] },
+  { cat: "juegos", items: [{ n: "fivem", bloqueado: true }, { n: "valorant", bloqueado: true }] },
+];
+---
+
+<Shell demo="verificacion" canal="verificación" tema="Verifícate para acceder al servidor" canales={canales} conPanel rolesYo="sin verificar">
+  <div class="dc-welcome">
+    <div class="dc-welcome__icon">🔐</div>
+    <h4>¡Bienvenido a AntonioooJ Dev!</h4>
+    <p>Antes de entrar, demuestra que no eres un bot.</p>
+  </div>
+
+  <Fragment slot="panel">
+    <div class="vf-card">
+      <div class="vf-card__banner"></div>
+      <span class="dc-ava vf-card__ava" style="--c:#f0b232">TÚ</span>
+      <strong class="vf-card__name" data-nombre>Tú</strong>
+      <span class="vf-card__tag">tu_usuario</span>
+      <span class="dc__panel-title">roles</span>
+      <div class="dc-roles" data-roles>
+        <span class="dc-role" style="--rc:#80848e" data-rol="sin">Sin verificar</span>
+      </div>
+      <span class="dc__panel-title">canales desbloqueados</span>
+      <b class="vf-card__count" data-desbloqueados>2 / 7</b>
+    </div>
+  </Fragment>
+
+  <div slot="overlay" class="dc-modal" hidden data-captcha>
+    <div class="dc-modal__box vf-captcha">
+      <div class="dc-modal__head">🤖 ¿Eres humano?</div>
+      <div class="dc-modal__body">
+        <p>Pulsa el emoji que coincide con este:</p>
+        <div class="vf-captcha__target" data-target></div>
+        <div class="vf-captcha__grid" data-grid></div>
+        <p class="vf-captcha__msg" data-msg></p>
+      </div>
+      <div class="dc-modal__foot">
+        <button type="button" class="dc-btn" data-cancel>Cancelar</button>
+      </div>
+    </div>
+  </div>
+</Shell>
+
+<script>
+  import { BOT, YO, el, mensaje, sistema, escribiendo, espera, toast, confeti } from "@/scripts/discord-demo";
+
+  const EMOJIS = ["🍕", "🚗", "🐱", "⚽", "🎸", "🌵", "🍩", "🚀", "🐙"];
+  const ROLES_ELEGIBLES = [
+    { id: "gamer", t: "🎮 Gamer", c: "#57f287" },
+    { id: "rol", t: "🚓 Rol / FiveM", c: "#3498db" },
+    { id: "artista", t: "🎨 Artista", c: "#eb459e" },
+    { id: "dev", t: "💻 Programación", c: "#fee75c" },
+    { id: "avisos", t: "🔔 Anuncios", c: "#e67e22" },
+  ];
+  const COLORES = [
+    { v: "", t: "Sin color" },
+    { v: "#f23f43", t: "🔴 Rojo" },
+    { v: "#3498db", t: "🔵 Azul" },
+    { v: "#57f287", t: "🟢 Verde" },
+    { v: "#9b59b6", t: "🟣 Morado" },
+  ];
+
+  const raiz = document.querySelector<HTMLElement>('[data-dc="verificacion"]');
+  if (raiz) iniciar(raiz);
+
+  function iniciar(dc: HTMLElement) {
+    const lista = dc.querySelector<HTMLElement>("[data-msgs]")!;
+    const nombreCanal = dc.querySelector<HTMLElement>("[data-canal]")!;
+    const tema = dc.querySelector<HTMLElement>("[data-tema]")!;
+    const form = dc.querySelector<HTMLFormElement>("[data-composer]")!;
+    const input = form.querySelector("input")!;
+    const roles = dc.querySelector<HTMLElement>("[data-roles]")!;
+    const meRoles = dc.querySelector<HTMLElement>("[data-me-roles]")!;
+    const captcha = dc.querySelector<HTMLElement>("[data-captcha]")!;
+    const canales = new Map<string, DocumentFragment>();
+    let actual = "verificacion";
+    let verificado = false;
+    const misRoles = new Set<string>();
+    let fallos = 0;
+
+    const TEMAS: Record<string, string> = {
+      verificacion: "Verifícate para acceder al servidor",
+      roles: "Elige tus roles y el color de tu nombre",
+      general: "Charla general",
+      normas: "Lee las normas antes de participar",
+    };
+
+    function irA(canal: string) {
+      if (canal === actual) return;
+      const frag = document.createDocumentFragment();
+      frag.append(...lista.childNodes);
+      canales.set(actual, frag);
+      lista.replaceChildren(canales.get(canal) ?? document.createDocumentFragment());
+      canales.delete(canal);
+      actual = canal;
+      const boton = dc.querySelector<HTMLElement>(`.dc__ch[data-ch="${canal}"]`);
+      nombreCanal.textContent = boton?.textContent?.trim() ?? canal;
+      tema.textContent = TEMAS[canal] ?? "";
+      input.placeholder = `Enviar mensaje a #${nombreCanal.textContent}`;
+      input.disabled = !verificado;
+      dc.querySelectorAll<HTMLElement>(".dc__ch").forEach((c) => {
+        c.classList.toggle("is-on", c.dataset.ch === canal);
+        if (c.dataset.ch === canal) c.classList.remove("is-unread");
+      });
+      if (!lista.childElementCount) contenido(canal);
+      lista.scrollTop = lista.scrollHeight;
+    }
+
+    dc.querySelector("[data-chans]")!.addEventListener("click", (e) => {
+      const b = (e.target as HTMLButtonElement).closest<HTMLButtonElement>(".dc__ch");
+      if (!b) return;
+      if (b.disabled || b.classList.contains("is-locked")) return toast(dc, "🔒 Verifícate primero para ver este canal");
+      irA(b.dataset.ch!);
+    });
+
+    function contenido(canal: string) {
+      if (canal === "normas") {
+        mensaje(lista, BOT, {
+          embed: {
+            color: "#80848e",
+            titulo: "📜 Normas",
+            texto: "1. Respeto ante todo\n2. Nada de spam ni publicidad\n3. Cada tema en su canal\n4. Hazle caso al staff",
+          },
+        });
+      } else if (canal === "roles") {
+        panelRoles();
+      } else if (canal !== "verificacion") {
+        const bienvenida = el("div", "dc-welcome");
+        bienvenida.append(el("div", "dc-welcome__icon", "#"), el("h4", "", `¡Bienvenido a #${nombreCanal.textContent}!`), el("p", "", "Ahora que estás verificado puedes escribir aquí."));
+        lista.append(bienvenida);
+      }
+    }
+
+    // ── perfil ──
+    function ponerRol(id: string, t: string, color: string) {
+      if (roles.querySelector(`[data-rol="${id}"]`)) return;
+      const r = el("span", "dc-role", t);
+      r.dataset.rol = id;
+      r.style.setProperty("--rc", color);
+      roles.append(r);
+      actualizarMe();
+    }
+
+    function quitarRol(id: string) {
+      const r = roles.querySelector<HTMLElement>(`[data-rol="${id}"]`);
+      if (!r) return;
+      r.classList.add("is-out");
+      r.dataset.rol = "";
+      setTimeout(() => {
+        r.remove();
+        actualizarMe();
+      }, 300);
+    }
+
+    function actualizarMe() {
+      const n = roles.querySelectorAll(".dc-role:not(.is-out)").length;
+      meRoles.textContent = verificado ? `miembro · ${n} roles` : "sin verificar";
+    }
+
+    // ── verificación ──
+    mensaje(lista, BOT, {
+      embed: {
+        color: "#5865f2",
+        autor: "AntonioooJ Dev · Verificación",
+        titulo: "🔐 Verificación",
+        texto: "Para ver el resto del servidor tienes que verificarte. Solo tardas 5 segundos.\n\nAl hacerlo aceptas las normas de #normas.",
+        botones: [{ t: "✅ Verificarme", estilo: "green", onClick: () => (verificado ? toast(dc, "Ya estás verificado ✅") : abrirCaptcha()) }],
+        pie: "Protección anti-bots",
+      },
+    });
+
+    function abrirCaptcha() {
+      captcha.hidden = false;
+      nuevoCaptcha();
+    }
+
+    function nuevoCaptcha() {
+      const objetivo = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+      const opciones = [...EMOJIS].sort(() => Math.random() - 0.5).slice(0, 6);
+      if (!opciones.includes(objetivo)) opciones[Math.floor(Math.random() * 6)] = objetivo;
+      const target = captcha.querySelector<HTMLElement>("[data-target]")!;
+      target.textContent = objetivo;
+      target.classList.remove("is-in");
+      void target.offsetWidth;
+      target.classList.add("is-in");
+      const grid = captcha.querySelector<HTMLElement>("[data-grid]")!;
+      grid.replaceChildren(
+        ...opciones.map((e, i) => {
+          const b = el("button", "vf-captcha__opt", e);
+          b.type = "button";
+          b.style.setProperty("--i", String(i));
+          b.addEventListener("click", () => elegir(b, e === objetivo));
+          return b;
+        }),
+      );
+      captcha.querySelector("[data-msg]")!.textContent = "";
+    }
+
+    async function elegir(b: HTMLButtonElement, ok: boolean) {
+      const msg = captcha.querySelector<HTMLElement>("[data-msg]")!;
+      if (!ok) {
+        fallos++;
+        b.classList.add("is-wrong");
+        msg.textContent = "❌ Ese no es. ¡Inténtalo otra vez!";
+        captcha.querySelector(".vf-captcha")!.classList.remove("is-shake");
+        void (captcha.querySelector(".vf-captcha") as HTMLElement).offsetWidth;
+        captcha.querySelector(".vf-captcha")!.classList.add("is-shake");
+        await espera(700);
+        nuevoCaptcha();
+        return;
+      }
+      b.classList.add("is-right");
+      msg.textContent = "✅ ¡Correcto! Verificando…";
+      await espera(900);
+      captcha.hidden = true;
+      verificar();
+    }
+
+    captcha.querySelector("[data-cancel]")!.addEventListener("click", () => (captcha.hidden = true));
+
+    async function verificar() {
+      verificado = true;
+      input.disabled = false;
+      quitarRol("sin");
+      await espera(300);
+      ponerRol("verificado", "✅ Verificado", "#23a55a");
+      await espera(250);
+      ponerRol("miembro", "Miembro", "#5865f2");
+      confeti(dc);
+      sistema(lista, "✅", [{ b: "Tú" }, ` te has verificado${fallos ? ` (al ${fallos + 1}º intento)` : ""}. ¡Bienvenido!`], "green");
+
+      const bloqueados = [...dc.querySelectorAll<HTMLButtonElement>(".dc__ch.is-locked")];
+      let n = 2;
+      for (const c of bloqueados) {
+        await espera(260);
+        c.disabled = false;
+        c.classList.remove("is-locked");
+        c.classList.add("is-unlocking", "is-unread");
+        dc.querySelector("[data-desbloqueados]")!.textContent = `${++n} / 7`;
+      }
+      await escribiendo(lista, BOT, 500);
+      mensaje(lista, BOT, {
+        embed: {
+          color: "#23a55a",
+          titulo: "🎉 ¡Ya eres parte del servidor!",
+          texto: "Ahora pásate por #roles para elegir tus intereses y el color de tu nombre.",
+          botones: [{ t: "Ir a #roles →", estilo: "blurple", onClick: () => irA("roles") }],
+        },
+      });
+    }
+
+    // ── #roles ──
+    function panelRoles() {
+      mensaje(lista, BOT, {
+        embed: {
+          color: "#eb459e",
+          titulo: "🎭 Elige tus roles",
+          texto: "Pulsa para añadir o quitar. Puedes elegir los que quieras.",
+          botones: ROLES_ELEGIBLES.map((r) => ({
+            t: r.t,
+            estilo: misRoles.has(r.id) ? ("green" as const) : ("gris" as const),
+            onClick: (b: HTMLButtonElement) => {
+              if (misRoles.has(r.id)) {
+                misRoles.delete(r.id);
+                quitarRol(r.id);
+                b.classList.remove("dc-btn--green");
+                toast(dc, `Rol quitado: ${r.t}`);
+              } else {
+                misRoles.add(r.id);
+                ponerRol(r.id, r.t, r.c);
+                b.classList.add("dc-btn--green");
+                b.classList.remove("is-done");
+                void b.offsetWidth;
+                b.classList.add("is-done");
+                toast(dc, `Rol añadido: ${r.t}`);
+              }
+            },
+          })),
+        },
+      });
+
+      const select = el("select", "dc-select");
+      select.setAttribute("aria-label", "Color del nombre");
+      for (const c of COLORES) select.add(new Option(c.t, c.v));
+      select.addEventListener("change", () => {
+        const nombre = dc.querySelector<HTMLElement>("[data-nombre]")!;
+        nombre.style.color = select.value;
+        nombre.classList.remove("is-flash");
+        void nombre.offsetWidth;
+        nombre.classList.add("is-flash");
+        quitarRol("color");
+        if (select.value) setTimeout(() => ponerRol("color", select.selectedOptions[0].text.slice(3), select.value), 320);
+        YO.colorNombre = select.value || "#f2f3f5";
+        toast(dc, select.value ? `Color cambiado a ${select.selectedOptions[0].text}` : "Color quitado");
+      });
+      mensaje(lista, BOT, {
+        embed: { color: "#9b59b6", titulo: "🌈 Color de tu nombre", texto: "Elige un color para tu nombre en el chat.", extra: select },
+      });
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const t = input.value.trim();
+      if (!t || !verificado) return;
+      input.value = "";
+      mensaje(lista, YO, { texto: t });
+    });
+
+    input.disabled = true;
+    input.placeholder = "🔒 Verifícate para poder escribir";
+  }
+</script>
+
+<style is:global>
+  .vf-card {
+    display: grid;
+    gap: 4px;
+    margin: -16px -8px 0;
+    padding: 0 12px 12px;
+    background: #232428;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .vf-card__banner {
+    height: 60px;
+    margin: 0 -12px;
+    background: linear-gradient(135deg, #5865f2, #eb459e);
+  }
+
+  .vf-card__ava {
+    width: 72px;
+    height: 72px;
+    margin-top: -36px;
+    border: 6px solid #232428;
+    font-size: 1.1rem;
+  }
+
+  .vf-card__name {
+    color: #f2f3f5;
+    font-size: 1.15rem;
+    transition: color 0.4s ease;
+  }
+
+  .vf-card__name.is-flash {
+    animation: dc-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .vf-card__tag {
+    color: #b5bac1;
+    font-size: 0.8125rem;
+  }
+
+  .vf-card .dc__panel-title {
+    padding-inline: 0;
+  }
+
+  .vf-card__count {
+    color: #f2f3f5;
+  }
+
+  .vf-captcha.is-shake {
+    animation: vf-shake 0.4s ease;
+  }
+
+  .vf-captcha__target {
+    display: grid;
+    place-items: center;
+    width: 84px;
+    height: 84px;
+    margin: 10px auto 16px;
+    border-radius: 20px;
+    background: #1e1f22;
+    font-size: 3rem;
+    box-shadow: 0 0 0 2px #5865f2;
+  }
+
+  .vf-captcha__target.is-in {
+    animation: dc-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .vf-captcha__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .vf-captcha__opt {
+    padding: 12px 0;
+    border-radius: 10px;
+    background: #2b2d31;
+    font-size: 1.8rem;
+    animation: dc-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 50ms);
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+
+  .vf-captcha__opt:hover {
+    transform: scale(1.08);
+    background: #404249;
+  }
+
+  .vf-captcha__opt.is-wrong {
+    background: rgb(242 63 67 / 0.4);
+  }
+
+  .vf-captcha__opt.is-right {
+    background: rgb(35 165 90 / 0.5);
+    transform: scale(1.12);
+  }
+
+  .vf-captcha__msg {
+    min-height: 1.4em;
+    margin-top: 10px;
+    color: #f2f3f5;
+  }
+
+  @keyframes vf-shake {
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+  }
+</style>

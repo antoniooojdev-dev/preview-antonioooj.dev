@@ -1,0 +1,442 @@
+---
+import { site } from "@/data/site";
+import { projectTypes, budgets, deadlines } from "@/data/services";
+---
+
+<form class="form" data-contact data-key={site.web3formsKey} data-email={site.email} novalidate>
+  <div class="row">
+    <div class="field">
+      <label for="name">Nombre <span aria-hidden="true">*</span></label>
+      <input id="name" name="name" type="text" autocomplete="name" required aria-describedby="name-err" />
+      <p class="error" id="name-err" data-error-for="name" aria-live="polite"></p>
+    </div>
+    <div class="field">
+      <label for="email">Email <span aria-hidden="true">*</span></label>
+      <input id="email" name="email" type="email" autocomplete="email" required aria-describedby="email-err" />
+      <p class="error" id="email-err" data-error-for="email" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="company">Empresa o proyecto <span class="opt">(opcional)</span></label>
+    <input id="company" name="company" type="text" autocomplete="organization" />
+  </div>
+
+  <fieldset class="field">
+    <legend>¿Qué necesitas? <span aria-hidden="true">*</span></legend>
+    <div class="chips">
+      {
+        projectTypes.map((t) => (
+          <label class="chip">
+            <input type="radio" name="type" value={t} required />
+            <span>{t}</span>
+          </label>
+        ))
+      }
+    </div>
+    <p class="error" data-error-for="type" aria-live="polite"></p>
+  </fieldset>
+
+  <div class="row">
+    <div class="field">
+      <label for="budget">Presupuesto aproximado</label>
+      <!-- El <select> real sigue ahí (lo lee el formulario y sirve sin JS); el script lo
+           cambia por un desplegable propio, más cómodo y con el estilo de la web -->
+      <select id="budget" name="budget" data-desplegable>
+        <option value="">Selecciona…</option>
+        {budgets.map((b, i) => <option value={b} data-nivel={b === "Aún no lo sé" ? "" : String(i + 1)}>{b}</option>)}
+      </select>
+    </div>
+    <div class="field">
+      <label for="deadline">¿Para cuándo?</label>
+      <select id="deadline" name="deadline" data-desplegable>
+        <option value="">Selecciona…</option>
+        {deadlines.map((d) => <option value={d}>{d}</option>)}
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="message">Cuéntame tu proyecto <span aria-hidden="true">*</span></label>
+    <textarea
+      id="message"
+      name="message"
+      rows="6"
+      required
+      placeholder="Qué hace tu negocio, qué quieres conseguir, si tienes web actual, ejemplos que te gusten…"
+      aria-describedby="message-err"
+    ></textarea>
+    <p class="error" id="message-err" data-error-for="message" aria-live="polite"></p>
+  </div>
+
+  <!-- honeypot anti-spam: invisible para personas -->
+  <input type="checkbox" name="botcheck" class="visually-hidden" tabindex="-1" autocomplete="off" />
+
+  <div class="field">
+    <label class="check">
+      <input type="checkbox" name="privacy" required />
+      <span>
+        He leído y acepto la <a class="link" href="/privacidad" target="_blank">política de privacidad</a>.
+      </span>
+    </label>
+    <p class="error" data-error-for="privacy" aria-live="polite"></p>
+  </div>
+
+  <div class="submit">
+    <button type="submit" class="btn btn-primary">
+      Enviar proyecto <span class="arrow" aria-hidden="true">→</span>
+    </button>
+    <p class="status mono" data-status role="status"></p>
+  </div>
+</form>
+
+<script>
+  import "@/scripts/contact";
+  import "@/scripts/desplegable";
+</script>
+
+<style>
+  .form {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+  }
+
+  .field {
+    display: grid;
+    gap: var(--space-2);
+    border: 0;
+    padding: 0;
+    min-width: 0;
+  }
+
+  label,
+  legend {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    padding: 0;
+  }
+
+  legend {
+    margin-bottom: var(--space-2);
+  }
+
+  .opt {
+    color: var(--fg-subtle);
+  }
+
+  input:not([type="radio"], [type="checkbox"]),
+  select,
+  textarea {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-base);
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  input:hover,
+  select:hover,
+  textarea:hover {
+    border-color: var(--border-strong);
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+    border-color: var(--fg);
+  }
+
+  [aria-invalid="true"] {
+    border-color: var(--error) !important;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 9rem;
+  }
+
+  textarea::placeholder {
+    color: var(--fg-subtle);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .chip {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .chip input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    cursor: pointer;
+  }
+
+  .chip span {
+    display: block;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+    transition: all var(--dur) var(--ease);
+  }
+
+  .chip:hover span {
+    border-color: var(--border-strong);
+    color: var(--fg);
+  }
+
+  .chip input:checked + span {
+    background: var(--fg);
+    border-color: var(--fg);
+    color: var(--bg);
+  }
+
+  .chip input:focus-visible + span {
+    outline: 2px solid var(--fg);
+    outline-offset: 2px;
+  }
+
+  .check {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+  }
+
+  .check input {
+    margin-top: 0.25rem;
+    accent-color: var(--fg);
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+
+  .error {
+    min-height: 1em;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--error);
+  }
+
+  .error:empty {
+    min-height: 0;
+  }
+
+  .submit {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .submit button[disabled] {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .status {
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+  }
+
+  .status[data-kind="ok"] {
+    color: var(--ok);
+  }
+
+  .status[data-kind="error"] {
+    color: var(--error);
+  }
+
+  @media (max-width: 36rem) {
+    .row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ── desplegable propio (presupuesto / plazo); lo monta src/scripts/desplegable.ts ── */
+  .form :global(.dsp) {
+    position: relative;
+  }
+
+  .form :global(.dsp select) {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .form :global(.dsp__btn) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-base);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+
+  .form :global(.dsp__btn:hover) {
+    border-color: var(--border-strong);
+  }
+
+  .form :global(.dsp__btn:focus-visible),
+  .form :global(.dsp.is-open .dsp__btn) {
+    outline: none;
+    border-color: var(--fg);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--fg) 12%, transparent);
+  }
+
+  .form :global(.dsp__valor) {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .form :global(.dsp__valor.is-vacio) {
+    color: var(--fg-subtle);
+  }
+
+  .form :global(.dsp__flecha) {
+    flex-shrink: 0;
+    color: var(--fg-muted);
+    transition: transform 0.25s var(--ease);
+  }
+
+  .form :global(.dsp.is-open .dsp__flecha) {
+    transform: rotate(180deg);
+  }
+
+  .form :global(.dsp__lista) {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background: var(--bg-elev);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    box-shadow: 0 18px 40px rgb(0 0 0 / 0.28);
+    transform-origin: top center;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px) scale(0.97);
+    transition: opacity 0.18s var(--ease), transform 0.22s var(--ease), visibility 0s linear 0.22s;
+  }
+
+  .form :global(.dsp__lista:focus) {
+    outline: none;
+  }
+
+  .form :global(.dsp.is-open .dsp__lista) {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 0.18s var(--ease), transform 0.22s var(--ease), visibility 0s;
+  }
+
+  /* hacia arriba si no cabe debajo */
+  .form :global(.dsp.is-arriba .dsp__lista) {
+    top: auto;
+    bottom: calc(100% + 6px);
+    transform-origin: bottom center;
+  }
+
+  .form :global(.dsp__op) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0.65rem 0.75rem;
+    border-radius: 10px;
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+    cursor: pointer;
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+
+  .form :global(.dsp__op.is-activa) {
+    background: var(--bg-code);
+    color: var(--fg);
+  }
+
+  .form :global(.dsp__op[aria-selected="true"]) {
+    color: var(--fg);
+    font-weight: 600;
+  }
+
+  .form :global(.dsp__txt) {
+    flex: 1;
+  }
+
+  /* barritas de nivel en el presupuesto */
+  .form :global(.dsp__nivel) {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 0.9rem;
+  }
+
+  .form :global(.dsp__nivel i) {
+    width: 4px;
+    border-radius: 2px;
+    background: var(--border-strong);
+  }
+
+  .form :global(.dsp__nivel i:nth-child(1)) { height: 35%; }
+  .form :global(.dsp__nivel i:nth-child(2)) { height: 55%; }
+  .form :global(.dsp__nivel i:nth-child(3)) { height: 75%; }
+  .form :global(.dsp__nivel i:nth-child(4)) { height: 100%; }
+
+  .form :global(.dsp__nivel i.is-on) {
+    background: var(--fg);
+  }
+
+  .form :global(.dsp__check) {
+    flex-shrink: 0;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+
+  .form :global(.dsp__op[aria-selected="true"] .dsp__check) {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .form :global(.dsp__lista),
+    .form :global(.dsp__flecha) {
+      transition: none;
+    }
+  }
+</style>

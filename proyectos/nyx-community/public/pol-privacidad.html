@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de privacidad | Nyx Community</title>
+    <meta name="description" content="Qué datos guarda la web de Nyx Community, para qué se usan, quién puede verlos y cómo pedir que se borren.">
+    <link rel="icon" href="https://i.imgur.com/VPqGp7U.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --fondo: #12101c;
+            --superficie: #1a1727;
+            --superficie-2: #211d31;
+            --borde: rgba(168, 85, 247, 0.22);
+            --borde-suave: rgba(255, 255, 255, 0.08);
+            --texto: #e9e5f3;
+            --texto-suave: #a8a3ba;
+            --morado: #a855f7;
+            --morado-claro: #c9a4fb;
+            --rosa: #ec4899;
+            --aviso: #fbbf24;
+        }
+
+        * { box-sizing: border-box; }
+        html { background: var(--fondo); scroll-behavior: smooth; scroll-padding-top: 90px; }
+        body {
+            margin: 0; color: var(--texto);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            font-size: 16px; line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.35); border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(168, 85, 247, 0.6); }
+
+        a { color: var(--morado-claro); text-underline-offset: 3px; }
+        a:hover { color: #fff; }
+        :focus-visible { outline: 2px solid var(--morado); outline-offset: 3px; border-radius: 4px; }
+
+        /* Fondo: la misma cuadrícula morada del resto de la web */
+        .fondo-cuadricula {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-color: var(--fondo);
+            background-image:
+                radial-gradient(900px 500px at 85% -10%, rgba(168, 85, 247, 0.18), transparent 70%),
+                radial-gradient(700px 450px at 0% 100%, rgba(236, 72, 153, 0.10), transparent 70%),
+                linear-gradient(to right, rgba(168, 85, 247, 0.07) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(168, 85, 247, 0.07) 1px, transparent 1px);
+            background-size: auto, auto, 40px 40px, 40px 40px;
+        }
+        .pagina { position: relative; z-index: 1; }
+
+        /* Barra superior */
+        .barra {
+            position: sticky; top: 0; z-index: 20;
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+            padding: 12px clamp(16px, 4vw, 40px);
+            background: rgba(18, 16, 28, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--borde);
+        }
+        .marca { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; font-family: 'Lexend', sans-serif; font-weight: 600; font-size: 1rem; }
+        .marca img { width: 34px; height: 34px; object-fit: contain; }
+        .barra-acciones { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+        .boton {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 10px;
+            background: transparent; border: 1px solid var(--borde); color: var(--texto);
+            font-family: inherit; font-size: .875rem; font-weight: 600; text-decoration: none; cursor: pointer;
+            transition: background .2s, border-color .2s, color .2s;
+        }
+        .boton:hover { background: rgba(168, 85, 247, 0.15); border-color: var(--morado); color: #fff; }
+
+        /* Cabecera */
+        .contenedor { max-width: 1120px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px); }
+        .cabecera { padding: clamp(36px, 7vw, 72px) 0 28px; }
+        .cabecera h1 {
+            margin: 0 0 10px; font-family: 'Lexend', sans-serif; font-weight: 700;
+            font-size: clamp(2rem, 5.5vw, 3.2rem); line-height: 1.1; letter-spacing: -0.5px; color: #fff;
+        }
+        .cabecera .fecha { margin: 0; color: var(--texto-suave); font-size: .95rem; }
+
+        .resumen {
+            position: relative; overflow: hidden; margin-top: 28px;
+            padding: 24px 26px 24px 30px; border-radius: 16px;
+            background: linear-gradient(90deg, rgba(28, 16, 38, 0.9), rgba(21, 18, 32, 0.95));
+            border: 1px solid var(--borde); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        }
+        .resumen::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 5px; background: linear-gradient(to bottom, var(--rosa), var(--morado)); }
+        .resumen h2 { margin: 0 0 12px; font-family: 'Lexend', sans-serif; font-size: 1.15rem; font-weight: 600; color: #fff; }
+        .resumen ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+        .resumen li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; max-width: 78ch; }
+        .resumen li i { color: var(--morado-claro); margin-top: 6px; font-size: .9rem; text-align: center; }
+
+        /* Índice + contenido */
+        .cuerpo { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 48px; align-items: start; padding: 20px 0 80px; }
+        .indice { position: sticky; top: 86px; max-height: calc(100vh - 110px); overflow-y: auto; padding-right: 6px; }
+        .indice summary { font-family: 'Lexend', sans-serif; font-weight: 600; font-size: .95rem; color: #fff; cursor: pointer; margin-bottom: 10px; list-style: none; }
+        .indice summary::-webkit-details-marker { display: none; }
+        .indice ol { margin: 0; padding: 0; list-style: none; counter-reset: ind; border-left: 1px solid var(--borde-suave); }
+        .indice li { counter-increment: ind; }
+        .indice a {
+            display: block; margin-left: -1px; padding: 7px 0 7px 14px;
+            border-left: 2px solid transparent; color: var(--texto-suave);
+            font-size: .9rem; line-height: 1.4; text-decoration: none;
+            transition: color .2s, border-color .2s;
+        }
+        .indice a::before { content: counter(ind) ". "; }
+        .indice a:hover { color: #fff; }
+        .indice a.activo { color: #fff; border-left-color: var(--morado); }
+
+        .texto { min-width: 0; }
+        .texto section { padding: 34px 0; border-bottom: 1px solid var(--borde-suave); counter-increment: sec; }
+        .texto section:first-child { padding-top: 6px; }
+        .texto section:last-of-type { border-bottom: none; }
+        .texto { counter-reset: sec; }
+        .texto h2 {
+            margin: 0 0 14px; font-family: 'Lexend', sans-serif; font-weight: 600;
+            font-size: clamp(1.25rem, 2.6vw, 1.55rem); line-height: 1.25; color: #fff;
+        }
+        .texto h2::before { content: counter(sec) ". "; color: var(--morado-claro); }
+        .texto h3 { margin: 26px 0 8px; font-size: 1.02rem; font-weight: 700; color: #fff; }
+        .texto p, .texto li { max-width: 72ch; }
+        .texto p { margin: 0 0 14px; }
+        .texto ul { margin: 0 0 14px; padding-left: 20px; }
+        .texto li { margin-bottom: 6px; }
+        .texto li::marker { color: var(--morado); }
+        .texto strong { color: #fff; font-weight: 700; }
+        .texto code { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: .86em; padding: 2px 6px; border-radius: 6px; background: rgba(168, 85, 247, 0.14); color: #e3d0fd; }
+
+        /* Tablas */
+        .tabla-caja { margin: 6px 0 18px; overflow-x: auto; border: 1px solid var(--borde); border-radius: 14px; background: var(--superficie); }
+        table { width: 100%; border-collapse: collapse; font-size: .92rem; line-height: 1.55; min-width: 620px; }
+        th, td { padding: 13px 16px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--borde-suave); }
+        th { font-weight: 700; color: #fff; background: var(--superficie-2); white-space: nowrap; }
+        tr:last-child td { border-bottom: none; }
+        td:first-child { color: #fff; font-weight: 600; }
+
+        /* Datos que el administrador tiene que rellenar */
+        .pendiente {
+            padding: 1px 8px; border-radius: 6px; font-weight: 700;
+            background: rgba(251, 191, 36, 0.14); color: var(--aviso); border: 1px dashed rgba(251, 191, 36, 0.6);
+        }
+
+        .nota {
+            margin: 16px 0; padding: 14px 16px; border-radius: 12px; max-width: 72ch;
+            background: rgba(168, 85, 247, 0.08); border: 1px solid var(--borde); color: var(--texto);
+            font-size: .95rem;
+        }
+
+        .pie { padding: 26px 0 50px; border-top: 1px solid var(--borde-suave); color: var(--texto-suave); font-size: .86rem; }
+        .pie p { margin: 0 0 8px; max-width: 86ch; }
+
+        @media (max-width: 880px) {
+            .cuerpo { grid-template-columns: 1fr; gap: 20px; }
+            .indice { position: static; max-height: none; padding: 16px 18px; border: 1px solid var(--borde); border-radius: 14px; background: var(--superficie); }
+            .indice summary { margin-bottom: 0; display: flex; justify-content: space-between; align-items: center; }
+            .indice summary::after { content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: .75rem; color: var(--texto-suave); transition: transform .25s; }
+            .indice[open] summary { margin-bottom: 10px; }
+            .indice[open] summary::after { transform: rotate(180deg); }
+            .boton span { display: none; }
+            .boton { padding: 9px 12px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            * { transition: none !important; }
+        }
+        @media print {
+            .fondo-cuadricula, .barra, .indice { display: none; }
+            html, body { background: #fff; color: #000; }
+            .cuerpo { display: block; }
+            .texto h2, .texto h3, .texto strong, .cabecera h1, .resumen h2, th, td:first-child { color: #000; }
+            .resumen, .tabla-caja, th { background: #fff; box-shadow: none; }
+            a { color: #000; }
+        }
+    </style>
+    <link rel="stylesheet" href="/src/assets/comun.css">
+</head>
+<body>
+
+    <div class="fondo-cuadricula" aria-hidden="true"></div>
+
+    <div class="pagina">
+        <header class="barra">
+            <a class="marca" href="/index.html">
+                <img src="https://i.imgur.com/VPqGp7U.png" alt="">
+                Nyx Community
+            </a>
+            <div class="barra-acciones">
+                <a class="boton" href="/terminos.html" aria-label="Términos y condiciones"><i class="fa-solid fa-file-contract" aria-hidden="true"></i> <span>Términos y condiciones</span></a>
+                <a class="boton" href="/normativa.html" aria-label="Normativa"><i class="fa-solid fa-book" aria-hidden="true"></i> <span>Normativa</span></a>
+                <button class="boton" type="button" id="botonVolver" aria-label="Volver"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> <span>Volver</span></button>
+            </div>
+        </header>
+
+        <div class="contenedor">
+            <div class="cabecera">
+                <h1>Política de privacidad</h1>
+                <p class="fecha">Última actualización: 4 de octubre de 2026</p>
+
+                <div class="resumen">
+                    <h2>En pocas palabras</h2>
+                    <ul>
+                        <li><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i><span>Entras con tu cuenta de Discord. Nunca vemos ni guardamos tu contraseña.</span></li>
+                        <li><i class="fa-solid fa-database" aria-hidden="true"></i><span>Guardamos solo lo necesario para que la web y el servidor funcionen: tu cuenta, lo que tú publicas y el historial de moderación.</span></li>
+                        <li><i class="fa-solid fa-eye-slash" aria-hidden="true"></i><span>Tú decides si tu perfil es público y qué se enseña en él. Tu fecha de nacimiento, tu nacionalidad y tu Steam no aparecen en tu perfil público.</span></li>
+                        <li><i class="fa-solid fa-ban" aria-hidden="true"></i><span>No vendemos tus datos ni usamos cookies de publicidad.</span></li>
+                        <li><i class="fa-solid fa-trash-can" aria-hidden="true"></i><span>Puedes pedir en cualquier momento una copia de tus datos o que los borremos.</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="cuerpo">
+                <details class="indice" id="indice" open>
+                    <summary>En esta página</summary>
+                    <ol>
+                        <li><a href="#responsable">Quién es el responsable</a></li>
+                        <li><a href="#datos">Qué datos guardamos</a></li>
+                        <li><a href="#finalidad">Para qué los usamos</a></li>
+                        <li><a href="#perfil-publico">Tu perfil público</a></li>
+                        <li><a href="#cookies">Cookies y almacenamiento</a></li>
+                        <li><a href="#terceros">Servicios de terceros</a></li>
+                        <li><a href="#conservacion">Cuánto tiempo los guardamos</a></li>
+                        <li><a href="#derechos">Tus derechos</a></li>
+                        <li><a href="#menores">Menores de edad</a></li>
+                        <li><a href="#seguridad">Seguridad</a></li>
+                        <li><a href="#cambios">Cambios en esta política</a></li>
+                        <li><a href="#contacto">Contacto</a></li>
+                    </ol>
+                </details>
+
+                <main class="texto">
+
+                    <section id="responsable">
+                        <h2>Quién es el responsable</h2>
+                        <p>Esta web pertenece a la comunidad <strong>Nyx Community</strong>, un servidor de rol de FiveM en español. El responsable de los datos que se tratan en ella es:</p>
+                        <ul>
+                            <li><strong>Responsable:</strong> <span class="pendiente" data-dato="responsable">PENDIENTE: nombre del titular</span></li>
+                            <li><strong>Contacto:</strong> <span class="pendiente" data-dato="contacto">PENDIENTE: correo de contacto</span></li>
+                        </ul>
+                        <p>También puedes escribirnos abriendo un <a href="/tickets.html">ticket</a> desde la propia web.</p>
+                        <p>Tratamos tus datos de acuerdo con el Reglamento (UE) 2016/679, General de Protección de Datos (RGPD), y con la Ley Orgánica 3/2018, de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD).</p>
+                    </section>
+
+                    <section id="datos">
+                        <h2>Qué datos guardamos</h2>
+                        <p>Esta tabla recoge todo lo que la web guarda sobre ti, de dónde sale cada dato y quién puede verlo.</p>
+
+                        <div class="tabla-caja">
+                            <table>
+                                <thead>
+                                    <tr><th>Dato</th><th>De dónde sale</th><th>Quién puede verlo</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Cuenta de Discord: ID, nombre de usuario, nombre visible y avatar</td>
+                                        <td>Nos lo da Discord cuando inicias sesión y lo autorizas.</td>
+                                        <td>Tú y el staff. Si tu perfil es público, también el resto de usuarios.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Enlace de Steam, fecha de nacimiento y nacionalidad</td>
+                                        <td>Los escribes tú al iniciar sesión.</td>
+                                        <td>Tú, en tu perfil privado, y la administración del servidor para verificar tu cuenta. No aparecen en tu perfil público.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Redes sociales de tu perfil</td>
+                                        <td>Las añades tú en «Gestionar perfil».</td>
+                                        <td>Cualquier usuario, si tu perfil es público y tienes activado mostrarlas.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Fotografías</td>
+                                        <td>Las subes tú desde tu perfil.</td>
+                                        <td>Cualquier usuario, si tu perfil es público y tienes activado mostrarlas.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Sugerencias y votos</td>
+                                        <td>Las envías tú.</td>
+                                        <td>Los usuarios de la web.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tickets: mensajes e imágenes adjuntas</td>
+                                        <td>Los escribís tú y el staff que te atiende.</td>
+                                        <td>Tú y el staff.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Whitelist e historias de personaje</td>
+                                        <td>Las envías tú.</td>
+                                        <td>Tú y el staff que las revisa.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Sanciones: tipo, motivo y fecha</td>
+                                        <td>Las registra el staff.</td>
+                                        <td>Tú y el staff.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Preferencia de avisos de novedades</td>
+                                        <td>La eliges tú con la campana de la página de inicio.</td>
+                                        <td>Solo se usa para saber si enviarte el aviso.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Datos técnicos: dirección IP, fecha y hora de las visitas</td>
+                                        <td>Los genera tu navegador al conectarse.</td>
+                                        <td>La administración del servidor, en los registros técnicos.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Si formas parte del staff</h3>
+                        <p>Además de lo anterior, se guarda tu ficha de staff: nombre de usuario, ID de Discord, categoría, rango, especialidades y las redes sociales que se hayan indicado. Los miembros activos aparecen en la página pública <a href="/equipo.html">Equipo</a>. Las redes marcadas como ocultas no se muestran.</p>
+
+                        <h3>Lo que no guardamos</h3>
+                        <p>No tenemos acceso a tu contraseña de Discord, a tu correo electrónico, a tus mensajes privados ni a tus servidores. Tampoco guardamos datos de pago en esta web.</p>
+                    </section>
+
+                    <section id="finalidad">
+                        <h2>Para qué los usamos</h2>
+                        <div class="tabla-caja">
+                            <table>
+                                <thead>
+                                    <tr><th>Finalidad</th><th>Base legal</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Crear tu cuenta, mantener tu sesión y mostrarte tu perfil</td>
+                                        <td>Tu consentimiento al iniciar sesión y la prestación del servicio que pides.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Gestionar whitelist, historias, tickets y sugerencias</td>
+                                        <td>La prestación del servicio que pides.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Comprobar la edad y verificar la cuenta con la que juegas</td>
+                                        <td>Nuestro interés legítimo en que se cumpla la normativa del servidor.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Moderar la comunidad y llevar el historial de sanciones</td>
+                                        <td>Nuestro interés legítimo en mantener una comunidad segura.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Mostrar tus redes y fotografías en tu perfil público</td>
+                                        <td>Tu consentimiento, que retiras desactivándolo en tu perfil.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Enviarte avisos por mensaje privado de Discord</td>
+                                        <td>La prestación del servicio y, para las novedades, tu consentimiento.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h3>Mensajes privados por Discord</h3>
+                        <p>Nuestro bot puede escribirte por mensaje privado en estos casos: al registrarte en la web, cuando se registra una sanción a tu nombre y cuando se cierra uno de tus tickets. Los avisos de novedades solo te llegan si activas la campana en la página de inicio, y dejas de recibirlos al desactivarla.</p>
+                        <p>No usamos tus datos para publicidad ni para elaborar perfiles comerciales, y no tomamos decisiones automatizadas sobre ti.</p>
+                    </section>
+
+                    <section id="perfil-publico">
+                        <h2>Tu perfil público</h2>
+                        <p>Desde <a href="/perfil.html">Mi perfil</a>, en «Gestionar perfil», eliges si tu perfil es público o privado. Con el perfil público, decides por separado si se muestran tus redes sociales, tus fotografías y tus sugerencias.</p>
+                        <p>Con el perfil privado, el resto de usuarios solo ve un aviso de que el perfil es privado.</p>
+                        <div class="nota">
+                            <strong>Sobre las fotografías.</strong> Antes de subirse, cada imagen se reduce en tu navegador y se le quitan los datos ocultos, como la ubicación o el modelo del dispositivo. Aun así, quien conozca el enlace directo de una imagen puede abrirla aunque ocultes las fotografías de tu perfil. Si no quieres que una imagen siga accesible, bórrala.
+                        </div>
+                        <p>No subas fotografías en las que aparezcan otras personas sin su permiso, ni imágenes con datos personales tuyos o de terceros.</p>
+                    </section>
+
+                    <section id="cookies">
+                        <h2>Cookies y almacenamiento</h2>
+                        <p>Solo usamos cookies técnicas, necesarias para que puedas iniciar sesión. Por eso no te pedimos consentimiento para ellas. No usamos cookies de publicidad ni de analítica.</p>
+                        <div class="tabla-caja">
+                            <table>
+                                <thead>
+                                    <tr><th>Nombre</th><th>Para qué sirve</th><th>Duración</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>discord_id</code> (cookie)</td>
+                                        <td>Mantiene tu sesión iniciada.</td>
+                                        <td>7 días, o hasta que cierres sesión.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>pending_profile</code> (cookie)</td>
+                                        <td>Guarda temporalmente los datos que escribes en el inicio de sesión hasta que Discord confirma tu cuenta.</td>
+                                        <td>30 minutos como máximo.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>discord_user</code> (almacenamiento local del navegador)</td>
+                                        <td>Muestra tu nombre y tu avatar en el menú sin volver a pedirlos.</td>
+                                        <td>Hasta que cierres sesión o borres los datos del navegador.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p>Puedes borrar las cookies y el almacenamiento local desde los ajustes de tu navegador. Si lo haces, tendrás que volver a iniciar sesión.</p>
+                    </section>
+
+                    <section id="terceros">
+                        <h2>Servicios de terceros</h2>
+                        <p>No vendemos ni cedemos tus datos. Para funcionar, la web se apoya en estos servicios, que reciben algunos datos técnicos, como tu dirección IP, cuando tu navegador se conecta a ellos:</p>
+                        <ul>
+                            <li><strong>Discord:</strong> el inicio de sesión, los avatares y los mensajes privados del bot.</li>
+                            <li><strong>Google Fonts:</strong> las tipografías de la web.</li>
+                            <li><strong>Cloudflare (cdnjs):</strong> los iconos de la web.</li>
+                            <li><strong>Imgur:</strong> algunas imágenes, como el logotipo.</li>
+                            <li><strong>Alojamiento:</strong> <span class="pendiente" data-dato="hosting">PENDIENTE: proveedor de alojamiento y país</span>.</li>
+                        </ul>
+                        <p>Algunos de estos proveedores tienen su sede en Estados Unidos, por lo que tus datos técnicos pueden tratarse fuera del Espacio Económico Europeo. Cada uno aplica su propia política de privacidad y sus propias garantías para esas transferencias.</p>
+                        <p>Los enlaces a perfiles de Steam o a redes sociales te llevan a sitios que no controlamos.</p>
+                        <p>Solo entregaremos datos a las autoridades cuando una obligación legal nos lo exija.</p>
+                    </section>
+
+                    <section id="conservacion">
+                        <h2>Cuánto tiempo los guardamos</h2>
+                        <ul>
+                            <li><strong>Tu cuenta y tu perfil:</strong> mientras sigas usando la web, o hasta que pidas que los borremos.</li>
+                            <li><strong>Fotografías y redes sociales:</strong> hasta que las borres tú o pidas su eliminación.</li>
+                            <li><strong>Tickets:</strong> al cerrarse se guarda una copia de la conversación, que conservamos mientras tengas cuenta por si hay que revisar el caso.</li>
+                            <li><strong>Sanciones:</strong> mientras sigan siendo necesarias para la moderación, por ejemplo para aplicar reincidencias o mantener una expulsión.</li>
+                            <li><strong>Registros técnicos:</strong> el tiempo imprescindible para mantener la web y resolver incidencias.</li>
+                        </ul>
+                    </section>
+
+                    <section id="derechos">
+                        <h2>Tus derechos</h2>
+                        <p>Puedes pedirnos en cualquier momento:</p>
+                        <ul>
+                            <li><strong>Acceso:</strong> saber qué datos tuyos tenemos y recibir una copia.</li>
+                            <li><strong>Rectificación:</strong> corregir los que estén mal.</li>
+                            <li><strong>Supresión:</strong> que borremos tu cuenta y tus datos.</li>
+                            <li><strong>Oposición y limitación:</strong> que dejemos de usarlos para un fin concreto.</li>
+                            <li><strong>Portabilidad:</strong> recibirlos en un formato que puedas llevarte.</li>
+                            <li><strong>Retirar tu consentimiento,</strong> sin que eso afecte a lo que se hizo antes de retirarlo.</li>
+                        </ul>
+                        <p>Para ejercerlos, escríbenos por los medios del apartado <a href="#contacto">Contacto</a> desde tu cuenta, para que podamos comprobar que eres tú. Te responderemos en el plazo máximo de un mes.</p>
+                        <p>Al borrar tu cuenta podemos conservar el mínimo imprescindible del historial de sanciones, por ejemplo para que una expulsión siga teniendo efecto.</p>
+
+                        <h3>Lo que puedes hacer tú directamente</h3>
+                        <ul>
+                            <li>Poner tu perfil en privado o elegir qué se muestra, desde «Gestionar perfil».</li>
+                            <li>Borrar tus fotografías y cambiar tus redes sociales desde tu perfil.</li>
+                            <li>Desactivar los avisos de novedades con la campana de la página de inicio.</li>
+                            <li>Retirar el permiso de la web en Discord, en Ajustes de usuario, Aplicaciones autorizadas.</li>
+                        </ul>
+
+                        <p>Si crees que no hemos atendido bien tu solicitud, puedes presentar una reclamación ante la Agencia Española de Protección de Datos, en <a href="https://www.aepd.es" target="_blank" rel="noopener noreferrer">www.aepd.es</a>.</p>
+                    </section>
+
+                    <section id="menores">
+                        <h2>Menores de edad</h2>
+                        <p>La edad mínima para participar en Nyx Community es de <span class="pendiente" data-dato="edadMinima">PENDIENTE: edad mínima</span> años. Te pedimos la fecha de nacimiento para comprobarlo.</p>
+                        <p>En España, los menores de 14 años no pueden dar su consentimiento para el tratamiento de sus datos: necesitan el de sus padres o tutores. Si descubrimos que hemos guardado datos de un menor de 14 años sin ese consentimiento, los borraremos. Si eres su padre, madre o tutor, escríbenos y lo haremos.</p>
+                    </section>
+
+                    <section id="seguridad">
+                        <h2>Seguridad</h2>
+                        <p>Solo la administración tiene acceso al servidor donde se guardan los datos, y cada usuario solo puede modificar su propia información. Las fotografías se comprueban antes de guardarse y solo se aceptan formatos de imagen.</p>
+                        <p>Ningún sistema es completamente seguro. Si detectamos un acceso indebido que afecte a tus datos, te avisaremos y lo comunicaremos a la autoridad de protección de datos cuando la ley lo exija.</p>
+                        <p>Si encuentras un fallo de seguridad, avísanos por ticket antes de hacerlo público.</p>
+                    </section>
+
+                    <section id="cambios">
+                        <h2>Cambios en esta política</h2>
+                        <p>Si cambiamos algo importante, como un dato nuevo que empecemos a guardar o un uso distinto de los que ya tenemos, actualizaremos esta página y la fecha de arriba, y lo avisaremos en las novedades de la web.</p>
+                    </section>
+
+                    <section id="contacto">
+                        <h2>Contacto</h2>
+                        <p>Para cualquier duda sobre tus datos o para ejercer tus derechos:</p>
+                        <ul>
+                            <li>Abre un <a href="/tickets.html">ticket</a> en la web.</li>
+                            <li>Escribe a <span class="pendiente" data-dato="contacto">PENDIENTE: correo de contacto</span>.</li>
+                        </ul>
+                    </section>
+
+                    <div class="pie">
+                        <p>Nyx Community es un proyecto de la comunidad, sin relación con Rockstar Games, Take-Two Interactive ni Cfx.re (FiveM). Tampoco está afiliado a Discord ni a Valve (Steam). Los nombres y marcas citados pertenecen a sus propietarios.</p>
+                        <p style="display: flex; gap: 20px; flex-wrap: wrap;"><a href="/terminos.html">Términos y condiciones</a><a href="/normativa.html">Normativa general</a></p>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ====================================================================
+        //  RELLENA AQUÍ LOS DATOS PENDIENTES (solo hay que tocar estas 4 líneas)
+        //  Mientras una esté vacía, en la página sale un aviso amarillo "PENDIENTE".
+        // ====================================================================
+        const DATOS = {
+            responsable: '',   // Nombre y apellidos, o nombre de la asociación/empresa titular de la web
+            contacto: '',      // Correo de contacto, p. ej. 'privacidad@tudominio.com'
+            hosting: '',       // Proveedor de alojamiento y país, p. ej. 'OVH (Francia)'
+            edadMinima: ''     // Edad mínima del servidor, p. ej. '16'
+        };
+
+        document.querySelectorAll('[data-dato]').forEach(el => {
+            const valor = String(DATOS[el.dataset.dato] || '').trim();
+            if (!valor) return;
+            el.classList.remove('pendiente');
+            if (el.dataset.dato === 'contacto' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor)) {
+                const a = document.createElement('a');
+                a.href = 'mailto:' + valor;
+                a.textContent = valor;
+                el.textContent = '';
+                el.appendChild(a);
+            } else {
+                el.textContent = valor;
+            }
+        });
+
+        // Botón "Volver": vuelve a la página anterior de la web; si no la hay, va al inicio
+        document.getElementById('botonVolver').addEventListener('click', () => {
+            let mismaWeb = false;
+            try { mismaWeb = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
+            if (mismaWeb && history.length > 1) history.back();
+            else location.href = '/index.html';
+        });
+
+        // Índice: en móvil empieza plegado y se pliega al elegir un apartado
+        const indice = document.getElementById('indice');
+        const esMovil = window.matchMedia('(max-width: 880px)');
+        if (esMovil.matches) indice.open = false;
+        indice.addEventListener('click', (e) => {
+            if (e.target.closest('summary') && !esMovil.matches) e.preventDefault();   // en escritorio el índice no se pliega
+            if (e.target.closest('a') && esMovil.matches) indice.open = false;
+        });
+
+        // Índice: marca el apartado que se está leyendo
+        const enlaces = new Map();
+        indice.querySelectorAll('a[href^="#"]').forEach(a => enlaces.set(a.getAttribute('href').slice(1), a));
+        if ('IntersectionObserver' in window) {
+            const observador = new IntersectionObserver((entradas) => {
+                entradas.forEach(en => {
+                    if (!en.isIntersecting) return;
+                    enlaces.forEach(a => a.classList.remove('activo'));
+                    const a = enlaces.get(en.target.id);
+                    if (a) a.classList.add('activo');
+                });
+            }, { rootMargin: '-90px 0px -65% 0px' });
+            document.querySelectorAll('.texto section[id]').forEach(s => observador.observe(s));
+        }
+    </script>
+</body>
+</html>

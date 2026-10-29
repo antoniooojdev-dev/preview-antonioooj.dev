@@ -1,0 +1,109 @@
+---
+// Bloque de código con marco de editor. Usa Shiki (incluido en Astro)
+// con un tema claro y uno oscuro que cambian con el tema de la web.
+import { Code } from "astro:components";
+
+interface Props {
+  code: string;
+  lang?: "ts" | "js" | "php" | "lua" | "html" | "css" | "bash" | "json";
+  filename?: string;
+  class?: string;
+}
+
+const { code, lang = "ts", filename, class: className } = Astro.props;
+---
+
+<figure class:list={["code-block", className]}>
+  <figcaption class="bar">
+    <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+    {filename && <span class="file">{filename}</span>}
+    <span class="lang">{lang}</span>
+  </figcaption>
+  <Code code={code.trim()} lang={lang} themes={{ light: "min-light", dark: "min-dark" }} wrap />
+</figure>
+
+<style>
+  .code-block {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-code);
+    overflow: hidden;
+    font-size: 0.8125rem;
+    min-width: 0;
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dots i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+  }
+
+  .lang {
+    margin-left: auto;
+  }
+
+  /* sin barra de scroll horizontal: las líneas largas se parten (sin cortar nada) y van
+     numeradas, como las ventanas de código de la portada */
+  .code-block :global(pre) {
+    padding: var(--space-5) var(--space-5) var(--space-5) 0;
+    margin: 0;
+    background: transparent !important;
+    line-height: 1.7;
+    overflow: visible;
+    /* los saltos los dan los bloques .line (Shiki pone pre-wrap en línea: de ahí el !important) */
+    white-space: normal !important;
+    counter-reset: linea;
+  }
+
+  .code-block :global(code) {
+    display: block;
+    font-family: var(--font-mono);
+  }
+
+  .code-block :global(.line) {
+    position: relative;
+    display: block;
+    min-height: 1.7em;
+    padding-left: 3.25rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .code-block :global(.line)::before {
+    content: counter(linea);
+    counter-increment: linea;
+    position: absolute;
+    left: 0;
+    width: 2.3rem;
+    text-align: right;
+    color: var(--fg-subtle);
+    opacity: 0.6;
+  }
+
+  :global(:root[data-theme="dark"]) .code-block :global(.astro-code span) {
+    color: var(--shiki-dark) !important;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .code-block :global(.astro-code span) {
+      color: var(--shiki-dark) !important;
+    }
+  }
+</style>

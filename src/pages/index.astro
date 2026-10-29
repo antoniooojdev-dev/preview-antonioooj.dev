@@ -1,0 +1,1549 @@
+---
+// Portada (se probó en /pruebas; la portada en bento anterior está en
+// _backups/portada-pruebas-2026-10-26).
+// Three.js (logo de partículas), GSAP + ScrollTrigger + SplitText y Lenis (scroll suave):
+// todo en src/scripts/pruebas/. Los botones llevan a las páginas de siempre.
+import { Code } from "astro:components";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import logoMask from "@/assets/logo-mask.png";
+import { site } from "@/data/site";
+import { services } from "@/data/services";
+import { projects } from "@/data/projects";
+import { process } from "@/data/process";
+import { stack } from "@/data/stack";
+import { tecnologias } from "@/data/tecnologias";
+
+const trabajos = projects.filter((p) => p.featured);
+---
+
+<BaseLayout intro={false} fondoPie={false}>
+  <!-- idioma: lo traduce src/scripts/i18n.ts como el resto; los textos partidos por SplitText
+       (data-pr-split) los traduce pagina.ts antes de partirlos -->
+  <div class="pr" data-pr>
+    <!-- La entrada solo se enseña con JS; y si algo falla, a los 8 s se quita sola -->
+    <script is:inline>
+      document.documentElement.classList.add("pr-js");
+      setTimeout(function () {
+        var i = document.querySelector(".pr-intro");
+        if (i && getComputedStyle(i).display !== "none") i.style.display = "none";
+      }, 8000);
+    </script>
+    <!-- entrada: la de siempre (logo + línea); luego el logo vuela a su sitio y se hace partículas -->
+    <div class="pr-intro" aria-hidden="true">
+      <div class="pr-intro__fondo"></div>
+      <div class="pr-intro__logo" style={`--logo:url("${logoMask.src}")`}></div>
+      <div class="pr-intro__barra"><i></i></div>
+    </div>
+
+    <!-- portada -->
+    <section class="pr-hero ink">
+      <canvas class="pr-hero__canvas" data-logo={logoMask.src} aria-hidden="true"></canvas>
+      <div class="pr-hero__plano" style={`--logo:url("${logoMask.src}")`} aria-hidden="true"></div>
+      <div class="pr-hero__contenido container">
+        <div class="pr-hero__top" data-pr-aparece>
+          <span class="pr-hero__rol">{site.role}</span>
+        </div>
+        <h1 class="pr-hero__titulo" data-pr-split>Webs, apps, scripts de FiveM y bots de&nbsp;Discord.</h1>
+        <p class="pr-hero__lead" data-pr-aparece>
+          Lo diseño, lo programo y lo mantengo yo. Hablas siempre con quien escribe el código y el precio queda
+          cerrado por escrito antes de empezar.
+        </p>
+        <div class="pr-hero__ctas" data-pr-aparece>
+          <a class="pr-btn pr-btn--claro" href="/contacto" data-pr-iman>
+            <span>Cuéntame tu proyecto</span>
+          </a>
+          <a class="pr-btn pr-btn--linea" href="#proyectos" data-pr-iman>Ver proyectos</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- manifiesto -->
+    <section class="pr-manifiesto">
+      <div class="container">
+        <span class="pr-etiqueta">Cómo lo hago</span>
+        <p class="pr-manifiesto__texto" data-pr-split>Sin agencias ni intermediarios: tu proyecto lo programo yo.</p>
+      </div>
+    </section>
+
+    <!-- servicios en horizontal -->
+    <section class="pr-serv ink" id="servicios">
+      <div class="pr-serv__cab container">
+        <span class="pr-etiqueta">Servicios</span>
+        <h2 data-pr-titulo data-pr-split>Lo que puedo hacer por ti</h2>
+        <div class="pr-serv__barra" aria-hidden="true"><i></i></div>
+      </div>
+      <div class="pr-serv__pista">
+        {
+          services.map((s, i) => (
+            <a class="pr-serv__card" href={`/servicios/${s.id}`}>
+              <span class="pr-serv__n">{String(i + 1).padStart(2, "0")}</span>
+              <h3>{s.title}</h3>
+              <p>{s.description}</p>
+              <ul role="list">
+                {s.features.map((f) => (
+                  <li>{f}</li>
+                ))}
+              </ul>
+              <div class="pr-serv__pie">
+                <span class="pr-mono">Plazo · {s.timeline}</span>
+                <span class="pr-serv__ir" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"></path></svg>
+                </span>
+              </div>
+            </a>
+          ))
+        }
+        <!-- la última: para lo que no encaja en ninguna -->
+        <a class="pr-serv__card pr-serv__card--idea" href="/contacto?tipo=Otro">
+          <span class="pr-serv__n">{String(services.length + 1).padStart(2, "0")}</span>
+          <h3>¿Tu idea no está aquí?</h3>
+          <p>
+            Si tienes algo en mente que no encaja en ninguna tarjeta, cuéntamelo. Lo vemos juntos y te digo cómo hacerlo
+            realidad.
+          </p>
+          <ul role="list">
+            <li>Idea propia</li>
+            <li>Integraciones</li>
+            <li>Automatizaciones</li>
+            <li>Lo que necesites</li>
+          </ul>
+          <div class="pr-serv__pie">
+            <span class="pr-mono">Hablemos de ella</span>
+            <span class="pr-serv__ir" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"></path></svg>
+            </span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- proyectos: tarjetas que se apilan al bajar -->
+    <section class="pr-trab" id="proyectos">
+      <div class="container">
+        <div class="pr-trab__cab">
+          <span class="pr-etiqueta">Proyectos</span>
+          <h2 data-pr-titulo data-pr-split>Proyectos reales, con su código</h2>
+        </div>
+        <div class="pr-trab__lista">
+          {
+            trabajos.map((p, i) => (
+              <div class="pr-trab__hueco" style={`--i:${i}`}>
+                <a class="pr-trab__card" href={`/proyectos/${p.slug}`}>
+                  <div class="pr-trab__info">
+                    <div class="pr-trab__meta">
+                      <span class="pr-trab__num">{String(i + 1).padStart(2, "0")}</span>
+                      <span class="pr-mono">
+                        {p.type} · {p.year}
+                      </span>
+                    </div>
+                    <h3>{p.title}</h3>
+                    <p class="pr-trab__res">{p.summary}</p>
+                    <div class="pr-trab__stack">
+                      {p.stack.map((s) => (
+                        <span>{s}</span>
+                      ))}
+                    </div>
+                    <span class="pr-trab__ver">
+                      Ver proyecto
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                    </span>
+                  </div>
+                  {p.snippet && (
+                    <div class="pr-trab__codigo" aria-hidden="true">
+                      <div class="pr-trab__barra">
+                        <i />
+                        <i />
+                        <i />
+                        <span>{p.snippet.filename}</span>
+                        <em>{p.snippet.lang}</em>
+                      </div>
+                      <div class="pr-trab__pre">
+                        <Code code={p.snippet.code.trim()} lang={p.snippet.lang} theme="min-dark" wrap />
+                      </div>
+                    </div>
+                  )}
+                </a>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- proceso -->
+    <section class="pr-proc inv" id="proceso">
+      <div class="container pr-proc__grid">
+        <div class="pr-proc__cab">
+          <span class="pr-etiqueta">Proceso</span>
+          <h2 data-pr-titulo data-pr-split>De la idea a publicado, en cuatro pasos</h2>
+          <p>Sabes en todo momento qué se está haciendo, cuánto falta y cuánto cuesta.</p>
+        </div>
+        <ol role="list" class="pr-proc__lista">
+          <span class="pr-proc__linea" aria-hidden="true"><i></i></span>
+          {
+            process.map((p, i) => (
+              <li class="pr-proc__paso">
+                <span class="pr-proc__punto" aria-hidden="true">{i + 1}</span>
+                <div>
+                  <span class="pr-mono">{p.duration}</span>
+                  <h3>{p.title}</h3>
+                  <p>{p.description}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </section>
+
+    <!-- stack -->
+    <section class="pr-stack">
+      <div class="container">
+        <span class="pr-etiqueta">Herramientas</span>
+        <h2 data-pr-titulo data-pr-split>Con qué trabajo</h2>
+        <p class="pr-stack__ayuda">Pulsa cualquiera para ver qué es, para qué sirve y dónde la has visto ya.</p>
+        <div class="pr-stack__grupos">
+          {
+            stack.map((g) => (
+              <div class="pr-stack__grupo">
+                <span class="pr-mono">{g.label}</span>
+                <div>
+                  {g.items.map((it) => (
+                    <button type="button" class="pr-stack__chip" data-pr-tec={it} aria-haspopup="dialog">
+                      {it}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- ficha de la tecnología pulsada -->
+      <dialog class="pr-tec" aria-labelledby="pr-tec-nombre">
+        <button type="button" class="pr-tec__cerrar" aria-label="Cerrar" data-pr-tec-cerrar>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+        </button>
+        <span class="pr-mono pr-tec__tipo" data-pr-tec-tipo></span>
+        <h3 id="pr-tec-nombre" class="pr-tec__nombre" data-pr-tec-nombre></h3>
+        <p class="pr-tec__resumen" data-pr-tec-resumen></p>
+        <div class="pr-tec__cols">
+          <div>
+            <h4>Qué se puede hacer</h4>
+            <ul role="list" data-pr-tec-sirve></ul>
+          </div>
+          <div>
+            <h4>Dónde la has visto</h4>
+            <ul role="list" class="pr-tec__ejemplos" data-pr-tec-ejemplos></ul>
+          </div>
+        </div>
+      </dialog>
+      <script type="application/json" data-pr-tecs set:html={JSON.stringify(tecnologias)} />
+    </section>
+
+    <!-- cierre -->
+    <section class="pr-cta ink" id="contacto">
+      <div class="pr-cta__brillo" aria-hidden="true"></div>
+      <div class="container pr-cta__in">
+        <div class="pr-cta__izq">
+          <span class="pr-etiqueta">Contacto</span>
+          <h2 class="pr-cta__grande">¿Hablamos?</h2>
+          <p class="pr-cta__txt">Cuéntame qué tienes en mente y te digo cómo lo haría y cuánto costaría.</p>
+          <ul role="list" class="pr-cta__datos">
+            <li><span class="pr-cta__punto"></span>Respuesta en menos de 24 h</li>
+            <li><span class="pr-cta__punto"></span>Presupuesto cerrado y por escrito</li>
+            <li><span class="pr-cta__punto"></span>La primera llamada es gratis</li>
+          </ul>
+        </div>
+
+        <div class="pr-cta__vias">
+          <a class="pr-via pr-via--principal" href="/contacto">
+            <span class="pr-via__ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5a2.8 2.8 0 0 0-4-4L4 16v4Z"></path><path d="m13.5 6.5 4 4"></path></svg>
+            </span>
+            <span class="pr-via__txt">
+              <strong>Cuéntame tu proyecto</strong>
+              <span>Un formulario corto, en dos minutos</span>
+            </span>
+            <span class="pr-via__flecha" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"></path></svg>
+            </span>
+          </a>
+          <a class="pr-via" href="/chat">
+            <span class="pr-via__ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"></path></svg>
+            </span>
+            <span class="pr-via__txt">
+              <strong data-pr-scramble data-pr-split>Chat en directo</strong>
+              <span>Entra con Discord, Google o GitHub</span>
+            </span>
+            <span class="pr-via__flecha" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"></path></svg>
+            </span>
+          </a>
+          <button type="button" class="pr-via" data-pr-copiar={site.email}>
+            <span class="pr-via__ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"></rect><path d="m4 7 8 6 8-6"></path></svg>
+            </span>
+            <span class="pr-via__txt">
+              <strong>{site.email}</strong>
+              <span data-pr-copiado>Pulsa para copiar el email</span>
+            </span>
+            <span class="pr-via__flecha" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>
+            </span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  import "@/scripts/pruebas/pagina";
+</script>
+
+<style>
+  /* ── base ── */
+  .pr {
+    position: relative;
+    overflow-x: clip;
+  }
+
+  .pr h2 {
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 1.2rem + 4vw, 5rem);
+    font-weight: 800;
+    font-stretch: 110%;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+  }
+
+  .pr-mono {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .pr-etiqueta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: var(--space-5);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--fg-muted);
+  }
+
+  .pr-etiqueta::before {
+    content: "";
+    width: 2rem;
+    height: 1px;
+    background: currentColor;
+  }
+
+  .pr-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 1rem 1.5rem;
+    border-radius: 999px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.3s var(--ease), color 0.3s var(--ease), border-color 0.3s var(--ease);
+  }
+
+  .pr-btn--claro {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .pr-btn--claro svg {
+    transition: transform 0.3s var(--ease);
+  }
+
+  .pr-btn--claro:hover svg {
+    transform: translateX(4px);
+  }
+
+  .pr-btn--linea {
+    border: 1px solid var(--border-strong);
+    color: var(--fg);
+  }
+
+  .pr-btn--linea:hover {
+    background: var(--fg);
+    color: var(--bg);
+    border-color: var(--fg);
+  }
+
+  /* ── entrada (la de la portada de siempre: logo + línea) ── */
+  .pr-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-6);
+  }
+
+  :global(html.pr-js) .pr-intro {
+    display: flex;
+  }
+
+  /* el fondo va aparte para poder desvanecerlo mientras el logo vuela */
+  .pr-intro__fondo {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, #141414 0%, #0a0a0a 70%);
+  }
+
+  .pr-intro__logo,
+  .pr-intro__barra {
+    position: relative;
+  }
+
+  .pr-intro__logo {
+    width: min(240px, 60vw);
+    aspect-ratio: 895 / 879;
+    background: #f2f2f2;
+    -webkit-mask: var(--logo) center / contain no-repeat;
+    mask: var(--logo) center / contain no-repeat;
+    transform-origin: 0 0;
+    animation:
+      pr-logo-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both,
+      pr-respira 2.4s ease-in-out 0.9s infinite;
+  }
+
+  .pr-intro__barra {
+    width: 200px;
+    height: 2px;
+    border-radius: 2px;
+    overflow: hidden;
+    background: #262626;
+    animation: pr-fade 0.6s ease 0.2s both;
+  }
+
+  .pr-intro__barra i {
+    display: block;
+    height: 100%;
+    background: #f2f2f2;
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  @keyframes pr-logo-in {
+    from {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+  }
+
+  @keyframes pr-respira {
+    50% {
+      opacity: 0.75;
+    }
+  }
+
+  @keyframes pr-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* ── portada ── */
+  .pr-hero {
+    position: relative;
+    display: grid;
+    min-height: calc(100svh - var(--header-h));
+    overflow: hidden;
+    background:
+      radial-gradient(60% 60% at 75% 45%, #161616 0%, transparent 70%),
+      var(--bg);
+    color: var(--fg);
+  }
+
+  .pr-hero__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* sin WebGL: el logo plano en su sitio */
+  .pr-hero__plano {
+    display: none;
+    position: absolute;
+    right: 8%;
+    top: 50%;
+    width: min(32vw, 420px);
+    aspect-ratio: 895 / 879;
+    transform: translateY(-50%);
+    background: #2a2a2a;
+    -webkit-mask: var(--logo) center / contain no-repeat;
+    mask: var(--logo) center / contain no-repeat;
+  }
+
+  :global(.sin-webgl) .pr-hero__plano {
+    display: block;
+  }
+
+  .pr-hero__contenido {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    align-content: center;
+    gap: var(--space-5);
+    padding-block: var(--space-8) var(--space-6);
+    pointer-events: none;
+  }
+
+  .pr-hero__contenido a {
+    pointer-events: auto;
+  }
+
+  .pr-hero__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .pr-hero__rol {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .pr-hero__titulo {
+    max-width: 14ch;
+    font-family: var(--font-display);
+    font-size: clamp(2.8rem, 1rem + 7vw, 7.5rem);
+    font-weight: 800;
+    font-stretch: 105%;
+    letter-spacing: -0.045em;
+    line-height: 0.92;
+    text-wrap: balance;
+  }
+
+  .pr-hero__lead {
+    max-width: 34rem;
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    color: var(--fg-muted);
+  }
+
+  .pr-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  /* ── manifiesto ── */
+  .pr-manifiesto {
+    padding-block: var(--section);
+  }
+
+  .pr-manifiesto__texto {
+    max-width: 22ch;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 1rem + 4.2vw, 5.2rem);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+  }
+
+  /* ── servicios ── */
+  .pr-serv {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr); /* la pista es más ancha que la pantalla: que no estire la columna */
+    align-content: center;
+    gap: var(--space-7);
+    min-height: 100svh;
+    padding-block: var(--space-8);
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  .pr-serv__cab {
+    display: grid;
+    gap: 0;
+  }
+
+  .pr-serv__barra {
+    height: 2px;
+    margin-top: var(--space-6);
+    background: var(--border);
+  }
+
+  .pr-serv__barra i {
+    display: block;
+    height: 100%;
+    background: var(--fg);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .pr-serv__pista {
+    display: flex;
+    gap: var(--space-5);
+    width: max-content;
+    justify-self: start;
+    padding-inline: max(var(--gutter), calc((100vw - var(--container)) / 2 + var(--gutter)));
+  }
+
+  .pr-serv__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    width: min(30rem, 78vw);
+    min-height: 26rem;
+    padding: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    background: linear-gradient(160deg, #151515, #0c0c0c);
+    color: var(--fg);
+    text-decoration: none;
+    transition: border-color 0.4s var(--ease), background 0.4s var(--ease);
+  }
+
+  .pr-serv__card:hover {
+    border-color: var(--fg-muted);
+    background: linear-gradient(160deg, #1d1d1d, #0f0f0f);
+  }
+
+  .pr-serv__n {
+    font-family: var(--font-display);
+    font-size: 4.5rem;
+    font-weight: 800;
+    font-stretch: 70%;
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--fg-subtle);
+  }
+
+  .pr-serv__card h3 {
+    font-size: clamp(1.8rem, 1.3rem + 1.4vw, 2.6rem);
+    font-weight: 800;
+    font-stretch: 110%;
+    letter-spacing: -0.035em;
+    line-height: 1;
+  }
+
+  .pr-serv__card p {
+    color: var(--fg-muted);
+    line-height: 1.6;
+  }
+
+  .pr-serv__card ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .pr-serv__card li {
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .pr-serv__pie {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+  }
+
+  .pr-serv__ir {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    transition: background 0.3s var(--ease), color 0.3s var(--ease), transform 0.4s var(--ease);
+  }
+
+  .pr-serv__card:hover .pr-serv__ir {
+    background: var(--fg);
+    color: var(--bg);
+    transform: rotate(45deg);
+  }
+
+  /* 06 «¿Tu idea no está aquí?»: en negativo para que destaque como invitación */
+  .pr-serv__card--idea,
+  .pr-serv__card--idea:hover {
+    border-color: var(--fg);
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .pr-serv__card--idea .pr-serv__n {
+    -webkit-text-stroke-color: color-mix(in srgb, var(--bg) 45%, transparent);
+  }
+
+  .pr-serv__card--idea p,
+  .pr-serv__card--idea .pr-mono {
+    color: color-mix(in srgb, var(--bg) 70%, transparent);
+  }
+
+  .pr-serv__card--idea li {
+    border-color: color-mix(in srgb, var(--bg) 30%, transparent);
+    color: var(--bg);
+  }
+
+  .pr-serv__card--idea .pr-serv__pie {
+    border-top-color: color-mix(in srgb, var(--bg) 18%, transparent);
+  }
+
+  .pr-serv__card--idea .pr-serv__ir {
+    border-color: color-mix(in srgb, var(--bg) 35%, transparent);
+  }
+
+  .pr-serv__card--idea:hover .pr-serv__ir {
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  /* pantallas estrechas: tarjetas en columna, sin scroll horizontal */
+  @media (max-width: 63.99rem) {
+    .pr-serv {
+      min-height: 0;
+    }
+
+    .pr-serv__pista {
+      flex-direction: column;
+      width: auto;
+    }
+
+    .pr-serv__card {
+      width: auto;
+      min-height: 0;
+    }
+
+    .pr-serv__barra {
+      display: none;
+    }
+  }
+
+  /* ── proyectos ──
+     Cada tarjeta va en un «hueco» pegajoso (sticky) un poco más abajo que el anterior,
+     así al bajar se apilan dejando ver el borde de las de detrás. GSAP encoge un poco y
+     oscurece levemente (--sombra) la que va quedando debajo: sin 3D ni capas, para que el
+     texto se vea siempre nítido. */
+  .pr-trab {
+    padding-block: var(--section);
+  }
+
+  .pr-trab__cab {
+    margin-bottom: var(--space-8);
+  }
+
+  .pr-trab__lista {
+    display: grid;
+    gap: var(--space-7);
+    padding-bottom: var(--space-6);
+  }
+
+  .pr-trab__hueco {
+    position: sticky;
+    top: calc(var(--header-h) + 1.25rem + var(--i) * 0.9rem);
+  }
+
+  .pr-trab__card {
+    --sombra: 0;
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: clamp(1.5rem, 1rem + 2.5vw, 3.5rem);
+    align-items: center;
+    min-height: min(32rem, 72svh);
+    padding: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+    border: 1px solid #262626;
+    border-radius: 32px;
+    background:
+      radial-gradient(120% 90% at 100% 0%, #1b1b1b 0%, transparent 55%),
+      #0d0d0d;
+    color: #f2f2f2;
+    text-decoration: none;
+    transform-origin: 50% 0%;
+    box-shadow:
+      0 -1px 0 rgb(255 255 255 / 0.06) inset,
+      0 30px 80px rgb(0 0 0 / 0.35);
+    overflow: hidden;
+    transition: border-color 0.4s var(--ease);
+  }
+
+  /* oscurecido de la tarjeta que queda debajo */
+  .pr-trab__card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: #000;
+    opacity: calc(var(--sombra) * 0.3);
+    pointer-events: none;
+  }
+
+  .pr-trab__card:hover {
+    border-color: #4a4a4a;
+  }
+
+  .pr-trab__info {
+    display: grid;
+    gap: var(--space-4);
+    align-content: center;
+  }
+
+  .pr-trab__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .pr-trab__meta .pr-mono {
+    color: #8a8a8a;
+  }
+
+  .pr-trab__num {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    font-weight: 800;
+    font-stretch: 70%;
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1px #5a5a5a;
+  }
+
+  .pr-trab__card h3 {
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 1rem + 2.6vw, 3.4rem);
+    font-weight: 800;
+    font-stretch: 105%;
+    letter-spacing: -0.04em;
+    line-height: 0.98;
+  }
+
+  .pr-trab__res {
+    max-width: 34rem;
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    color: #a8a8a8;
+  }
+
+  .pr-trab__stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .pr-trab__stack span {
+    padding: 0.3rem 0.75rem;
+    border: 1px solid #2c2c2c;
+    border-radius: 999px;
+    font-size: var(--fs-sm);
+    color: #cfcfcf;
+  }
+
+  .pr-trab__ver {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: fit-content;
+    margin-top: var(--space-2);
+    padding: 0.75rem 1.25rem;
+    border-radius: 999px;
+    background: #f2f2f2;
+    color: #0a0a0a;
+    font-weight: 600;
+  }
+
+  .pr-trab__ver svg {
+    transition: transform 0.3s var(--ease);
+  }
+
+  .pr-trab__card:hover .pr-trab__ver svg {
+    transform: translateX(5px);
+  }
+
+  /* ventana de código con un trozo real del proyecto */
+  .pr-trab__codigo {
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border: 1px solid #262626;
+    border-radius: 18px;
+    background: #080808;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgb(0 0 0 / 0.4);
+    transition: transform 0.6s var(--ease), border-color 0.4s var(--ease);
+  }
+
+  .pr-trab__card:hover .pr-trab__codigo {
+    transform: translateY(-4px);
+    border-color: #3a3a3a;
+  }
+
+  .pr-trab__barra {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid #1d1d1d;
+    background: #101010;
+  }
+
+  .pr-trab__barra i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #2e2e2e;
+  }
+
+  .pr-trab__barra span {
+    margin-left: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: #8a8a8a;
+  }
+
+  .pr-trab__barra em {
+    margin-left: auto;
+    padding: 0.1rem 0.5rem;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-style: normal;
+    text-transform: uppercase;
+    color: #8a8a8a;
+  }
+
+  /* el código, con las líneas largas partidas y numeradas. Sin scroll propio: la rueda
+     siempre mueve la página (un scroll dentro de la tarjeta atascaba el apilado); lo que
+     no cabe se funde abajo y está entero en la ficha del proyecto */
+  .pr-trab__pre {
+    flex: 1;
+    max-height: min(26rem, 58svh);
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent);
+    mask-image: linear-gradient(to bottom, #000 78%, transparent);
+    filter: grayscale(1); /* la web es monocroma: el resaltado, en grises */
+  }
+
+  .pr-trab__pre :global(pre) {
+    margin: 0;
+    padding: 1rem 1rem 1.25rem 0;
+    background: transparent !important;
+    font-family: var(--font-mono);
+    font-size: clamp(0.72rem, 0.66rem + 0.22vw, 0.82rem);
+    line-height: 1.7;
+    /* los saltos entre líneas los dan los bloques .line (Shiki pone pre-wrap en línea: de ahí el !important) */
+    white-space: normal !important;
+    counter-reset: linea;
+  }
+
+  .pr-trab__pre :global(code) {
+    display: block;
+    font-family: inherit;
+  }
+
+  .pr-trab__pre :global(.line) {
+    position: relative;
+    display: block;
+    min-height: 1.7em;
+    padding-left: 3.1rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .pr-trab__pre :global(.line)::before {
+    content: counter(linea);
+    counter-increment: linea;
+    position: absolute;
+    left: 0;
+    width: 2.2rem;
+    text-align: right;
+    color: #454545;
+  }
+
+  @media (max-width: 56rem) {
+    .pr-trab__card {
+      grid-template-columns: minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    .pr-trab__codigo {
+      display: none;
+    }
+  }
+
+  /* ── proceso ── */
+  .pr-proc {
+    padding-block: var(--section);
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  .pr-proc__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+
+  .pr-proc__cab {
+    position: sticky;
+    top: calc(var(--header-h) + 2rem);
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .pr-proc__cab p {
+    max-width: 28rem;
+    color: var(--fg-muted);
+    font-size: var(--fs-md);
+  }
+
+  .pr-proc__lista {
+    position: relative;
+    display: grid;
+    gap: var(--space-8);
+    padding-left: 4.5rem;
+  }
+
+  .pr-proc__linea {
+    position: absolute;
+    left: 1.5rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .pr-proc__linea i {
+    display: block;
+    height: 100%;
+    background: var(--fg);
+    transform-origin: top;
+  }
+
+  .pr-proc__paso {
+    position: relative;
+    display: grid;
+    opacity: 0.35;
+    transition: opacity 0.5s var(--ease);
+  }
+
+  :global(html:not(.pr-js)) .pr-proc__paso,
+  .pr-proc__paso.is-on {
+    opacity: 1;
+  }
+
+  .pr-proc__punto {
+    position: absolute;
+    left: -4.5rem;
+    top: 0;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 2px solid var(--border-strong);
+    border-radius: 50%;
+    background: var(--bg);
+    font-weight: 800;
+    transition: background 0.4s var(--ease), color 0.4s var(--ease), border-color 0.4s var(--ease), transform 0.5s var(--ease);
+  }
+
+  .pr-proc__paso.is-on .pr-proc__punto {
+    background: var(--fg);
+    color: var(--bg);
+    border-color: var(--fg);
+    transform: scale(1.08);
+  }
+
+  .pr-proc__paso h3 {
+    margin-block: var(--space-2);
+    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .pr-proc__paso p {
+    max-width: 32rem;
+    color: var(--fg-muted);
+    line-height: 1.65;
+  }
+
+  @media (max-width: 56rem) {
+    .pr-proc__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-7);
+    }
+
+    .pr-proc__cab {
+      position: static;
+    }
+  }
+
+  /* ── stack ── */
+  .pr-stack {
+    padding-block: var(--section);
+  }
+
+  .pr-stack__ayuda {
+    margin-top: var(--space-4);
+    color: var(--fg-muted);
+  }
+
+  .pr-stack__grupos {
+    display: grid;
+    margin-top: var(--space-7);
+    border-top: 1px solid var(--border);
+  }
+
+  /* cada apartado: etiqueta y tecnologías centradas en vertical en su fila */
+  .pr-stack__grupo {
+    display: grid;
+    grid-template-columns: 10rem minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: center;
+    min-height: 6.5rem;
+    padding-block: var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pr-stack__grupo > .pr-mono {
+    align-self: center;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .pr-stack__grupo > div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    align-content: center;
+    gap: var(--space-2);
+  }
+
+  .pr-stack__chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.55rem 1.1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    font-size: var(--fs-base);
+    font-weight: 500;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background 0.25s var(--ease), color 0.25s var(--ease), transform 0.25s var(--ease), border-color 0.25s var(--ease);
+  }
+
+  .pr-stack__chip:hover,
+  .pr-stack__chip:focus-visible {
+    background: var(--fg);
+    color: var(--bg);
+    border-color: var(--fg);
+    transform: translateY(-3px);
+    outline: none;
+  }
+
+  @media (max-width: 40rem) {
+    .pr-stack__grupo {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* ── ficha de la tecnología ── */
+  .pr-tec {
+    width: min(44rem, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    padding: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+    border: 1px solid #2a2a2a;
+    border-radius: 28px;
+    background: #0e0e0e;
+    color: #f2f2f2;
+    overflow: auto;
+    box-shadow: 0 40px 100px rgb(0 0 0 / 0.5);
+  }
+
+  .pr-tec[open] {
+    display: grid;
+    gap: var(--space-4);
+    animation: pr-tec-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+  }
+
+  .pr-tec::backdrop {
+    background: rgb(0 0 0 / 0.6);
+    backdrop-filter: blur(6px);
+  }
+
+  .pr-tec[open]::backdrop {
+    animation: pr-fade 0.3s ease;
+  }
+
+  /* al cerrar: el contenido se apaga y la ficha vuelve encogiéndose a la etiqueta de la que salió */
+  .pr-tec.is-cerrando[open] {
+    animation: pr-tec-out 0.42s cubic-bezier(0.55, 0, 0.75, 0.2) forwards;
+  }
+
+  /* [open] para ganar a la regla de entrada en cascada, que va más abajo */
+  .pr-tec.is-cerrando[open] > *:not(.pr-tec__cerrar) {
+    animation: pr-tec-apaga 0.18s ease forwards;
+  }
+
+  .pr-tec.is-cerrando::backdrop {
+    animation: pr-fade 0.42s ease reverse forwards;
+  }
+
+  @keyframes pr-tec-in {
+    from {
+      opacity: 0;
+      transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.4);
+    }
+  }
+
+  @keyframes pr-tec-out {
+    35% {
+      opacity: 1;
+      transform: scale(0.97);
+      filter: blur(0);
+    }
+    to {
+      opacity: 0;
+      transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.15);
+      filter: blur(8px);
+    }
+  }
+
+  @keyframes pr-tec-apaga {
+    to {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+
+  /* X sin fondo: al pasar por encima gira y crece; al cerrar da una vuelta entera */
+  .pr-tec__cerrar {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    color: #8a8a8a;
+    transition:
+      transform 0.45s cubic-bezier(0.3, 1.6, 0.5, 1),
+      color 0.2s ease;
+  }
+
+  .pr-tec__cerrar svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .pr-tec__cerrar:hover,
+  .pr-tec__cerrar:focus-visible {
+    color: #f2f2f2;
+    transform: rotate(90deg) scale(1.2);
+    outline: none;
+  }
+
+  .pr-tec__cerrar:active {
+    transform: rotate(90deg) scale(0.9);
+  }
+
+  .pr-tec.is-cerrando .pr-tec__cerrar {
+    color: #f2f2f2;
+    transform: rotate(270deg) scale(0.6);
+    transition-duration: 0.4s;
+  }
+
+  .pr-tec__tipo {
+    color: #8a8a8a;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .pr-tec__nombre {
+    padding-right: 3rem;
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 1.4rem + 4vw, 4.5rem);
+    font-weight: 800;
+    font-stretch: 110%;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+  }
+
+  .pr-tec__resumen {
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    color: #b5b5b5;
+  }
+
+  .pr-tec__cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid #222;
+  }
+
+  .pr-tec h4 {
+    margin-bottom: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: #8a8a8a;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .pr-tec ul {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  /* los <li> los crea el script: sin :global no les llegan los estilos con ámbito */
+  .pr-tec ul :global(li) {
+    position: relative;
+    padding-left: 1.4rem;
+    line-height: 1.5;
+    color: #d8d8d8;
+  }
+
+  .pr-tec ul :global(li::before) {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.7em;
+    width: 0.6rem;
+    height: 2px;
+    background: #f2f2f2;
+  }
+
+  .pr-tec__ejemplos :global(li) {
+    padding: 0.6rem 0.9rem;
+    border: 1px solid #262626;
+    border-radius: 12px;
+    background: #151515;
+    font-weight: 600;
+    color: #f2f2f2;
+  }
+
+  .pr-tec__ejemplos :global(li::before) {
+    display: none;
+  }
+
+  /* lo de dentro entra en cascada */
+  .pr-tec[open] > *:not(.pr-tec__cerrar) {
+    animation: pr-tec-sube 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .pr-tec[open] > :nth-child(2) { animation-delay: 0.08s; }
+  .pr-tec[open] > :nth-child(3) { animation-delay: 0.12s; }
+  .pr-tec[open] > :nth-child(4) { animation-delay: 0.16s; }
+  .pr-tec[open] > :nth-child(5) { animation-delay: 0.22s; }
+
+  @keyframes pr-tec-sube {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+
+  /* ── contacto: título y garantías a la izquierda, tres formas de escribirme a la derecha ── */
+  .pr-cta {
+    position: relative;
+    padding-block: var(--section);
+    background: var(--bg);
+    color: var(--fg);
+    overflow: hidden;
+  }
+
+  /* luz suave que sigue al ratón (--mx/--my los pone el script) */
+  .pr-cta__brillo {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(40rem 40rem at var(--mx, 75%) var(--my, 40%), rgb(255 255 255 / 0.06), transparent 60%);
+    pointer-events: none;
+    transition: background-position 0.2s;
+  }
+
+  .pr-cta__in {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(2rem, 1rem + 4vw, 5rem);
+    align-items: center;
+  }
+
+  .pr-cta__izq {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .pr-cta__izq .pr-etiqueta {
+    margin-bottom: 0;
+  }
+
+  .pr .pr-cta__grande {
+    --relleno: 100%;
+    font-size: clamp(3rem, 1rem + 4.8vw, 6.5rem);
+    font-stretch: 100%;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    padding-bottom: 0.08em; /* que no se corte el «¿» por abajo */
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--fg-subtle);
+    background: linear-gradient(90deg, var(--fg) var(--relleno), transparent var(--relleno));
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .pr-cta__txt {
+    max-width: 30rem;
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    color: var(--fg-muted);
+  }
+
+  .pr-cta__datos {
+    display: grid;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+  }
+
+  .pr-cta__datos li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--fg-muted);
+  }
+
+  .pr-cta__punto {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--fg);
+  }
+
+  .pr-cta__vias {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .pr-via {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    width: 100%;
+    padding: clamp(1.1rem, 0.9rem + 0.8vw, 1.6rem);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: rgb(255 255 255 / 0.02);
+    color: var(--fg);
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background 0.35s var(--ease),
+      border-color 0.35s var(--ease),
+      color 0.35s var(--ease),
+      transform 0.35s var(--ease);
+  }
+
+  .pr-via:hover,
+  .pr-via:focus-visible {
+    border-color: var(--fg-muted);
+    transform: translateX(6px);
+    outline: none;
+  }
+
+  .pr-via--principal,
+  .pr-via--principal:hover {
+    background: var(--fg);
+    color: var(--bg);
+    border-color: var(--fg);
+  }
+
+  .pr-via__ico {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-strong);
+    transition: transform 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+
+  .pr-via--principal .pr-via__ico {
+    border-color: color-mix(in srgb, var(--bg) 25%, transparent);
+  }
+
+  .pr-via:hover .pr-via__ico {
+    transform: rotate(-8deg) scale(1.08);
+  }
+
+  .pr-via__txt {
+    display: grid;
+    flex: 1;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+
+  .pr-via__txt strong {
+    font-size: var(--fs-md);
+    overflow-wrap: anywhere;
+  }
+
+  .pr-via__txt > span {
+    font-size: var(--fs-sm);
+    opacity: 0.65;
+  }
+
+  .pr-via__flecha {
+    flex-shrink: 0;
+    transition: transform 0.35s var(--ease);
+  }
+
+  .pr-via:hover .pr-via__flecha {
+    transform: translate(3px, -3px);
+  }
+
+  @media (max-width: 56rem) {
+    .pr-cta__in {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .pr-hero__titulo {
+      max-width: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pr-intro {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postulaciones | Nyx Community</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../src/assets/home.css">
+    <link rel="stylesheet" href="postulaciones.css">
+    <link rel="stylesheet" href="/src/assets/comun.css">
+</head>
+<body class="pf-hub">
+
+    <div class="grid-background"></div>
+    <div class="pf-bg" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <div class="app-container">
+        <!-- Menú lateral (lo rellena guards.js; logo, lupa y buscador los pone hx-sidebar.js) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-logo-title">
+                    <img src="https://i.imgur.com/VPqGp7U.png" alt="Nyx Community Logo" class="sidebar-logo">
+                    <span class="server-main-title">Nyx Community</span>
+                </div>
+                <button type="button" class="sidebar-toggle-icon" id="sidebarToggleBtn" title="Colapsar menú"><i class="fa-solid fa-bars"></i></button>
+            </div>
+            <nav class="sidebar-nav"></nav>
+            <div class="sidebar-footer">
+                <div class="user-profile-mini">
+                    <div class="avatar-placeholder" id="userAvatarContainer"><span>?</span></div>
+                    <div class="user-info">
+                        <span class="username" id="userNameDisplay">Usuario</span>
+                        <span class="user-handle" id="userHandleDisplay">@tag</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <button type="button" class="sidebar-reveal-trigger" id="sidebarRevealBtn" title="Abrir menú"><i class="fa-solid fa-chevron-right"></i></button>
+
+        <main class="main-content">
+            <header class="top-action-bar">
+                <nav class="breadcrumb" aria-label="Ruta"><span class="pf-here">Postulaciones</span></nav>
+                <div class="top-buttons">
+                    <button type="button" class="top-btn highlight-btn" id="pfSupportBtn" aria-haspopup="true" aria-expanded="false" aria-controls="pfSupportMenu">
+                        <i class="fa-solid fa-circle-question"></i> Soporte <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Menú de Soporte (igual que en home1.html) -->
+            <div class="pf-support-menu" id="pfSupportMenu" role="menu">
+                <div class="pf-support-menu__section">
+                    <div class="pf-support-menu__title">Soporte</div>
+                    <a href="../tickets.html" role="menuitem"><i class="fa-solid fa-ticket"></i> Crear un ticket</a>
+                </div>
+                <div class="pf-support-menu__section">
+                    <div class="pf-support-menu__title">Apoyo</div>
+                    <a href="../sugerencias.html" role="menuitem"><i class="fa-solid fa-lightbulb"></i> Enviar una sugerencia</a>
+                    <a href="../feedback.html" role="menuitem"><i class="fa-solid fa-comment-dots"></i> Dar tu feedback</a>
+                    <a href="../perfil.html" role="menuitem"><i class="fa-solid fa-user"></i> Acceder al perfil</a>
+                    <a href="../index.html" role="menuitem"><i class="fa-solid fa-house-chimney"></i> Acceder al panel principal</a>
+                </div>
+                <div class="pf-support-menu__section">
+                    <div class="pf-support-menu__title">Información</div>
+                    <a href="../normativa.html" role="menuitem"><i class="fa-solid fa-book"></i> Normativa general</a>
+                    <a href="../pol-privacidad.html" role="menuitem"><i class="fa-solid fa-shield-halved"></i> Política de privacidad</a>
+                    <a href="../terminos.html" role="menuitem"><i class="fa-solid fa-file-contract"></i> Términos y condiciones</a>
+                </div>
+            </div>
+
+            <div class="pf-page">
+                <header class="pf-intro">
+                    <span class="pf-eyebrow">Únete al equipo</span>
+                    <h1>Postulaciones</h1>
+                    <p>¿Quieres aportar algo más a Nyx Community? Elige tu camino, rellena el formulario y te responderemos por mensaje privado de Discord.</p>
+                </header>
+
+                <div class="pf-cards">
+                    <!-- STAFF -->
+                    <article class="pf-pcard" data-tipo="staff">
+                        <div class="pf-pcard__visual">
+                            <div class="pf-pcard__status"></div>
+                            <div class="pf-pcard__icon"><i class="fa-solid fa-user-shield"></i></div>
+                        </div>
+                        <div class="pf-pcard__body">
+                            <span class="pf-pcard__kicker">Equipo administrativo</span>
+                            <h2 class="pf-pcard__title"><a href="post-staff.html">Staff</a></h2>
+                            <p class="pf-pcard__text">Ayuda a moderar, resolver tickets y cuidar la calidad del rol en la ciudad.</p>
+                            <ul class="pf-pcard__list">
+                                <li><i class="fa-solid fa-id-card"></i> Mayores de 18 años</li>
+                                <li><i class="fa-regular fa-clock"></i> 4 fases · 5 situaciones tipo test</li>
+                                <li><i class="fa-brands fa-discord"></i> Respuesta por MD de Discord</li>
+                            </ul>
+                            <div class="pf-pcard__cta"><span class="pf-pcard__cta-text">Postularme</span><span class="pf-pcard__go"><i class="fa-solid fa-arrow-right"></i></span></div>
+                        </div>
+                    </article>
+
+                    <!-- PLAYMAKER -->
+                    <article class="pf-pcard" data-tipo="playmaker">
+                        <div class="pf-pcard__visual">
+                            <div class="pf-pcard__status"></div>
+                            <div class="pf-pcard__icon"><i class="fa-solid fa-masks-theater"></i></div>
+                        </div>
+                        <div class="pf-pcard__body">
+                            <span class="pf-pcard__kicker">Roles de la Administración</span>
+                            <h2 class="pf-pcard__title"><a href="post-playmaker.html">Playmaker</a></h2>
+                            <p class="pf-pcard__text">Da vida a la ciudad como figurante en los roles que impulsa la Administración.</p>
+                            <ul class="pf-pcard__list">
+                                <li><i class="fa-solid fa-ban"></i> Sin pertenecer a ninguna facción</li>
+                                <li><i class="fa-regular fa-clock"></i> 4 partes · unos 10 minutos</li>
+                                <li><i class="fa-brands fa-discord"></i> Respuesta por MD de Discord</li>
+                            </ul>
+                            <div class="pf-pcard__cta"><span class="pf-pcard__cta-text">Postularme</span><span class="pf-pcard__go"><i class="fa-solid fa-arrow-right"></i></span></div>
+                        </div>
+                    </article>
+
+                    <!-- ILEGALES -->
+                    <article class="pf-pcard" data-tipo="ilegal">
+                        <div class="pf-pcard__visual">
+                            <div class="pf-pcard__status"></div>
+                            <div class="pf-pcard__icon"><i class="fa-solid fa-skull"></i></div>
+                        </div>
+                        <div class="pf-pcard__body">
+                            <span class="pf-pcard__kicker">Organizaciones criminales</span>
+                            <h2 class="pf-pcard__title"><a href="post-ilegales.html">Ilegales y bandas</a></h2>
+                            <p class="pf-pcard__text">Presenta tu proyecto para llevar una de las organizaciones disponibles del bajo mundo.</p>
+                            <ul class="pf-pcard__list">
+                                <li><i class="fa-solid fa-skull-crossbones"></i> Elige una organización disponible</li>
+                                <li><i class="fa-solid fa-users"></i> Líder y hasta 5 integrantes</li>
+                                <li><i class="fa-brands fa-discord"></i> Respuesta por MD de Discord</li>
+                            </ul>
+                            <div class="pf-pcard__cta"><span class="pf-pcard__cta-text">Ver organizaciones</span><span class="pf-pcard__go"><i class="fa-solid fa-arrow-right"></i></span></div>
+                        </div>
+                    </article>
+                </div>
+
+                <section class="pf-how" aria-labelledby="pfHowTitle">
+                    <h2 id="pfHowTitle">Cómo funciona</h2>
+                    <ol>
+                        <li><b>Elige tu postulación</b>Lee lo que pide cada una y escoge la que encaje contigo.</li>
+                        <li><b>Rellena el formulario</b>Va por partes y se guarda solo, así que puedes dejarlo y seguir más tarde.</li>
+                        <li><b>Recibe la respuesta</b>El staff la revisa y te avisa por mensaje privado de Discord.</li>
+                    </ol>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Usuario del pie del menú lateral y botones para ocultar / mostrar el menú
+        (function () {
+            let u = {};
+            try { u = JSON.parse(localStorage.getItem('discord_user') || '{}') || {}; } catch (e) {}
+            const nombre = document.getElementById('userNameDisplay');
+            const handle = document.getElementById('userHandleDisplay');
+            const avatar = document.getElementById('userAvatarContainer');
+            if (nombre) nombre.textContent = u.displayName || u.username || 'Usuario';
+            if (handle) handle.textContent = '@' + (u.username || 'discord');
+            if (avatar && u.avatarUrl) {
+                const img = document.createElement('img');
+                img.src = u.avatarUrl;
+                img.alt = 'Avatar';
+                img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+                avatar.replaceChildren(img);
+            }
+            const sidebar = document.getElementById('sidebar');
+            document.getElementById('sidebarToggleBtn').addEventListener('click', () => sidebar.classList.add('collapsed'));
+            document.getElementById('sidebarRevealBtn').addEventListener('click', () => sidebar.classList.remove('collapsed'));
+        })();
+    </script>
+    <script src="postulaciones.js"></script>
+    <script>
+        // Estado de cada tarjeta: candado si no hay whitelist; si no, el estado de tu última postulación de ese tipo
+        (async function () {
+            const ESTADOS = {
+                'Pendiente':   ['is-pendiente', 'Pendiente'],
+                'En revisión': ['is-revision', 'En revisión'],
+                'Aprobada':    ['is-aprobada', 'Aprobada'],
+                'Rechazada':   ['is-rechazada', 'Rechazada']
+            };
+            const tarjetas = document.querySelectorAll('.pf-pcard[data-tipo]');
+            const badge = (cls, texto, icono) =>
+                `<span class="pf-badge ${cls}">${icono ? `<i class="fa-solid ${icono}"></i>` : ''}${texto}</span>`;
+
+            // Sin whitelist aprobada las tres páginas están restringidas (guards.js te llevaría a la whitelist)
+            if (localStorage.getItem('user_whitelisted') !== 'true') {
+                tarjetas.forEach(t => {
+                    t.querySelector('.pf-pcard__status').innerHTML = badge('is-lock', 'Requiere whitelist', 'fa-lock');
+                    t.querySelector('.pf-pcard__cta-text').textContent = 'Necesitas la whitelist aprobada';
+                });
+                return;
+            }
+
+            if (!window.PostulacionesAPI) return;
+            const res = await window.PostulacionesAPI.listar('');
+            if (!res.ok || !Array.isArray(res.data)) return;
+            const yo = String(window.PostulacionesAPI.usuario().id || '');
+            const mias = res.data.filter(p => !yo || String(p.discordId) === yo);   // el staff recibe todas
+
+            tarjetas.forEach(t => {
+                const ultima = mias.filter(p => p.tipo === t.dataset.tipo)
+                    .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))[0];
+                if (!ultima) return;
+                const [cls, texto] = ESTADOS[ultima.estado] || ESTADOS['Pendiente'];
+                t.querySelector('.pf-pcard__status').innerHTML = badge(cls, texto);
+                if (ultima.estado === 'Pendiente' || ultima.estado === 'En revisión') {
+                    t.querySelector('.pf-pcard__cta-text').textContent = 'Ver mi postulación';
+                }
+            });
+        })();
+    </script>
+    <script src="../guards.js"></script>
+    <!-- Menú lateral común: logo, lupa y buscador de páginas por categorías -->
+    <script src="../src/components/hx-sidebar.js"></script>
+</body>
+</html>

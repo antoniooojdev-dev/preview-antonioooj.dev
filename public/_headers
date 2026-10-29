@@ -1,0 +1,9 @@
+# Cabeceras de seguridad. Netlify y Cloudflare Pages leen este archivo automáticamente;
+# en otro hosting hay que configurarlas en su panel (o en vercel.json / .htaccess).
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains

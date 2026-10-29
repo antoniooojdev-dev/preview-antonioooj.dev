@@ -1,0 +1,25 @@
+---
+// Casos de ejemplo de «Aplicación web»: apps completas de marcas ficticias que funcionan
+// en el navegador con datos de ejemplo (src/components/casos/). Datos en src/data/casos.ts.
+import type { GetStaticPaths } from "astro";
+import CasoLayout from "@/layouts/CasoLayout.astro";
+import Agendo from "@/components/casos/Agendo.astro";
+import { casosDe, type Caso } from "@/data/casos";
+
+export const getStaticPaths = (() => casosDe("app").map((caso) => ({ params: { caso: caso.id }, props: { caso } }))) satisfies GetStaticPaths;
+
+interface Props {
+  caso: Caso;
+}
+
+const { caso } = Astro.props;
+
+const APPS = { agendo: Agendo } as const;
+const C = APPS[caso.id as keyof typeof APPS];
+// fuentes extra de cada app (Agendo: la serif de la Barbería Navaja)
+const FUENTES: Record<string, string[]> = { agendo: ["Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700"] };
+---
+
+<CasoLayout caso={caso} fuentes={["Inter:wght@400;500;600;700;800", ...(FUENTES[caso.id] ?? [])]}>
+  <C />
+</CasoLayout>

@@ -1,0 +1,4099 @@
+---
+// Caso «Brasa & Olivo» (restaurante, marca ficticia): carta con filtros por categoría,
+// etiquetas y alérgenos, menú del día según el día de la semana, reserva en 3 pasos con
+// huecos por hora, horario con el día de hoy marcado, reseñas, galería con visor y FAQ.
+// Cada plato tiene foto (public/casos/brasa/) y ficha de detalle al pulsarlo; la web
+// arranca con una animación de entrada.
+
+interface Plato {
+  n: string;
+  d: string;
+  p: number;
+  cat: string;
+  /** foto en /casos/brasa/<img>.jpg */
+  img: string;
+  /** texto largo de la ficha */
+  larga: string;
+  /** maridaje recomendado */
+  vino: string;
+  /** ración, tiempo… */
+  info?: string;
+  tags?: ("vegano" | "vegetariano" | "picante" | "chef")[];
+  al?: ("gluten" | "lacteos" | "huevo" | "frutos" | "pescado" | "marisco")[];
+}
+
+const FOTOS = "/casos/brasa";
+
+const categorias = [
+  { id: "entrantes", t: "Para compartir", ico: "bowl-food" },
+  { id: "arroces", t: "Arroces", ico: "bowl-rice" },
+  { id: "brasa", t: "De la brasa", ico: "fire-flame-curved" },
+  { id: "huerta", t: "Huerta", ico: "seedling" },
+  { id: "postres", t: "Postres", ico: "ice-cream" },
+];
+
+const carta: Plato[] = [
+  {
+    n: "Croquetas de jamón ibérico",
+    d: "Bechamel de leche fresca, 6 unidades, crujientes por fuera.",
+    p: 9.5,
+    cat: "entrantes",
+    img: "croquetas",
+    larga: "Las hacemos cada mañana con jamón ibérico de bellota y una bechamel lenta de leche fresca. Rebozado fino para que crujan por fuera y queden cremosas por dentro.",
+    vino: "Fino de Jerez",
+    info: "6 unidades",
+    al: ["gluten", "lacteos", "huevo"],
+  },
+  {
+    n: "Pan de cristal con tomate",
+    d: "Tomate rallado de la huerta, aceite de arbequina y sal en escamas.",
+    p: 4.5,
+    cat: "entrantes",
+    img: "pan",
+    larga: "Pan de cristal de masa madre, tostado al momento y frotado con tomate de colgar de nuestra huerta. Lo terminamos con aceite de arbequina y sal en escamas.",
+    vino: "Cerveza artesana valenciana",
+    info: "Para 2 personas",
+    tags: ["vegano"],
+    al: ["gluten"],
+  },
+  {
+    n: "Burrata con tomate asado",
+    d: "Tomate confitado a la brasa, pesto de albahaca y piñones.",
+    p: 13,
+    cat: "entrantes",
+    img: "burrata",
+    larga: "Burrata fresca de Apulia sobre tomate cherry confitado a la brasa, pesto de albahaca y piñones tostados. Va con pan tostado para no dejar nada en el plato.",
+    vino: "Blanco verdejo",
+    info: "Para compartir",
+    tags: ["vegetariano", "chef"],
+    al: ["lacteos", "frutos"],
+  },
+  {
+    n: "Pulpo a la brasa",
+    d: "Sobre parmentier de patata ahumada y pimentón de la Vera.",
+    p: 19,
+    cat: "entrantes",
+    img: "pulpo",
+    larga: "Pulpo de lonja cocido a baja temperatura y terminado en la brasa de leña de naranjo, sobre una parmentier de patata ahumada con pimentón de la Vera.",
+    vino: "Albariño",
+    tags: ["chef"],
+    al: ["lacteos", "marisco"],
+  },
+  {
+    n: "Patatas bravas de la casa",
+    d: "Salsa brava picante de guindilla y alioli suave.",
+    p: 7,
+    cat: "entrantes",
+    img: "bravas",
+    larga: "Patata agria cortada a mano y con doble fritura. Encima, nuestra brava de guindilla y un alioli suave para equilibrar el picante.",
+    vino: "Caña bien tirada",
+    tags: ["vegetariano", "picante"],
+    al: ["huevo"],
+  },
+  {
+    n: "Arroz del senyoret",
+    d: "Todo pelado: gamba roja, sepia y calamar. Mínimo 2 personas (precio por persona).",
+    p: 18,
+    cat: "arroces",
+    img: "senyoret",
+    larga: "El arroz «del señorito»: todo pelado para comer sin mancharse las manos. Fumet de galeras, gamba roja, sepia y calamar, hecho a la leña en paella fina.",
+    vino: "Blanco merseguera",
+    info: "Mínimo 2 personas · 25 min · precio por persona",
+    tags: ["chef"],
+    al: ["marisco", "pescado"],
+  },
+  {
+    n: "Arroz de verduras de temporada",
+    d: "Alcachofa, ajo tierno, judía y caldo de verduras asadas.",
+    p: 15,
+    cat: "arroces",
+    img: "verduras",
+    larga: "Arroz seco con alcachofa, ajo tierno, judía y verduras de temporada, sobre un caldo de verduras asadas a la brasa. 100 % vegetal y con todo el sabor del socarrat.",
+    vino: "Rosado de bobal",
+    info: "Mínimo 2 personas · 25 min · precio por persona",
+    tags: ["vegano"],
+  },
+  {
+    n: "Arroz negro con alioli",
+    d: "Tinta de calamar, sepia y alioli de ajo asado.",
+    p: 17,
+    cat: "arroces",
+    img: "negro",
+    larga: "Tinta de calamar, sepia de playa y un sofrito lento de varias horas. Lo servimos en la paella con alioli de ajo asado aparte.",
+    vino: "Blanco con crianza",
+    info: "Mínimo 2 personas · 25 min · precio por persona",
+    al: ["marisco", "huevo"],
+  },
+  {
+    n: "Arroz meloso de pato y setas",
+    d: "Confit de pato, boletus y un toque de trufa.",
+    p: 19.5,
+    cat: "arroces",
+    img: "pato",
+    larga: "Arroz meloso con confit de pato desmigado, boletus salteados y trufa negra rallada en la mesa. Cremoso, de cuchara.",
+    vino: "Tinto monastrell",
+    info: "Mínimo 2 personas · 25 min · precio por persona",
+    al: ["lacteos"],
+  },
+  {
+    n: "Chuletón de vaca madurada",
+    d: "45 días de maduración, 1 kg, con pimientos de padrón. Para 2.",
+    p: 58,
+    cat: "brasa",
+    img: "chuleton",
+    larga: "Vaca rubia gallega madurada 45 días en nuestra cámara. La marcamos a fuego vivo, la trinchamos en la mesa y la acompañamos con pimientos de Padrón.",
+    vino: "Tinto Ribera del Duero",
+    info: "1 kg · para 2 personas",
+    tags: ["chef"],
+  },
+  {
+    n: "Secreto ibérico",
+    d: "Con chimichurri casero y patatas al romero.",
+    p: 21,
+    cat: "brasa",
+    img: "secreto",
+    larga: "El corte más jugoso del cerdo ibérico, marcado a la brasa y servido con chimichurri casero picante y patatas al romero.",
+    vino: "Tinto garnacha",
+    tags: ["picante"],
+  },
+  {
+    n: "Lubina salvaje",
+    d: "Abierta a la brasa con ajada y verduritas.",
+    p: 24,
+    cat: "brasa",
+    img: "lubina",
+    larga: "Lubina salvaje de la lonja, abierta a la espalda y hecha a la brasa. La terminamos con ajada gallega y verduritas de temporada.",
+    vino: "Albariño",
+    al: ["pescado"],
+  },
+  {
+    n: "Coliflor entera asada",
+    d: "Tahini, granada, menta y almendra tostada.",
+    p: 14,
+    cat: "brasa",
+    img: "coliflor",
+    larga: "Una coliflor entera asada en el horno de leña hasta que se dora. Con salsa de tahini, granada, menta fresca y almendra tostada.",
+    vino: "Blanco macabeo",
+    info: "Para compartir",
+    tags: ["vegano"],
+    al: ["frutos"],
+  },
+  {
+    n: "Ensalada de tomates de colores",
+    d: "Cebolla tierna, aceitunas negras y orégano fresco.",
+    p: 11,
+    cat: "huerta",
+    img: "tomates",
+    larga: "Tomates de colores de nuestra huerta de Alboraia, cebolla tierna, aceitunas negras y orégano fresco, aliñados con aceite de oliva virgen extra.",
+    vino: "Rosado de bobal",
+    tags: ["vegano"],
+  },
+  {
+    n: "Alcachofas confitadas",
+    d: "Con jamón crujiente y yema curada.",
+    p: 13.5,
+    cat: "huerta",
+    img: "alcachofas",
+    larga: "Alcachofas confitadas a baja temperatura y terminadas en la brasa. Encima, jamón crujiente y yema de huevo curada en sal.",
+    vino: "Fino de Jerez",
+    al: ["huevo"],
+  },
+  {
+    n: "Berenjena a la llama",
+    d: "Miso, sésamo tostado y cebollino.",
+    p: 12,
+    cat: "huerta",
+    img: "berenjena",
+    larga: "Berenjena asada directamente sobre la llama, glaseada con miso y un punto de guindilla, con sésamo tostado y cebollino.",
+    vino: "Blanco riesling",
+    tags: ["vegano", "picante"],
+    al: ["gluten"],
+  },
+  {
+    n: "Tarta de queso al horno de leña",
+    d: "Cremosa por dentro, con frutos rojos.",
+    p: 7.5,
+    cat: "postres",
+    img: "tarta",
+    larga: "Tarta de queso al estilo vasco, horneada en el horno de leña: tostada por fuera, cremosa por dentro. Con coulis de frutos rojos.",
+    vino: "Moscatel de Valencia",
+    tags: ["chef", "vegetariano"],
+    al: ["lacteos", "huevo", "gluten"],
+  },
+  {
+    n: "Torrija caramelizada",
+    d: "Brioche, leche infusionada y helado de vainilla.",
+    p: 7,
+    cat: "postres",
+    img: "torrija",
+    larga: "Brioche empapado en leche infusionada con canela y limón, caramelizado al momento y servido con helado de vainilla.",
+    vino: "Pedro Ximénez",
+    tags: ["vegetariano"],
+    al: ["lacteos", "huevo", "gluten"],
+  },
+  {
+    n: "Sorbete de limón y albahaca",
+    d: "Ligero y refrescante.",
+    p: 5.5,
+    cat: "postres",
+    img: "sorbete",
+    larga: "Sorbete de limón con albahaca fresca y ralladura de limón. Ligero y refrescante, perfecto para cerrar una comida de brasa.",
+    vino: "Cava brut nature",
+    tags: ["vegano"],
+  },
+];
+
+const alergenos = [
+  { id: "gluten", t: "Gluten", ico: "wheat-awn" },
+  { id: "lacteos", t: "Lácteos", ico: "cheese" },
+  { id: "huevo", t: "Huevo", ico: "egg" },
+  { id: "frutos", t: "Frutos secos", ico: "seedling" },
+  { id: "pescado", t: "Pescado", ico: "fish" },
+  { id: "marisco", t: "Marisco", ico: "shrimp" },
+];
+
+const resenas = [
+  { n: "Lucía M.", e: 5, t: "El arroz del senyoret es de los mejores que he probado. Servicio atento y sin prisas.", f: "hace 3 días" },
+  { n: "Jordi P.", e: 5, t: "Reservamos online en un minuto. El chuletón, espectacular, y la tarta de queso… volveremos.", f: "hace 1 semana" },
+  { n: "Ana R.", e: 4, t: "Terraza preciosa y opciones veganas de verdad, no la típica ensalada.", f: "hace 2 semanas" },
+  { n: "Marc T.", e: 5, t: "Nos indicaron todos los alérgenos sin problema. Muy recomendable para celíacos.", f: "hace 3 semanas" },
+  { n: "Elena G.", e: 5, t: "Cumpleaños perfecto: nos sorprendieron con una vela en el postre.", f: "hace 1 mes" },
+];
+
+const galeria = [
+  { t: "La sala", img: "sala" },
+  { t: "Nuestra brasa", img: "brasa" },
+  { t: "Arroz del senyoret", img: "senyoret" },
+  { t: "La terraza", img: "terraza" },
+  { t: "Bodega", img: "bodega" },
+  { t: "Postres caseros", img: "postres" },
+];
+
+// fotos de Wikimedia Commons: las licencias CC BY / BY-SA piden citar autor y licencia.
+// Ya no se muestran en la web; se guardan aquí por si hay que volver a citarlas.
+const creditos = [
+  { f: "Croquetas", a: "Jonathan Pincas", l: "CC BY 2.0", u: "https://commons.wikimedia.org/wiki/File:Croquetas_Caseras_(7068664101).jpg" },
+  { f: "Pan con tomate", a: "Juan Emilio Prades Bel", l: "CC BY 4.0", u: "https://commons.wikimedia.org/wiki/File:Pan_tostado_con_tomate_de_colgar,_aceite_de_oliva_y_sal.jpg" },
+  { f: "Burrata", a: "Andy Li", l: "CC0", u: "https://commons.wikimedia.org/wiki/File:Burrata_-_Nanninella.jpg" },
+  { f: "Pulpo", a: "Jose luis m. batchilleria", l: "CC BY 4.0", u: "https://commons.wikimedia.org/wiki/File:Pata_de_pulpo_a_la_brasa_sobre_papas_a_lo_pobre_del_chef_Lucas_Mart%C3%AD_Boldrini.jpg" },
+  { f: "Bravas", a: "Francesc Fort", l: "CC BY-SA 4.0", u: "https://commons.wikimedia.org/wiki/File:Taberna_Che_-_Braves.jpg" },
+  { f: "Arroz del senyoret", a: "Juan Emilio Prades Bel", l: "CC BY 4.0", u: "https://commons.wikimedia.org/wiki/File:Arroz_del_%22Senyoret%22_(Grao_de_Castell%C3%B3n).jpg" },
+  { f: "Arroz de verduras", a: "Avicentegil", l: "CC BY-SA 4.0", u: "https://commons.wikimedia.org/wiki/File:Paella_de_verduras_o_arroz_viudo.jpg" },
+  { f: "Arroz negro", a: "Xemenendura", l: "CC BY-SA 3.0", u: "https://commons.wikimedia.org/wiki/File:Arroz_negro_C%C3%A1diz.jpg" },
+  { f: "Arroz meloso", a: "Javier Leiva", l: "CC BY 2.0", u: "https://commons.wikimedia.org/wiki/File:Arroz_meloso_(6973985527).jpg" },
+  { f: "Chuletón", a: "Daniella Orsi", l: "CC BY-SA 2.0", u: "https://commons.wikimedia.org/wiki/File:Chulet%C3%B3n_de_Avila.jpg" },
+  { f: "Secreto ibérico", a: "El Pantera", l: "CC BY-SA 4.0", u: "https://commons.wikimedia.org/wiki/File:SecretoIberico-22032010060.jpg" },
+  { f: "Lubina", a: "El Pantera", l: "CC BY-SA 4.0", u: "https://commons.wikimedia.org/wiki/File:ChiclanaFra-IMG_20241116_152928.jpg" },
+  { f: "Coliflor", a: "HaJunkiyada", l: "CC BY-SA 4.0", u: "https://commons.wikimedia.org/wiki/File:Liat_Portal_for_Foodie_Disorder_%E2%80%93_Whole_roasted_cauliflower.jpg" },
+  { f: "Ensalada de tomates", a: "E4024", l: "CC BY-SA 4.0", u: "https://commons.wikimedia.org/wiki/File:Tomato-onion_salad_in_Ankara.jpg" },
+  { f: "Alcachofas", a: "Juan Emilio Prades Bel", l: "CC BY-SA 4.0", u: "https://commons.wikimedia.org/wiki/File:Alcachofas_cocinadas.jpg" },
+  { f: "Berenjena", a: "Kari Sullivan", l: "CC BY 2.0", u: "https://commons.wikimedia.org/wiki/File:Grilled_Eggplant_Over_Miso_Tahini_Green_Salad_(2769234533).jpg" },
+  { f: "Tarta de queso", a: "さえぼー", l: "CC BY-SA 4.0", u: "https://commons.wikimedia.org/wiki/File:Basque-style_cheesecake_in_Pepito,_Tokyo.jpg" },
+  { f: "Torrija", a: "Javier Lastras", l: "CC BY 2.0", u: "https://commons.wikimedia.org/wiki/File:Torrija_con_az%C3%BAcar.jpg" },
+  { f: "Sorbete", a: "Rex Roof", l: "CC BY 2.0", u: "https://commons.wikimedia.org/wiki/File:Lemon_sorbet_(4173840081).jpg" },
+  { f: "La sala", a: "Basile Morin", l: "CC BY-SA 4.0", u: "https://commons.wikimedia.org/wiki/File:Restaurant_room_of_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg" },
+  { f: "La brasa", a: "Maxd2", l: "CC BY-SA 4.0", u: "https://commons.wikimedia.org/wiki/File:Asado_tradicional_argentino,_le%C3%B1a,_brasas.jpg" },
+  { f: "La terraza", a: "Andre Carrotflower", l: "CC BY-SA 4.0", u: "https://commons.wikimedia.org/wiki/File:Outdoor_dining_terrace,_Pennsylvania_Turnpike_New_Stanton_Service_Plaza,_Hempfield_Township,_Westmoreland_County,_Pennsylvania_-_20211031_-_02.jpg" },
+  { f: "Bodega", a: "seligmanwaite", l: "CC BY 2.0", u: "https://commons.wikimedia.org/wiki/File:Underground_wine_cellar_of_Pontet-Canet.jpg" },
+  { f: "Postres", a: "Daria Yakovleva", l: "CC0", u: "https://commons.wikimedia.org/wiki/File:Piece_of_chocolate_cake_on_a_white_plate_decorated_with_chocolate_sauce.jpg" },
+  { f: "Portada", a: "Juan Emilio Prades Bel", l: "CC BY 4.0", u: "https://commons.wikimedia.org/wiki/File:Paella_valenciana_con_pato.jpg" },
+];
+
+const faqs = [
+  { q: "¿Tenéis opciones sin gluten?", a: "Sí. En la carta puedes filtrar por alérgenos y nuestra cocina separa los utensilios para celíacos." },
+  { q: "¿Se puede ir con perro?", a: "En la terraza, por supuesto. Les ponemos agua nada más llegar." },
+  { q: "¿Hacéis grupos y celebraciones?", a: "Hasta 40 personas con menú cerrado. Escríbenos y te preparamos una propuesta." },
+  { q: "¿Hay parking cerca?", a: "Parking público a 150 m (Plaza del Mercado) y zona azul en la calle." },
+];
+---
+
+<div class="bo" data-bo>
+  <!-- animación de entrada: se dibuja la llama, sube el nombre y se abre el telón (solo CSS; el script la quita al acabar o al pulsar) -->
+  <div class="bo-intro" data-bo-intro aria-hidden="true">
+    <div class="bo-intro__centro">
+      <svg class="bo-intro__logo" viewBox="0 0 40 40" width="84" height="84">
+        <circle cx="20" cy="20" r="18.5" pathLength="1"></circle>
+        <path d="M20 9c3 5 8 7 8 14a8 8 0 0 1-16 0c0-4 2-6 4-8 0 3 1 5 3 5 0-4-1-7 1-11z" pathLength="1"></path>
+      </svg>
+      <span class="bo-intro__nombre"><span>Brasa</span> <em>&amp;</em> <span>Olivo</span></span>
+      <span class="bo-intro__sub">Cocina de brasa · Valencia · 1998</span>
+      <i class="bo-intro__barra"></i>
+    </div>
+  </div>
+
+  <!-- barra superior con estado en vivo -->
+  <div class="bo-top">
+    <div class="bo-wrap bo-top__in">
+      <a class="bo-top__dato" href="#reservar"><i class="fa-solid fa-phone"></i> 963 000 000</a>
+    </div>
+  </div>
+
+  <!-- cabecera -->
+  <header class="bo-head" data-bo-head>
+    <div class="bo-wrap bo-head__in">
+      <a href="#inicio" class="bo-logo" aria-label="Brasa & Olivo, inicio">
+        <svg viewBox="0 0 40 40" width="38" height="38" aria-hidden="true">
+          <circle cx="20" cy="20" r="19" fill="#c2410c"></circle>
+          <path d="M20 9c3 5 8 7 8 14a8 8 0 0 1-16 0c0-4 2-6 4-8 0 3 1 5 3 5 0-4-1-7 1-11z" fill="#faf3e8"></path>
+        </svg>
+        <span>Brasa <em>&amp;</em> Olivo</span>
+      </a>
+      <nav class="bo-nav" data-bo-nav aria-label="Secciones">
+        <a href="#menu-dia">Menú del día</a>
+        <a href="#carta">Carta</a>
+        <a href="#nosotros">Nosotros</a>
+        <a href="#resenas">Reseñas</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+      <a href="#reservar" class="bo-btn bo-btn--sm">Reservar mesa</a>
+      <button type="button" class="bo-burger" aria-label="Abrir menú" aria-expanded="false" data-bo-burger>
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- portada -->
+    <section class="bo-hero" id="inicio">
+      <div class="bo-wrap bo-hero__in">
+        <div class="bo-hero__txt">
+          <span class="bo-kicker bo-entra" style="--d:0"><i class="fa-solid fa-fire-flame-curved"></i> Cocina de brasa desde 1998</span>
+          <h1 class="bo-entra" style="--d:1">Fuego lento, producto de mercado y <em>sobremesas largas.</em></h1>
+          <p class="bo-entra" style="--d:2">Arroces de leña, carnes maduradas y verduras de nuestra huerta en el corazón de Valencia. Reserva en un minuto y te guardamos la mejor mesa.</p>
+          <div class="bo-hero__ctas bo-entra" style="--d:3">
+            <a href="#reservar" class="bo-btn">Reservar mesa <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="#carta" class="bo-btn bo-btn--linea">Ver la carta</a>
+          </div>
+          <dl class="bo-hero__datos bo-entra" style="--d:4">
+            <div><dt>4,8 <i class="fa-solid fa-star"></i></dt><dd>1.240 reseñas</dd></div>
+            <div><dt>45 días</dt><dd>de maduración</dd></div>
+            <div><dt>Km 0</dt><dd>huerta propia</dd></div>
+          </dl>
+        </div>
+        <!-- foto de portada con tarjetas flotantes -->
+        <div class="bo-hero__media">
+          <div class="bo-hero__foto">
+            <img src={`${FOTOS}/hero.jpg`} alt="Paella valenciana recién hecha a la leña" width="576" height="720" fetchpriority="high" />
+          </div>
+          <a href="#carta" class="bo-flota bo-flota--plato" data-bo-estrella>
+            <img src={`${FOTOS}/senyoret.jpg`} alt="" width="56" height="56" />
+            <span><small>Plato estrella</small><strong>Arroz del senyoret</strong></span>
+          </a>
+          <div class="bo-flota bo-flota--nota" aria-hidden="true">
+            <span class="bo-estrellas">{[1, 2, 3, 4, 5].map(() => <i class="fa-solid fa-star" />)}</span>
+            <span><strong>4,8</strong> · 1.240 reseñas</span>
+          </div>
+          <span class="bo-sello" aria-hidden="true">
+            <svg viewBox="0 0 100 100">
+              <defs><path id="bo-circulo" d="M50 50m-37 0a37 37 0 1 1 74 0a37 37 0 1 1-74 0"></path></defs>
+              <text><textPath href="#bo-circulo">ARROZ DE LEÑA · FUEGO LENTO · </textPath></text>
+            </svg>
+            <i class="fa-solid fa-fire-flame-curved"></i>
+          </span>
+        </div>
+      </div>
+      <div class="bo-cinta" aria-hidden="true">
+        <div class="bo-cinta__pista">
+          {
+            [0, 1].map(() => (
+              <span>
+                Arroces de leña <i class="fa-solid fa-fire" /> Carnes maduradas <i class="fa-solid fa-fire" /> Pescado de lonja <i class="fa-solid fa-fire" /> Huerta propia <i class="fa-solid fa-fire" /> Terraza <i class="fa-solid fa-fire" /> Vinos de la tierra <i class="fa-solid fa-fire" />
+              </span>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- menú del día -->
+    <section class="bo-sec bo-dia" id="menu-dia">
+      <div class="bo-wrap bo-dia__in">
+        <div>
+          <span class="bo-kicker">Menú del día · <span data-bo-dia-nombre>hoy</span></span>
+          <h2>Tres platos, pan, bebida y postre por <strong>16,90 €</strong></h2>
+          <p class="bo-muted">De lunes a viernes al mediodía. Cambia cada día según lo que traemos del mercado.</p>
+          <div class="bo-dias" role="tablist" aria-label="Día de la semana" data-bo-dias></div>
+        </div>
+        <ol role="list" class="bo-dia__platos" data-bo-dia-platos></ol>
+      </div>
+    </section>
+
+    <!-- carta -->
+    <section class="bo-sec" id="carta">
+      <div class="bo-wrap">
+        <div class="bo-sec__head">
+          <span class="bo-kicker">La carta</span>
+          <h2>Para compartir, picar y repetir</h2>
+        </div>
+
+        <div class="bo-carta">
+          <aside class="bo-filtros">
+            <!-- cabecera oscura del panel: título, contador y buscador -->
+            <div class="bo-filtros__top">
+              <div class="bo-filtros__cab">
+                <span class="bo-filtros__titulo"><i class="fa-solid fa-sliders"></i> Filtrar la carta <em data-bo-nfiltros hidden></em></span>
+                <button type="button" class="bo-limpiar" data-bo-limpiar hidden><i class="fa-solid fa-rotate-left"></i> Limpiar</button>
+              </div>
+
+              <div class="bo-buscar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <label class="sr-only" for="bo-buscar">Buscar plato</label>
+                <input id="bo-buscar" type="search" placeholder="Croquetas, arroz, pulpo…" autocomplete="off" data-bo-buscar />
+                <button type="button" class="bo-buscar__x" data-bo-buscar-x aria-label="Borrar búsqueda" hidden><i class="fa-solid fa-xmark"></i></button>
+              </div>
+            </div>
+
+            <div class="bo-filtro">
+              <span class="bo-filtro__t">Preferencias</span>
+              <div class="bo-chips" data-bo-tags>
+                <button type="button" data-tag="vegano" aria-pressed="false"><i class="fa-solid fa-leaf"></i> Vegano</button>
+                <button type="button" data-tag="vegetariano" aria-pressed="false"><i class="fa-solid fa-carrot"></i> Vegetariano</button>
+                <button type="button" data-tag="picante" aria-pressed="false"><i class="fa-solid fa-pepper-hot"></i> Picante</button>
+                <button type="button" data-tag="chef" aria-pressed="false"><i class="fa-solid fa-award"></i> Del chef</button>
+              </div>
+            </div>
+
+            <div class="bo-filtro">
+              <span class="bo-filtro__t">Sin alérgenos <small>oculta los platos que los llevan</small></span>
+              <div class="bo-chips" data-bo-alergenos>
+                {
+                  alergenos.map((a) => (
+                    <button type="button" data-al={a.id} aria-pressed="false">
+                      <i class={`fa-solid fa-${a.ico}`} /> {a.t}
+                    </button>
+                  ))
+                }
+              </div>
+            </div>
+          </aside>
+
+          <div class="bo-carta__main">
+            <div class="bo-tabs" role="tablist" data-bo-cats>
+              <button type="button" role="tab" data-cat="todo" aria-selected="true">Todo</button>
+              {
+                categorias.map((c) => (
+                  <button type="button" role="tab" data-cat={c.id} aria-selected="false">
+                    <i class={`fa-solid fa-${c.ico}`} /> {c.t}
+                  </button>
+                ))
+              }
+            </div>
+            <p class="bo-cuenta" data-bo-cuenta aria-live="polite"></p>
+            <ul role="list" class="bo-platos" data-bo-platos></ul>
+            <div class="bo-vacio" data-bo-vacio hidden>
+              <i class="fa-solid fa-utensils"></i>
+              <p>Ningún plato con esos filtros. Pregúntanos: casi siempre podemos adaptarlo.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ficha de un plato (se rellena al pulsar una tarjeta de la carta) -->
+      <dialog class="bo-ficha" data-bo-ficha aria-labelledby="bo-ficha-nombre">
+        <button type="button" class="bo-ficha__x" data-bo-ficha-cerrar aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+        <div class="bo-ficha__foto">
+          <img alt="" data-bo-ficha-img />
+          <span class="bo-ficha__chef" data-bo-ficha-chef><i class="fa-solid fa-award"></i> Recomendado del chef</span>
+        </div>
+        <div class="bo-ficha__cuerpo">
+          <span class="bo-kicker" data-bo-ficha-cat></span>
+          <div class="bo-ficha__titulo">
+            <h3 id="bo-ficha-nombre" data-bo-ficha-nombre></h3>
+            <strong class="bo-ficha__precio" data-bo-ficha-precio></strong>
+          </div>
+          <p class="bo-ficha__info" data-bo-ficha-info></p>
+          <p class="bo-ficha__larga" data-bo-ficha-larga></p>
+          <div class="bo-plato-item__tags" data-bo-ficha-tags></div>
+          <div class="bo-ficha__bloques">
+            <div class="bo-ficha__bloque">
+              <span class="bo-ficha__lbl"><i class="fa-solid fa-triangle-exclamation"></i> Alérgenos</span>
+              <ul role="list" class="bo-ficha__al" data-bo-ficha-al></ul>
+            </div>
+            <div class="bo-ficha__bloque">
+              <span class="bo-ficha__lbl"><i class="fa-solid fa-wine-glass"></i> Marida con</span>
+              <strong data-bo-ficha-vino></strong>
+            </div>
+          </div>
+          <div class="bo-ficha__pie">
+            <div class="bo-ficha__nav">
+              <button type="button" data-bo-ficha-nav="-1" aria-label="Plato anterior"><i class="fa-solid fa-arrow-left"></i></button>
+              <span data-bo-ficha-pos></span>
+              <button type="button" data-bo-ficha-nav="1" aria-label="Plato siguiente"><i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+            <a href="#reservar" class="bo-btn" data-bo-ficha-reservar>Reservar mesa <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        </div>
+      </dialog>
+    </section>
+
+    <!-- reserva -->
+    <section class="bo-sec bo-reserva" id="reservar">
+      <div class="bo-wrap bo-reserva__in">
+        <div class="bo-reserva__txt">
+          <span class="bo-kicker">Reservas</span>
+          <h2>Tu mesa, en tres pasos</h2>
+          <p>Elige día y personas, la hora que te venga mejor y deja tus datos. Recibes la confirmación al instante.</p>
+          <ul role="list" class="bo-reserva__ventajas">
+            <li><i class="fa-solid fa-circle-check"></i> Sin pagar nada por adelantado</li>
+            <li><i class="fa-solid fa-circle-check"></i> Cancela gratis hasta 2 h antes</li>
+            <li><i class="fa-solid fa-circle-check"></i> Avísanos de alergias y celebraciones</li>
+          </ul>
+        </div>
+
+        <div class="bo-res" data-bo-res>
+          <ol role="list" class="bo-res__pasos" aria-label="Pasos">
+            <li data-paso-ind="1" class="is-on"><span>1</span> Día</li>
+            <li data-paso-ind="2"><span>2</span> Hora</li>
+            <li data-paso-ind="3"><span>3</span> Datos</li>
+          </ol>
+
+          <!-- paso 1 -->
+          <div class="bo-res__paso" data-paso="1">
+            <div class="bo-res__fila">
+              <span class="bo-res__lbl">¿Cuántos sois?</span>
+              <div class="bo-stepper">
+                <button type="button" data-pers="-1" aria-label="Una persona menos"><i class="fa-solid fa-minus"></i></button>
+                <output data-bo-pers>2</output>
+                <button type="button" data-pers="1" aria-label="Una persona más"><i class="fa-solid fa-plus"></i></button>
+              </div>
+            </div>
+            <span class="bo-res__lbl">¿Qué día?</span>
+            <div class="bo-fechas" data-bo-fechas></div>
+            <button type="button" class="bo-btn bo-btn--full" data-siguiente="2" disabled>Ver horas libres <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+
+          <!-- paso 2 -->
+          <div class="bo-res__paso" data-paso="2" hidden>
+            <p class="bo-res__resumen" data-bo-resumen1></p>
+            <div class="bo-turno"><span class="bo-res__lbl"><i class="fa-solid fa-sun"></i> Comida</span><div class="bo-horas" data-bo-horas="comida"></div></div>
+            <div class="bo-turno"><span class="bo-res__lbl"><i class="fa-solid fa-moon"></i> Cena</span><div class="bo-horas" data-bo-horas="cena"></div></div>
+            <div class="bo-res__nav">
+              <button type="button" class="bo-btn bo-btn--linea" data-atras="1">Atrás</button>
+              <button type="button" class="bo-btn" data-siguiente="3" disabled>Continuar <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+          </div>
+
+          <!-- paso 3 -->
+          <form class="bo-res__paso" data-paso="3" hidden novalidate>
+            <p class="bo-res__resumen" data-bo-resumen2></p>
+            <div class="bo-campos">
+              <label>Nombre<input name="nombre" autocomplete="name" required /></label>
+              <label>Teléfono<input name="tel" type="tel" autocomplete="tel" required /></label>
+              <label class="bo-campos__ancho">Email<input name="email" type="email" autocomplete="email" required /></label>
+              <label class="bo-campos__ancho">¿Celebráis algo?
+                <select name="ocasion">
+                  <option value="">Nada especial</option>
+                  <option>Cumpleaños</option>
+                  <option>Aniversario</option>
+                  <option>Comida de empresa</option>
+                </select>
+              </label>
+              <label class="bo-campos__ancho">Alergias o comentarios<textarea name="notas" rows="2" placeholder="Ej.: una persona celíaca, trona para bebé…"></textarea></label>
+              <label class="bo-check">
+                <input type="checkbox" name="terraza" />
+                <span class="bo-check__ico" aria-hidden="true"><i class="fa-solid fa-umbrella-beach"></i></span>
+                <span class="bo-check__txt"><strong>Prefiero terraza</strong><small>Si hay sitio, te sentamos fuera</small></span>
+                <span class="bo-check__sw" aria-hidden="true"></span>
+              </label>
+            </div>
+            <p class="bo-error" data-bo-error></p>
+            <div class="bo-res__nav">
+              <button type="button" class="bo-btn bo-btn--linea" data-atras="2">Atrás</button>
+              <button type="submit" class="bo-btn">Confirmar reserva</button>
+            </div>
+          </form>
+
+          <!-- confirmación -->
+          <div class="bo-res__paso bo-ok" data-paso="ok" hidden>
+            <span class="bo-ok__ico"><i class="fa-solid fa-check"></i></span>
+            <h3>¡Mesa reservada!</h3>
+            <p data-bo-ok-txt></p>
+            <span class="bo-ok__codigo" data-bo-ok-codigo></span>
+            <div class="bo-res__nav">
+              <button type="button" class="bo-btn bo-btn--linea" data-bo-ics><i class="fa-solid fa-calendar-plus"></i> Añadir al calendario</button>
+              <button type="button" class="bo-btn" data-bo-otra>Hacer otra reserva</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- nosotros -->
+    <section class="bo-sec" id="nosotros">
+      <div class="bo-wrap bo-nos">
+        <div>
+          <span class="bo-kicker">Nosotros</span>
+          <h2>Tres generaciones alrededor del mismo fuego</h2>
+          <p class="bo-muted">Empezó como la casa de comidas del abuelo Vicent, frente al mercado. Hoy seguimos encendiendo la brasa cada mañana con leña de naranjo y cocinando lo que nos llega del campo y la lonja.</p>
+        </div>
+        <ol role="list" class="bo-linea">
+          <li><strong>1998</strong><span>Vicent abre la casa de comidas frente al Mercado Central.</span></li>
+          <li><strong>2009</strong><span>Llega la brasa de leña de naranjo y el primer arroz de leña.</span></li>
+          <li><strong>2016</strong><span>Plantamos nuestra huerta en Alboraia: 2 hectáreas de temporada.</span></li>
+          <li><strong>2024</strong><span>Reforma de la sala y nueva terraza con 40 plazas.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- galería -->
+    <section class="bo-sec bo-gal-sec">
+      <div class="bo-wrap">
+        <ul role="list" class="bo-gal" data-bo-gal>
+          {
+            galeria.map((g, i) => (
+              <li>
+                <button type="button" class="bo-foto" data-i={i} aria-label={`Ver foto: ${g.t}`}>
+                  <img src={`${FOTOS}/${g.img}.jpg`} alt={g.t} loading="lazy" width="900" height="675" />
+                  <span>
+                    {g.t} <i class="fa-solid fa-expand" />
+                  </span>
+                </button>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <dialog class="bo-visor" data-bo-visor>
+        <button type="button" class="bo-visor__x" data-bo-visor-cerrar aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+        <button type="button" class="bo-visor__nav" data-bo-visor-nav="-1" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+        <figure class="bo-visor__foto" data-bo-visor-foto><img alt="" /><figcaption></figcaption></figure>
+        <button type="button" class="bo-visor__nav" data-bo-visor-nav="1" aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+      </dialog>
+    </section>
+
+    <!-- reseñas -->
+    <section class="bo-sec bo-res-sec" id="resenas">
+      <div class="bo-wrap bo-resenas">
+        <div class="bo-nota">
+          <strong>4,8</strong>
+          <span class="bo-estrellas">{[1, 2, 3, 4, 5].map(() => <i class="fa-solid fa-star" />)}</span>
+          <span class="bo-muted">1.240 reseñas</span>
+          <ul role="list" class="bo-barras">
+            {
+              [
+                [5, 82],
+                [4, 13],
+                [3, 3],
+                [2, 1],
+                [1, 1],
+              ].map(([e, pct]) => (
+                <li>
+                  <span>{e}</span>
+                  <i style={`--p:${pct}%`} />
+                  <small>{pct}%</small>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+        <div class="bo-carrusel" data-bo-carrusel>
+          <div class="bo-carrusel__pista">
+            {
+              resenas.map((r) => (
+                <figure class="bo-resena">
+                  <span class="bo-estrellas">{Array.from({ length: r.e }, () => <i class="fa-solid fa-star" />)}</span>
+                  <blockquote>«{r.t}»</blockquote>
+                  <figcaption>
+                    <span class="bo-avatar">{r.n[0]}</span> {r.n} <small>· {r.f}</small>
+                  </figcaption>
+                </figure>
+              ))
+            }
+          </div>
+          <div class="bo-carrusel__ctrl">
+            <button type="button" data-bo-car="-1" aria-label="Reseña anterior"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="bo-puntos" data-bo-puntos></div>
+            <button type="button" data-bo-car="1" aria-label="Reseña siguiente"><i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- contacto -->
+    <section class="bo-sec" id="contacto">
+      <div class="bo-wrap bo-contacto">
+        <div>
+          <span class="bo-kicker">Dónde estamos</span>
+          <h2>Frente al Mercado Central</h2>
+          <table class="bo-horario" data-bo-horario>
+            <caption class="sr-only">Horario</caption>
+            <tbody></tbody>
+          </table>
+          <div class="bo-faq">
+            {
+              faqs.map((f) => (
+                <details>
+                  <summary>
+                    {f.q} <i class="fa-solid fa-plus" />
+                  </summary>
+                  <p>{f.a}</p>
+                </details>
+              ))
+            }
+          </div>
+        </div>
+        <div class="bo-mapa" aria-label="Mapa de la zona">
+          <svg viewBox="0 0 400 320" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <rect width="400" height="320" fill="#efe4d2"></rect>
+            <path d="M-10 90 L410 60" stroke="#fff" stroke-width="22"></path>
+            <path d="M-10 230 L410 260" stroke="#fff" stroke-width="16"></path>
+            <path d="M120 -10 L160 330" stroke="#fff" stroke-width="18"></path>
+            <path d="M290 -10 L260 330" stroke="#fff" stroke-width="12"></path>
+            <rect x="175" y="95" width="70" height="110" rx="8" fill="#d6c3a5"></rect>
+            <text x="210" y="155" font-size="11" text-anchor="middle" fill="#7c5a2c" font-family="system-ui">Mercado</text>
+            <circle cx="40" cy="300" r="60" fill="#c9dbb0"></circle>
+          </svg>
+          <span class="bo-pin"><i class="fa-solid fa-location-dot"></i></span>
+          <div class="bo-mapa__tarjeta">
+            <strong>Brasa &amp; Olivo</strong>
+            <span>C/ de la Mar 14 · 46001 Valencia</span>
+            <a href="#contacto"><i class="fa-solid fa-diamond-turn-right"></i> Cómo llegar</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bo-pie">
+    <div class="bo-wrap bo-pie__in">
+      <div class="bo-logo"><span>Brasa <em>&amp;</em> Olivo</span></div>
+      <p>Cocina de brasa · Valencia · Desde 1998</p>
+      <div class="bo-pie__redes">
+        <a href="#inicio" aria-label="Instagram"><i class="fa-solid fa-camera"></i></a>
+        <a href="#inicio" aria-label="Correo"><i class="fa-solid fa-envelope"></i></a>
+        <a href="#reservar" aria-label="Reservar"><i class="fa-solid fa-calendar"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- datos de la carta para el script -->
+  <script type="application/json" data-bo-datos set:html={JSON.stringify({ carta, categorias, alergenos, fotos: FOTOS })} />
+</div>
+
+<script>
+  interface Plato {
+    n: string;
+    d: string;
+    p: number;
+    cat: string;
+    img: string;
+    larga: string;
+    vino: string;
+    info?: string;
+    tags?: string[];
+    al?: string[];
+  }
+
+  const raiz = document.querySelector<HTMLElement>("[data-bo]")!;
+  const $ = <T extends Element = HTMLElement>(s: string, el: ParentNode = raiz) => el.querySelector<T>(s)!;
+  const $$ = <T extends Element = HTMLElement>(s: string, el: ParentNode = raiz) => [...el.querySelectorAll<T>(s)];
+  const datos = JSON.parse($("[data-bo-datos]").textContent!) as {
+    carta: Plato[];
+    categorias: { id: string; t: string; ico: string }[];
+    alergenos: { id: string; t: string; ico: string }[];
+    fotos: string;
+  };
+  const foto = (p: Plato) => `${datos.fotos}/${p.img}.jpg`;
+
+  // ── animación de entrada: la hace el CSS; aquí se quita del DOM al acabar o al pulsarla ─────
+  const intro = $("[data-bo-intro]");
+  const quitarIntro = () => intro.remove();
+  intro.addEventListener("animationend", (e) => e.target === intro && quitarIntro());
+  intro.addEventListener("click", () => {
+    intro.classList.add("is-salta");
+    raiz.style.setProperty("--intro", "0.3s");
+    setTimeout(quitarIntro, 450);
+  });
+  const euro = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" });
+  const ico = (n: string) => Object.assign(document.createElement("i"), { className: `fa-solid fa-${n}` });
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, clase = "", texto = "") {
+    const e = document.createElement(tag);
+    if (clase) e.className = clase;
+    if (texto) e.textContent = texto;
+    return e;
+  }
+
+  // ── cabecera: sombra al bajar y menú en móvil ─────
+  const cab = $("[data-bo-head]");
+  addEventListener("scroll", () => cab.classList.toggle("is-baja", scrollY > 30), { passive: true });
+  const burger = $<HTMLButtonElement>("[data-bo-burger]");
+  burger.addEventListener("click", () => {
+    const abierto = cab.classList.toggle("is-menu");
+    burger.setAttribute("aria-expanded", String(abierto));
+  });
+  $$("[data-bo-nav] a").forEach((a) => a.addEventListener("click", () => cab.classList.remove("is-menu")));
+
+  // ── horario y «abierto ahora» ─────
+  // [día 0=domingo..6] → turnos [inicio, fin] en horas decimales
+  const HORARIO: [number, number][][] = [
+    [[13, 16.5]],
+    [],
+    [[13, 16], [20, 23.5]],
+    [[13, 16], [20, 23.5]],
+    [[13, 16], [20, 23.5]],
+    [[13, 16.5], [20, 24]],
+    [[13, 16.5], [20, 24]],
+  ];
+  const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  const hhmm = (h: number) => `${String(Math.floor(h) % 24).padStart(2, "0")}:${h % 1 ? "30" : "00"}`;
+
+  const tbody = $("[data-bo-horario] tbody");
+  [1, 2, 3, 4, 5, 6, 0].forEach((d) => {
+    const tr = el("tr");
+    if (d === new Date().getDay()) tr.className = "is-hoy";
+    tr.append(el("th", "", DIAS[d]), el("td", "", HORARIO[d].length ? HORARIO[d].map(([a, b]) => `${hhmm(a)}–${hhmm(b)}`).join(" · ") : "Cerrado"));
+    tbody.append(tr);
+  });
+
+  // ── menú del día ─────
+  const MENUS: Record<number, string[][]> = {
+    1: [["Crema de calabaza asada", "Ensalada de garbanzos"], ["Arroz al horno", "Merluza a la brasa"], ["Flan de la abuela", "Fruta de temporada"]],
+    2: [["Esgarraet con pan tostado", "Gazpacho de fresa"], ["Fideuà de marisco", "Pollo de corral al ajillo"], ["Arroz con leche", "Fruta de temporada"]],
+    3: [["Ensaladilla de la casa", "Sopa de verduras"], ["Arroz de pato y setas", "Bacalao confitado"], ["Tarta de queso", "Fruta de temporada"]],
+    4: [["Alcachofas a la brasa", "Crema de puerros"], ["Paella valenciana", "Albóndigas en salsa"], ["Natillas caseras", "Fruta de temporada"]],
+    5: [["Tomate con ventresca", "Hummus de remolacha"], ["Arroz negro", "Secreto ibérico"], ["Torrija", "Fruta de temporada"]],
+  };
+  const diasMenu = $("[data-bo-dias]");
+  const hoy = new Date().getDay();
+  let diaMenu = MENUS[hoy] ? hoy : 1;
+  [1, 2, 3, 4, 5].forEach((d) => {
+    const b = el("button", "", DIAS[d].slice(0, 3));
+    b.type = "button";
+    b.setAttribute("role", "tab");
+    b.dataset.d = String(d);
+    if (d === hoy) b.append(el("small", "", "hoy"));
+    b.addEventListener("click", () => {
+      diaMenu = d;
+      pintarMenu();
+    });
+    diasMenu.append(b);
+  });
+
+  function pintarMenu() {
+    $$<HTMLButtonElement>("button", diasMenu).forEach((b) => b.setAttribute("aria-selected", String(Number(b.dataset.d) === diaMenu)));
+    $("[data-bo-dia-nombre]").textContent = DIAS[diaMenu].toLowerCase();
+    const ol = $("[data-bo-dia-platos]");
+    ol.replaceChildren(
+      ...MENUS[diaMenu].map((opciones, i) => {
+        const li = el("li");
+        li.style.setProperty("--i", String(i));
+        li.append(el("span", "bo-dia__n", ["Primero", "Segundo", "Postre"][i]), el("strong", "", opciones.join(" o ")));
+        return li;
+      }),
+    );
+  }
+  pintarMenu();
+
+  // ── carta con filtros ─────
+  const filtros = { cat: "todo", texto: "", tags: new Set<string>(), sin: new Set<string>() };
+  const icoAl = Object.fromEntries(datos.alergenos.map((a) => [a.id, a]));
+  const ICO_TAG: Record<string, [string, string]> = {
+    vegano: ["leaf", "Vegano"],
+    vegetariano: ["carrot", "Vegetariano"],
+    picante: ["pepper-hot", "Picante"],
+    chef: ["award", "Recomendado"],
+  };
+  const normal = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const nombreCat = Object.fromEntries(datos.categorias.map((c) => [c.id, c.t]));
+
+  function etiquetas(p: Plato, conAlergenos = true) {
+    const caja = el("div", "bo-plato-item__tags");
+    p.tags?.forEach((t) => {
+      const s = el("span", `bo-tag bo-tag--${t}`);
+      s.append(ico(ICO_TAG[t][0]), ICO_TAG[t][1]);
+      caja.append(s);
+    });
+    if (conAlergenos)
+      p.al?.forEach((a) => {
+        const s = el("span", "bo-al");
+        s.title = `Contiene ${icoAl[a].t.toLowerCase()}`;
+        s.append(ico(icoAl[a].ico));
+        caja.append(s);
+      });
+    return caja;
+  }
+
+  // platos visibles con los filtros actuales (la ficha navega entre ellos)
+  let lista: Plato[] = [];
+
+  function pintarCarta() {
+    lista = datos.carta.filter(
+      (p) =>
+        (filtros.cat === "todo" || p.cat === filtros.cat) &&
+        (!filtros.texto || normal(p.n + " " + p.d).includes(filtros.texto)) &&
+        [...filtros.tags].every((t) => p.tags?.includes(t) || (t === "vegetariano" && p.tags?.includes("vegano"))) &&
+        ![...filtros.sin].some((a) => p.al?.includes(a)),
+    );
+    const ul = $("[data-bo-platos]");
+    ul.replaceChildren(
+      ...lista.map((p, i) => {
+        const li = el("li");
+        li.style.setProperty("--i", String(i));
+        const b = el("button", `bo-plato-item${p.tags?.includes("chef") ? " is-chef" : ""}`);
+        b.type = "button";
+        b.setAttribute("aria-label", `${p.n}, ${euro.format(p.p)}. Ver detalles`);
+        b.addEventListener("click", () => abrirFicha(i));
+
+        const media = el("div", "bo-plato-item__img");
+        const img = Object.assign(document.createElement("img"), { src: foto(p), alt: "", loading: "lazy", width: 900, height: 675 });
+        media.append(img, el("span", "bo-precio", euro.format(p.p)));
+        if (p.tags?.includes("chef")) {
+          const chef = el("span", "bo-plato-item__chef");
+          chef.append(ico("award"), "Del chef");
+          media.append(chef);
+        }
+
+        const cuerpo = el("div", "bo-plato-item__cuerpo");
+        const ver = el("span", "bo-plato-item__ver", "Ver detalles");
+        ver.append(ico("arrow-right"));
+        cuerpo.append(el("strong", "", p.n), el("p", "", p.d), etiquetas(p), ver);
+        b.append(media, cuerpo);
+        li.append(b);
+        return li;
+      }),
+    );
+    $("[data-bo-vacio]").hidden = lista.length > 0;
+    $("[data-bo-cuenta]").textContent = `${lista.length} ${lista.length === 1 ? "plato" : "platos"}`;
+    const activos = (filtros.texto ? 1 : 0) + filtros.tags.size + filtros.sin.size;
+    $("[data-bo-limpiar]").hidden = !activos;
+    const nf = $("[data-bo-nfiltros]");
+    nf.hidden = !activos;
+    nf.textContent = String(activos);
+    $("[data-bo-buscar-x]").hidden = !filtros.texto;
+  }
+
+  $$<HTMLButtonElement>("[data-bo-cats] button").forEach((b) =>
+    b.addEventListener("click", () => {
+      filtros.cat = b.dataset.cat!;
+      $$("[data-bo-cats] button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+      pintarCarta();
+    }),
+  );
+  $$<HTMLButtonElement>("[data-bo-tags] button, [data-bo-alergenos] button").forEach((b) =>
+    b.addEventListener("click", () => {
+      const grupo = b.dataset.tag ? filtros.tags : filtros.sin;
+      const clave = b.dataset.tag ?? b.dataset.al!;
+      grupo.has(clave) ? grupo.delete(clave) : grupo.add(clave);
+      b.setAttribute("aria-pressed", String(grupo.has(clave)));
+      pintarCarta();
+    }),
+  );
+  const buscar = $<HTMLInputElement>("[data-bo-buscar]");
+  buscar.addEventListener("input", () => {
+    filtros.texto = normal(buscar.value.trim());
+    pintarCarta();
+  });
+  $("[data-bo-buscar-x]").addEventListener("click", () => {
+    buscar.value = "";
+    filtros.texto = "";
+    pintarCarta();
+    buscar.focus();
+  });
+  $("[data-bo-limpiar]").addEventListener("click", () => {
+    filtros.texto = "";
+    filtros.tags.clear();
+    filtros.sin.clear();
+    $<HTMLInputElement>("[data-bo-buscar]").value = "";
+    $$("[data-bo-tags] button, [data-bo-alergenos] button").forEach((b) => b.setAttribute("aria-pressed", "false"));
+    pintarCarta();
+  });
+  pintarCarta();
+
+  // ── ficha de detalle de un plato ─────
+  const ficha = $<HTMLDialogElement>("[data-bo-ficha]");
+  let enFicha = 0;
+
+  function abrirFicha(i: number) {
+    enFicha = (i + lista.length) % lista.length;
+    const p = lista[enFicha];
+    const img = $<HTMLImageElement>("[data-bo-ficha-img]", ficha);
+    img.src = foto(p);
+    img.alt = p.n;
+    $("[data-bo-ficha-chef]", ficha).hidden = !p.tags?.includes("chef");
+    $("[data-bo-ficha-cat]", ficha).textContent = nombreCat[p.cat];
+    $("[data-bo-ficha-nombre]", ficha).textContent = p.n;
+    $("[data-bo-ficha-precio]", ficha).textContent = euro.format(p.p);
+    const info = $("[data-bo-ficha-info]", ficha);
+    info.hidden = !p.info;
+    info.replaceChildren(ico("circle-info"), ` ${p.info ?? ""}`);
+    $("[data-bo-ficha-larga]", ficha).textContent = p.larga;
+    $("[data-bo-ficha-tags]", ficha).replaceChildren(...etiquetas(p, false).children);
+    const al = $("[data-bo-ficha-al]", ficha);
+    al.replaceChildren(
+      ...(p.al?.length
+        ? p.al.map((a) => {
+            const li = el("li");
+            li.append(ico(icoAl[a].ico), icoAl[a].t);
+            return li;
+          })
+        : [el("li", "is-ninguno", "Sin alérgenos principales")]),
+    );
+    $("[data-bo-ficha-vino]", ficha).textContent = p.vino;
+    $("[data-bo-ficha-pos]", ficha).textContent = `${enFicha + 1} / ${lista.length}`;
+    $$<HTMLButtonElement>("[data-bo-ficha-nav]", ficha).forEach((b) => (b.disabled = lista.length < 2));
+    if (!ficha.open) {
+      ficha.showModal();
+      document.documentElement.classList.add("bo-sin-scroll");
+    } else $(".bo-ficha__foto img", ficha).animate([{ opacity: 0.3, scale: "1.04" }, { opacity: 1, scale: "1" }], { duration: 350, easing: "ease-out" });
+  }
+
+  // al cerrar, la ficha baja y se desvanece (lo pinta .is-cierra) antes de quitarla
+  const sinMovimiento = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function cerrarFicha() {
+    if (!ficha.open || ficha.classList.contains("is-cierra")) return;
+    if (sinMovimiento()) return ficha.close();
+    ficha.classList.add("is-cierra");
+    setTimeout(() => {
+      ficha.classList.remove("is-cierra");
+      ficha.close();
+    }, 300);
+  }
+  ficha.addEventListener("cancel", (e) => {
+    e.preventDefault();
+    cerrarFicha();
+  });
+  ficha.addEventListener("close", () => document.documentElement.classList.remove("bo-sin-scroll"));
+  $("[data-bo-ficha-cerrar]", ficha).addEventListener("click", cerrarFicha);
+  ficha.addEventListener("click", (e) => e.target === ficha && cerrarFicha());
+  $$<HTMLButtonElement>("[data-bo-ficha-nav]", ficha).forEach((b) => b.addEventListener("click", () => abrirFicha(enFicha + Number(b.dataset.boFichaNav))));
+  ficha.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") abrirFicha(enFicha + 1);
+    if (e.key === "ArrowLeft") abrirFicha(enFicha - 1);
+  });
+  $("[data-bo-ficha-reservar]", ficha).addEventListener("click", cerrarFicha);
+
+  // la tarjeta «plato estrella» de la portada abre su ficha
+  $("[data-bo-estrella]").addEventListener("click", (e) => {
+    e.preventDefault();
+    const i = lista.findIndex((p) => p.img === "senyoret");
+    if (i >= 0) abrirFicha(i);
+    else location.hash = "carta";
+  });
+
+  // ── reserva en 3 pasos ─────
+  const res = { personas: 2, fecha: null as Date | null, hora: "" };
+  const fechaLarga = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  const caja = $("[data-bo-res]");
+
+  function irPaso(p: string) {
+    $$("[data-paso]", caja).forEach((x) => (x.hidden = x.dataset.paso !== p));
+    $$("[data-paso-ind]", caja).forEach((x) => {
+      const n = Number(x.dataset.pasoInd);
+      x.classList.toggle("is-on", p === "ok" || n <= Number(p));
+      x.classList.toggle("is-hecho", p === "ok" || n < Number(p));
+    });
+  }
+
+  // los próximos 14 días (cerrado el lunes)
+  const fechas = $("[data-bo-fechas]");
+  for (let i = 0; i < 14; i++) {
+    const d = new Date();
+    d.setHours(12, 0, 0, 0);
+    d.setDate(d.getDate() + i);
+    const b = el("button", "bo-fecha");
+    b.type = "button";
+    const cerrado = !HORARIO[d.getDay()].length;
+    b.disabled = cerrado;
+    b.append(el("small", "", i === 0 ? "Hoy" : i === 1 ? "Mañana" : DIAS[d.getDay()].slice(0, 3)), el("strong", "", String(d.getDate())), el("small", "", cerrado ? "cerrado" : d.toLocaleDateString("es-ES", { month: "short" })));
+    b.addEventListener("click", () => {
+      res.fecha = d;
+      $$(".bo-fecha", fechas).forEach((x) => x.classList.toggle("is-sel", x === b));
+      $<HTMLButtonElement>('[data-siguiente="2"]', caja).disabled = false;
+    });
+    fechas.append(b);
+  }
+
+  $$<HTMLButtonElement>("[data-pers]", caja).forEach((b) =>
+    b.addEventListener("click", () => {
+      res.personas = Math.min(12, Math.max(1, res.personas + Number(b.dataset.pers)));
+      $("[data-bo-pers]", caja).textContent = String(res.personas);
+    }),
+  );
+
+  // disponibilidad «realista» pero fija para cada día y número de personas
+  function libre(fecha: Date, hora: string) {
+    const semilla = fecha.getDate() * 31 + hora.charCodeAt(0) * 7 + Number(hora.slice(3)) + res.personas * 13;
+    return (Math.sin(semilla) * 10000) % 1 > (res.personas > 6 ? 0.35 : -0.55);
+  }
+
+  function pintarHoras() {
+    const f = res.fecha!;
+    $("[data-bo-resumen1]", caja).innerHTML = "";
+    $("[data-bo-resumen1]", caja).append(ico("calendar"), ` ${fechaLarga.format(f)} · ${res.personas} ${res.personas === 1 ? "persona" : "personas"}`);
+    const turnos = HORARIO[f.getDay()];
+    (["comida", "cena"] as const).forEach((t, i) => {
+      const caj = $(`[data-bo-horas="${t}"]`, caja);
+      caj.replaceChildren();
+      const turno = turnos[i];
+      if (!turno) {
+        caj.append(el("span", "bo-muted", "Ese día no abrimos en este turno."));
+        return;
+      }
+      for (let h = turno[0]; h <= turno[1] - 1.5; h += 0.5) {
+        const hora = hhmm(h);
+        const b = el("button", "bo-hora", hora);
+        b.type = "button";
+        const esHoyPasado = f.toDateString() === new Date().toDateString() && h <= new Date().getHours() + 1;
+        b.disabled = esHoyPasado || !libre(f, hora);
+        if (b.disabled) b.title = "Completo";
+        b.addEventListener("click", () => {
+          res.hora = hora;
+          $$(".bo-hora", caja).forEach((x) => x.classList.toggle("is-sel", x === b));
+          $<HTMLButtonElement>('[data-siguiente="3"]', caja).disabled = false;
+        });
+        caj.append(b);
+      }
+    });
+  }
+
+  $$<HTMLButtonElement>("[data-siguiente]", caja).forEach((b) =>
+    b.addEventListener("click", () => {
+      const p = b.dataset.siguiente!;
+      if (p === "2") {
+        res.hora = "";
+        $<HTMLButtonElement>('[data-siguiente="3"]', caja).disabled = true;
+        pintarHoras();
+      }
+      if (p === "3") {
+        const r = $("[data-bo-resumen2]", caja);
+        r.replaceChildren(ico("calendar-check"), ` ${fechaLarga.format(res.fecha!)} a las ${res.hora} · ${res.personas} pers.`);
+      }
+      irPaso(p);
+    }),
+  );
+  $$<HTMLButtonElement>("[data-atras]", caja).forEach((b) => b.addEventListener("click", () => irPaso(b.dataset.atras!)));
+
+  const form = $<HTMLFormElement>('form[data-paso="3"]', caja);
+  let codigo = "";
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const err = $("[data-bo-error]", caja);
+    if (String(fd.get("nombre")).trim().length < 2) return (err.textContent = "Escribe tu nombre.");
+    if (!/^[0-9 +]{9,}$/.test(String(fd.get("tel")))) return (err.textContent = "Revisa el teléfono.");
+    if (!/^\S+@\S+\.\S+$/.test(String(fd.get("email")))) return (err.textContent = "Revisa el email.");
+    err.textContent = "";
+    codigo = "BO-" + Math.random().toString(36).slice(2, 7).toUpperCase();
+    $("[data-bo-ok-txt]", caja).textContent = `${String(fd.get("nombre")).split(" ")[0]}, te esperamos el ${fechaLarga.format(res.fecha!)} a las ${res.hora} (${res.personas} pers.). Te hemos enviado la confirmación a ${fd.get("email")}.`;
+    $("[data-bo-ok-codigo]", caja).textContent = `Código de reserva · ${codigo}`;
+    irPaso("ok");
+  });
+
+  // .ics para el calendario, generado en el navegador
+  $("[data-bo-ics]", caja).addEventListener("click", () => {
+    const f = res.fecha!;
+    const [hh, mm] = res.hora.split(":").map(Number);
+    const ini = new Date(f);
+    ini.setHours(hh, mm, 0, 0);
+    const fin = new Date(ini.getTime() + 2 * 3600_000);
+    const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+    const ics = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Brasa y Olivo//Reservas//ES",
+      "BEGIN:VEVENT",
+      `UID:${codigo}@brasayolivo.example`,
+      `DTSTAMP:${fmt(new Date())}`,
+      `DTSTART:${fmt(ini)}`,
+      `DTEND:${fmt(fin)}`,
+      `SUMMARY:Reserva en Brasa & Olivo (${res.personas} pers.)`,
+      "LOCATION:C/ de la Mar 14\\, Valencia",
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ].join("\r\n");
+    const a = Object.assign(document.createElement("a"), {
+      href: URL.createObjectURL(new Blob([ics], { type: "text/calendar" })),
+      download: `reserva-${codigo}.ics`,
+    });
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+  $("[data-bo-otra]", caja).addEventListener("click", () => {
+    form.reset();
+    res.fecha = null;
+    $$(".bo-fecha", fechas).forEach((x) => x.classList.remove("is-sel"));
+    $<HTMLButtonElement>('[data-siguiente="2"]', caja).disabled = true;
+    irPaso("1");
+  });
+
+  // ── galería con visor ─────
+  const visor = $<HTMLDialogElement>("[data-bo-visor]");
+  const fotos = $$<HTMLButtonElement>(".bo-foto");
+  let actual = 0;
+  function verFoto(i: number) {
+    actual = (i + fotos.length) % fotos.length;
+    const f = fotos[actual].querySelector("img")!;
+    const caja = $("[data-bo-visor-foto]", visor);
+    const img = caja.querySelector("img")!;
+    img.src = f.src;
+    img.alt = f.alt;
+    caja.querySelector("figcaption")!.textContent = f.alt;
+    caja.animate([{ opacity: 0, transform: "scale(0.96)" }, { opacity: 1, transform: "none" }], { duration: 300, easing: "ease-out" });
+  }
+  fotos.forEach((f, i) =>
+    f.addEventListener("click", () => {
+      verFoto(i);
+      visor.showModal();
+    }),
+  );
+  $("[data-bo-visor-cerrar]", visor).addEventListener("click", () => visor.close());
+  visor.addEventListener("click", (e) => e.target === visor && visor.close());
+  $$<HTMLButtonElement>("[data-bo-visor-nav]", visor).forEach((b) => b.addEventListener("click", () => verFoto(actual + Number(b.dataset.boVisorNav))));
+  visor.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") verFoto(actual + 1);
+    if (e.key === "ArrowLeft") verFoto(actual - 1);
+  });
+
+  // ── carrusel de reseñas (avanza solo y se para al pasar el ratón) ─────
+  const car = $("[data-bo-carrusel]");
+  const pista = $(".bo-carrusel__pista", car);
+  const n = pista.children.length;
+  const puntos = $("[data-bo-puntos]", car);
+  let idx = 0;
+  for (let i = 0; i < n; i++) {
+    const p = el("button");
+    p.type = "button";
+    p.setAttribute("aria-label", `Reseña ${i + 1}`);
+    p.addEventListener("click", () => mover(i));
+    puntos.append(p);
+  }
+  function mover(i: number) {
+    idx = (i + n) % n;
+    pista.style.transform = `translateX(-${idx * 100}%)`;
+    [...puntos.children].forEach((p, j) => p.classList.toggle("is-on", j === idx));
+  }
+  $$<HTMLButtonElement>("[data-bo-car]", car).forEach((b) => b.addEventListener("click", () => mover(idx + Number(b.dataset.boCar))));
+  let auto = setInterval(() => mover(idx + 1), 5000);
+  car.addEventListener("pointerenter", () => clearInterval(auto));
+  car.addEventListener("pointerleave", () => (auto = setInterval(() => mover(idx + 1), 5000)));
+  mover(0);
+
+  // ── FAQ: cada respuesta se despliega y se recoge animando la altura ─────
+  $$<HTMLDetailsElement>(".bo-faq details").forEach((d) => {
+    const sum = d.querySelector("summary")!;
+    const resp = d.querySelector("p")!;
+    let anim: Animation | null = null;
+    sum.addEventListener("click", (e) => {
+      e.preventDefault();
+      const abrir = !d.classList.contains("is-abierto");
+      d.classList.toggle("is-abierto", abrir);
+      if (sinMovimiento()) return (d.open = abrir);
+      const ini = d.offsetHeight;
+      anim?.cancel();
+      d.open = true;
+      const fin = abrir ? d.offsetHeight : sum.offsetHeight + (d.offsetHeight - d.clientHeight);
+      d.style.overflow = "hidden";
+      anim = d.animate({ height: [`${ini}px`, `${fin}px`] }, { duration: 420, easing: "cubic-bezier(0.22, 1, 0.36, 1)" });
+      resp.animate(abrir ? { opacity: [0, 1], transform: ["translateY(-6px)", "none"] } : { opacity: [1, 0] }, { duration: abrir ? 420 : 220, easing: "ease-out" });
+      anim.onfinish = () => {
+        anim = null;
+        d.open = abrir;
+        d.style.overflow = "";
+      };
+    });
+  });
+
+  // ── aparición al hacer scroll ─────
+  const io = new IntersectionObserver(
+    (es) =>
+      es.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add("is-visto");
+          io.unobserve(e.target);
+        }
+      }),
+    { threshold: 0.12 },
+  );
+  $$(".bo-sec").forEach((s) => io.observe(s));
+</script>
+
+<style is:global>
+  .bo {
+    --c: #c2410c;
+    --c2: #7c2d12;
+    --crema: #faf3e8;
+    --crema2: #f3e7d3;
+    --tinta: #241a12;
+    --gris: #6f6256;
+    --linea: #e6d8c3;
+    --verde: #4d7c0f;
+    --r: 22px;
+    /* lo que tarda la animación de apertura: la portada entra justo después */
+    --intro: 2.1s;
+    background: var(--crema);
+    color: var(--tinta);
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  .bo h1,
+  .bo h2,
+  .bo h3 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+  }
+
+  .bo-wrap {
+    width: min(100% - 2.5rem, 76rem);
+    margin-inline: auto;
+  }
+
+  .bo-muted {
+    color: var(--gris);
+  }
+
+  .bo-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.9rem;
+    color: var(--c);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .bo-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.85rem 1.4rem;
+    border: 1.5px solid var(--c);
+    border-radius: 999px;
+    background: var(--c);
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s, background 0.2s, color 0.2s, box-shadow 0.2s;
+  }
+
+  .bo-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px -10px var(--c);
+  }
+
+  .bo-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .bo-btn--linea {
+    background: transparent;
+    color: var(--c);
+  }
+
+  .bo-btn--sm {
+    padding: 0.6rem 1.1rem;
+    font-size: 0.9rem;
+  }
+
+  .bo-btn--full {
+    width: 100%;
+  }
+
+  /* animación de apertura */
+  .bo-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(60% 60% at 50% 55%, #43200c, var(--tinta) 72%);
+    color: var(--crema);
+    cursor: pointer;
+    animation: bo-intro-sale 0.9s 1.9s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  }
+
+  .bo-intro.is-salta {
+    animation: bo-intro-sale 0.45s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  }
+
+  .bo-intro__centro {
+    display: grid;
+    justify-items: center;
+    gap: 1rem;
+    animation: bo-centro-sale 0.6s 1.7s ease-in forwards;
+  }
+
+  .bo-intro__logo {
+    animation: bo-brillo 1.2s 0.9s ease-in-out;
+  }
+
+  .bo-intro__logo :is(circle, path) {
+    fill: transparent;
+    stroke: #f97316;
+    stroke-width: 1.1;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: bo-trazo 1s 0.15s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+
+  .bo-intro__logo path {
+    animation:
+      bo-trazo 0.9s 0.35s cubic-bezier(0.65, 0, 0.35, 1) forwards,
+      bo-relleno 0.4s 1.05s forwards;
+  }
+
+  .bo-intro__nombre {
+    display: flex;
+    gap: 0.35em;
+    overflow: hidden;
+    padding-bottom: 0.1em;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: clamp(2.3rem, 1.5rem + 4vw, 3.8rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .bo-intro__nombre > * {
+    display: inline-block;
+    animation: bo-letra 0.8s 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .bo-intro__nombre > :nth-child(2) {
+    animation-delay: 0.6s;
+    color: #fb923c;
+  }
+
+  .bo-intro__nombre > :nth-child(3) {
+    animation-delay: 0.7s;
+  }
+
+  .bo-intro__sub {
+    color: #d8c8b2;
+    font-size: 0.72rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    animation: bo-sube 0.6s 0.9s both;
+  }
+
+  .bo-intro__barra {
+    width: 9rem;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #fb923c, #c2410c);
+    transform-origin: left;
+    animation: bo-barra 1.5s 0.15s cubic-bezier(0.65, 0, 0.35, 1) both;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html:has(.bo-intro) {
+      overflow: hidden;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bo-intro {
+      display: none;
+    }
+
+    .bo {
+      --intro: 0s;
+    }
+  }
+
+  html.bo-sin-scroll {
+    overflow: hidden;
+  }
+
+  /* barra superior */
+  .bo-top {
+    background: var(--tinta);
+    color: #e9dcc8;
+    font-size: 0.82rem;
+  }
+
+  .bo-top__in {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    padding-block: 0.5rem;
+  }
+
+  .bo-top__dato {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: inherit;
+    text-decoration: none;
+    opacity: 0.85;
+  }
+
+  .bo-top__dato:first-of-type {
+    margin-left: auto;
+  }
+
+  /* barra de desplazamiento con los colores de la casa: pista crema y tirador de brasa.
+     Chrome ignora ::-webkit-scrollbar si hay scrollbar-color, por eso Firefox va aparte */
+  @supports not selector(::-webkit-scrollbar) {
+    html:has(.bo) {
+      scrollbar-width: thin;
+      scrollbar-color: #c2410c #f3e7d3;
+    }
+
+    .bo * {
+      scrollbar-width: thin;
+      scrollbar-color: #d6b48f transparent;
+    }
+  }
+
+  html:has(.bo)::-webkit-scrollbar {
+    width: 14px;
+  }
+
+  html:has(.bo)::-webkit-scrollbar-track {
+    background: #f3e7d3;
+    box-shadow: inset 1px 0 0 #e6d8c3;
+  }
+
+  html:has(.bo)::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ea580c, #9a3412) padding-box;
+  }
+
+  html:has(.bo)::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #f97316, #c2410c) padding-box;
+  }
+
+  html:has(.bo)::-webkit-scrollbar-thumb:active {
+    background: #7c2d12 padding-box;
+  }
+
+  .bo ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .bo ::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: #d6b48f padding-box;
+  }
+
+  .bo ::-webkit-scrollbar-thumb:hover {
+    background: var(--c) padding-box;
+  }
+
+  /* cabecera */
+  .bo-head {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--crema) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .bo-head.is-baja {
+    border-color: var(--linea);
+    box-shadow: 0 8px 30px -20px rgb(0 0 0 / 0.3);
+  }
+
+  .bo-head__in {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    height: 4.5rem;
+  }
+
+  .bo-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: "Fraunces", serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .bo-logo em {
+    color: var(--c);
+    font-style: italic;
+  }
+
+  .bo-nav {
+    display: flex;
+    gap: 1.6rem;
+    margin-left: auto;
+  }
+
+  .bo-nav a {
+    position: relative;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .bo-nav a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 2px;
+    background: var(--c);
+    transform: scaleX(0);
+    transition: transform 0.3s;
+  }
+
+  .bo-nav a:hover::after {
+    transform: scaleX(1);
+  }
+
+  .bo-burger {
+    display: none;
+    width: 2.6rem;
+    height: 2.6rem;
+    border: 0;
+    border-radius: 50%;
+    background: var(--crema2);
+  }
+
+  .bo-burger span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    margin: 4px auto;
+    background: var(--tinta);
+    transition: transform 0.3s;
+  }
+
+  /* portada */
+  .bo-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(60% 70% at 85% 30%, #f6dcc0 0%, transparent 70%),
+      var(--crema);
+  }
+
+  .bo-hero__in {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: center;
+    gap: 3rem;
+    padding-block: 4.5rem 5rem;
+  }
+
+  .bo-hero h1 {
+    font-size: clamp(2.6rem, 1.4rem + 4.4vw, 5rem);
+  }
+
+  .bo-hero h1 em {
+    color: var(--c);
+  }
+
+  .bo-hero__txt > p {
+    max-width: 32rem;
+    margin-top: 1.4rem;
+    color: var(--gris);
+    font-size: 1.1rem;
+  }
+
+  .bo-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+
+  .bo-hero__datos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    margin-top: 2.6rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--linea);
+  }
+
+  .bo-hero__datos dt {
+    font-family: "Fraunces", serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
+  .bo-hero__datos dt i {
+    font-size: 1rem;
+    color: #eab308;
+  }
+
+  .bo-hero__datos dd {
+    color: var(--gris);
+    font-size: 0.85rem;
+  }
+
+  /* foto de portada con tarjetas flotantes */
+  .bo-hero__media {
+    position: relative;
+    justify-self: center;
+    width: min(100%, 30rem);
+  }
+
+  .bo-hero__foto {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    border-radius: 999px 999px 32px 32px;
+    overflow: hidden;
+    box-shadow: 0 50px 90px -40px rgb(90 35 5 / 0.65);
+    animation: bo-revela 1.3s calc(var(--intro) + 0.1s) cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .bo-hero__foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    animation: bo-acerca 1.8s calc(var(--intro) + 0.1s) cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .bo-hero__foto::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgb(36 26 18 / 0.35));
+  }
+
+  .bo-flota {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.6rem 1rem 0.6rem 0.6rem;
+    border: 1px solid rgb(255 255 255 / 0.6);
+    border-radius: 18px;
+    background: rgb(255 252 247 / 0.82);
+    backdrop-filter: blur(14px) saturate(1.4);
+    box-shadow: 0 20px 40px -20px rgb(60 25 5 / 0.45);
+    font-size: 0.85rem;
+    text-decoration: none;
+    animation: bo-flota-entra 0.8s calc(var(--intro) + var(--d, 0.6s)) cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .bo-flota--plato {
+    left: -2.5rem;
+    bottom: 3.5rem;
+    --d: 0.7s;
+    transition: transform 0.25s;
+  }
+
+  .bo-flota--plato:hover {
+    transform: translateY(-3px);
+  }
+
+  .bo-flota--plato img {
+    width: 3.2rem;
+    height: 3.2rem;
+    border-radius: 12px;
+    object-fit: cover;
+  }
+
+  .bo-flota--plato span {
+    display: grid;
+    line-height: 1.25;
+  }
+
+  .bo-flota small {
+    color: var(--c);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .bo-flota strong {
+    font-family: "Fraunces", serif;
+    font-size: 1.02rem;
+  }
+
+  .bo-flota--nota {
+    top: 2.5rem;
+    right: -1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    padding: 0.7rem 1rem;
+    --d: 0.9s;
+  }
+
+  .bo-sello {
+    position: absolute;
+    top: -1.2rem;
+    left: -1.2rem;
+    display: grid;
+    place-items: center;
+    width: 7.5rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--c);
+    color: #fff;
+    box-shadow: 0 16px 30px -12px var(--c);
+    animation: bo-flota-entra 0.8s calc(var(--intro) + 0.5s) cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .bo-sello svg {
+    position: absolute;
+    inset: 0;
+    animation: bo-girar 18s linear infinite;
+  }
+
+  .bo-sello text {
+    fill: currentColor;
+    font-family: "Inter", sans-serif;
+    font-size: 9.6px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+  }
+
+  .bo-sello > i {
+    font-size: 1.6rem;
+  }
+
+  /* entrada escalonada del texto de portada (tras la animación de apertura) */
+  .bo-entra {
+    animation: bo-sube-intro 0.9s calc(var(--intro) + var(--d) * 0.09s) cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .bo-cinta {
+    overflow: hidden;
+    padding-block: 0.9rem;
+    background: var(--c);
+    color: #fff;
+    font-family: "Fraunces", serif;
+    font-size: 1.2rem;
+    font-style: italic;
+  }
+
+  .bo-cinta__pista {
+    display: flex;
+    width: max-content;
+    animation: bo-cinta 40s linear infinite;
+  }
+
+  .bo-cinta__pista span {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding-right: 1.2rem;
+    white-space: nowrap;
+  }
+
+  .bo-cinta__pista i {
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+
+  /* secciones */
+  .bo-sec {
+    padding-block: 5.5rem;
+  }
+
+  .bo-sec h2 {
+    font-size: clamp(2rem, 1.3rem + 2.4vw, 3.2rem);
+  }
+
+  .bo-sec__head {
+    margin-bottom: 2.5rem;
+  }
+
+  .bo-sec > .bo-wrap {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.8s, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .bo-sec.is-visto > .bo-wrap {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* menú del día */
+  .bo-dia {
+    background: var(--crema2);
+  }
+
+  .bo-dia__in {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .bo-dia h2 strong {
+    color: var(--c);
+  }
+
+  .bo-dias {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.6rem;
+  }
+
+  .bo-dias button {
+    display: grid;
+    min-width: 3.6rem;
+    padding: 0.55rem 0.7rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 14px;
+    background: var(--crema);
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .bo-dias button small {
+    color: var(--c);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+  }
+
+  .bo-dias button[aria-selected="true"] {
+    border-color: var(--tinta);
+    background: var(--tinta);
+    color: var(--crema);
+  }
+
+  .bo-dia__platos {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .bo-dia__platos li {
+    display: grid;
+    gap: 0.2rem;
+    padding: 1.2rem 1.4rem;
+    border-radius: var(--r);
+    background: var(--crema);
+    border: 1px solid var(--linea);
+    animation: bo-sube 0.5s calc(var(--i) * 0.08s) both;
+  }
+
+  .bo-dia__n {
+    color: var(--c);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .bo-dia__platos strong {
+    font-family: "Fraunces", serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  /* carta */
+  .bo-carta {
+    display: grid;
+    grid-template-columns: 20rem 1fr;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  /* panel de filtros: cabecera oscura de brasa y, debajo, los filtros en rejilla a todo el ancho */
+  .bo-filtros {
+    position: sticky;
+    top: 6rem;
+    display: grid;
+    border: 1px solid var(--linea);
+    border-radius: 26px;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 34px 70px -44px rgb(80 40 10 / 0.6);
+  }
+
+  .bo-filtros__top {
+    position: relative;
+    display: grid;
+    gap: 1rem;
+    padding: 1.3rem 1.2rem 1.2rem;
+    background:
+      radial-gradient(90% 120% at 100% 0%, rgb(234 88 12 / 0.45), transparent 60%),
+      linear-gradient(160deg, #3b1d0c, var(--tinta) 70%);
+    color: var(--crema);
+    overflow: hidden;
+  }
+
+  /* brasa que respira en la esquina */
+  .bo-filtros__top::after {
+    content: "";
+    position: absolute;
+    top: -2.5rem;
+    right: -2rem;
+    width: 7rem;
+    height: 7rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(251 146 60 / 0.55), transparent 70%);
+    filter: blur(6px);
+    animation: bo-respira 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .bo-filtros__cab {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 2rem;
+  }
+
+  .bo-filtros__titulo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .bo-filtros__titulo i {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #f97316, var(--c));
+    color: #fff;
+    font-size: 0.85rem;
+    box-shadow: 0 8px 18px -8px #f97316;
+  }
+
+  .bo-filtros__titulo em {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    padding-inline: 0.35rem;
+    border-radius: 999px;
+    background: var(--c);
+    color: #fff;
+    font: 700 0.7rem/1 "Inter", system-ui, sans-serif;
+    font-style: normal;
+    animation: bo-pop 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+
+  .bo-filtros__titulo em[hidden] {
+    display: none;
+  }
+
+  .bo-buscar {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    height: 3.2rem;
+    padding: 0 0.4rem 0 1rem;
+    border: 1.5px solid rgb(255 255 255 / 0.14);
+    border-radius: 14px;
+    background: rgb(255 255 255 / 0.08);
+    color: #d8c8b2;
+    transition:
+      border-color 0.2s,
+      background 0.2s,
+      box-shadow 0.2s,
+      color 0.2s;
+  }
+
+  .bo-buscar:hover {
+    border-color: rgb(255 255 255 / 0.3);
+  }
+
+  .bo-buscar:focus-within {
+    border-color: #fb923c;
+    background: #fff;
+    color: var(--c);
+    box-shadow: 0 0 0 4px rgb(251 146 60 / 0.25);
+  }
+
+  .bo-buscar input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    background: none;
+    color: var(--crema);
+    font-size: 0.95rem;
+    outline: none;
+  }
+
+  .bo-buscar:focus-within input {
+    color: var(--tinta);
+  }
+
+  .bo-buscar input::placeholder {
+    color: #a8977f;
+  }
+
+  .bo-buscar input::-webkit-search-cancel-button {
+    display: none;
+    appearance: none;
+  }
+
+  .bo-buscar__x {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 0;
+    border-radius: 10px;
+    background: var(--crema2);
+    color: var(--tinta);
+    font-size: 0.85rem;
+    transition:
+      background 0.2s,
+      color 0.2s;
+  }
+
+  .bo-buscar__x:hover {
+    background: var(--c);
+    color: #fff;
+  }
+
+  .bo-buscar__x[hidden] {
+    display: none;
+  }
+
+  .bo-filtro {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1.15rem 1.2rem 1.25rem;
+  }
+
+  .bo-filtro + .bo-filtro {
+    border-top: 1px dashed var(--linea);
+  }
+
+  .bo-filtro__t {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--tinta);
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .bo-filtro__t small {
+    color: #a8977f;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-align: right;
+    text-transform: none;
+  }
+
+  /* dos columnas iguales: cada filtro ocupa media fila y el panel queda a su medida */
+  .bo-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .bo-chips button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.45rem 0.6rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 13px;
+    background: var(--crema);
+    color: var(--tinta);
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.15;
+    text-align: left;
+    transition:
+      border-color 0.2s,
+      background 0.2s,
+      color 0.2s,
+      transform 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .bo-chips button i {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--c);
+    font-size: 0.75rem;
+    box-shadow: 0 2px 6px -3px rgb(80 40 10 / 0.35);
+    transition:
+      color 0.2s,
+      background 0.2s,
+      transform 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+
+  .bo-chips button:hover {
+    border-color: #f0b98c;
+    background: #fff7ef;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 18px -14px var(--c);
+  }
+
+  .bo-chips button:hover i {
+    transform: rotate(-10deg) scale(1.08);
+  }
+
+  .bo-chips button:active {
+    transform: scale(0.96);
+  }
+
+  .bo-chips button[aria-pressed="true"] {
+    border-color: var(--c);
+    background: linear-gradient(145deg, #ea580c, var(--c2));
+    color: #fff;
+    box-shadow: 0 12px 22px -12px var(--c);
+  }
+
+  .bo-chips button[aria-pressed="true"] i {
+    background: rgb(255 255 255 / 0.18);
+    color: #fff;
+    box-shadow: none;
+  }
+
+  /* marca ✓ en la esquina de un filtro activo */
+  .bo-chips button[aria-pressed="true"]::after {
+    content: "✓";
+    position: absolute;
+    top: -0.4rem;
+    right: -0.4rem;
+    display: grid;
+    place-items: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--tinta);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    animation: bo-pop 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+
+  /* un alérgeno marcado se lee «sin …»: oscuro y con una barra sobre el icono */
+  [data-bo-alergenos] button[aria-pressed="true"] {
+    border-color: var(--tinta);
+    background: linear-gradient(145deg, #3b1d0c, var(--tinta));
+    box-shadow: 0 12px 22px -12px var(--tinta);
+  }
+
+  [data-bo-alergenos] button[aria-pressed="true"]::after {
+    content: "✕";
+    background: var(--c);
+  }
+
+  [data-bo-alergenos] button i {
+    position: relative;
+  }
+
+  [data-bo-alergenos] button[aria-pressed="true"] i::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1.15em;
+    height: 1.5px;
+    border-radius: 2px;
+    background: #fb923c;
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+
+  .bo-limpiar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border: 0;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.12);
+    color: #fed7aa;
+    font-size: 0.78rem;
+    font-weight: 700;
+    transition:
+      background 0.2s,
+      color 0.2s;
+    animation: bo-sube 0.25s ease-out;
+  }
+
+  .bo-limpiar:hover {
+    background: #fff;
+    color: var(--c);
+  }
+
+  .bo-limpiar[hidden] {
+    display: none;
+  }
+
+  .bo-tabs {
+    display: flex;
+    gap: 0.25rem;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 0.3rem;
+    border: 1px solid var(--linea);
+    border-radius: 999px;
+    background: #fff;
+    scrollbar-width: none;
+  }
+
+  .bo-tabs button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6rem 1rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--gris);
+    transition: all 0.2s;
+  }
+
+  .bo-tabs button:hover {
+    color: var(--tinta);
+  }
+
+  .bo-tabs button[aria-selected="true"] {
+    background: var(--tinta);
+    color: var(--crema);
+  }
+
+  .bo-cuenta {
+    margin: 1rem 0 0.5rem;
+    color: var(--gris);
+    font-size: 0.85rem;
+  }
+
+  .bo-platos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+    gap: 1.1rem;
+  }
+
+  .bo-platos > li {
+    display: flex;
+    animation: bo-sube 0.5s calc(var(--i) * 0.04s) both;
+  }
+
+  .bo-plato-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    border: 1px solid var(--linea);
+    border-radius: var(--r);
+    background: #fff;
+    text-align: left;
+    overflow: hidden;
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.35s,
+      border-color 0.35s;
+  }
+
+  .bo-plato-item:hover,
+  .bo-plato-item:focus-visible {
+    transform: translateY(-6px);
+    border-color: color-mix(in srgb, var(--c) 35%, var(--linea));
+    box-shadow: 0 28px 50px -30px rgb(80 40 10 / 0.55);
+  }
+
+  .bo-plato-item:focus-visible {
+    outline: 2px solid var(--c);
+    outline-offset: 3px;
+  }
+
+  .bo-plato-item__img {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--crema2);
+  }
+
+  .bo-plato-item__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .bo-plato-item:hover .bo-plato-item__img img {
+    transform: scale(1.07);
+  }
+
+  .bo-precio {
+    position: absolute;
+    right: 0.7rem;
+    bottom: 0.7rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: rgb(255 252 247 / 0.9);
+    backdrop-filter: blur(8px);
+    color: var(--tinta);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.4);
+  }
+
+  .bo-plato-item__chef {
+    position: absolute;
+    left: 0.7rem;
+    top: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.65rem;
+    border-radius: 999px;
+    background: var(--c);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .bo-plato-item__cuerpo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem 1.15rem 1.1rem;
+  }
+
+  .bo-plato-item__cuerpo strong {
+    font-family: "Fraunces", serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .bo-plato-item__cuerpo p {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: var(--gris);
+    font-size: 0.88rem;
+  }
+
+  .bo-plato-item__ver {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: auto;
+    padding-top: 0.4rem;
+    color: var(--c);
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .bo-plato-item__ver i {
+    transition: transform 0.25s;
+  }
+
+  .bo-plato-item:hover .bo-plato-item__ver i {
+    transform: translateX(4px);
+  }
+
+  /* ficha de plato */
+  .bo-ficha {
+    width: min(100vw - 2rem, 60rem);
+    max-height: min(100dvh - 2rem, 42rem);
+    padding: 0;
+    border: 0;
+    border-radius: 30px;
+    background: var(--crema);
+    color: var(--tinta);
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.06),
+      0 60px 120px -30px rgb(0 0 0 / 0.65);
+  }
+
+  .bo-ficha[open] {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    animation: bo-ficha-entra 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .bo-ficha[open].is-cierra {
+    animation: bo-ficha-sale 0.3s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+    pointer-events: none;
+  }
+
+  .bo-ficha::backdrop {
+    background: rgb(20 12 6 / 0.72);
+    backdrop-filter: blur(10px);
+  }
+
+  .bo-ficha[open]::backdrop {
+    animation: bo-fondo-entra 0.4s ease-out;
+  }
+
+  .bo-ficha.is-cierra::backdrop {
+    animation: bo-fondo-sale 0.3s ease-in forwards;
+  }
+
+  .bo-ficha__x {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border: 0;
+    border-radius: 50%;
+    background: rgb(255 252 247 / 0.9);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.4);
+    transition: transform 0.25s;
+  }
+
+  .bo-ficha__x:hover {
+    transform: rotate(90deg);
+  }
+
+  .bo-ficha__foto {
+    position: relative;
+    min-height: 100%;
+    overflow: hidden;
+    background: var(--crema2);
+  }
+
+  .bo-ficha__foto img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .bo-ficha[open] .bo-ficha__foto img {
+    animation: bo-acerca 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* degradado para que la foto funda con la ficha y las etiquetas se lean */
+  .bo-ficha__foto::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgb(20 12 6 / 0.35), transparent 28%),
+      linear-gradient(0deg, rgb(20 12 6 / 0.45), transparent 35%);
+    pointer-events: none;
+  }
+
+  .bo-ficha__chef {
+    position: absolute;
+    left: 1.1rem;
+    top: 1.1rem;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    background: rgb(255 252 247 / 0.92);
+    backdrop-filter: blur(8px);
+    color: var(--c);
+    font-size: 0.78rem;
+    font-weight: 700;
+    box-shadow: 0 8px 20px -10px rgb(0 0 0 / 0.5);
+  }
+
+  .bo-ficha__chef[hidden] {
+    display: none;
+  }
+
+  .bo-ficha__cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: 1.05rem;
+    padding: 2.4rem 2.2rem 1.6rem;
+    overflow-y: auto;
+    background:
+      radial-gradient(120% 60% at 100% 0%, rgb(251 146 60 / 0.1), transparent 60%),
+      var(--crema);
+  }
+
+  /* el contenido entra escalonado al abrir */
+  .bo-ficha[open] .bo-ficha__cuerpo > * {
+    animation: bo-sube 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .bo-ficha[open] .bo-ficha__cuerpo > :nth-child(2) {
+    animation-delay: 0.05s;
+  }
+
+  .bo-ficha[open] .bo-ficha__cuerpo > :nth-child(3) {
+    animation-delay: 0.1s;
+  }
+
+  .bo-ficha[open] .bo-ficha__cuerpo > :nth-child(4) {
+    animation-delay: 0.14s;
+  }
+
+  .bo-ficha[open] .bo-ficha__cuerpo > :nth-child(n + 5) {
+    animation-delay: 0.18s;
+  }
+
+  .bo-ficha__cuerpo .bo-kicker {
+    margin-bottom: 0;
+  }
+
+  .bo-ficha__titulo {
+    display: grid;
+    gap: 0.5rem;
+    padding-right: 2.6rem;
+  }
+
+  .bo-ficha__titulo h3 {
+    font-size: clamp(1.7rem, 1.2rem + 1.5vw, 2.4rem);
+  }
+
+  .bo-ficha__precio {
+    justify-self: start;
+    color: var(--c);
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .bo-ficha__info {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 0.45rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: #fff1e6;
+    color: var(--c2);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .bo-ficha__info[hidden] {
+    display: none;
+  }
+
+  .bo-ficha__larga {
+    padding-left: 1rem;
+    border-left: 3px solid #f6c9a4;
+    color: var(--gris);
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .bo-ficha__bloques {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+  }
+
+  .bo-ficha__bloque {
+    display: grid;
+    align-content: start;
+    gap: 0.55rem;
+    padding: 1rem 1.05rem;
+    border: 1px solid var(--linea);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 14px 30px -26px rgb(80 40 10 / 0.6);
+  }
+
+  .bo-ficha__lbl {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gris);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .bo-ficha__lbl i {
+    display: grid;
+    place-items: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 8px;
+    background: #fff1e6;
+    color: var(--c);
+    font-size: 0.75rem;
+  }
+
+  .bo-ficha__bloque strong {
+    font-family: "Fraunces", serif;
+    font-size: 1.1rem;
+  }
+
+  .bo-ficha__al {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .bo-ficha__al li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--crema2);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .bo-ficha__al li.is-ninguno {
+    background: #ecfccb;
+    color: var(--verde);
+  }
+
+  .bo-ficha__pie {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: auto;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--linea);
+  }
+
+  .bo-ficha__nav {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--gris);
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bo-ficha__nav button {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 50%;
+    background: #fff;
+    transition:
+      border-color 0.2s,
+      background 0.2s,
+      color 0.2s,
+      transform 0.2s;
+  }
+
+  .bo-ficha__nav button:hover:not(:disabled) {
+    border-color: var(--c);
+    background: var(--c);
+    color: #fff;
+    transform: scale(1.06);
+  }
+
+  .bo-ficha__nav button:disabled {
+    opacity: 0.4;
+  }
+
+  .bo-plato-item__tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .bo-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    background: #ecfccb;
+    color: var(--verde);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .bo-tag--picante {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .bo-tag--chef {
+    background: #ffedd5;
+    color: var(--c);
+  }
+
+  .bo-al {
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: var(--crema2);
+    color: var(--gris);
+    font-size: 0.7rem;
+  }
+
+  .bo-vacio {
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    padding: 3rem;
+    border: 2px dashed var(--linea);
+    border-radius: var(--r);
+    color: var(--gris);
+    text-align: center;
+  }
+
+  .bo-vacio[hidden] {
+    display: none;
+  }
+
+  .bo-vacio i {
+    font-size: 1.8rem;
+    color: var(--c);
+  }
+
+  /* reserva */
+  .bo-reserva {
+    background:
+      radial-gradient(50% 80% at 0% 100%, color-mix(in srgb, var(--c) 35%, transparent), transparent 70%),
+      var(--tinta);
+    color: var(--crema);
+  }
+
+  .bo-reserva__in {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .bo-reserva__txt p {
+    margin-top: 1rem;
+    color: #d8c8b2;
+  }
+
+  .bo-reserva__ventajas {
+    display: grid;
+    gap: 0.7rem;
+    margin-top: 1.8rem;
+  }
+
+  .bo-reserva__ventajas i {
+    color: #fb923c;
+    margin-right: 0.4rem;
+  }
+
+  .bo-res {
+    padding: 2rem;
+    border-radius: 24px;
+    background: var(--crema);
+    color: var(--tinta);
+    box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.6);
+  }
+
+  .bo-res__pasos {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 1.6rem;
+  }
+
+  .bo-res__pasos li {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 3px solid var(--linea);
+    color: var(--gris);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+
+  .bo-res__pasos span {
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: var(--crema2);
+    font-size: 0.75rem;
+  }
+
+  .bo-res__pasos li.is-on {
+    border-color: var(--c);
+    color: var(--tinta);
+  }
+
+  .bo-res__pasos li.is-on span {
+    background: var(--c);
+    color: #fff;
+  }
+
+  .bo-res__pasos li.is-hecho span {
+    background: var(--verde);
+  }
+
+  .bo-res__paso {
+    display: grid;
+    gap: 1rem;
+    animation: bo-sube 0.4s both;
+  }
+
+  .bo-res__paso[hidden] {
+    display: none;
+  }
+
+  .bo-res__fila {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .bo-res__lbl {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .bo-stepper {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .bo-stepper button {
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 50%;
+    background: #fff;
+  }
+
+  .bo-stepper output {
+    min-width: 1.5rem;
+    font-family: "Fraunces", serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .bo-fechas {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .bo-fecha {
+    display: grid;
+    justify-items: center;
+    padding: 0.5rem 0.2rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 12px;
+    background: #fff;
+    transition: all 0.2s;
+  }
+
+  .bo-fecha small {
+    font-size: 0.65rem;
+    color: var(--gris);
+    text-transform: capitalize;
+  }
+
+  .bo-fecha strong {
+    font-size: 1.15rem;
+  }
+
+  .bo-fecha:hover:not(:disabled) {
+    border-color: var(--c);
+  }
+
+  .bo-fecha:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .bo-fecha.is-sel {
+    border-color: var(--c);
+    background: var(--c);
+    color: #fff;
+  }
+
+  .bo-fecha.is-sel small {
+    color: #ffe4cc;
+  }
+
+  .bo-res__resumen {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    background: var(--crema2);
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .bo-turno {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .bo-horas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .bo-hora {
+    padding: 0.45rem 0.85rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 10px;
+    background: #fff;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bo-hora:disabled {
+    text-decoration: line-through;
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .bo-hora.is-sel {
+    border-color: var(--c);
+    background: var(--c);
+    color: #fff;
+  }
+
+  .bo-res__nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+  }
+
+  .bo-campos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+  }
+
+  .bo-campos label {
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .bo-campos__ancho {
+    grid-column: 1 / -1;
+  }
+
+  .bo-campos input,
+  .bo-campos select,
+  .bo-campos textarea {
+    padding: 0.7rem 0.85rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 10px;
+    background: #fff;
+    font-weight: 400;
+    outline: none;
+  }
+
+  .bo-campos :is(input, select, textarea):focus {
+    border-color: var(--c);
+  }
+
+  /* «Prefiero terraza»: tarjeta con interruptor; el checkbox real queda oculto pero enfocable */
+  .bo-check {
+    position: relative;
+    display: flex !important;
+    align-items: center;
+    gap: 0.85rem !important;
+    grid-column: 1 / -1;
+    padding: 0.75rem 0.95rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 16px;
+    background: #fff;
+    cursor: pointer;
+    user-select: none;
+    transition:
+      border-color 0.25s,
+      background 0.25s,
+      box-shadow 0.25s;
+  }
+
+  .bo-check:hover {
+    border-color: #d9bfa0;
+  }
+
+  .bo-check input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .bo-check__ico {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+    background: var(--crema2);
+    color: var(--c);
+    transition:
+      background 0.25s,
+      color 0.25s,
+      transform 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+
+  .bo-check__txt {
+    display: grid;
+    flex: 1;
+    line-height: 1.3;
+  }
+
+  .bo-check__txt strong {
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  .bo-check__txt small {
+    color: var(--gris);
+    font-size: 0.78rem;
+    font-weight: 400;
+  }
+
+  .bo-check__sw {
+    position: relative;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 1.6rem;
+    border-radius: 999px;
+    background: var(--linea);
+    transition: background 0.25s;
+  }
+
+  .bo-check__sw::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(1.6rem - 6px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.2);
+    transition: transform 0.3s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+
+  .bo-check:has(input:checked) {
+    border-color: var(--c);
+    background: #fff7ef;
+  }
+
+  .bo-check:has(input:checked) .bo-check__ico {
+    background: var(--c);
+    color: #fff;
+    transform: rotate(-12deg) scale(1.05);
+  }
+
+  .bo-check:has(input:checked) .bo-check__sw {
+    background: var(--c);
+  }
+
+  .bo-check:has(input:checked) .bo-check__sw::after {
+    transform: translateX(1.15rem);
+  }
+
+  .bo-check:has(input:focus-visible) {
+    box-shadow: 0 0 0 4px rgb(194 65 12 / 0.15);
+  }
+
+  .bo-error {
+    min-height: 1.2em;
+    color: #b91c1c;
+    font-size: 0.85rem;
+  }
+
+  .bo-ok {
+    justify-items: center;
+    text-align: center;
+  }
+
+  .bo-ok__ico {
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+    background: var(--verde);
+    color: #fff;
+    font-size: 1.8rem;
+    animation: bo-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+
+  .bo-ok h3 {
+    font-size: 1.8rem;
+  }
+
+  .bo-ok p {
+    color: var(--gris);
+  }
+
+  .bo-ok__codigo {
+    padding: 0.4rem 0.9rem;
+    border: 1.5px dashed var(--c);
+    border-radius: 10px;
+    color: var(--c);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  /* nosotros */
+  .bo-nos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+
+  .bo-nos p {
+    margin-top: 1.2rem;
+    font-size: 1.05rem;
+  }
+
+  .bo-linea {
+    position: relative;
+    display: grid;
+    gap: 1.6rem;
+    padding-left: 2rem;
+  }
+
+  .bo-linea::before {
+    content: "";
+    position: absolute;
+    left: 0.45rem;
+    top: 0.4rem;
+    bottom: 0.4rem;
+    width: 2px;
+    background: var(--linea);
+  }
+
+  .bo-linea li {
+    position: relative;
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .bo-linea li::before {
+    content: "";
+    position: absolute;
+    left: -1.85rem;
+    top: 0.35rem;
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 50%;
+    border: 3px solid var(--c);
+    background: var(--crema);
+  }
+
+  .bo-linea strong {
+    font-family: "Fraunces", serif;
+    font-size: 1.5rem;
+    color: var(--c);
+  }
+
+  /* galería */
+  .bo-gal-sec {
+    padding-top: 0;
+  }
+
+  .bo-gal {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 12rem;
+    gap: 0.8rem;
+  }
+
+  .bo-gal li:nth-child(1) {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  .bo-gal li:nth-child(4) {
+    grid-column: span 2;
+  }
+
+  .bo-foto {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r);
+    overflow: hidden;
+    background: var(--crema2);
+  }
+
+  .bo-foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .bo-foto::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgb(20 12 6 / 0.65));
+    transition: opacity 0.4s;
+  }
+
+  .bo-foto span {
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    bottom: 0.9rem;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: "Fraunces", serif;
+    font-size: 1.15rem;
+    font-style: italic;
+    color: #fff;
+    text-align: left;
+  }
+
+  .bo-foto span i {
+    font-size: 0.85rem;
+    opacity: 0;
+    transform: scale(0.6);
+    transition:
+      opacity 0.3s,
+      transform 0.3s;
+  }
+
+  .bo-foto:hover img {
+    transform: scale(1.08);
+  }
+
+  .bo-foto:hover span i {
+    opacity: 1;
+    transform: none;
+  }
+
+  .bo-visor {
+    width: min(90vw, 56rem);
+    padding: 0;
+    border: 0;
+    border-radius: 24px;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .bo-visor[open] {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .bo-visor::backdrop {
+    background: rgb(20 12 6 / 0.85);
+    backdrop-filter: blur(6px);
+  }
+
+  .bo-visor__foto {
+    flex: 1;
+    position: relative;
+    margin: 0;
+    aspect-ratio: 4 / 3;
+    border-radius: 24px;
+    overflow: hidden;
+    background: var(--tinta);
+  }
+
+  .bo-visor__foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .bo-visor__foto figcaption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 2.5rem 1.4rem 1.1rem;
+    background: linear-gradient(transparent, rgb(20 12 6 / 0.75));
+    color: #fff;
+    font-family: "Fraunces", serif;
+    font-size: 1.5rem;
+    font-style: italic;
+  }
+
+  .bo-visor__nav,
+  .bo-visor__x {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 0;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.15);
+    color: #fff;
+  }
+
+  .bo-visor__x {
+    position: absolute;
+    top: -3.5rem;
+    right: 0;
+  }
+
+  /* reseñas */
+  .bo-res-sec {
+    background: var(--crema2);
+  }
+
+  .bo-resenas {
+    display: grid;
+    grid-template-columns: 18rem 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .bo-nota {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .bo-nota > strong {
+    font-family: "Fraunces", serif;
+    font-size: 4.5rem;
+    line-height: 1;
+  }
+
+  .bo-estrellas {
+    display: flex;
+    gap: 2px;
+    color: #eab308;
+  }
+
+  .bo-barras {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.8rem;
+  }
+
+  .bo-barras li {
+    display: grid;
+    grid-template-columns: 1rem 1fr 2.5rem;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .bo-barras i {
+    height: 7px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--c) var(--p), var(--linea) var(--p));
+  }
+
+  .bo-carrusel {
+    overflow: hidden;
+  }
+
+  .bo-carrusel__pista {
+    display: flex;
+    transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  .bo-resena {
+    flex: 0 0 100%;
+    display: grid;
+    gap: 1rem;
+    padding: 2rem;
+    border-radius: 24px;
+    background: var(--crema);
+  }
+
+  .bo-resena blockquote {
+    font-family: "Fraunces", serif;
+    font-size: clamp(1.3rem, 1rem + 1.2vw, 1.9rem);
+    line-height: 1.3;
+  }
+
+  .bo-resena figcaption {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 600;
+  }
+
+  .bo-resena small {
+    color: var(--gris);
+    font-weight: 400;
+  }
+
+  .bo-avatar {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    background: var(--c);
+    color: #fff;
+  }
+
+  .bo-carrusel__ctrl {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.2rem;
+  }
+
+  .bo-carrusel__ctrl > button {
+    width: 2.6rem;
+    height: 2.6rem;
+    border: 1.5px solid var(--tinta);
+    border-radius: 50%;
+    background: transparent;
+  }
+
+  .bo-puntos {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .bo-puntos button {
+    width: 0.6rem;
+    height: 0.6rem;
+    padding: 0;
+    border: 0;
+    border-radius: 99px;
+    background: var(--linea);
+    transition: all 0.3s;
+  }
+
+  .bo-puntos button.is-on {
+    width: 1.8rem;
+    background: var(--c);
+  }
+
+  /* contacto */
+  .bo-contacto {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+
+  .bo-horario {
+    width: 100%;
+    margin-top: 1.6rem;
+    border-collapse: collapse;
+  }
+
+  .bo-horario th,
+  .bo-horario td {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--linea);
+    text-align: left;
+  }
+
+  .bo-horario td {
+    text-align: right;
+    color: var(--gris);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bo-horario tr.is-hoy th,
+  .bo-horario tr.is-hoy td {
+    color: var(--c);
+    font-weight: 700;
+  }
+
+  .bo-faq {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 2rem;
+  }
+
+  .bo-faq details {
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid var(--linea);
+    transition:
+      border-color 0.3s,
+      box-shadow 0.3s;
+  }
+
+  .bo-faq details.is-abierto {
+    border-color: #f0c7a3;
+    box-shadow: 0 16px 30px -24px rgb(194 65 12 / 0.6);
+  }
+
+  .bo-faq summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .bo-faq summary:hover,
+  .bo-faq details.is-abierto summary {
+    color: var(--c);
+  }
+
+  .bo-faq summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .bo-faq summary i {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 50%;
+    background: #fff1e6;
+    color: var(--c);
+    font-size: 0.8rem;
+    transition:
+      transform 0.4s cubic-bezier(0.3, 1.4, 0.5, 1),
+      background 0.3s,
+      color 0.3s;
+  }
+
+  .bo-faq details.is-abierto summary i {
+    background: var(--c);
+    color: #fff;
+    transform: rotate(135deg);
+  }
+
+  .bo-faq p {
+    padding: 0 1.2rem 1rem;
+    color: var(--gris);
+  }
+
+  .bo-mapa {
+    position: relative;
+    min-height: 26rem;
+    border-radius: 24px;
+    overflow: hidden;
+  }
+
+  .bo-mapa svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .bo-pin {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    color: var(--c);
+    font-size: 2.6rem;
+    translate: -50% -100%;
+    animation: bo-bota 1.6s ease-in-out infinite;
+  }
+
+  .bo-mapa__tarjeta {
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    display: grid;
+    gap: 0.2rem;
+    padding: 1rem 1.2rem;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 10px 30px -15px rgb(0 0 0 / 0.4);
+  }
+
+  .bo-mapa__tarjeta span {
+    color: var(--gris);
+    font-size: 0.9rem;
+  }
+
+  .bo-mapa__tarjeta a {
+    color: var(--c);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  /* pie */
+  .bo-pie {
+    padding-block: 3rem 6rem;
+    background: var(--tinta);
+    color: #d8c8b2;
+  }
+
+  .bo-pie__in {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .bo-pie .bo-logo {
+    color: var(--crema);
+  }
+
+  .bo-pie__redes {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .bo-pie__redes a {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.08);
+    transition: background 0.2s;
+  }
+
+  .bo-pie__redes a:hover {
+    background: var(--c);
+  }
+
+  /* animaciones */
+  @keyframes bo-girar {
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  @keyframes bo-revela {
+    from {
+      clip-path: inset(100% 0 0 0 round 999px 999px 32px 32px);
+    }
+    to {
+      clip-path: inset(0 0 0 0 round 999px 999px 32px 32px);
+    }
+  }
+
+  @keyframes bo-acerca {
+    from {
+      scale: 1.25;
+    }
+  }
+
+  @keyframes bo-flota-entra {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.92);
+    }
+  }
+
+  @keyframes bo-sube-intro {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+      filter: blur(6px);
+    }
+  }
+
+  /* intro */
+  @keyframes bo-intro-sale {
+    to {
+      clip-path: inset(0 0 100% 0);
+      visibility: hidden;
+    }
+  }
+
+  @keyframes bo-trazo {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes bo-relleno {
+    to {
+      fill: #c2410c;
+    }
+  }
+
+  @keyframes bo-letra {
+    from {
+      opacity: 0;
+      transform: translateY(110%);
+    }
+  }
+
+  @keyframes bo-barra {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  @keyframes bo-centro-sale {
+    to {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+  }
+
+  @keyframes bo-brillo {
+    50% {
+      filter: drop-shadow(0 0 18px rgb(249 115 22 / 0.8));
+    }
+  }
+
+  @keyframes bo-ficha-entra {
+    from {
+      opacity: 0;
+      transform: translateY(30px) scale(0.97);
+    }
+  }
+
+  @keyframes bo-ficha-sale {
+    to {
+      opacity: 0;
+      transform: translateY(24px) scale(0.96);
+    }
+  }
+
+  @keyframes bo-ficha-baja {
+    to {
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes bo-respira {
+    50% {
+      opacity: 0.55;
+      transform: scale(1.2);
+    }
+  }
+
+  @keyframes bo-fondo-entra {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes bo-fondo-sale {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes bo-cinta {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes bo-sube {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+
+  @keyframes bo-pop {
+    from {
+      transform: scale(0.3);
+    }
+  }
+
+  @keyframes bo-bota {
+    50% {
+      translate: -50% -115%;
+    }
+  }
+
+  /* responsive */
+  @media (max-width: 62rem) {
+    .bo-hero__in,
+    .bo-dia__in,
+    .bo-reserva__in,
+    .bo-nos,
+    .bo-resenas,
+    .bo-contacto {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+
+    .bo-carta {
+      grid-template-columns: 1fr;
+    }
+
+    .bo-filtros {
+      position: static;
+    }
+
+    .bo-chips {
+      grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+    }
+
+    .bo-hero__media {
+      width: min(100%, 26rem);
+    }
+
+    .bo-flota--plato {
+      left: -0.5rem;
+    }
+
+    .bo-flota--nota {
+      right: -0.5rem;
+    }
+
+    .bo-sello {
+      left: -0.5rem;
+      width: 6rem;
+    }
+
+    .bo-ficha[open] {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+
+    .bo-ficha__foto {
+      min-height: 0;
+      aspect-ratio: 16 / 10;
+    }
+
+    .bo-ficha__cuerpo {
+      padding: 1.4rem 1.3rem 1.3rem;
+    }
+
+    .bo-ficha__titulo {
+      padding-right: 0;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .bo-ficha {
+      width: 100vw;
+      max-width: 100vw;
+      max-height: 92dvh;
+      margin: auto 0 0;
+      border-radius: 24px 24px 0 0;
+    }
+
+    /* en móvil la ficha es una hoja inferior: se cierra deslizándose hacia abajo */
+    .bo-ficha[open].is-cierra {
+      animation: bo-ficha-baja 0.3s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+    }
+
+    .bo-ficha__bloques {
+      grid-template-columns: 1fr;
+    }
+
+    .bo-ficha__pie .bo-btn {
+      padding-inline: 1rem;
+    }
+  }
+
+  @media (max-width: 52rem) {
+    .bo-nav {
+      position: fixed;
+      inset: 4.5rem 0 auto;
+      flex-direction: column;
+      gap: 0;
+      padding: 0.5rem 1.25rem 1.25rem;
+      background: var(--crema);
+      border-bottom: 1px solid var(--linea);
+      transform: translateY(-120%);
+      transition: transform 0.35s;
+    }
+
+    .bo-nav a {
+      padding: 0.9rem 0;
+      border-bottom: 1px solid var(--linea);
+    }
+
+    .bo-head.is-menu .bo-nav {
+      transform: none;
+    }
+
+    .bo-burger {
+      display: block;
+    }
+
+    .bo-head__in > .bo-btn {
+      margin-left: auto;
+    }
+
+    .bo-head.is-menu .bo-burger span:first-child {
+      transform: translateY(3px) rotate(45deg);
+    }
+
+    .bo-head.is-menu .bo-burger span:last-child {
+      transform: translateY(-3px) rotate(-45deg);
+    }
+
+    .bo-platos {
+      grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    }
+
+    .bo-gal {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .bo-top {
+      display: none;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .bo-fechas {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .bo-campos {
+      grid-template-columns: 1fr;
+    }
+
+    .bo-res {
+      padding: 1.3rem;
+    }
+
+    .bo-head__in > .bo-btn {
+      display: none;
+    }
+  }
+</style>

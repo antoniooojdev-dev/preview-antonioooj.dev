@@ -1,0 +1,17 @@
+/* =====================================================================
+   iconos.css · Iconos de los títulos de sección
+   Todos del mismo morado que el icono de "Tickets" de home.html (#a855f7).
+
+   NO se cambian (conservan su color):
+     - el de notificaciones (campana: .fa-bell / .fa-bell-slash),
+     - los de categorías (etiquetas de colores de novedades, sugerencias, etc.),
+     - los de votos (pulgares / flechas de a favor y en contra).
+   Esos no van dentro de títulos de sección, salvo la campana de "Notificaciones"
+   de perfil.html, que se excluye a propósito.
+
+   !important porque varios títulos tienen el color escrito a mano en el HTML
+   (por ejemplo style="color: var(--accent-pink)" en perfil.html).
+   ===================================================================== */
+:is(.section-title, .act-card-title, .sv-card-title, .sv-section-head h2, .eq-section-ico) > i:not(.fa-bell):not(.fa-bell-slash) {
+    color: #a855f7 !important;
+}

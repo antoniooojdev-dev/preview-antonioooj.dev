@@ -1,0 +1,646 @@
+---
+import SectionHead from "./SectionHead.astro";
+import { demos, lastUpdate, type ChangeType, type DemoStatus } from "@/data/demos";
+
+const isDev = import.meta.env.DEV;
+
+const STATUS: Record<DemoStatus, string> = {
+  "en-desarrollo": "en desarrollo",
+  "en-pruebas": "en pruebas",
+  terminada: "terminada",
+};
+
+const TYPE: Record<ChangeType, string> = {
+  nuevo: "Nuevo",
+  mejora: "Mejora",
+  ajuste: "Ajuste",
+  corrección: "Corrección",
+};
+
+const fmt = (date: string) =>
+  new Date(`${date}T12:00:00`).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
+
+const items = demos.map((demo) => ({
+  ...demo,
+  // En local se abre la que corre en tu PC; en la web real, la publicada
+  href: isDev ? (demo.devUrl ?? demo.url) : demo.url,
+  updatedLabel: lastUpdate(demo) ? fmt(lastUpdate(demo)!) : "",
+  // en números (13/10/2026) para que se entienda igual en todos los idiomas
+  updatedNum: lastUpdate(demo) ? lastUpdate(demo)!.split("-").reverse().join("/") : "",
+  latestVersion: demo.changelog[0]?.version ?? "",
+  changeCount: demo.changelog.reduce((n, r) => n + r.changes.length, 0),
+}));
+---
+
+{
+  items.length > 0 && (
+    <section id="demos" class="section">
+      <div class="container">
+        <SectionHead
+          title="Trabajando actualmente"
+        />
+
+        <div class="grid">
+          {items.map((demo, i) => (
+            <article class="tile demo" data-reveal data-demo data-url={demo.href} data-state={demo.href ? "checking" : "unpublished"} style={`--i:${i}`}>
+              <div class="top mono">
+                <span class="live">
+                  <span class="dot" aria-hidden="true" />
+                  <span data-live-text>{demo.href ? "comprobando…" : "sin publicar"}</span>
+                </span>
+                <span class="status">{STATUS[demo.status]}</span>
+              </div>
+
+              <h3>{demo.title}</h3>
+              <p class="client mono">{demo.client}</p>
+              <p class="summary">{demo.summary}</p>
+
+              <ul class="features" role="list">
+                {demo.features.map((f) => <li>{f}</li>)}
+              </ul>
+
+              <ul class="tags" aria-label="Tecnologías">
+                {demo.stack.map((t) => <li class="tag">{t}</li>)}
+              </ul>
+
+              <div class="foot">
+                {demo.updatedNum && <span class="updated mono"><span>actualizada el</span> {demo.updatedNum}</span>}
+                <div class="actions">
+                  {demo.changelog.length > 0 && (
+                    <button
+                      type="button"
+                      class="btn btn-ghost changelog-btn"
+                      data-changelog-open={demo.slug}
+                      data-version={demo.latestVersion}
+                      aria-haspopup="dialog"
+                    >
+                      Últimas modificaciones
+                      <span class="new-dot" data-new-dot hidden aria-label="hay cambios nuevos" />
+                    </button>
+                  )}
+                  {demo.href ? (
+                    <a href={demo.href} class="btn btn-primary" target="_blank" rel="noopener">
+                      Abrir demo <span class="arrow" aria-hidden="true">↗</span>
+                    </a>
+                  ) : (
+                    <span class="btn btn-ghost is-disabled" aria-disabled="true">Publicación próximamente</span>
+                  )}
+                </div>
+              </div>
+
+              {isDev && demo.devCommand && (
+                <p class="hint mono" data-hint hidden>
+                  Está apagada. Arráncala con <code>{demo.devCommand}</code>
+                </p>
+              )}
+            </article>
+          ))}
+        </div>
+
+        {items.map((demo) => demo.changelog.length > 0 && (
+          <dialog class="changelog" id={`changelog-${demo.slug}`} aria-labelledby={`changelog-title-${demo.slug}`}>
+            <header class="cl-head">
+              <div>
+                <p class="cl-eyebrow mono">registro de cambios</p>
+                <h3 id={`changelog-title-${demo.slug}`}>{demo.title}</h3>
+                <p class="cl-sub mono">
+                  {demo.changelog.length} actualizaciones · {demo.changeCount} cambios · última el {demo.updatedLabel}
+                </p>
+              </div>
+              <button type="button" class="cl-close" data-changelog-close aria-label="Cerrar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+              </button>
+            </header>
+
+            <ol class="cl-list" role="list">
+              {demo.changelog.map((release, ri) => (
+                <li class="cl-release" style={`--i:${ri}`}>
+                  <div class="cl-meta mono">
+                    <span class="cl-version">{release.version}</span>
+                    <time datetime={release.date}>{fmt(release.date)}</time>
+                    {ri === 0 && <span class="cl-latest">más reciente</span>}
+                  </div>
+                  <h4>{release.title}</h4>
+                  <ul class="cl-changes" role="list">
+                    {release.changes.map((c) => (
+                      <li>
+                        <span class={`cl-type cl-type--${c.type === "corrección" ? "correccion" : c.type}`}>{TYPE[c.type]}</span>
+                        <span>{c.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ol>
+          </dialog>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+<script>
+  // Comprueba si cada demo responde. Con mode "no-cors" la respuesta no se puede leer,
+  // pero la promesa solo falla si el servidor no contesta: suficiente para saber si está encendida.
+  async function check(card: HTMLElement) {
+    const url = card.dataset.url;
+    if (!url) return;
+    const text = card.querySelector<HTMLElement>("[data-live-text]");
+    const hint = card.querySelector<HTMLElement>("[data-hint]");
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 4000);
+    try {
+      await fetch(url, { mode: "no-cors", cache: "no-store", signal: ctrl.signal });
+      card.dataset.state = "online";
+      if (text) text.textContent = "en línea";
+      if (hint) hint.hidden = true;
+    } catch {
+      card.dataset.state = "offline";
+      if (text) text.textContent = "apagada";
+      if (hint) hint.hidden = false;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  const cards = document.querySelectorAll<HTMLElement>("[data-demo]");
+  const refresh = () => cards.forEach(check);
+  refresh();
+  // Vuelve a comprobar al volver a la pestaña (p. ej. después de arrancar la demo)
+  document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && refresh());
+
+  /* ── Últimas modificaciones ─────────────────────────────── */
+  // El punto aparece si hay una versión que este visitante todavía no ha abierto
+  const seenKey = (slug: string) => `aj-changelog-${slug}`;
+  const readSeen = (slug: string) => {
+    try {
+      return localStorage.getItem(seenKey(slug));
+    } catch {
+      return null;
+    }
+  };
+
+  document.querySelectorAll<HTMLButtonElement>("[data-changelog-open]").forEach((btn) => {
+    const slug = btn.dataset.changelogOpen!;
+    const dialog = document.getElementById(`changelog-${slug}`) as HTMLDialogElement | null;
+    const dot = btn.querySelector<HTMLElement>("[data-new-dot]");
+    if (!dialog) return;
+    if (dot) dot.hidden = readSeen(slug) === btn.dataset.version;
+
+    btn.addEventListener("click", () => {
+      dialog.showModal();
+      document.documentElement.classList.add("changelog-open");
+      try {
+        localStorage.setItem(seenKey(slug), btn.dataset.version ?? "");
+      } catch {}
+      if (dot) dot.hidden = true;
+    });
+
+    let closing = false;
+    const close = () => {
+      if (!dialog.open || closing) return;
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return dialog.close();
+      closing = true;
+      dialog.classList.add("is-closing");
+      setTimeout(() => {
+        dialog.close();
+        dialog.classList.remove("is-closing");
+        closing = false;
+      }, 220);
+    };
+
+    dialog.querySelector("[data-changelog-close]")?.addEventListener("click", close);
+    dialog.addEventListener("click", (e) => e.target === dialog && close());
+    dialog.addEventListener("cancel", (e) => {
+      e.preventDefault();
+      close();
+    });
+    dialog.addEventListener("close", () => document.documentElement.classList.remove("changelog-open"));
+  });
+</script>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr));
+    gap: var(--space-3);
+  }
+
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .live {
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: var(--bg-code);
+    color: var(--fg);
+  }
+
+  .live {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.6;
+  }
+
+  [data-state="checking"] .dot {
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  [data-state="online"] .dot {
+    background: #4ade80;
+    opacity: 1;
+    box-shadow: 0 0 0 3px rgb(74 222 128 / 0.25);
+  }
+
+  [data-state="offline"] .dot {
+    background: #f87171;
+    opacity: 1;
+  }
+
+  .status {
+    font-weight: 600;
+  }
+
+  h3 {
+    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.3rem);
+    font-weight: 750;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  .client {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .summary {
+    color: var(--fg-muted);
+  }
+
+  .features {
+    display: grid;
+    gap: var(--space-2);
+    margin-block: var(--space-2);
+    font-size: var(--fs-sm);
+  }
+
+  .features li {
+    padding-left: 1.1rem;
+    text-indent: -1.1rem;
+  }
+
+  .features li::before {
+    content: "→ ";
+    color: var(--fg-subtle);
+  }
+
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: auto;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+  }
+
+  .foot .btn {
+    border-width: 1px;
+    border-radius: 999px;
+  }
+
+  .updated {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .changelog-btn {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .new-dot {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 0 2px var(--bg-elev);
+    animation: new-dot 2s ease-in-out infinite;
+  }
+
+  .new-dot[hidden] {
+    display: none;
+  }
+
+  @keyframes new-dot {
+    50% {
+      box-shadow:
+        0 0 0 2px var(--bg-elev),
+        0 0 0 6px color-mix(in srgb, var(--ok) 20%, transparent);
+    }
+  }
+
+  /* ── Ventana «Últimas modificaciones» ─────────────────── */
+  :global(html.changelog-open) {
+    overflow: hidden;
+  }
+
+  .changelog {
+    width: min(100% - 2rem, 40rem);
+    max-height: min(85vh, 52rem);
+    /* el reset global quita el margin:auto con el que el navegador centra los <dialog> */
+    margin: auto;
+    padding: 0;
+    color: var(--fg);
+    background: var(--bg-elev);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.5);
+    overflow: hidden;
+  }
+
+  .changelog[open] {
+    display: flex;
+    flex-direction: column;
+    animation: cl-in 0.35s var(--ease) both;
+  }
+
+  .changelog::backdrop {
+    background: rgb(0 0 0 / 0.55);
+    backdrop-filter: blur(4px);
+  }
+
+  .changelog[open]::backdrop {
+    animation: cl-fade 0.3s ease both;
+  }
+
+  .changelog.is-closing,
+  .changelog.is-closing::backdrop {
+    animation: cl-out 0.22s ease forwards;
+  }
+
+  .cl-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-5) var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cl-eyebrow,
+  .cl-sub {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .cl-head h3 {
+    margin-block: var(--space-1);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .cl-close {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    color: var(--fg-muted);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition:
+      color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease);
+  }
+
+  .cl-close:hover {
+    color: var(--fg);
+    border-color: var(--fg);
+  }
+
+  .cl-close svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  /* Línea de tiempo */
+  .cl-list {
+    display: grid;
+    gap: var(--space-6);
+    padding: var(--space-5) var(--space-5) var(--space-6) calc(var(--space-5) + 1.25rem);
+    margin: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .cl-release {
+    position: relative;
+    animation: cl-item 0.45s var(--ease) both;
+    animation-delay: calc(0.12s + var(--i) * 0.08s);
+  }
+
+  /* punto y línea de la línea de tiempo */
+  .cl-release::before {
+    content: "";
+    position: absolute;
+    top: 0.35rem;
+    left: -1.25rem;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--bg-elev);
+    border: 2px solid var(--fg-subtle);
+  }
+
+  .cl-release:first-child::before {
+    background: var(--fg);
+    border-color: var(--fg);
+  }
+
+  .cl-release:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 1.15rem;
+    bottom: calc(-1 * var(--space-6) + 0.35rem);
+    left: calc(-1.25rem + 4px);
+    width: 1px;
+    background: var(--border);
+  }
+
+  .cl-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .cl-version {
+    color: var(--fg);
+    font-weight: 500;
+  }
+
+  .cl-latest {
+    padding: 0.05rem 0.5rem;
+    color: var(--ok);
+    border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent);
+    border-radius: 999px;
+  }
+
+  .cl-release h4 {
+    margin-block: var(--space-2) var(--space-3);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .cl-changes {
+    display: grid;
+    gap: var(--space-3);
+    padding: 0;
+    margin: 0;
+  }
+
+  .cl-changes li {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    align-items: baseline;
+    gap: var(--space-3);
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .cl-type {
+    justify-self: start;
+    padding: 0.1rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--fg-muted);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .cl-type--nuevo {
+    color: var(--accent-fg);
+    background: var(--fg);
+    border-color: var(--fg);
+  }
+
+  .cl-type--correccion {
+    color: var(--error);
+    border-color: color-mix(in srgb, var(--error) 45%, transparent);
+  }
+
+  @media (max-width: 34rem) {
+    /* en móvil sale desde abajo, como una hoja */
+    .changelog {
+      width: 100%;
+      max-width: 100%;
+      max-height: 90vh;
+      margin: auto 0 0;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .cl-changes li {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
+    }
+  }
+
+  @keyframes cl-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.98);
+    }
+  }
+
+  @keyframes cl-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes cl-out {
+    to {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  @keyframes cl-item {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+
+  .is-disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  .hint {
+    padding: var(--space-3);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    background: var(--bg-code);
+    border-radius: var(--radius-sm);
+  }
+
+  .hint code {
+    color: var(--fg);
+  }
+
+  @keyframes pulse {
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-state="checking"] .dot,
+    .new-dot,
+    .changelog[open],
+    .changelog[open]::backdrop,
+    .cl-release {
+      animation: none;
+    }
+  }
+</style>

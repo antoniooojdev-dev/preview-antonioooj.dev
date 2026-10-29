@@ -1,0 +1,183 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+// Al llegar aquí la página anterior se va deslizando a la izquierda y esta entra por la derecha
+import "@/styles/deslizar.css";
+---
+
+<BaseLayout title="Iniciar sesión" description="Inicia sesión con Discord para hablar conmigo." noindex intro={false}>
+  <section class="page">
+    <div class="container">
+      <div class="login card">
+        <span class="eyebrow mono">~/login</span>
+
+        <div class="login__body">
+          <h1>Inicia sesión</h1>
+          <p class="login__why muted"></p>
+          <div class="login__opciones">
+            <a class="btn btn-primary login__btn" data-proveedor="discord" href="/api/auth/discord/login" data-astro-prefetch="false">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M20.32 4.37a19.8 19.8 0 0 0-4.89-1.52.07.07 0 0 0-.08.04c-.21.38-.44.87-.61 1.25a18.27 18.27 0 0 0-5.49 0 12.6 12.6 0 0 0-.62-1.25.08.08 0 0 0-.08-.04 19.74 19.74 0 0 0-4.89 1.52.07.07 0 0 0-.03.03C.53 9.05-.32 13.58.1 18.06a.08.08 0 0 0 .03.06 19.9 19.9 0 0 0 5.99 3.03.08.08 0 0 0 .08-.03c.46-.63.87-1.3 1.23-1.99a.08.08 0 0 0-.04-.11 13.1 13.1 0 0 1-1.87-.89.08.08 0 0 1-.01-.13l.37-.29a.07.07 0 0 1 .08-.01c3.93 1.79 8.18 1.79 12.06 0a.07.07 0 0 1 .08.01l.37.29a.08.08 0 0 1-.01.13c-.6.35-1.22.65-1.87.89a.08.08 0 0 0-.04.11c.36.7.77 1.36 1.22 1.99a.08.08 0 0 0 .08.03 19.84 19.84 0 0 0 6-3.03.08.08 0 0 0 .03-.05c.5-5.18-.84-9.67-3.55-13.66a.06.06 0 0 0-.03-.03ZM8.02 15.33c-1.18 0-2.16-1.08-2.16-2.42 0-1.33.96-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.34-.96 2.42-2.16 2.42Zm7.97 0c-1.18 0-2.15-1.08-2.15-2.42 0-1.33.95-2.42 2.15-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.34-.95 2.42-2.16 2.42Z"/></svg>
+              Continuar con Discord
+            </a>
+            <a class="btn login__btn login__btn--alt" data-proveedor="google" href="/api/auth/google/login" data-astro-prefetch="false">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M21.35 11.1H12v2.98h5.35c-.23 1.4-1.66 4.1-5.35 4.1-3.22 0-5.85-2.67-5.85-5.96S8.78 6.26 12 6.26c1.83 0 3.06.78 3.76 1.45l2.57-2.47C16.68 3.7 14.55 2.75 12 2.75 6.89 2.75 2.75 6.89 2.75 12S6.89 21.25 12 21.25c5.34 0 8.88-3.75 8.88-9.04 0-.6-.07-1.06-.15-1.51Z"/></svg>
+              Continuar con Google
+            </a>
+            <a class="btn login__btn login__btn--alt" data-proveedor="github" href="/api/auth/github/login" data-astro-prefetch="false">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+              Continuar con GitHub
+            </a>
+          </div>
+          <p class="login__error" role="alert" hidden></p>
+          <ul role="list" class="login__perks">
+            <li>La sesión se queda guardada en este navegador durante 30 días.</li>
+            <li>Tus chats quedan ligados a la cuenta con la que entres.</li>
+            <li>Solo vemos tu nombre y tu avatar: nada de tus mensajes ni servidores.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { API, copiaLocal, quienSoy, volverValido } from "@/scripts/sesion";
+
+  const caja = document.querySelector<HTMLElement>(".login")!;
+  const params = new URLSearchParams(location.search);
+  const volver = volverValido(params.get("volver"));
+  const error = params.get("error");
+
+  const motivos: Record<string, string> = {
+    "/chat": "Entra con tu cuenta y hablamos de tu proyecto directamente, sin intermediarios.",
+    "/contacto": "Para contactar conmigo, entra con Discord, Google o GitHub.",
+    "/admin": "Panel de administración.",
+    "/cuenta": "Entra para ver tu cuenta y tus proyectos.",
+  };
+
+  function mostrarLogin(mensaje?: string) {
+    caja.querySelector<HTMLElement>(".login__why")!.textContent =
+      motivos[volver] ?? "Entra con Discord, Google o GitHub.";
+    caja.querySelectorAll<HTMLAnchorElement>("[data-proveedor]").forEach((a) => {
+      a.href = `${API}/api/auth/${a.dataset.proveedor}/login?volver=${encodeURIComponent(volver)}`;
+    });
+    const p = caja.querySelector<HTMLElement>(".login__error")!;
+    p.textContent = mensaje ?? "";
+    p.hidden = !mensaje;
+  }
+
+  // error=config | login (Discord) o config-google, login-github...
+  const NOMBRES: Record<string, string> = { discord: "Discord", google: "Google", github: "GitHub" };
+
+  if (error) {
+    history.replaceState(null, "", `${location.pathname}?volver=${encodeURIComponent(volver)}`);
+    const [tipo, prov = "discord"] = error.split("-");
+    const quien = NOMBRES[prov] ?? "Discord";
+    mostrarLogin(
+      tipo === "config"
+        ? `El inicio de sesión con ${quien} aún no está configurado.`
+        : `No se pudo iniciar sesión con ${quien}. Inténtalo de nuevo.`,
+    );
+  } else if (params.get("reauth")) {
+    // El panel pide una sesión reciente: aunque ya haya sesión, se vuelve a entrar con Discord
+    history.replaceState(null, "", `${location.pathname}?volver=${encodeURIComponent(volver)}`);
+    mostrarLogin("Tu sesión ha caducado. Vuelve a entrar con Discord.");
+  } else if (copiaLocal()) {
+    // ya había sesión en esta pestaña: directo a donde iba, sin enseñar el formulario
+    location.replace(volver);
+  } else {
+    // el formulario se ve ya, sin pantalla de carga; si resulta que hay sesión, se sigue adelante
+    mostrarLogin();
+    quienSoy()
+      .then((yo) => yo && location.replace(volver))
+      .catch(() => mostrarLogin("El inicio de sesión no está disponible ahora mismo. Prueba en un rato."));
+  }
+</script>
+
+<style>
+  .page {
+    padding-block: var(--space-8) var(--section);
+  }
+
+  .login {
+    max-width: 30rem;
+    margin-inline: auto;
+    padding: clamp(1.75rem, 1.25rem + 3vw, 3rem);
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .login:hover {
+    border-color: var(--border);
+  }
+
+  .eyebrow {
+    font-size: var(--fs-sm);
+    color: var(--fg-subtle);
+  }
+
+  .muted {
+    color: var(--fg-muted);
+  }
+
+  .login__body {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+
+  h1 {
+    font-size: var(--fs-xl);
+    letter-spacing: -0.035em;
+  }
+
+  .login__opciones {
+    display: grid;
+    gap: var(--space-2);
+    width: 100%;
+  }
+
+  .login__btn {
+    width: 100%;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+
+  .login__btn--alt {
+    border: 1px solid var(--border-strong);
+    color: var(--fg);
+    background: transparent;
+  }
+
+  .login__btn--alt:hover {
+    border-color: var(--fg);
+  }
+
+  .login__error {
+    color: var(--error);
+    font-size: var(--fs-sm);
+  }
+
+  .login__perks {
+    display: grid;
+    gap: var(--space-2);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+    width: 100%;
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .login__perks li {
+    padding-left: 1.25rem;
+    position: relative;
+  }
+
+  .login__perks li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--fg-subtle);
+    font-family: var(--font-mono);
+  }
+
+</style>

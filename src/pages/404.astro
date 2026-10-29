@@ -1,0 +1,66 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import CodeBlock from "@/components/CodeBlock.astro";
+
+const code = `
+try {
+  pagina = await router.get(url);
+} catch (error) {
+  // 404: esta página no existe (o se ha mudado)
+  return volverAlInicio();
+}
+`;
+---
+
+<BaseLayout title="Página no encontrada" noindex>
+  <section class="page">
+    <div class="container inner">
+      <span class="eyebrow mono">error 404</span>
+      <h1>Esta página no existe.</h1>
+      <p>Puede que el enlace esté mal o que la página se haya movido.</p>
+      <CodeBlock code={code} lang="js" filename="router.js" />
+      <div class="ctas">
+        <a href="/" class="btn btn-primary">Ir al inicio</a>
+        <a href="/contacto" class="btn btn-ghost">Contactar</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--section);
+  }
+
+  .inner {
+    display: grid;
+    gap: var(--space-5);
+    max-width: 40rem;
+    justify-items: start;
+  }
+
+  .inner > :global(figure) {
+    width: 100%;
+  }
+
+  .eyebrow {
+    font-size: var(--fs-sm);
+    color: var(--fg-subtle);
+  }
+
+  h1 {
+    font-size: var(--fs-xl);
+    letter-spacing: -0.035em;
+  }
+
+  p {
+    color: var(--fg-muted);
+    font-size: var(--fs-md);
+  }
+
+  .ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+</style>

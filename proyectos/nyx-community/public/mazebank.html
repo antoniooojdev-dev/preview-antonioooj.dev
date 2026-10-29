@@ -1,0 +1,1864 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maze Bank Foreclosures | Nyx Community</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Lexend:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Leaflet CSS Oficial -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="/src/assets/admin.css">
+<link rel="stylesheet" href="/src/assets/perfil.css">
+<style>
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: rgba(14, 10, 20, 0.9); }
+::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(168, 85, 247, 0.6); }
+
+@keyframes pageEntrance {
+    from { opacity: 0; transform: translateY(12px) scale(0.99); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.main-content { animation: pageEntrance 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+:root {
+    --purple-primary: #a855f7;
+    --purple-glow: rgba(168, 85, 247, 0.3);
+    --pink-accent: #ec4899;
+}
+
+/* El botón activo del menú lateral usa el estilo común de src/components/hx-sidebar.js */
+
+.maze-banner {
+    background: linear-gradient(135deg, rgba(20, 15, 30, 0.95) 0%, rgba(30, 15, 45, 0.95) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 24px;
+    padding: 36px;
+    margin-bottom: 28px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(168, 85, 247, 0.12);
+    position: relative;
+    overflow: hidden;
+}
+.maze-banner::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%;
+    background: linear-gradient(to bottom, #3b82f6, #a855f7);
+}
+
+.map-terminal-box {
+    background: linear-gradient(145deg, #120c1c 0%, #0a0710 100%);
+    border: 2px solid rgba(59, 130, 246, 0.4);
+    border-radius: 24px;
+    padding: 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 40px rgba(59, 130, 246, 0.15);
+}
+
+.terminal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 14px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+}
+
+.map-wrapper-flex {
+    display: flex;
+    gap: 16px;
+    position: relative;
+}
+
+#gtaMap {
+    flex: 1;
+    height: 650px;
+    border-radius: 16px;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.9);
+    background: #050308;
+    z-index: 1;
+}
+
+/* BOTÓN TOGGLE DE COORDENADAS Y ASSETS */
+.btn-coord-toggle {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    color: #c084fc;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 12.5px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.btn-coord-toggle:hover {
+    background: rgba(168, 85, 247, 0.15);
+    border-color: #a855f7;
+    color: #fff;
+}
+.btn-coord-toggle.active {
+    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    border-color: #f472b6;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(236, 72, 153, 0.4);
+}
+
+/* PANEL LATERAL DE COORDENADAS */
+.coord-panel {
+    width: 320px;
+    background: rgba(14, 10, 22, 0.95);
+    border: 1px solid rgba(236, 72, 153, 0.4);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+    max-height: 650px;
+}
+.coord-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 10px;
+}
+.coord-panel-header h4 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'Lexend', sans-serif;
+    letter-spacing: 0.5px;
+}
+#coordCountBadge {
+    background: rgba(236, 72, 153, 0.15);
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    color: #f472b6;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.coord-actions-bar {
+    display: flex;
+    gap: 8px;
+}
+.btn-coord-action {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.btn-coord-action.copy-all:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #60a5fa;
+}
+.btn-coord-action.clear-all:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #f87171;
+}
+.coord-list-container {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 520px;
+    padding-right: 2px;
+}
+.coord-empty-text {
+    text-align: center;
+    color: #64748b;
+    font-size: 12px;
+    padding: 20px 10px;
+    line-height: 1.5;
+}
+.coord-item-row {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px;
+    color: #e2e8f0;
+    transition: background 0.2s;
+}
+.coord-item-row:hover {
+    background: rgba(236, 72, 153, 0.06);
+    border-color: rgba(236, 72, 153, 0.2);
+}
+.coord-item-text {
+    font-family: monospace;
+    font-weight: 600;
+    color: #c084fc;
+}
+.btn-delete-coord {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+.btn-delete-coord:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.leaflet-control-zoom {
+    border: 1px solid rgba(168, 85, 247, 0.5) !important;
+    border-radius: 14px !important;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
+    background: #140f1d !important;
+    margin-top: 18px !important;
+    margin-left: 18px !important;
+}
+.leaflet-control-zoom a {
+    background-color: #140f1d !important;
+    color: #c084fc !important;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.2) !important;
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    transition: all 0.2s ease !important;
+}
+.leaflet-control-zoom a:hover {
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+}
+.leaflet-control-zoom a:last-child {
+    border-bottom: none !important;
+}
+
+.modern-zone-tooltip {
+    background: rgba(18, 12, 28, 0.95) !important;
+    border: 1px solid rgba(168, 85, 247, 0.6) !important;
+    color: #fff !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    padding: 12px 16px !important;
+    border-radius: 14px !important;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.9), 0 0 20px rgba(168, 85, 247, 0.3) !important;
+    backdrop-filter: blur(8px);
+}
+.leaflet-tooltip.modern-zone-tooltip::before {
+    border-top-color: rgba(168, 85, 247, 0.6) !important;
+}
+
+/* ANIMACIONES Y MODALES */
+@keyframes modalFadeIn {
+    from { opacity: 0; backdrop-filter: blur(0px); }
+    to { opacity: 1; backdrop-filter: blur(10px); }
+}
+@keyframes modalScaleUp {
+    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes tabSlideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.zone-modal-overlay, .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 3, 8, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    padding: 20px;
+}
+.zone-modal-overlay.active, .modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+    animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.zone-modal-content {
+    background: linear-gradient(145deg, #140d1f 0%, #0a0610 100%);
+    border: 1px solid rgba(168, 85, 247, 0.35);
+    border-radius: 22px;
+    width: 100%;
+    max-width: 780px;
+    padding: 32px;
+    position: relative;
+    box-shadow: 0 40px 90px rgba(0,0,0,0.95), 0 0 60px rgba(168, 85, 247, 0.15);
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.zone-modal-overlay.active .zone-modal-content {
+    transform: scale(1) translateY(0);
+    animation: modalScaleUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Modal de Contrato Estilo Folio Paper Card */
+.folio-paper-card {
+    background: #fdfbf7;
+    border: 1px solid #dcd6c5;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 700px;
+    padding: 40px;
+    position: relative;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+    color: #1e293b;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    text-align: left;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.9) translateY(20px);
+    animation: modalScaleUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.folio-header {
+    text-align: center;
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 14px;
+    margin-bottom: 24px;
+}
+.folio-header h3 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #0f172a;
+}
+.folio-header span {
+    font-size: 11px;
+    color: #64748b;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.folio-body {
+    position: relative;
+    padding: 10px 0;
+}
+.folio-badge-stamp {
+    position: absolute;
+    top: -5px;
+    right: 0;
+    background: rgba(239, 68, 68, 0.03);
+    border: 2px dashed #dc2626;
+    color: #dc2626;
+    padding: 4px 14px;
+    font-size: 11px;
+    font-weight: 800;
+    border-radius: 4px;
+    letter-spacing: 2px;
+    transform: rotate(5deg);
+    text-transform: uppercase;
+}
+.folio-body h4 {
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 18px;
+    letter-spacing: 0.5px;
+}
+.folio-body p {
+    font-size: 13px;
+    color: #334155;
+    line-height: 1.65;
+    margin-bottom: 14px;
+    text-align: justify;
+}
+.folio-signature-section {
+    margin-top: 24px;
+    border-top: 1px dashed #cbd5e1;
+    padding-top: 20px;
+}
+.signature-line-box label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #64748b;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 10px;
+}
+.btn-signature-action {
+    background: #1e40af;
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+    transition: background 0.2s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.btn-signature-action:hover {
+    background: #1d4ed8;
+}
+.signature-preview-container {
+    background: #f1f5f9;
+    border: 1px dashed #94a3b8;
+    border-radius: 6px;
+    padding: 10px 14px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+}
+.signature-rendered-text {
+    font-family: 'Caveat', cursive, serif;
+    font-size: 28px;
+    color: #1e1b4b;
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+.folio-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+}
+.btn-custom-secondary {
+    background: #d4cbaf;
+    border: none;
+    color: #292524;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.btn-custom-secondary:hover {
+    background: #c5bc9e;
+}
+.btn-submit-final {
+    background: linear-gradient(135deg, #993d18 0%, #70240d 100%);
+    border: none;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(114, 36, 13, 0.4);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: filter 0.2s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.btn-submit-final:hover {
+    filter: brightness(1.1);
+}
+
+/* Notificación Flotante Superior Estilo Imagen */
+.floating-top-toast-container {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-30px);
+    z-index: 999999;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.floating-top-toast-container.active {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+}
+.floating-top-toast {
+    background: rgba(18, 12, 28, 0.95);
+    border: 1px solid rgba(168, 85, 247, 0.5);
+    border-radius: 16px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(168, 85, 247, 0.25);
+    backdrop-filter: blur(12px);
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13.5px;
+}
+.toast-icon-badge {
+    width: 28px;
+    height: 28px;
+    background: #3b82f6;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+    flex-shrink: 0;
+}
+.toast-code-tag {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    color: #c084fc;
+    letter-spacing: 0.5px;
+    margin-left: 4px;
+}
+
+/* Cabecera del Logo y Título */
+.modal-brand-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 16px;
+}
+.modal-brand-header img {
+    height: 38px;
+    object-fit: contain;
+}
+.modal-brand-title {
+    font-family: 'Lexend', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* Pestañas de Navegación */
+.modal-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+.modal-tab-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    text-align: center;
+}
+.modal-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+}
+.modal-tab-btn.active {
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    border-color: #c084fc;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.35);
+}
+
+.modal-tab-pane {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+    text-align: left;
+}
+.modal-tab-pane.active {
+    display: flex;
+    animation: tabSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.zone-main-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 16px 0;
+}
+
+.zone-form-left {
+    background: rgba(18, 12, 28, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: left;
+}
+
+.form-group-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.form-group-preview label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #94a3b8;
+    font-weight: 700;
+}
+.preview-input-field {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+}
+.preview-input-field.status-active {
+    color: #4ade80;
+}
+
+.quality-lines-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.quality-line-item {
+    font-size: 12.5px;
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.quality-line-item i {
+    color: #c084fc;
+    font-size: 12px;
+}
+
+.zone-modal-image-wrapper {
+    margin-top: 12px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    background: rgba(0, 0, 0, 0.4);
+    max-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.zone-modal-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    max-height: 210px;
+}
+
+.zone-modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 24px;
+    padding-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+.btn-close-preview {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-close-preview:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.4);
+}
+.btn-buy-property {
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    border: none;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    justify-content: center;
+}
+.btn-buy-property:hover {
+    background: linear-gradient(135deg, #9333ea 100%, #7e22ce 100%);
+    transform: translateY(-1px);
+}
+
+/* ===== Botón de Soporte en la barra superior ===== */
+/* Estilos de reserva: van dentro de :where() (prioridad cero), así que si perfil.css
+   ya da estilo a estas clases mandan los suyos y el botón se ve igual que en Home. */
+:where(.top-action-bar) { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+:where(.top-buttons) { display: flex; align-items: center; gap: 10px; }
+:where(.top-btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+:where(.top-btn.highlight-btn) {
+    background: rgba(168, 85, 247, 0.14);
+    border-color: rgba(168, 85, 247, 0.45);
+    color: #fff;
+}
+:where(.top-btn.highlight-btn:hover) {
+    border-color: #a855f7;
+    box-shadow: 0 0 18px rgba(168, 85, 247, 0.4);
+}
+
+/* ===== Menú desplegable de Soporte (igual que en Home y Equipo) ===== */
+.support-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+.support-dropdown-menu {
+    position: fixed;
+    width: 250px;
+    background: #13141f;
+    border: 1px solid rgba(168, 85, 247, 0.5);
+    border-radius: 14px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 30px rgba(168, 85, 247, 0.4);
+    display: flex;
+    flex-direction: column;
+    z-index: 2147483647;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+    pointer-events: none;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 6px 0;
+}
+.support-dropdown-menu.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+.support-menu-section {
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.support-menu-section:last-child {
+    border-bottom: none;
+}
+.support-menu-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #94a3b8;
+    padding: 6px 16px 4px 16px;
+    letter-spacing: 0.5px;
+}
+.support-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px;
+    font-size: 13px;
+    color: #cbd5e1;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    font-weight: 500;
+}
+.support-dropdown-item:hover {
+    background: rgba(168, 85, 247, 0.2);
+    color: #fff;
+}
+.support-dropdown-item i {
+    color: #a855f7;
+    width: 16px;
+    text-align: center;
+}
+</style>
+    <link rel="stylesheet" href="/src/assets/soporte.css">
+    <link rel="stylesheet" href="/src/assets/cabecera.css">
+    <link rel="stylesheet" href="/src/assets/comun.css">
+</head>
+<body>
+<div class="grid-background"></div>
+
+<!-- NOTIFICACIÓN FLOTANTE SUPERIOR -->
+<div class="floating-top-toast-container" id="topToastContainer">
+    <div class="floating-top-toast">
+        <div class="toast-icon-badge"><i class="fa-solid fa-info"></i></div>
+        <div>
+            Tu solicitud para adquirir la propiedad está activa: <span class="toast-code-tag" id="toastTicketCode">MBF-0001</span> Puedes ver el estado y resolución en el apartado de <strong>Mi perfil</strong>.
+        </div>
+    </div>
+</div>
+
+<div class="app-container">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-logo-title" style="display: flex; align-items: center; gap: 10px;">
+                <img src="https://i.imgur.com/VPqGp7U.png" alt="Nyx Community Logo" class="sidebar-logo" style="width: 32px; height: 32px; object-fit: contain;">
+                <span class="server-main-title">Nyx Community</span>
+            </div>
+            <button class="sidebar-toggle-icon" id="sidebarToggleBtn"><i class="fa-solid fa-bars"></i></button>
+        </div>
+        <nav class="sidebar-nav"></nav>
+        <div class="sidebar-footer">
+            <div class="user-profile-mini" id="userProfileMini">
+                <div class="avatar-placeholder" id="userAvatarContainer"><span id="userAvatarFallback">?</span></div>
+                <div class="user-info">
+                    <span class="username" id="userNameDisplay">Usuario</span>
+                    <span class="user-handle" id="userHandleDisplay" style="font-size: 11px; color: var(--text-muted); display: block;">@tag</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <button class="sidebar-reveal-trigger" id="sidebarRevealBtn" title="Abrir menú"><i class="fa-solid fa-chevron-right"></i></button>
+
+    <main class="main-content">
+        <header class="top-action-bar">
+            <div class="breadcrumb" id="breadcrumbNav">Maze Bank Foreclosures</div>
+            <div class="top-buttons">
+                <!-- Botón de Soporte -->
+                <div class="support-dropdown-container" id="supportDropdownContainer">
+                    <button class="top-btn highlight-btn" id="supportDropdownBtn">
+                        <i class="fa-solid fa-circle-question"></i> Soporte
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Menú desplegable de Soporte (al abrirse se mueve al body para quedar por encima de todo) -->
+        <div class="support-dropdown-menu" id="supportDropdownMenu">
+            <!-- Sección Soporte -->
+            <div class="support-menu-section">
+                <div class="support-menu-title">Soporte</div>
+                <a href="/tickets.html" class="support-dropdown-item"><i class="fa-solid fa-ticket"></i> Crear un ticket</a>
+            </div>
+            <!-- Sección Apoyo -->
+            <div class="support-menu-section">
+                <div class="support-menu-title">Apoyo</div>
+                <a href="/sugerencias.html" class="support-dropdown-item"><i class="fa-solid fa-lightbulb"></i> Enviar una sugerencia</a>
+                <a href="/feedback.html" class="support-dropdown-item"><i class="fa-solid fa-comment-dots"></i> Dar tu feedback</a>
+                <a href="/perfil.html" class="support-dropdown-item"><i class="fa-solid fa-user"></i> Acceder al perfil</a>
+                <a href="/index.html" class="support-dropdown-item"><i class="fa-solid fa-house-chimney"></i> Acceder al panel principal</a>
+            </div>
+            <!-- Sección Información -->
+            <div class="support-menu-section">
+                <div class="support-menu-title">Información</div>
+                <a href="/normativa.html" class="support-dropdown-item"><i class="fa-solid fa-book"></i> Normativa general</a>
+                <a href="/pol-privacidad.html" class="support-dropdown-item"><i class="fa-solid fa-shield-halved"></i> Política de privacidad</a>
+                <a href="/terminos.html" class="support-dropdown-item"><i class="fa-solid fa-file-contract"></i> Términos y condiciones</a>
+            </div>
+        </div>
+
+        <!-- Cabecera estilo Sugerencias (src/assets/cabecera.css) -->
+        <header class="cab-head">
+            <div>
+                <h1>Agencia inmobiliaria</h1>
+                <p>Explora las viviendas disponibles desde un modo de vista satelital de San Andreas o adquiere garajes y almacenes independientes.</p>
+            </div>
+        </header>
+
+        <div class="map-terminal-box">
+            <div class="terminal-header">
+                <div style="font-size: 14px; font-family: 'Lexend', sans-serif; font-weight: 600; color: #fff; letter-spacing: 0.5px; text-transform: uppercase;">
+                    <i class="fa-solid fa-map-location-dot" style="color: #3b82f6; margin-right: 8px;"></i> LOS SANTOS - VISTA SATELITAL
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <button id="openAssetsModalBtn" class="btn-coord-toggle" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.4); color: #60a5fa;">
+                        <i class="fa-solid fa-warehouse"></i> <span>Garajes & Almacenes</span>
+                    </button>
+                    <button id="toggleCoordBtn" class="btn-coord-toggle">
+                        <i class="fa-solid fa-crosshairs"></i> <span>Activar Mapeo Coordenadas</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="map-wrapper-flex">
+                <div id="gtaMap"></div>
+                
+                <!-- PANEL LATERAL DE COORDENADAS -->
+                <div id="coordPanel" class="coord-panel" style="display: none;">
+                    <div class="coord-panel-header">
+                        <h4><i class="fa-solid fa-list-ol" style="color: #ec4899;"></i> Puntos Mapeados</h4>
+                        <span id="coordCountBadge">0 puntos</span>
+                    </div>
+                    <div class="coord-actions-bar">
+                        <button class="btn-coord-action copy-all" onclick="copyAllCoords()"><i class="fa-solid fa-copy"></i> Copiar Todas</button>
+                        <button class="btn-coord-action clear-all" onclick="clearAllCoords()"><i class="fa-solid fa-trash-can"></i> Limpiar</button>
+                    </div>
+                    <div class="coord-list-container" id="coordListContainer">
+                        <div class="coord-empty-text">El modo coordenadas está activo. Haz clic en el mapa para registrar puntos.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- MODAL DE GARAJES Y ALMACENES INDEPENDIENTES -->
+<div class="zone-modal-overlay" id="assetsModalOverlay" onclick="closeAssetsModal(event)">
+    <div class="zone-modal-content" onclick="event.stopPropagation()" style="max-width: 880px;">
+        <div class="modal-brand-header">
+            <img src="https://i.imgur.com/xI8gZyh.png" alt="Maze Bank Foreclosures Logo">
+            <span class="modal-brand-title">Maze Bank Foreclosures - Catálogo Independiente</span>
+        </div>
+        <h2 class="zone-main-title">Adquisición de Garajes y Almacenes</h2>
+        <p style="color: #cbd5e1; font-size: 13px; line-height: 1.5; margin-bottom: 20px;">
+            ¿No necesitas una residencia completa? Selecciona un espacio dedicado exclusivamente para salvaguardar tu flota de vehículos o almacenar mercancía de forma totalmente segura en Los Santos.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <!-- Opción 1: Garaje Pequeño (4 plazas) -->
+            <div class="zone-form-left" style="gap: 12px;">
+                <div style="font-weight: 800; color: #fff; font-size: 15px; font-family: 'Lexend', sans-serif; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-car" style="color: #3b82f6;"></i> Garaje Pequeño (4 coches)
+                </div>
+                <p style="color: #94a3b8; font-size: 12.5px; margin: 0; line-height: 1.4;">Espacio optimizado y seguro con capacidad para 4 plazas de aparcamiento privado.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                    <span style="font-size: 11px; color: #94a3b8; font-weight: 700;">VALOR</span>
+                    <span style="color: #4ade80; font-weight: 800; font-size: 15px;">$40,000</span>
+                </div>
+                <button class="btn-buy-property" onclick="selectAssetToBuy('Garaje Pequeño (4 plazas)', '$40,000')">
+                    <i class="fa-solid fa-file-signature"></i> Gestionar Compra
+                </button>
+            </div>
+
+            <!-- Opción 2: Garaje Grande (10 plazas) -->
+            <div class="zone-form-left" style="gap: 12px;">
+                <div style="font-weight: 800; color: #fff; font-size: 15px; font-family: 'Lexend', sans-serif; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-warehouse" style="color: #a855f7;"></i> Garaje Grande (10 coches)
+                </div>
+                <p style="color: #94a3b8; font-size: 12.5px; margin: 0; line-height: 1.4;">Nave de alta gama con capacidad para 10 vehículos y zona de mantenimiento básico.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                    <span style="font-size: 11px; color: #94a3b8; font-weight: 700;">VALOR</span>
+                    <span style="color: #4ade80; font-weight: 800; font-size: 15px;">$85,000</span>
+                </div>
+                <button class="btn-buy-property" onclick="selectAssetToBuy('Garaje Grande (10 plazas)', '$85,000')">
+                    <i class="fa-solid fa-file-signature"></i> Gestionar Compra
+                </button>
+            </div>
+
+            <!-- Opción 3: Almacén Pequeño -->
+            <div class="zone-form-left" style="gap: 12px;">
+                <div style="font-weight: 800; color: #fff; font-size: 15px; font-family: 'Lexend', sans-serif; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-box" style="color: #f59e0b;"></i> Almacén Pequeño
+                </div>
+                <p style="color: #94a3b8; font-size: 12.5px; margin: 0; line-height: 1.4;">Local unitario cerrado para guardar herramientas, objetos personales y stock mediano.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                    <span style="font-size: 11px; color: #94a3b8; font-weight: 700;">VALOR</span>
+                    <span style="color: #4ade80; font-weight: 800; font-size: 15px;">$55,000</span>
+                </div>
+                <button class="btn-buy-property" onclick="selectAssetToBuy('Almacén Pequeño', '$55,000')">
+                    <i class="fa-solid fa-file-signature"></i> Gestionar Compra
+                </button>
+            </div>
+
+            <!-- Opción 4: Almacén Grande -->
+            <div class="zone-form-left" style="gap: 12px;">
+                <div style="font-weight: 800; color: #fff; font-size: 15px; font-family: 'Lexend', sans-serif; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-boxes-stacked" style="color: #ef4444;"></i> Almacén Grande
+                </div>
+                <p style="color: #94a3b8; font-size: 12.5px; margin: 0; line-height: 1.4;">Gran nave industrial dotada de estanterías de alta densidad para almacenamiento masivo.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                    <span style="font-size: 11px; color: #94a3b8; font-weight: 700;">VALOR</span>
+                    <span style="color: #4ade80; font-weight: 800; font-size: 15px;">$110,000</span>
+                </div>
+                <button class="btn-buy-property" onclick="selectAssetToBuy('Almacén Grande', '$110,000')">
+                    <i class="fa-solid fa-file-signature"></i> Gestionar Compra
+                </button>
+            </div>
+        </div>
+
+        <div class="zone-modal-footer" style="margin-top: 24px;">
+            <button class="btn-close-preview" onclick="closeAssetsModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE ZONA CON ANIMACIONES Y PESTAÑAS -->
+<div class="zone-modal-overlay" id="zoneModalOverlay" onclick="closeZoneModal(event)">
+    <div class="zone-modal-content" onclick="event.stopPropagation()">
+        <!-- Cabecera de Marca -->
+        <div class="modal-brand-header">
+            <img src="https://i.imgur.com/xI8gZyh.png" alt="Maze Bank Foreclosures Logo">
+            <span class="modal-brand-title">Maze Bank Foreclosures</span>
+        </div>
+
+        <!-- Pestañas de Navegación -->
+        <div class="modal-tabs">
+            <button class="modal-tab-btn active" id="tabBtnDetails" onclick="switchModalTab('details')">DETALLES DEL LUGAR</button>
+            <button class="modal-tab-btn" id="tabBtnPurchase" onclick="switchModalTab('purchase')">GESTIONAR COMPRA</button>
+        </div>
+
+        <!-- Pestaña 1: Detalles del Lugar -->
+        <div class="modal-tab-pane active" id="tabPaneDetails">
+            <h2 class="zone-main-title" id="modalZoneTitle">Nombre de la zona</h2>
+            
+            <div class="zone-form-left">
+                <div class="form-group-preview">
+                    <label>ESTADO DE VIVIENDAS</label>
+                    <div class="preview-input-field status-active">
+                        <i class="fa-solid fa-circle-check"></i> Disponibles
+                    </div>
+                </div>
+                
+                <div class="form-group-preview">
+                    <label>CALIDAD DE LA ZONA</label>
+                    <div class="preview-input-field" id="modalCalidadField"></div>
+                </div>
+                
+                <div class="form-group-preview">
+                    <label>UBICACIÓN</label>
+                    <div class="preview-input-field" id="modalUbicacionField">
+                        <i class="fa-solid fa-location-dot" style="color: #60a5fa;"></i> San Andreas - Los Santos
+                    </div>
+                </div>
+                
+                <div class="form-group-preview">
+                    <label>ETIQUETAS</label>
+                    <div class="preview-input-field" id="modalTagsField"></div>
+                </div>
+
+                <div class="zone-modal-image-wrapper" id="modalImageWrapper" style="display: none;">
+                    <img id="modalZoneImage" src="" alt="Previsualización de la zona">
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 2: Gestionar Compra -->
+        <div class="modal-tab-pane" id="tabPanePurchase">
+            <h2 class="zone-main-title" id="modalZoneTitlePurchase">Gestionar compra en:</h2>
+            <div class="zone-form-left" style="gap: 14px; padding: 22px;">
+                <p style="color: #cbd5e1; font-size: 13px; line-height: 1.5; margin: 0;">
+                    Adquiere tu propiedad en esta zona a través de la red oficial de Maze Bank Foreclosures.
+                </p>
+
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; margin-top: 4px;">
+                    ¿Qué incluye la compra?
+                </div>
+
+                <div class="preview-input-field">
+                    <i class="fa-solid fa-car" style="color: #4ade80;"></i> Garaje privado subterráneo
+                </div>
+                <div class="preview-input-field">
+                    <i class="fa-solid fa-shirt" style="color: #4ade80;"></i> Vestidor dentro de la habitación principal
+                </div>
+                <div class="preview-input-field">
+                    <i class="fa-solid fa-couch" style="color: #4ade80;"></i> Sala de estar y cocina básica equipada
+                </div>
+
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                    <span style="color: #94a3b8; font-size: 12px; font-weight: 700;">VALORACIÓN DEL INMUEBLE</span>
+                    <span id="modalPurchasePrice" style="color: #4ade80; font-size: 16px; font-weight: 800;">$0</span>
+                </div>
+                
+                <button class="btn-buy-property" id="modalBuyBtn">
+                    <i class="fa-solid fa-file-signature"></i> Continuar para firmar el contrato
+                </button>
+            </div>
+        </div>
+
+        <div class="zone-modal-footer">
+            <button class="btn-close-preview" onclick="closeZoneModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE FIRMA DE CONTRATO -->
+<div class="modal-overlay" id="signatureModal">
+    <div class="modal-card folio-paper-card">
+        <div class="folio-header">
+            <h3>GOBIERNO DE SAN ANDREAS</h3>
+            <span>INMOBILIARIA MAZEBANK FORECLOSURES</span>
+        </div>
+        <div class="folio-body">
+            <div class="folio-badge-stamp">OFICIAL</div>
+            <h4>ACTA DE ADQUISICIÓN Y COMPROMISO DE PROPIEDAD</h4>
+            <p>Por medio del presente documento oficial, el ciudadano interesado declara bajo su más entera y solemne responsabilidad el compromiso formal de adquisición y abono de la propiedad situada en la zona de <strong id="folioZoneName">[Nombre de la Zona]</strong>, por un valor de <strong id="folioPriceDisplay">[Precio]</strong>.</p>
+            <p>Asimismo, el firmante manifiesta de forma libre e inequívoca su adhesión a la totalidad de las normativas vigentes en Los Santos, reconociendo expresamente que la utilización del inmueble para actividades delictivas o ilícitas facultará a las instituciones del estado para proceder a la retirada y expropiación inmediata de la vivienda, sin derecho a devolución ni reembolso alguno sobre el capital invertido.</p>
+            
+            <div class="folio-signature-section">
+                <div class="signature-line-box">
+                    <label>FIRMA DEL SOLICITANTE</label>
+                    <button type="button" id="signButton" class="btn-signature-action">
+                        <i class="fa-solid fa-pen-nib"></i> Firmar documento oficial
+                    </button>
+                    <div id="signaturePreviewBox" class="signature-preview-container" style="display: none;">
+                        <span id="signatureTextOutput" class="signature-rendered-text"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="folio-footer">
+            <button type="button" class="btn-custom-secondary" id="backToZoneModalBtn">Volver a la gestión</button>
+            <button type="button" class="btn-submit-final" id="confirmSignatureBtn"><i class="fa-solid fa-signature"></i> FIRMAR Y PRESENTAR SOLICITUD</button>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet JS Oficial -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+async function loadDiscordSessionData() {
+    const storedUser = localStorage.getItem('discord_user');
+    const avatarContainer = document.getElementById('userAvatarContainer');
+    const userNameDisplay = document.getElementById('userNameDisplay');
+    const userHandleDisplay = document.getElementById('userHandleDisplay');
+    if (!storedUser) return;
+    try {
+        const discordUser = JSON.parse(storedUser);
+        if (userNameDisplay) userNameDisplay.textContent = discordUser.displayName || discordUser.username || "Usuario";
+        if (userHandleDisplay) userHandleDisplay.textContent = "@" + (discordUser.username || "discord");
+        if (avatarContainer && discordUser.avatarUrl) {
+            avatarContainer.innerHTML = `<img src="${discordUser.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        }
+    } catch (e) {
+        console.error("Error al cargar sesión de Discord", e);
+    }
+}
+loadDiscordSessionData();
+
+const toggleBtn = document.getElementById('sidebarToggleBtn');
+const revealBtn = document.getElementById('sidebarRevealBtn');
+const sidebar = document.getElementById('sidebar');
+if (toggleBtn && revealBtn && sidebar) {
+    toggleBtn.addEventListener('click', () => sidebar.classList.add('collapsed'));
+    revealBtn.addEventListener('click', () => sidebar.classList.remove('collapsed'));
+}
+
+// Menú desplegable de Soporte: se coloca justo debajo del botón y se cierra al pulsar fuera
+const supportBtn = document.getElementById('supportDropdownBtn');
+const supportMenu = document.getElementById('supportDropdownMenu');
+
+if (supportBtn && supportMenu) {
+    supportBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = supportMenu.classList.contains('show');
+
+        if (!isOpen) {
+            if (supportMenu.parentElement !== document.body) {
+                document.body.appendChild(supportMenu);
+            }
+            const rect = supportBtn.getBoundingClientRect();
+            supportMenu.style.top = (rect.bottom + 8) + 'px';
+            supportMenu.style.right = (window.innerWidth - rect.right) + 'px';
+            supportMenu.classList.add('show');
+        } else {
+            supportMenu.classList.remove('show');
+        }
+    });
+
+    window.addEventListener('click', () => {
+        supportMenu.classList.remove('show');
+    });
+
+    window.addEventListener('resize', () => {
+        supportMenu.classList.remove('show');
+    });
+}
+
+let mapInstance = null;
+let currentZoneData = { title: '', price: '' };
+
+// Variables para el sistema de coordenadas
+let coordModeActive = false;
+let recordedCoords = []; // Almacena { lat, lng, marker }
+
+const toggleCoordBtn = document.getElementById('toggleCoordBtn');
+const coordPanel = document.getElementById('coordPanel');
+
+if (toggleCoordBtn) {
+    toggleCoordBtn.addEventListener('click', () => {
+        coordModeActive = !coordModeActive;
+        const spanText = toggleCoordBtn.querySelector('span');
+        if (coordModeActive) {
+            toggleCoordBtn.classList.add('active');
+            if (spanText) spanText.textContent = 'Desactivar Mapeo';
+            coordPanel.style.display = 'flex';
+        } else {
+            toggleCoordBtn.classList.remove('active');
+            if (spanText) spanText.textContent = 'Activar Mapeo Coordenadas';
+            coordPanel.style.display = 'none';
+        }
+    });
+}
+
+// Control del Modal de Garajes y Almacenes Independientes
+const openAssetsModalBtn = document.getElementById('openAssetsModalBtn');
+const assetsModalOverlay = document.getElementById('assetsModalOverlay');
+
+if (openAssetsModalBtn) {
+    openAssetsModalBtn.addEventListener('click', () => {
+        assetsModalOverlay.classList.add('active');
+    });
+}
+
+function closeAssetsModal(e) {
+    if (e && e.target !== assetsModalOverlay) return;
+    assetsModalOverlay.classList.remove('active');
+}
+
+function selectAssetToBuy(title, price) {
+    assetsModalOverlay.classList.remove('active');
+    currentZoneData = { title, price };
+    openSignatureModal();
+}
+
+function renderCoordList() {
+    const container = document.getElementById('coordListContainer');
+    const badge = document.getElementById('coordCountBadge');
+    
+    if (badge) badge.textContent = `${recordedCoords.length} punto${recordedCoords.length !== 1 ? 's' : ''}`;
+    
+    if (recordedCoords.length === 0) {
+        container.innerHTML = `<div class="coord-empty-text">El modo coordenadas está activo. Haz clic en el mapa para registrar puntos.</div>`;
+        return;
+    }
+    
+    let html = '';
+    recordedCoords.forEach((item, index) => {
+        html += `
+            <div class="coord-item-row">
+                <span class="coord-item-text">[${item.lat}, ${item.lng}],</span>
+                <button class="btn-delete-coord" onclick="deleteCoord(${index})" title="Eliminar coordenada">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function deleteCoord(index) {
+    if (recordedCoords[index]) {
+        mapInstance.removeLayer(recordedCoords[index].marker);
+        recordedCoords.splice(index, 1);
+        renderCoordList();
+    }
+}
+
+function clearAllCoords() {
+    recordedCoords.forEach(item => {
+        mapInstance.removeLayer(item.marker);
+    });
+    recordedCoords = [];
+    renderCoordList();
+}
+
+function copyAllCoords() {
+    if (recordedCoords.length === 0) {
+        alert("No hay coordenadas registradas para copiar.");
+        return;
+    }
+    
+    const formattedArray = "[\n" + recordedCoords.map(item => `    [${item.lat}, ${item.lng}],`).join("\n") + "\n]";
+    
+    navigator.clipboard.writeText(formattedArray).then(() => {
+        alert("¡Todas las coordenadas han sido copiadas al portapapeles en formato de array!");
+    }).catch(err => {
+        console.error('Error al copiar: ', err);
+    });
+}
+
+function switchModalTab(tabName) {
+    const btnDetails = document.getElementById('tabBtnDetails');
+    const btnPurchase = document.getElementById('tabBtnPurchase');
+    const paneDetails = document.getElementById('tabPaneDetails');
+    const panePurchase = document.getElementById('tabPanePurchase');
+
+    if (tabName === 'details') {
+        btnDetails.classList.add('active');
+        btnPurchase.classList.remove('active');
+        paneDetails.classList.add('active');
+        panePurchase.classList.remove('active');
+    } else {
+        btnPurchase.classList.add('active');
+        btnDetails.classList.remove('active');
+        panePurchase.classList.add('active');
+        paneDetails.classList.remove('active');
+    }
+}
+
+// GESTIÓN DEL MODAL DE ZONA
+function openZoneModal(title, price, traits, tags, priceEuro, priceCP, imageUrl) {
+    currentZoneData = { title, price };
+
+    document.getElementById('modalZoneTitle').textContent = title;
+    document.getElementById('modalZoneTitlePurchase').textContent = "Gestionar compra en: " + title;
+    document.getElementById('modalPurchasePrice').textContent = price;
+    document.getElementById('modalUbicacionField').innerHTML = `<i class="fa-solid fa-location-dot" style="color: #60a5fa;"></i> ${title} - Los Santos`;
+    
+    const calidadContainer = document.getElementById('modalCalidadField');
+    if (traits && traits.length > 0) {
+        calidadContainer.innerHTML = `
+            <div class="quality-lines-container">
+                ${traits.map(t => `<div class="quality-line-item"><i class="fa-solid ${t.icon}"></i><span>${t.text}</span></div>`).join('')}
+            </div>
+        `;
+    } else {
+        calidadContainer.innerHTML = `<div class="quality-line-item"><i class="fa-solid fa-shield"></i><span>Zona residencial estándar</span></div>`;
+    }
+
+    const tagsContainer = document.getElementById('modalTagsField');
+    if (tags && tags.length > 0) {
+        tagsContainer.innerHTML = `
+            <div class="quality-lines-container">
+                ${tags.map(tag => `<div class="quality-line-item"><i class="fa-solid ${tag.icon}"></i><span>${tag.text}</span></div>`).join('')}
+            </div>
+        `;
+    } else {
+        tagsContainer.innerHTML = `
+            <div class="quality-lines-container">
+                <div class="quality-line-item"><i class="fa-solid fa-tag"></i><span>Inmueble verificado</span></div>
+                <div class="quality-line-item"><i class="fa-solid fa-circle-check"></i><span>Acceso inmediato</span></div>
+            </div>
+        `;
+    }
+
+    const imgWrapper = document.getElementById('modalImageWrapper');
+    const imgElement = document.getElementById('modalZoneImage');
+    if (imageUrl) {
+        imgElement.src = imageUrl;
+        imgWrapper.style.display = 'flex';
+    } else {
+        imgWrapper.style.display = 'none';
+    }
+
+    document.getElementById('modalBuyBtn').onclick = () => {
+        openSignatureModal();
+    };
+
+    switchModalTab('details');
+    document.getElementById('zoneModalOverlay').classList.add('active');
+}
+
+function closeZoneModal(e) {
+    if (e && e.target !== document.getElementById('zoneModalOverlay')) return;
+    const overlay = document.getElementById('zoneModalOverlay');
+    overlay.classList.remove('active');
+}
+
+// LÓGICA DEL MODAL DE FIRMA DE CONTRATO
+const signatureModal = document.getElementById('signatureModal');
+const signButton = document.getElementById('signButton');
+const signaturePreviewBox = document.getElementById('signaturePreviewBox');
+const signatureTextOutput = document.getElementById('signatureTextOutput');
+const backToZoneModalBtn = document.getElementById('backToZoneModalBtn');
+const confirmSignatureBtn = document.getElementById('confirmSignatureBtn');
+const folioZoneName = document.getElementById('folioZoneName');
+const folioPriceDisplay = document.getElementById('folioPriceDisplay');
+let isSigned = false;
+
+function openSignatureModal() {
+    closeZoneModal();
+
+    folioZoneName.textContent = currentZoneData.title;
+    folioPriceDisplay.textContent = currentZoneData.price;
+
+    isSigned = false;
+    signButton.style.display = "inline-flex";
+    signaturePreviewBox.style.display = "none";
+    signatureTextOutput.textContent = "";
+
+    signatureModal.classList.add('active');
+}
+
+if (backToZoneModalBtn) {
+    backToZoneModalBtn.addEventListener('click', () => {
+        signatureModal.classList.remove('active');
+        document.getElementById('zoneModalOverlay').classList.add('active');
+        switchModalTab('purchase');
+    });
+}
+
+if (signButton) {
+    signButton.addEventListener('click', () => {
+        signButton.style.display = "none";
+        signaturePreviewBox.style.display = "flex";
+        signatureTextOutput.textContent = "";
+        
+        const genericSignature = "A. S. Vance";
+        let index = 0;
+        const speed = 70;
+        
+        function typeWriter() {
+            if (index < genericSignature.length) {
+                signatureTextOutput.textContent += genericSignature.charAt(index);
+                index++;
+                setTimeout(typeWriter, speed);
+            } else {
+                isSigned = true;
+            }
+        }
+        typeWriter();
+    });
+}
+
+if (confirmSignatureBtn) {
+    confirmSignatureBtn.addEventListener('click', () => {
+        if (!isSigned) {
+            alert("Debes pulsar el botón de firmar documento oficial y esperar a que se complete la firma.");
+            return;
+        }
+
+        // Generar número de compra autoincremental MBF-XXXX
+        let lastCount = parseInt(localStorage.getItem('mbf_ticket_counter') || '0', 10) + 1;
+        localStorage.setItem('mbf_ticket_counter', lastCount);
+        const ticketCode = 'MBF-' + String(lastCount).padStart(4, '0');
+
+        // Guardar solicitud para perfil.html con estado inicial "En proceso"
+        const propertyRequests = JSON.parse(localStorage.getItem('mbf_user_requests') || '[]');
+        propertyRequests.push({
+            id: ticketCode,
+            zone: currentZoneData.title,
+            price: currentZoneData.price,
+            status: 'En proceso',
+            date: new Date().toLocaleDateString()
+        });
+        localStorage.setItem('mbf_user_requests', JSON.stringify(propertyRequests));
+
+        // Mostrar notificación flotante superior personalizada
+        document.getElementById('toastTicketCode').textContent = ticketCode;
+        const toastContainer = document.getElementById('topToastContainer');
+        toastContainer.classList.add('active');
+        signatureModal.classList.remove('active');
+
+        // Redirigir a perfil.html tras 3 segundos para que el usuario aprecie el aviso
+        setTimeout(() => {
+            window.location.href = '/perfil.html';
+        }, 3000);
+    });
+}
+
+// INICIALIZACIÓN DE LEAFLET.JS
+document.addEventListener('DOMContentLoaded', () => {
+    const bounds = [[0, 0], [1000, 1000]];
+
+    mapInstance = L.map('gtaMap', {
+        crs: L.CRS.Simple,
+        zoomControl: true,
+        attributionControl: false,
+        maxBounds: bounds,
+        maxBoundsViscosity: 1.0
+    });
+
+    L.imageOverlay('/mapazonas.jpg', bounds).addTo(mapInstance);
+
+    const baseZoom = mapInstance.getBoundsZoom(bounds);
+    const customMinZoom = baseZoom + 0.6;
+
+    mapInstance.setMinZoom(customMinZoom);
+    mapInstance.setMaxZoom(customMinZoom + 4);
+
+    mapInstance.setView([850, 450], customMinZoom + 1);
+
+    // ACTIVADOR DE COORDENADAS MEDIANTE EL BOTÓN SUPERIOR
+    mapInstance.on('click', (e) => {
+        if (!coordModeActive) return;
+
+        const lat = Math.round(e.latlng.lat);
+        const lng = Math.round(e.latlng.lng);
+
+        const marker = L.circleMarker([lat, lng], {
+            radius: 6,
+            color: '#ec4899',
+            fillColor: '#f472b6',
+            fillOpacity: 0.8,
+            weight: 2
+        }).addTo(mapInstance);
+
+        marker.bindPopup(`<b>Punto Mapeado:</b> [${lat}, ${lng}]`).openPopup();
+
+        recordedCoords.push({ lat, lng, marker });
+        renderCoordList();
+    });
+
+    // ZONAS EXISTENTES
+    createZonePolygon(
+        [[827, 404], [787, 412], [817, 462], [835, 489], [838, 512], [855, 511], [868, 494], [889, 480], [904, 463], [885, 457], [869, 452], [859, 441]],
+        '#22c55e', '#4ade80', 'Paleto Bay', '$120k', 'Paleto Bay & Grapeseed (Zona Verde)', '35.00 €', 3500,
+        [{ icon: 'fa-mountain-sun', text: 'Pertenece al norte (Blaine County)' }, { icon: 'fa-shield-halved', text: 'Zona tranquila' }],
+        [{ icon: 'fa-tree', text: 'Entorno natural protegido' }, { icon: 'fa-house-chimney', text: 'Arquitectura rústica' }],
+        'https://i.imgur.com/RpBEdT0.jpeg'
+    );
+
+    createZonePolygon(
+        [[726, 587], [694, 588], [691, 623], [702, 637], [696, 653], [691, 667], [703, 675], [733, 668], [748, 650], [750, 623], [739, 604]],
+        '#f97316', '#fb923c', 'Sandy Shores (Grapeseed)', '$90k', 'Sandy Shores & Grand Senora (Zona Naranja)', '20.00 €', 2000,
+        [{ icon: 'fa-sun', text: 'Desierto de Grand Senora' }, { icon: 'fa-users', text: 'Frecuentada por lugareños' }],
+        [{ icon: 'fa-warehouse', text: 'Zona económica' }, { icon: 'fa-road', text: 'Acceso polvoriento' }],
+        'https://i.imgur.com/qUx64DO.jpeg'
+    );
+
+    createZonePolygon(
+        [[431, 196], [406, 193], [394, 196], [383, 202], [372, 208], [347, 203], [337, 206], [341, 216], [351, 222], [366, 225], [381, 224], [392, 219], [400, 209], [416, 212], [431, 214], [435, 205]],
+        '#3b82f6', '#60a5fa', 'Great Ocean', '$110k', 'Great Ocean (Zona Costera)', '50.00 €', 5000,
+        [{ icon: 'fa-water', text: 'Zona costera occidental' }, { icon: 'fa-umbrella-beach', text: 'Frecuentada por turistas' }],
+        [{ icon: 'fa-house', text: 'Gama media-alta' }, { icon: 'fa-wind', text: 'Brisa marina' }],
+        'https://i.imgur.com/uqfTC0e.png'
+    );
+
+    createZonePolygon(
+        [[286, 300], [282, 298], [264, 319], [267, 322], [277, 311]],
+        '#06b6d4', '#22d3ee', 'Del Perro - Playa', '$130k', 'Del Perro - Playa', '55.00 €', 5500,
+        [{ icon: 'fa-city', text: 'Oeste de Los Santos' }, { icon: 'fa-umbrella-beach', text: 'Zona muy turística' }],
+        [{ icon: 'fa-hotel', text: 'Ambiente costero' }, { icon: 'fa-fire', text: 'Ocio nocturno' }],
+        'https://i.imgur.com/TRZZpsB.jpeg'
+    );
+
+    createZonePolygon(
+        [[252, 334], [243, 343], [236, 347], [224, 349], [213, 352], [204, 358], [185, 370], [195, 378], [198, 377], [202, 375], [214, 367], [221, 363], [229, 361], [236, 360], [242, 357], [250, 355], [259, 349], [257, 338]],
+        '#0ea5e9', '#38bdf8', 'Vespucci - Playa', '$95k', 'Vespucci - Playa', '45.00 €', 4500,
+        [{ icon: 'fa-location-crosshairs', text: 'Costa sur de Los Santos' }, { icon: 'fa-people-group', text: 'Paseo marítimo' }],
+        [{ icon: 'fa-store', text: 'Comercio activo' }, { icon: 'fa-bicycle', text: 'Carriles bici' }],
+        'https://i.imgur.com/sUD7oKW.png'
+    );
+
+    createZonePolygon(
+        [[223, 376], [214, 372], [202, 374], [194, 379], [203, 389], [201, 397], [202, 402], [208, 405], [218, 405], [226, 401], [234, 396], [228, 386]],
+        '#3b82f6', '#60a5fa', 'Puerto Deportivo', '$140k', 'Vespucci - Puerto Deportivo', '70.00 €', 7000,
+        [{ icon: 'fa-anchor', text: 'Zona náutica de yates' }, { icon: 'fa-gem', text: 'Exclusiva' }],
+        [{ icon: 'fa-house-user', text: 'Clase alta' }, { icon: 'fa-ship', text: 'Amarres privados' }],
+        'https://i.imgur.com/gvcFNb6.png'
+    );
+
+    createZonePolygon(
+        [[251, 356], [238, 360], [231, 362], [223, 363], [220, 368], [223, 375], [231, 387], [234, 392], [238, 390], [240, 393], [247, 389], [253, 385], [258, 380], [254, 375], [250, 366], [247, 362]],
+        '#2563eb', '#60a5fa', 'Vespucci - Canales', '$85k', 'Vespucci - Canales', '40.00 €', 4000,
+        [{ icon: 'fa-water', text: 'Canales estilo veneciano' }, { icon: 'fa-face-smile', text: 'Ambiente pintoresco' }],
+        [{ icon: 'fa-house', text: 'Residencial céntrica' }, { icon: 'fa-bridge', text: 'Puentes peatonales' }],
+        'https://i.imgur.com/hxfFsFk.png'
+    );
+
+    createZonePolygon(
+        [[298, 287], [293, 295], [296, 301], [288, 313], [281, 322], [273, 334], [266, 342], [260, 350], [252, 357], [264, 371], [278, 359], [287, 351], [295, 346], [304, 338], [310, 333], [303, 329], [297, 325], [298, 315], [307, 309], [309, 297], [306, 290]],
+        '#6366f1', '#818cf8', 'Del Perro', '$110k', 'Del Perro', '60.00 €', 6000,
+        [{ icon: 'fa-city', text: 'Zona urbana costera' }, { icon: 'fa-building-columns', text: 'Dinámica' }],
+        [{ icon: 'fa-house', text: 'Categoría media' }, { icon: 'fa-store-slash', text: 'Zona comercial' }],
+        null
+    );
+
+    createZonePolygon(
+        [[311, 335], [301, 342], [295, 348], [302, 361], [310, 372], [314, 364], [318, 356], [320, 350], [317, 342]],
+        '#a855f7', '#c084fc', 'MorningWood', '$115k', 'MorningWood', '50.00 €', 5000,
+        [{ icon: 'fa-landmark', text: 'Residencial exclusiva' }, { icon: 'fa-shield-halved', text: 'Muy segura' }],
+        [{ icon: 'fa-house-chimney-user', text: 'Alto standing' }, { icon: 'fa-tree', text: 'Jardines limpios' }],
+        'https://i.imgur.com/4bD8DpW.jpeg'
+    );
+
+    createZonePolygon(
+        [[317, 388], [323, 401], [328, 399], [332, 398], [335, 398], [341, 397], [341, 390], [347, 384], [353, 384], [357, 376], [357, 362], [355, 348], [348, 342], [340, 336], [334, 324], [331, 318], [322, 327], [311, 333], [320, 344], [329, 343], [338, 343], [344, 351], [346, 363], [344, 373], [335, 377], [326, 383]],
+        '#eab308', '#facc15', 'Richman', '$150k', 'Richman', '100.00 €', 10000,
+        [{ icon: 'fa-gem', text: 'Lujo máximo' }, { icon: 'fa-crown', text: 'Mansiones privadas' }],
+        [{ icon: 'fa-lock', text: 'Privacidad absoluta' }, { icon: 'fa-shield', text: 'Vigilancia privada' }],
+        'https://i.imgur.com/ReUvVqv.png'
+    );
+
+    createZonePolygon(
+        [[381, 303], [378, 295], [368, 293], [357, 293], [346, 295], [338, 297], [332, 304], [333, 310], [337, 311], [342, 313], [346, 311], [352, 327], [358, 328], [364, 320], [379, 314], [384, 309]],
+        '#d97706', '#fbbf24', 'Richman - Universidad', '$130k', 'Richman - Universidad', '80.00 €', 8000,
+        [{ icon: 'fa-graduation-cap', text: 'Zona académica' }, { icon: 'fa-users', text: 'Estudiantes' }],
+        [{ icon: 'fa-book', text: 'Ambiente estudiantil' }, { icon: 'fa-house', text: 'Residencial elegante' }],
+        'https://i.imgur.com/cjKkn5L.jpeg'
+    );
+
+    createZonePolygon(
+        [[262, 374], [253, 387], [244, 393], [236, 397], [242, 406], [247, 407], [248, 414], [253, 418], [256, 418], [260, 418], [264, 417], [268, 415], [272, 415], [272, 399], [272, 389], [271, 381], [267, 376]],
+        '#ec4899', '#f472b6', 'Little Seoul', '$95k', 'Little Seoul', '45.00 €', 4500,
+        [{ icon: 'fa-store', text: 'Comercial asiática' }, { icon: 'fa-fire', text: 'Vida nocturna' }],
+        [{ icon: 'fa-utensils', text: 'Gastronomía variada' }, { icon: 'fa-building', text: 'Urbana y dinámica' }],
+        'https://i.imgur.com/zQ9edRg.jpeg'
+    );
+
+    createZonePolygon(
+        [[293, 349], [285, 354], [289, 360], [294, 370], [288, 373], [290, 380], [288, 383], [285, 384], [287, 390], [289, 399], [288, 407], [287, 422], [287, 434], [287, 440], [291, 439], [301, 435], [309, 435], [317, 436], [320, 438], [324, 428], [324, 416], [319, 403], [313, 391], [305, 375], [300, 360]],
+        '#f59e0b', '#fbbf24', 'Rockford Hills', '$160k', 'Rockford Hills', '110.00 €', 11000,
+        [{ icon: 'fa-gem', text: 'Comercio de lujo' }, { icon: 'fa-champagne-glasses', text: 'Alta sociedad' }],
+        [{ icon: 'fa-bag-shopping', text: 'Rodeo Drive' }, { icon: 'fa-house-chimney-user', text: 'Máximo nivel' }],
+        'https://imgur.com/b21f6123-0c26-4e6c-81c1-9cb6bd89b191'
+    );
+
+    createZonePolygon(
+        [[354, 335], [357, 347], [358, 360], [358, 370], [358, 378], [354, 386], [349, 385], [343, 390], [342, 398], [346, 406], [346, 415], [345, 430], [347, 437], [346, 446], [346, 456], [347, 461], [350, 462], [353, 464], [355, 469], [357, 474], [356, 484], [357, 492], [361, 494], [363, 489], [370, 488], [373, 486], [390, 482], [390, 475], [376, 469], [373, 454], [380, 446], [386, 436], [393, 423], [401, 408], [399, 397], [397, 384], [393, 366], [385, 358], [379, 347], [376, 338], [368, 333], [361, 330], [355, 331]],
+        '#fbbf24', '#fde047', 'Zona rica', '$200k', 'Zona rica (Vinewood Hills)', '150.00 €', 15000,
+        [{ icon: 'fa-mountain-city', text: 'Colinas de Vinewood' }, { icon: 'fa-crown', text: 'Vistas panorámicas' }],
+        [{ icon: 'fa-binoculars', text: 'Mirador exclusivo' }, { icon: 'fa-shield-halved', text: 'Zona aislada' }],
+        'https://i.imgur.com/YuL3K7I.png'
+    );
+
+    createZonePolygon(
+        [[320, 522], [313, 519], [306, 515], [298, 514], [297, 520], [298, 530], [300, 536], [297, 543], [293, 538], [289, 530], [285, 525], [282, 523], [278, 524], [274, 528], [270, 533], [267, 536], [263, 539], [260, 543], [260, 552], [264, 560], [260, 570], [265, 577], [270, 573], [272, 564], [276, 562], [273, 568], [275, 572], [279, 574], [283, 573], [285, 568], [286, 563], [290, 564], [294, 562], [299, 561], [304, 551], [309, 539], [311, 535], [313, 533], [315, 529], [316, 527], [318, 525]],
+        '#10b981', '#34d399', 'Mirror Park', '$100k', 'Mirror Park', '50.00 €', 5000,
+        [{ icon: 'fa-water', text: 'Gran lago central' }, { icon: 'fa-face-smile', text: 'Tranquilo y acogedor' }],
+        [{ icon: 'fa-people-roof', text: 'Ideal para familias' }, { icon: 'fa-dog', text: 'Zona de mascotas' }],
+        'https://i.imgur.com/IkSutkN.png'
+    );
+
+    createZonePolygon(
+        [[341, 398], [332, 399], [324, 402], [326, 414], [326, 425], [322, 437], [316, 451], [295, 444], [292, 456], [301, 459], [297, 472], [292, 489], [301, 500], [309, 505], [317, 505], [321, 513], [343, 527], [351, 510], [354, 493], [356, 481], [356, 477], [354, 469], [349, 463], [346, 462], [345, 454], [345, 442], [345, 435], [343, 426], [345, 417], [345, 412], [346, 407], [343, 402]],
+        '#d946ef', '#e879f9', 'Vinewood', '$140k', 'Vinewood', '75.00 €', 7500,
+        [{ icon: 'fa-clapperboard', text: 'Cultura y entretenimiento' }, { icon: 'fa-camera-retro', text: 'Visitantes' }],
+        [{ icon: 'fa-star', text: 'Fama local' }, { icon: 'fa-house', text: 'Clase media-alta' }],
+        'https://i.imgur.com/lOreMs0.png'
+    );
+
+    createZonePolygon(
+        [[99, 411], [86, 416], [96, 432], [101, 440], [97, 466], [81, 466], [56, 466], [56, 483], [51, 496], [50, 501], [55, 523], [55, 564], [79, 564], [96, 561], [97, 520], [118, 519], [120, 501], [121, 489], [133, 485], [135, 478], [134, 463], [137, 452], [137, 437], [131, 420], [116, 415]],
+        '#475569', '#64748b', 'Puerto de Los Santos', '$80k', 'Puerto de Los Santos', '35.00 €', 3500,
+        [{ icon: 'fa-anchor', text: 'Zona portuaria del sur' }, { icon: 'fa-truck-fast', text: 'Tráfico de mercancías' }],
+        [{ icon: 'fa-warehouse', text: 'Baja residencia' }, { icon: 'fa-ship', text: 'Astilleros' }],
+        'https://i.imgur.com/prnyp2r.png'
+    );
+
+    createZonePolygon(
+        [[208, 521], [195, 516], [178, 515], [162, 513], [147, 512], [125, 510], [119, 520], [114, 548], [119, 568], [135, 564], [156, 552], [165, 552], [176, 547], [183, 544], [185, 542], [194, 541], [201, 541], [209, 541], [209, 532]],
+        '#64748b', '#94a3b8', 'Industrias', '$75k', 'Zona Industrial (Industrias)', '30.00 €', 3000,
+        [{ icon: 'fa-industry', text: 'Zona industrial pesada' }, { icon: 'fa-hard-hat', text: 'Fábricas y almacenes' }],
+        [{ icon: 'fa-briefcase', text: 'Ambiente laboral' }, { icon: 'fa-bolt', text: 'Alto consumo eléctrico' }],
+        'https://i.imgur.com/KQAg4yM.png'
+    );
+
+    createZonePolygon(
+        [[212, 513], [211, 541], [226, 541], [244, 538], [252, 536], [256, 534], [268, 523], [272, 520], [271, 512], [253, 512], [236, 512], [221, 512]],
+        '#14b8a6', '#2dd4bf', 'La Mesa', '$95k', 'La Mesa', '45.00 €', 4500,
+        [{ icon: 'fa-wrench', text: 'Talleres y comercios' }, { icon: 'fa-warehouse', text: 'Industrial mixta' }],
+        [{ icon: 'fa-house', text: 'Sectores residenciales' }, { icon: 'fa-car-repair', text: 'Mecánicos' }],
+        'https://i.imgur.com/W2cUGln.png'
+    );
+
+    createZonePolygon(
+        [[209, 546], [218, 547], [226, 550], [228, 559], [212, 559], [204, 561], [208, 574], [206, 579], [208, 595], [206, 603], [193, 604], [183, 596], [172, 598], [161, 595], [150, 590], [137, 594], [131, 588], [146, 568], [158, 563], [163, 559], [172, 556], [185, 552], [193, 548], [201, 546], [205, 546]],
+        '#84cc16', '#a3e635', 'Murrieta Heights', '$105k', 'Murrieta Heights', '50.00 €', 5000,
+        [{ icon: 'fa-mountain', text: 'Residencial elevada' }, { icon: 'fa-eye', text: 'Vistas panorámicas' }],
+        [{ icon: 'fa-house', text: 'Ambiente tranquilo' }, { icon: 'fa-road', text: 'Acceso elevado' }],
+        'https://i.imgur.com/mZrODQb.jpeg'
+    );
+
+    createZonePolygon(
+        [[615, 453], [628, 456], [629, 472], [617, 490], [615, 512], [622, 531], [619, 559], [629, 572], [640, 589], [647, 601], [644, 619], [628, 627], [616, 608], [607, 593], [606, 580], [608, 562], [607, 542], [607, 520], [603, 492], [605, 467]],
+        '#ea580c', '#fb923c', 'Sandy Shores', '$95k', 'Sandy Shores', '25.00 €', 2500,
+        [{ icon: 'fa-sun', text: 'Blaine County / Desierto' }, { icon: 'fa-triangle-exclamation', text: 'Semi-conflictiva' }],
+        [{ icon: 'fa-house-chimney', text: 'Ambiente árido' }, { icon: 'fa-users-slash', text: 'Baja densidad' }],
+        'https://i.imgur.com/sTGSsCl.png'
+    );
+
+    createZonePolygon(
+        [[554, 461], [546, 458], [537, 470], [528, 472], [526, 483], [529, 497], [523, 521], [534, 536], [533, 557], [538, 568], [549, 565], [549, 543], [553, 518], [556, 506], [564, 493], [562, 477]],
+        '#d97706', '#fbbf24', 'Ruta 68', '$80k', 'Ruta 68', '20.00 €', 2000,
+        [{ icon: 'fa-road', text: 'Carretera central' }, { icon: 'fa-gas-pump', text: 'Moteles y gasolineras' }],
+        [{ icon: 'fa-house', text: 'Zona rural abierta' }, { icon: 'fa-car-side', text: 'Tránsito de paso' }],
+        'https://i.imgur.com/KWIallm.jpeg'
+    );
+
+    createZonePolygon(
+        [[520, 464], [517, 487], [515, 511], [519, 525], [528, 530], [527, 555], [519, 565], [506, 590], [485, 591], [456, 590], [454, 578], [465, 552], [463, 520], [470, 499], [460, 484], [462, 461], [473, 437], [477, 411], [480, 402], [491, 401], [503, 408], [502, 423], [511, 446]],
+        '#ca8a04', '#facc15', 'Great Chaparral', '$105k', 'Great Chaparral', '40.00 €', 4000,
+        [{ icon: 'fa-tree', text: 'Montañosa del interior' }, { icon: 'fa-shield', text: 'Apartada' }],
+        [{ icon: 'fa-house-chimney', text: 'Ranchos privados' }, { icon: 'fa-horse', text: 'Espacio natural' }],
+        'https://i.imgur.com/MjFErtN.png'
+    );
+
+    createZonePolygon(
+        [[279, 492], [270, 488], [258, 483], [242, 477], [234, 477], [234, 499], [280, 501], [281, 496]],
+        '#ef4444', '#f87171', 'Mission Row', '$110k', 'Mission Row', '60.00 €', 6000,
+        [{ icon: 'fa-building-shield', text: 'Sede policial principal' }, { icon: 'fa-triangle-exclamation', text: 'Alta seguridad' }],
+        [{ icon: 'fa-store', text: 'Comercial concurrida' }, { icon: 'fa-user-shield', text: 'Patrullaje constante' }],
+        'https://i.imgur.com/DcPUaaN.png'
+    );
+
+    createZonePolygon(
+        [[280, 428], [234, 428], [235, 474], [241, 475], [281, 491], [282, 464], [282, 445]],
+        '#3b82f6', '#93c5fd', 'Pillbox Hill', '$180k', 'Pillbox Hill', '120.00 €', 12000,
+        [{ icon: 'fa-hospital', text: 'Corazón financiero y médico' }, { icon: 'fa-briefcase', text: 'Oficinas' }],
+        [{ icon: 'fa-city', text: 'Zona ejecutiva' }, { icon: 'fa-building', text: 'Rascacielos' }],
+        'https://i.imgur.com/mp6uxVk.png'
+    );
+
+    createZonePolygon(
+        [[162, 472], [164, 472], [183, 489], [177, 497], [169, 506], [158, 496], [152, 490], [151, 487], [157, 479]],
+        '#f43f5e', '#fb7185', 'El Rancho', '$85k', 'El Rancho', '40.00 €', 4000,
+        [{ icon: 'fa-house-chimney', text: 'Sur de Los Santos' }, { icon: 'fa-users', text: 'Clase trabajadora' }],
+        [{ icon: 'fa-store', text: 'Barrio modesto' }, { icon: 'fa-hammer', text: 'Reformas populares' }],
+        'https://i.imgur.com/TORXxPm.jpeg'
+    );
+
+    createZonePolygon(
+        [[184, 490], [179, 496], [173, 500], [170, 505], [172, 508], [197, 507], [200, 505], [201, 503], [192, 496]],
+        '#6366f1', '#818cf8', 'Jamestown', '$70k', 'Jamestown', '30.00 €', 3000,
+        [{ icon: 'fa-building', text: 'Sur de Los Santos' }, { icon: 'fa-triangle-exclamation', text: 'Zona obrera' }],
+        [{ icon: 'fa-users', text: 'Comunidad trabajadora' }, { icon: 'fa-boxes-stacked', text: 'Almacenes locales' }],
+        'https://i.imgur.com/YZHCFtS.jpeg'
+    );
+
+    createZonePolygon(
+        [[181, 447], [166, 464], [162, 466], [162, 469], [166, 471], [176, 479], [189, 462], [185, 450]],
+        '#059669', '#34d399', 'Groove', '$90k', 'Groove (Grove Street)', '45.00 €', 4500,
+        [{ icon: 'fa-shield-halved', text: 'Grove Street clásico' }, { icon: 'fa-users', text: 'Barrio tradicional' }],
+        [{ icon: 'fa-house', text: 'Zona histórica' }, { icon: 'fa-people-group', text: 'Fuerte unión vecinal' }],
+        'https://i.imgur.com/a1aOm3z.png'
+    );
+
+    createZonePolygon(
+        [[191, 465], [177, 480], [194, 494], [202, 484], [196, 474]],
+        '#b45309', '#f59e0b', 'Davis', '$85k', 'Davis', '40.00 €', 4000,
+        [{ icon: 'fa-triangle-exclamation', text: 'Zona conflictiva' }, { icon: 'fa-users', text: 'Barrio popular' }],
+        [{ icon: 'fa-fire', text: 'Alta actividad callejera' }, { icon: 'fa-basketball', text: 'Canchas urbanas' }],
+        'https://i.imgur.com/DY4wI71.png'
+    );
+
+    createZonePolygon(
+        [[197, 429], [192, 432], [183, 445], [212, 469], [215, 466], [214, 447], [209, 435], [209, 429]],
+        '#dc2626', '#f87171', 'Chamberlain Hills', '$90k', 'Chamberlain Hills', '45.00 €', 4500,
+        [{ icon: 'fa-triangle-exclamation', text: 'Zona conflictiva' }, { icon: 'fa-users', text: 'Alta tensión callejera' }],
+        [{ icon: 'fa-house', text: 'Entorno densamente poblado' }, { icon: 'fa-shield-dog', text: 'Vigilancia extrema' }],
+        'https://i.imgur.com/Chr1ATC.jpeg'
+    );
+
+    createZonePolygon(
+        [[213, 473], [205, 484], [195, 496], [203, 501], [212, 502], [217, 501], [224, 499], [224, 490], [219, 476]],
+        '#06b6d4', '#67e8f9', 'La Fuente', '$100k', 'La Fuente', '50.00 €', 5000,
+        [{ icon: 'fa-city', text: 'Sur / este urbano' }, { icon: 'fa-store', text: 'Comercio local' }],
+        [{ icon: 'fa-house', text: 'Residencial tradicional' }, { icon: 'fa-fountain', text: 'Plaza central' }],
+        'https://i.imgur.com/kf0lYE7.png'
+    );
+
+    createZonePolygon(
+        [[214, 471], [226, 476], [225, 429], [211, 429], [212, 439], [216, 453], [216, 465]],
+        '#e11d48', '#fb7185', 'Strawberry', '$120k', 'Strawberry', '65.00 €', 6500,
+        [{ icon: 'fa-triangle-exclamation', text: 'Parcialmente conflictiva' }, { icon: 'fa-store', text: 'Ambiente multicultural' }],
+        [{ icon: 'fa-house-chimney', text: 'Urbana muy transitada' }, { icon: 'fa-train-subway', text: 'Conexión de metro' }],
+        'https://i.imgur.com/propWJT.png'
+    );
+
+    createZonePolygon(
+        [[174, 377], [168, 365], [151, 350], [107, 325], [111, 315], [80, 297], [76, 303], [71, 299], [63, 313], [27, 383], [66, 404], [74, 387], [99, 403], [137, 416], [147, 406], [159, 393], [168, 384]],
+        '#2563eb', '#60a5fa', 'Aeropuerto Los Santos', '$250k', 'Aeropuerto Los Santos', '200.00 €', 20000,
+        [{ icon: 'fa-plane', text: 'Infraestructura federal' }, { icon: 'fa-lock', text: 'Máxima seguridad' }],
+        [{ icon: 'fa-passport', text: 'Transporte aéreo' }, { icon: 'fa-rectangle-ad', text: 'Zona restringida' }],
+        'https://i.imgur.com/jgQruFV.png'
+    );
+
+    // ZONAS DE MANSIONES
+    createZonePolygon(
+        [[448, 229], [435, 226], [432, 242], [450, 247], [450, 237]],
+        '#eab308', '#facc15', 'Mansión Banham Canyon', '$220k', 'Mansión de Banham Canyon', '180.00 €', 18000,
+        [{ icon: 'fa-gem', text: 'Lujo costero exclusivo' }, { icon: 'fa-mountain-sun', text: 'Vistas al océano' }],
+        [{ icon: 'fa-house-chimney-user', text: 'Mansión privada' }, { icon: 'fa-shield', text: 'Privacidad alta' }],
+        'https://i.imgur.com/mY7MYuK.png'
+    );
+
+    createZonePolygon(
+        [[485, 245], [470, 241], [468, 262], [484, 262], [485, 253]],
+        '#10b981', '#34d399', 'Mansión Tongva Hills', '$210k', 'Mansión de Tongva Hills', '160.00 €', 16000,
+        [{ icon: 'fa-wine-glass-empty', text: 'Zona de viñedos y colinas' }, { icon: 'fa-mountain', text: 'Entorno natural apacible' }],
+        [{ icon: 'fa-house', text: 'Mansión rural de lujo' }, { icon: 'fa-lock', text: 'Acceso restringido' }],
+        'https://i.imgur.com/VtpbQyZ.jpeg'
+    );
+
+    createZonePolygon(
+        [[412, 431], [412, 468], [379, 468], [380, 450], [389, 438], [402, 431], [414, 449]],
+        '#fbbf24', '#fde047', 'Mansiones Vinewood', '$250k', 'Mansiones de Vinewood Hills', '200.00 €', 20000,
+        [{ icon: 'fa-crown', text: 'Colinas de Vinewood' }, { icon: 'fa-binoculars', text: 'Vistas panorámicas de la ciudad' }],
+        [{ icon: 'fa-gem', text: 'Alto standing' }, { icon: 'fa-shield-halved', text: 'Zona exclusiva' }],
+        'https://i.imgur.com/3rK1ivJ.jpeg'
+    );
+
+    createZonePolygon(
+        [[427, 557], [427, 587], [402, 588], [401, 557]],
+        '#06b6d4', '#67e8f9', 'Fuente Blanca', '$230k', 'Fuente Blanca', '175.00 €', 17500,
+        [{ icon: 'fa-landmark', text: 'Finca residencial histórica' }, { icon: 'fa-horse-head', text: 'Gran propiedad señorial' }],
+        [{ icon: 'fa-house-chimney-user', text: 'Mansión principal' }, { icon: 'fa-lock', text: 'Máxima seguridad' }],
+        'https://i.imgur.com/qVozltX.jpeg'
+    );
+});
+
+function createZonePolygon(coords, baseColor, hoverColor, title, price, zoneFullName, priceEuro, priceCP, traits, tags, imageUrl) {
+    const polygon = L.polygon(coords, {
+        color: baseColor,
+        weight: 2,
+        fillColor: baseColor,
+        fillOpacity: 0.25,
+        smoothFactor: 1.2
+    }).addTo(mapInstance);
+
+    polygon.bindTooltip(`
+        <div style="font-weight: 800; font-size: 14px; color: ${hoverColor}; margin-bottom: 2px;">${title}</div>
+        <div style="font-size: 12px; color: #cbd5e1;">Base: <strong style="color: #fff;">${price}</strong></div>
+    `, {
+        direction: 'top',
+        className: 'modern-zone-tooltip',
+        sticky: true
+    });
+
+    polygon.on('mouseover', (e) => {
+        e.target.setStyle({ fillOpacity: 0.45, weight: 3, color: hoverColor });
+    });
+    polygon.on('mouseout', (e) => {
+        e.target.setStyle({ fillOpacity: 0.25, weight: 2, color: baseColor });
+    });
+    polygon.on('click', () => {
+        openZoneModal(zoneFullName, price, traits, tags, priceEuro, priceCP, imageUrl);
+    });
+}
+</script>
+
+<script src="/guards.js"></script>
+    <!-- Menú lateral común: logo, lupa y buscador de páginas por categorías -->
+    <script src="src/components/hx-sidebar.js"></script>
+    <script src="/src/components/cabecera.js"></script>
+</body>
+</html>

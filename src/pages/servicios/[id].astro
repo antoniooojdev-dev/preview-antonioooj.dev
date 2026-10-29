@@ -1,0 +1,1705 @@
+---
+// Página de cada servicio: en qué consiste, qué incluye, para quién es, cómo trabajo,
+// un ejemplo interactivo (src/components/servicios/Demo*.astro) y preguntas frecuentes.
+// El contenido está en src/data/services.ts (services + serviceDetails); cada servicio
+// tiene su color de acento (--acc) y sus iconos (src/components/servicios/Icono.astro).
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Icono from "@/components/servicios/Icono.astro";
+import DemoWeb from "@/components/servicios/DemoWeb.astro";
+import DemoApp from "@/components/servicios/DemoApp.astro";
+import DemoMantenimiento from "@/components/servicios/DemoMantenimiento.astro";
+import DemoFivem from "@/components/servicios/DemoFivem.astro";
+import DemoDiscord from "@/components/servicios/DemoDiscord.astro";
+import { services, serviceDetails, type Service, type ServiceDetail } from "@/data/services";
+import { casosDe } from "@/data/casos";
+
+export const getStaticPaths = (() =>
+  services
+    .filter((s) => serviceDetails[s.id])
+    .map((service) => ({ params: { id: service.id }, props: { service, detail: serviceDetails[service.id] } }))) satisfies GetStaticPaths;
+
+interface Props {
+  service: Service;
+  detail: ServiceDetail;
+}
+
+const { service, detail } = Astro.props;
+const demos = {
+  web: DemoWeb,
+  app: DemoApp,
+  mantenimiento: DemoMantenimiento,
+  fivem: DemoFivem,
+  discord: DemoDiscord,
+} as const;
+const Demo = demos[service.id as keyof typeof demos];
+
+// Cada servicio ordena y distribuye sus secciones a su manera, para que no todas las
+// páginas sean iguales:
+//   orden     -> en qué orden van las secciones
+//   cabecera  -> «izquierda» o «centrada»
+//   incluye   -> «grid» (3 columnas), «bento» (una destacada), «lista» (2 columnas sin
+//                tarjetas) o «filas» (checklist a una columna)
+//   proceso   -> «vertical» o «horizontal» (línea de tiempo)
+//   casos     -> webs/apps completas de ejemplo (src/data/casos.ts), solo en web y app
+type Seccion = "consiste" | "incluye" | "demo" | "casos" | "proceso" | "faq";
+interface Distribucion {
+  orden: Seccion[];
+  cabecera: "izquierda" | "centrada";
+  incluye: "grid" | "bento" | "lista" | "filas";
+  proceso: "vertical" | "horizontal";
+}
+const DISTRIBUCIONES: Record<string, Distribucion> = {
+  web: { orden: ["demo", "casos", "consiste", "incluye", "proceso", "faq"], cabecera: "centrada", incluye: "lista", proceso: "horizontal" },
+  app: { orden: ["consiste", "incluye", "demo", "casos", "proceso", "faq"], cabecera: "izquierda", incluye: "bento", proceso: "horizontal" },
+  mantenimiento: { orden: ["incluye", "demo", "consiste", "proceso", "faq"], cabecera: "izquierda", incluye: "filas", proceso: "vertical" },
+  fivem: { orden: ["demo", "incluye", "consiste", "proceso", "faq"], cabecera: "centrada", incluye: "grid", proceso: "vertical" },
+  discord: { orden: ["consiste", "demo", "incluye", "faq", "proceso"], cabecera: "izquierda", incluye: "grid", proceso: "horizontal" },
+};
+const dist = DISTRIBUCIONES[service.id] ?? DISTRIBUCIONES.app;
+const others = services.filter((s) => s.id !== service.id && serviceDetails[s.id]);
+const contacto = `/contacto?tipo=${encodeURIComponent(detail.tipo)}`;
+const casos = service.id === "web" || service.id === "app" ? casosDe(service.id) : [];
+---
+
+<BaseLayout title={service.title} description={detail.lead}>
+  <article class="page" style={`--acc:${detail.color}`}>
+    <div class="glow" aria-hidden="true"></div>
+    <div class="container">
+      <a href="/#servicios" class="back mono">← cd ../servicios</a>
+
+      <header class:list={["head", `head--${dist.cabecera}`]}>
+        <span class="hero-icon" aria-hidden="true" style={`view-transition-name: svc-ico-${service.id}`}>
+          <Icono nombre={detail.icono} size={34} />
+        </span>
+        <span class="eyebrow mono">service.{service.id}</span>
+        <h1 style={`view-transition-name: svc-title-${service.id}`}>{service.title}</h1>
+        <p class="lead">{detail.lead}</p>
+        <div class="head-actions">
+          <a href={contacto} class="btn btn-primary">Pedir presupuesto <span class="arrow" aria-hidden="true">→</span></a>
+          <a href="#ejemplo" class="btn btn-ghost">
+            <Icono nombre="play" size={14} /> Ver ejemplo interactivo
+          </a>
+        </div>
+      </header>
+
+      <dl class="meta mono">
+        <div><dt>plazo</dt><dd>{service.timeline}</dd></div>
+        <div><dt>incluye</dt><dd>{service.features.join(" · ")}</dd></div>
+      </dl>
+
+      <div class="body">
+        {
+          dist.orden.map((seccion) => {
+            if (seccion === "consiste")
+              return (
+                <section class="block consiste">
+                  <div>
+                    <h2 class="kicker mono">// en qué consiste</h2>
+                    <div class="text">
+                      {detail.consiste.map((p) => <p>{p}</p>)}
+                    </div>
+                  </div>
+                  <aside class="ideal-box">
+                    <h2 class="kicker mono">// ideal para</h2>
+                    <ul role="list" class="ideal">
+                      {detail.idealPara.map((x) => (
+                        <li>
+                          <Icono nombre="arrow" size={16} /> {x}
+                        </li>
+                      ))}
+                    </ul>
+                  </aside>
+                </section>
+              );
+
+            if (seccion === "incluye")
+              return (
+                <section class="block">
+                  <div class="block-head">
+                    <h2 class="kicker mono">// qué incluye</h2>
+                    <p class="block-title">
+                      Todo lo necesario, <span>sin sorpresas</span>
+                    </p>
+                  </div>
+                  <ul role="list" class:list={["incluye", `incluye--${dist.incluye}`]} data-spotlight>
+                    {detail.incluye.map((x, i) => (
+                      <li class:list={["inc", { "inc--demo": x.demo }]} data-reveal style={`--i:${i}`}>
+                        <span class="inc__icon">
+                          <Icono nombre={x.icono} size={22} />
+                        </span>
+                        <span class="inc__num mono" aria-hidden="true">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span class="inc__body">
+                          <strong>
+                            {x.demo ? (
+                              <a href={`/servicios/${service.id}/${x.demo}`} class="inc__link">
+                                {x.t}
+                              </a>
+                            ) : (
+                              x.t
+                            )}
+                          </strong>
+                          <p>{x.d}</p>
+                        </span>
+                        {x.demo ? (
+                          <span class="inc__check inc__try mono" aria-hidden="true">
+                            ▶ probar demo <Icono nombre="arrow" size={13} />
+                          </span>
+                        ) : (
+                          <span class="inc__check mono" aria-hidden="true">
+                            ✓ incluido
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              );
+
+            if (seccion === "demo")
+              return (
+                <section class="block demo-block" id="ejemplo">
+                  <div class="demo-bg" aria-hidden="true" />
+                  <div class="demo-head">
+                    <span class="live mono">
+                      <i aria-hidden="true" /> demo en vivo
+                    </span>
+                    <h2 class="kicker mono">// ejemplo interactivo</h2>
+                    <h3>{detail.demo.titulo}</h3>
+                    <p>{detail.demo.texto}</p>
+                    <ul role="list" class="demo-chips mono">
+                      <li>⟡ interactivo</li>
+                      <li>⟡ sin registro</li>
+                      <li>⟡ nada se guarda</li>
+                    </ul>
+                  </div>
+                  <div class="demo-frame" data-reveal>
+                    <div class="demo-bar mono">
+                      <span class="dots" aria-hidden="true">
+                        <i />
+                        <i />
+                        <i />
+                      </span>
+                      <span class="demo-path">
+                        antonioooj.dev / demos / <b>{service.id}</b>
+                      </span>
+                      <span class="demo-tag">interactivo</span>
+                    </div>
+                    <div class="demo">
+                      <Demo />
+                    </div>
+                  </div>
+                  <p class="demo-note mono">Ejemplo de demostración: nada de lo que hagas aquí se guarda ni se envía.</p>
+                </section>
+              );
+
+            if (seccion === "casos")
+              return casos.length ? (
+                <section class="block" id="casos">
+                  <link rel="stylesheet" href="/fa/css/fontawesome.min.css" />
+                  <link rel="stylesheet" href="/fa/css/solid.min.css" />
+                  <div class="block-head">
+                    <h2 class="kicker mono">// casos de ejemplo</h2>
+                    <p class="block-title">
+                      {service.id === "web" ? "Webs completas que puedes " : "Aplicaciones completas que puedes "}
+                      <span>{service.id === "web" ? "recorrer" : "usar"}</span>
+                    </p>
+                    <p class="casos-sub">
+                      {service.id === "web"
+                        ? "Negocios inventados, webs reales: cada una con su marca, sus formularios y todo funcionando."
+                        : "Funcionan de verdad en tu navegador, con datos de ejemplo: crea, edita, arrastra… y si lo rompes, se restablece con un clic."}
+                    </p>
+                  </div>
+                  <ul role="list" class="casos">
+                    {casos.map((c, i) => (
+                      <li data-reveal style={`--i:${i}; --cc:${c.color}; --cf:${c.fondo}`}>
+                        <a class="caso" href={`/servicios/${service.id}/${c.id}`}>
+                          <span class="caso__vista" aria-hidden="true">
+                            <span class="caso__barra">
+                              <i />
+                              <i />
+                              <i />
+                            </span>
+                            <span class="caso__marca">
+                              <i class={`fa-solid fa-${c.icono}`} />
+                              {c.nombre}
+                            </span>
+                            <span class="caso__lineas">
+                              <i />
+                              <i />
+                              <i />
+                            </span>
+                          </span>
+                          <span class="caso__cuerpo">
+                            <span class="caso__sector mono">{c.sector}</span>
+                            <strong>{c.nombre}</strong>
+                            <span class="caso__resumen">{c.resumen}</span>
+                            <span class="caso__funciones">
+                              {c.funciones.map((f) => (
+                                <span>{f}</span>
+                              ))}
+                            </span>
+                            <span class="caso__ir mono">
+                              abrir ejemplo <Icono nombre="arrow" size={14} />
+                            </span>
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null;
+
+            if (seccion === "proceso")
+              return (
+                <section class="block">
+                  <div class="block-head">
+                    <h2 class="kicker mono">// cómo trabajo</h2>
+                    <p class="block-title">
+                      De la idea a <span>publicado</span>
+                    </p>
+                  </div>
+                  <ol role="list" class:list={["proceso", `proceso--${dist.proceso}`]}>
+                    {detail.proceso.map((p, i) => (
+                      <li data-reveal style={`--i:${i}`}>
+                        <span class="step mono">{i + 1}</span>
+                        <div>
+                          <strong>{p.t}</strong>
+                          <p>{p.d}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              );
+
+            return (
+              <section class="block">
+                <h2 class="kicker mono">// preguntas frecuentes</h2>
+                <div class="faq" data-faq>
+                  {detail.faq.map((f, i) => (
+                    <details class="faq__item">
+                      <summary>
+                        <span class="faq__n mono">{String(i + 1).padStart(2, "0")}</span>
+                        <span class="faq__q">{f.q}</span>
+                        <span class="faq__plus" aria-hidden="true" />
+                      </summary>
+                      <div class="faq__a">
+                        <p>{f.a}</p>
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </section>
+            );
+          })
+        }
+      </div>
+
+      <aside class="cta">
+        <div>
+          <p class="cta-title">{`¿Hablamos de ${/^(scripts|bots)/i.test(service.title) ? "tus" : "tu"} ${service.title[0].toLowerCase()}${service.title.slice(1)}?`}</p>
+          <p class="cta-sub mono">{service.timeline} · presupuesto cerrado</p>
+        </div>
+        <a href={contacto} class="btn btn-primary">Cuéntame tu idea <span class="arrow" aria-hidden="true">→</span></a>
+      </aside>
+
+      <!-- otros servicios -->
+      <nav class="others" aria-label="Otros servicios">
+        <div class="block-head">
+          <h2 class="kicker mono">// otros servicios</h2>
+          <p class="block-title">Quizá también te interese</p>
+        </div>
+        <ul role="list">
+          {
+            others.map((s, i) => {
+              const d = serviceDetails[s.id];
+              return (
+                <li data-reveal style={`--i:${i}; --c:${d.color}`}>
+                  <a href={`/servicios/${s.id}`} class="other">
+                    <span class="other__icon" style={`view-transition-name: svc-ico-${s.id}`}>
+                      <Icono nombre={d.icono} size={22} />
+                    </span>
+                    <span class="other__text">
+                      <strong style={`view-transition-name: svc-title-${s.id}; width: fit-content`}>{s.title}</strong>
+                      <span>{s.description}</span>
+                    </span>
+                    <span class="other__foot mono">
+                      <span class="other__go">
+                        ver <Icono nombre="arrow" size={14} />
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </nav>
+    </div>
+  </article>
+</BaseLayout>
+
+<script>
+  // Preguntas frecuentes: abrir y cerrar con animación de altura
+  const reducido = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.querySelectorAll<HTMLDetailsElement>("[data-faq] details").forEach((det) => {
+    const summary = det.querySelector("summary")!;
+    const cuerpo = det.querySelector<HTMLElement>(".faq__a")!;
+    let anim: Animation | null = null;
+
+    summary.addEventListener("click", (e) => {
+      if (reducido) return;
+      e.preventDefault();
+      anim?.cancel();
+      if (det.open) {
+        det.classList.add("is-closing");
+        anim = cuerpo.animate(
+          [
+            { height: `${cuerpo.offsetHeight}px`, opacity: 1 },
+            { height: "0px", opacity: 0 },
+          ],
+          { duration: 280, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+        );
+        anim.onfinish = () => {
+          det.open = false;
+          det.classList.remove("is-closing");
+        };
+      } else {
+        det.open = true;
+        anim = cuerpo.animate(
+          [
+            { height: "0px", opacity: 0, transform: "translateY(-6px)" },
+            { height: `${cuerpo.scrollHeight}px`, opacity: 1, transform: "none" },
+          ],
+          { duration: 380, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+        );
+      }
+    });
+  });
+
+  // «Qué incluye»: un foco de luz sigue al ratón por las tarjetas
+  document.querySelectorAll<HTMLElement>("[data-spotlight]").forEach((lista) => {
+    lista.addEventListener("pointermove", (e) => {
+      lista.querySelectorAll<HTMLElement>(".inc").forEach((c) => {
+        const r = c.getBoundingClientRect();
+        c.style.setProperty("--mx", `${e.clientX - r.left}px`);
+        c.style.setProperty("--my", `${e.clientY - r.top}px`);
+      });
+    });
+  });
+</script>
+
+<style>
+  .page {
+    position: relative;
+    padding-block: var(--space-7) var(--section);
+    overflow-x: clip;
+  }
+
+  /* resplandor del color del servicio arriba */
+  .glow {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 640px;
+    background:
+      radial-gradient(ellipse 60% 55% at 15% 0%, color-mix(in srgb, var(--acc) 22%, transparent), transparent 70%),
+      radial-gradient(ellipse 40% 40% at 90% 10%, color-mix(in srgb, var(--acc) 10%, transparent), transparent 70%);
+    pointer-events: none;
+  }
+
+  .container {
+    position: relative;
+  }
+
+  .back {
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .back:hover {
+    color: var(--fg);
+  }
+
+  .kicker {
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--fg-subtle);
+    margin-bottom: var(--space-4);
+  }
+
+  .block-head {
+    display: grid;
+    gap: var(--space-1);
+    margin-bottom: var(--space-5);
+  }
+
+  .block-head .kicker {
+    margin-bottom: 0;
+  }
+
+  .block-title {
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+
+  .block-title span {
+    color: var(--acc);
+  }
+
+  /* ── cabecera ── */
+  .head {
+    margin-block: var(--space-7) var(--space-6);
+    max-width: 52rem;
+  }
+
+  /* entrada de la página: la cabecera, las cifras y la primera sección aparecen en
+     cascada (el icono y el título ya llegan con la transición desde la portada) */
+  .head > :not(.hero-icon, h1),
+  .meta,
+  .body > :first-child {
+    animation: page-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .head > .eyebrow { animation-delay: 0.05s; }
+  .head > .lead { animation-delay: 0.15s; }
+  .head > .head-actions { animation-delay: 0.25s; }
+  .meta { animation-delay: 0.32s; }
+  .body > :first-child { animation-delay: 0.42s; }
+
+  .glow {
+    animation: glow-in 1.2s ease both;
+  }
+
+  /* sin View Transitions, el título también entra con animación */
+  @supports not (view-transition-name: a) {
+    .head > h1 {
+      animation: page-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+  }
+
+  @keyframes page-in {
+    from {
+      opacity: 0;
+      transform: translateY(22px);
+      filter: blur(4px);
+    }
+  }
+
+  @keyframes glow-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .head > *,
+    .meta,
+    .body > :first-child,
+    .glow {
+      animation: none;
+    }
+  }
+
+  .hero-icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    margin-bottom: var(--space-5);
+    border-radius: 20px;
+    color: #fff;
+    background:
+      radial-gradient(circle at 30% 20%, rgb(255 255 255 / 0.35), transparent 50%),
+      linear-gradient(145deg, color-mix(in srgb, var(--acc) 80%, #fff), var(--acc) 55%, color-mix(in srgb, var(--acc) 70%, #000));
+    box-shadow:
+      0 20px 50px -18px var(--acc),
+      inset 0 1px 0 rgb(255 255 255 / 0.4);
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .hero-icon::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 24px;
+    border: 1px solid color-mix(in srgb, var(--acc) 35%, transparent);
+  }
+
+  .eyebrow {
+    font-size: var(--fs-sm);
+    color: var(--fg-subtle);
+  }
+
+  h1 {
+    font-size: var(--fs-2xl);
+    letter-spacing: -0.045em;
+    line-height: 1.02;
+    margin-block: var(--space-3) var(--space-4);
+  }
+
+  .lead {
+    font-size: var(--fs-lg);
+    color: var(--fg-muted);
+  }
+
+  .head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  .head-actions .btn-ghost :global(.icono) {
+    color: var(--acc);
+  }
+
+  .meta {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    gap: var(--space-7);
+    padding-block: var(--space-5);
+    border-block: 1px solid var(--border);
+    font-size: var(--fs-xs);
+  }
+
+  dt {
+    color: var(--fg-subtle);
+    margin-bottom: var(--space-1);
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  .body {
+    display: grid;
+    gap: var(--space-9);
+    margin-block: var(--space-8);
+  }
+
+  .text {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 46rem;
+  }
+
+  .text p {
+    font-size: var(--fs-md);
+    color: var(--fg-muted);
+  }
+
+  /* cabecera centrada */
+  .head--centrada {
+    display: grid;
+    justify-items: center;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .head--centrada .head-actions {
+    justify-content: center;
+  }
+
+  .head--centrada .lead {
+    max-width: 40rem;
+  }
+
+  /* ── qué incluye ── */
+  .incluye {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .inc {
+    --mx: 50%;
+    --my: 0%;
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background:
+      radial-gradient(420px circle at var(--mx) var(--my), color-mix(in srgb, var(--acc) 10%, transparent), transparent 45%),
+      var(--bg-elev);
+    overflow: hidden;
+    transition:
+      border-color 0.3s ease,
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.35s ease;
+  }
+
+  /* borde que se ilumina donde está el ratón */
+  .inc::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: radial-gradient(260px circle at var(--mx) var(--my), var(--acc), transparent 60%);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .incluye:hover .inc::before {
+    opacity: 1;
+  }
+
+  .inc:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 50px -30px color-mix(in srgb, var(--acc) 70%, transparent);
+  }
+
+  .inc__icon {
+    display: grid;
+    place-items: center;
+    width: 2.9rem;
+    height: 2.9rem;
+    margin-bottom: var(--space-3);
+    border-radius: 14px;
+    color: var(--acc);
+    background: color-mix(in srgb, var(--acc) 12%, var(--bg));
+    border: 1px solid color-mix(in srgb, var(--acc) 28%, transparent);
+    transition:
+      transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      background 0.3s ease,
+      color 0.3s ease;
+  }
+
+  .inc:hover .inc__icon {
+    transform: rotate(-6deg) scale(1.08);
+    background: var(--acc);
+    color: #fff;
+  }
+
+  .inc__num {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-5);
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    color: transparent;
+    -webkit-text-stroke: 1px color-mix(in srgb, var(--fg) 12%, transparent);
+    transition: -webkit-text-stroke-color 0.3s ease;
+  }
+
+  .inc:hover .inc__num {
+    -webkit-text-stroke-color: color-mix(in srgb, var(--acc) 50%, transparent);
+  }
+
+  .inc strong {
+    font-size: var(--fs-md);
+    letter-spacing: -0.01em;
+  }
+
+  .inc p {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .inc__check {
+    margin-top: var(--space-2);
+    font-size: 0.6875rem;
+    color: color-mix(in srgb, var(--acc) 70%, var(--fg));
+    opacity: 0.75;
+  }
+
+  .inc__body {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  /* tarjetas con demo propia: toda la tarjeta es el enlace */
+  .inc--demo {
+    cursor: pointer;
+  }
+
+  .inc__link {
+    color: inherit;
+  }
+
+  .inc__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+  }
+
+  .inc__link:focus-visible {
+    outline: none;
+  }
+
+  .inc--demo:has(.inc__link:focus-visible) {
+    outline: 2px solid var(--acc);
+    outline-offset: 3px;
+  }
+
+  .inc__try {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    justify-self: start;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--acc) 14%, transparent);
+    opacity: 1;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  .inc__try :global(.icono) {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .inc--demo:hover .inc__try {
+    background: var(--acc);
+    color: #fff;
+  }
+
+  .inc--demo:hover .inc__try :global(.icono) {
+    transform: translateX(4px);
+  }
+
+  /* bento: la primera tarjeta destacada y grande */
+  .incluye--bento {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .incluye--bento .inc:first-child {
+    grid-column: span 2;
+    grid-row: span 2;
+    align-content: end;
+    padding: var(--space-6);
+    background:
+      radial-gradient(420px circle at var(--mx) var(--my), color-mix(in srgb, var(--acc) 16%, transparent), transparent 45%),
+      linear-gradient(160deg, color-mix(in srgb, var(--acc) 16%, var(--bg-elev)), var(--bg-elev) 65%);
+  }
+
+  .incluye--bento .inc:first-child .inc__icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 18px;
+    margin-bottom: auto;
+  }
+
+  .incluye--bento .inc:first-child strong {
+    font-size: var(--fs-xl);
+    letter-spacing: -0.03em;
+  }
+
+  .incluye--bento .inc:first-child p {
+    font-size: var(--fs-md);
+  }
+
+  .incluye--bento .inc:first-child .inc__num {
+    font-size: 5rem;
+  }
+
+  /* 1 grande (2×2) + 2 pequeñas arriba + 1 ancha + 2 anchas abajo = sin huecos */
+  .incluye--bento .inc:nth-child(n + 4) {
+    grid-column: span 2;
+  }
+
+  /* lista: dos columnas sin tarjetas, con separadores */
+  .incluye--lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 var(--space-7);
+  }
+
+  .incluye--lista .inc {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-2);
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    background: none;
+  }
+
+  .incluye--lista .inc::before,
+  .incluye--lista .inc__num,
+  .incluye--lista .inc__check {
+    display: none;
+  }
+
+  .incluye--lista .inc:hover {
+    transform: translateX(6px);
+    box-shadow: none;
+  }
+
+  .incluye--lista .inc__icon {
+    margin: 0;
+  }
+
+  /* filas: checklist a una columna, como un informe */
+  .incluye--filas {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+    max-width: 52rem;
+  }
+
+  .incluye--filas .inc {
+    grid-template-columns: auto auto 1fr auto;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    border-radius: 14px;
+  }
+
+  .incluye--filas .inc__num {
+    position: static;
+    order: -1;
+    font-size: var(--fs-md);
+    -webkit-text-stroke: 0;
+    color: var(--fg-subtle);
+  }
+
+  .incluye--filas .inc__icon {
+    margin: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .incluye--filas .inc__body {
+    gap: 2px;
+  }
+
+  .incluye--filas .inc__check {
+    margin: 0;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--acc) 12%, transparent);
+    opacity: 1;
+  }
+
+  .incluye--filas .inc:hover {
+    transform: translateX(4px);
+  }
+
+  /* ── ejemplo interactivo ── */
+  .demo-block {
+    position: relative;
+    padding: var(--space-8) var(--space-6) var(--space-6);
+    border-radius: 28px;
+    border: 1px solid color-mix(in srgb, var(--acc) 20%, var(--border));
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .demo-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, var(--acc) 20%, transparent), transparent 70%),
+      linear-gradient(color-mix(in srgb, var(--fg) 5%, transparent) 1px, transparent 1px) 0 0 / 32px 32px,
+      linear-gradient(90deg, color-mix(in srgb, var(--fg) 5%, transparent) 1px, transparent 1px) 0 0 / 32px 32px,
+      var(--bg);
+    -webkit-mask-image: linear-gradient(#000 40%, color-mix(in srgb, #000 60%, transparent));
+    mask-image: linear-gradient(#000 40%, color-mix(in srgb, #000 60%, transparent));
+  }
+
+  .demo-head {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    max-width: 40rem;
+    margin: 0 auto var(--space-7);
+    text-align: center;
+  }
+
+  .demo-head .kicker {
+    margin: 0;
+  }
+
+  .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--acc) 40%, var(--border));
+    background: color-mix(in srgb, var(--acc) 10%, var(--bg-elev));
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: color-mix(in srgb, var(--acc) 70%, var(--fg));
+  }
+
+  .live i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--acc);
+    box-shadow: 0 0 0 0 var(--acc);
+    animation: ping 1.8s ease-out infinite;
+  }
+
+  .demo-head h3 {
+    font-size: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    text-wrap: balance;
+    background: linear-gradient(120deg, var(--fg) 30%, var(--acc));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .demo-head p {
+    color: var(--fg-muted);
+    font-size: var(--fs-md);
+  }
+
+  .demo-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+  }
+
+  .demo-chips li {
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+  }
+
+  /* marco con borde de degradado animado */
+  .demo-frame {
+    position: relative;
+    padding: 1.5px;
+    border-radius: 18px;
+    background: conic-gradient(from var(--ang, 0deg), var(--acc), transparent 25%, transparent 50%, color-mix(in srgb, var(--acc) 60%, #fff), transparent 75%, var(--acc));
+    box-shadow: 0 50px 120px -60px color-mix(in srgb, var(--acc) 80%, transparent);
+    animation: spin-border 8s linear infinite;
+  }
+
+  .demo-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0.7rem 1rem;
+    border-radius: 17px 17px 0 0;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  .dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dots i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ff5f57;
+  }
+
+  .dots i:nth-child(2) {
+    background: #febc2e;
+  }
+
+  .dots i:nth-child(3) {
+    background: #28c840;
+  }
+
+  .demo-path {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .demo-path b {
+    color: var(--fg);
+    font-weight: 500;
+  }
+
+  .demo-tag {
+    padding: 0.1rem 0.5rem;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--acc) 15%, transparent);
+    color: color-mix(in srgb, var(--acc) 70%, var(--fg));
+  }
+
+  .demo {
+    border-radius: 0 0 17px 17px;
+    background: var(--bg-elev);
+    overflow: hidden;
+  }
+
+  .demo-note {
+    margin-top: var(--space-4);
+    text-align: center;
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  /* ── casos de ejemplo: cada tarjeta con los colores de su marca ── */
+  .casos-sub {
+    max-width: 44rem;
+    margin-top: var(--space-2);
+    color: var(--fg-muted);
+  }
+
+  .casos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .caso {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100%;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: var(--bg-elev);
+    overflow: hidden;
+    transition:
+      transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.3s ease,
+      box-shadow 0.4s ease;
+  }
+
+  .caso:hover,
+  .caso:focus-visible {
+    transform: translateY(-6px);
+    border-color: color-mix(in srgb, var(--cc) 55%, var(--border));
+    box-shadow: 0 30px 60px -35px var(--cc);
+  }
+
+  /* mini «captura» de la web con sus colores */
+  .caso__vista {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    height: 11rem;
+    padding: var(--space-3) var(--space-4);
+    background:
+      radial-gradient(80% 90% at 100% 0%, color-mix(in srgb, var(--cc) 35%, transparent), transparent 70%),
+      var(--cf);
+    overflow: hidden;
+  }
+
+  .caso__barra {
+    display: flex;
+    gap: 5px;
+  }
+
+  .caso__barra i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--cc) 40%, #999);
+    opacity: 0.6;
+  }
+
+  .caso__marca {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: var(--space-4);
+    color: var(--cc);
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .caso__marca i {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 12px;
+    background: var(--cc);
+    color: #fff;
+    font-size: 1.1rem;
+  }
+
+  .caso:hover .caso__marca {
+    transform: translateX(6px);
+  }
+
+  .caso__lineas {
+    display: grid;
+    gap: 6px;
+  }
+
+  .caso__lineas i {
+    height: 7px;
+    border-radius: 99px;
+    background: color-mix(in srgb, var(--cc) 30%, transparent);
+  }
+
+  .caso__lineas i:nth-child(1) {
+    width: 80%;
+  }
+
+  .caso__lineas i:nth-child(2) {
+    width: 60%;
+  }
+
+  .caso__lineas i:nth-child(3) {
+    width: 34%;
+    height: 18px;
+    border-radius: 7px;
+    background: var(--cc);
+    opacity: 0.8;
+  }
+
+  .caso__cuerpo {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-5);
+  }
+
+  .caso__sector {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .caso__cuerpo strong {
+    font-size: var(--fs-lg);
+    letter-spacing: -0.02em;
+  }
+
+  .caso__resumen {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .caso__funciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: var(--space-2);
+  }
+
+  .caso__funciones span {
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--cc) 12%, transparent);
+    color: color-mix(in srgb, var(--cc) 75%, var(--fg));
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .caso__ir {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: var(--space-3);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    transition: color 0.3s ease;
+  }
+
+  .caso__ir :global(.icono) {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .caso:hover .caso__ir {
+    color: var(--cc);
+  }
+
+  .caso:hover .caso__ir :global(.icono) {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 60rem) {
+    .casos {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ── en qué consiste + ideal para ── */
+  .consiste {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+
+  .ideal-box {
+    padding: var(--space-5);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background:
+      linear-gradient(160deg, color-mix(in srgb, var(--acc) 9%, transparent), transparent 60%),
+      var(--bg-elev);
+  }
+
+  .ideal {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .ideal li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-elev);
+    transition:
+      border-color 0.25s ease,
+      transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .ideal li:hover {
+    border-color: color-mix(in srgb, var(--acc) 50%, var(--border));
+    transform: translateX(4px);
+  }
+
+  .ideal :global(.icono) {
+    flex-shrink: 0;
+    color: var(--acc);
+  }
+
+  .proceso {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    max-width: 44rem;
+  }
+
+  /* horizontal: línea de tiempo de izquierda a derecha */
+  .proceso--horizontal {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+    max-width: none;
+  }
+
+  .proceso--horizontal::before {
+    left: 1.1rem;
+    right: 1.1rem;
+    top: calc(1.1rem - 1px);
+    bottom: auto;
+    width: auto;
+    height: 2px;
+    background: linear-gradient(90deg, var(--acc), color-mix(in srgb, var(--acc) 15%, transparent));
+  }
+
+  .proceso--horizontal li {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .proceso--horizontal li > div {
+    padding: var(--space-4);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    transition:
+      border-color 0.3s ease,
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .proceso--horizontal li:hover > div {
+    border-color: color-mix(in srgb, var(--acc) 45%, var(--border));
+    transform: translateY(-3px);
+  }
+
+  /* línea que une los pasos */
+  .proceso::before {
+    content: "";
+    position: absolute;
+    left: calc(1.1rem - 1px);
+    top: 1.2rem;
+    bottom: 1.2rem;
+    width: 2px;
+    background: linear-gradient(var(--acc), color-mix(in srgb, var(--acc) 10%, transparent));
+  }
+
+  .proceso li {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-4);
+    align-items: start;
+  }
+
+  .step {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--acc);
+    color: var(--acc);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+  }
+
+  .proceso strong {
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .proceso p {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+  }
+
+  /* ── preguntas frecuentes ── */
+  .faq {
+    display: grid;
+    gap: var(--space-2);
+    max-width: 50rem;
+  }
+
+  .faq__item {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    transition:
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .faq__item:hover {
+    border-color: var(--border-strong);
+  }
+
+  .faq__item[open]:not(.is-closing) {
+    border-color: color-mix(in srgb, var(--acc) 45%, var(--border));
+    box-shadow: 0 18px 40px -28px color-mix(in srgb, var(--acc) 70%, transparent);
+  }
+
+  .faq__item summary {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    font-weight: 500;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .faq__item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__n {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+    transition: color 0.3s ease;
+  }
+
+  .faq__item[open]:not(.is-closing) .faq__n {
+    color: var(--acc);
+  }
+
+  /* «+» que gira y se convierte en «−» */
+  .faq__plus {
+    position: relative;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      background 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  .faq__plus::before,
+  .faq__plus::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 10px;
+    height: 1.5px;
+    margin: -0.75px 0 0 -5px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .faq__plus::after {
+    transform: rotate(90deg);
+  }
+
+  .faq__item[open]:not(.is-closing) .faq__plus {
+    transform: rotate(180deg);
+    background: var(--acc);
+    border-color: var(--acc);
+    color: #fff;
+  }
+
+  .faq__item[open]:not(.is-closing) .faq__plus::after {
+    transform: rotate(0deg);
+  }
+
+  .faq__a {
+    overflow: hidden;
+  }
+
+  .faq__a p {
+    padding: 0 var(--space-5) var(--space-5) calc(var(--space-5) + 1.4rem + var(--space-4));
+    color: var(--fg-muted);
+  }
+
+  /* ── cta ── */
+  .cta {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-7) var(--space-6);
+    border-radius: 24px;
+    border: 1px solid color-mix(in srgb, var(--acc) 30%, var(--border));
+    background:
+      radial-gradient(ellipse 60% 120% at 100% 50%, color-mix(in srgb, var(--acc) 18%, transparent), transparent 70%),
+      var(--bg-elev);
+    overflow: hidden;
+  }
+
+  .cta-title {
+    font-size: var(--fs-lg);
+    font-weight: 600;
+  }
+
+  .cta-sub {
+    margin-top: var(--space-1);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  /* ── otros servicios ── */
+  .others {
+    margin-top: var(--space-9);
+  }
+
+  .others ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-3);
+  }
+
+  .other {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: var(--space-4);
+    height: 100%;
+    padding: var(--space-5);
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background:
+      radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--c) 0%, transparent), transparent 60%),
+      var(--bg-elev);
+    overflow: hidden;
+    transition:
+      border-color 0.3s ease,
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.35s ease,
+      background 0.4s ease;
+  }
+
+  .other:hover,
+  .other:focus-visible {
+    border-color: color-mix(in srgb, var(--c) 55%, var(--border));
+    transform: translateY(-4px);
+    box-shadow: 0 26px 50px -30px color-mix(in srgb, var(--c) 80%, transparent);
+    background:
+      radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--c) 18%, transparent), transparent 60%),
+      var(--bg-elev);
+  }
+
+  .other__icon {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 14px;
+    color: #fff;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--c) 75%, #fff), var(--c) 60%);
+    box-shadow: 0 10px 24px -12px var(--c);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .other:hover .other__icon {
+    transform: rotate(-8deg) scale(1.06);
+  }
+
+  .other__text {
+    display: grid;
+    gap: var(--space-1);
+    align-content: start;
+  }
+
+  .other__text strong {
+    font-size: var(--fs-md);
+  }
+
+  .other__text span {
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .other__foot {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--border);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .other__go {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--fg-muted);
+    transition: color 0.3s ease;
+  }
+
+  .other__go :global(.icono) {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .other:hover .other__go {
+    color: var(--c);
+  }
+
+  .other:hover .other__go :global(.icono) {
+    transform: translateX(4px);
+  }
+
+  /* ── animaciones ── */
+  @property --ang {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+
+  @keyframes spin-border {
+    to { --ang: 360deg; }
+  }
+
+  @keyframes float {
+    50% { transform: translateY(-6px) rotate(-3deg); }
+  }
+
+  @keyframes ping {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 70%, transparent); }
+    80%, 100% { box-shadow: 0 0 0 8px transparent; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-icon,
+    .demo-frame,
+    .live i {
+      animation: none;
+    }
+  }
+
+  /* ── responsive ── */
+  @media (max-width: 60rem) {
+    .incluye--grid,
+    .incluye--bento {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .incluye--bento .inc:first-child {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+
+    .incluye--bento .inc:nth-child(n + 4) {
+      grid-column: auto;
+    }
+
+    .proceso--horizontal {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .proceso--horizontal::before {
+      display: none;
+    }
+  }
+
+  @media (max-width: 52rem) {
+    .consiste,
+    .incluye--lista {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+
+    .incluye--lista {
+      gap: 0;
+    }
+
+    .incluye--filas .inc {
+      grid-template-columns: auto 1fr;
+    }
+
+    .incluye--filas .inc__num,
+    .incluye--filas .inc__check {
+      display: none;
+    }
+
+    .meta {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+
+    .meta > :last-child {
+      grid-column: 1 / -1;
+    }
+
+    .demo-block {
+      padding: var(--space-6) var(--space-2) var(--space-3);
+      border-radius: 20px;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .incluye,
+    .proceso--horizontal {
+      grid-template-columns: 1fr;
+    }
+
+    .faq__a p {
+      padding-left: var(--space-5);
+    }
+  }
+</style>

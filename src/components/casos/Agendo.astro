@@ -1,0 +1,3106 @@
+---
+// Caso «Agendo» · web pública de la Barbería Navaja (marca ficticia).
+// - Portada con servicios, equipo (con el horario de cada profesional), horario del local y reseñas.
+// - Reserva en 4 pasos: servicio → profesional (o cualquiera) → día y hora libres según su turno → datos.
+// - «Mis citas»: el cliente ve sus citas y puede cancelarlas.
+// Comparte los datos con el panel del equipo (/servicios/app/agendo/panel) vía src/scripts/agendo/datos.ts.
+const PANEL = "/servicios/app/agendo/panel";
+---
+
+<div class="nv" data-nv>
+  <!-- navegación -->
+  <header class="nv-nav" data-nv-nav>
+    <a class="nv-marca" href="#inicio"><span class="nv-marca__poste" aria-hidden="true"></span>Navaja<small>barbería</small></a>
+    <nav class="nv-nav__links" aria-label="Secciones">
+      <a href="#servicios">Servicios</a>
+      <a href="#equipo">Equipo</a>
+      <a href="#horario">Horario</a>
+      <a href="#mis-citas">Mis citas <em data-nv-mias-n></em></a>
+    </nav>
+    <div class="nv-nav__acc">
+      <a class="nv-equipo-link" href={PANEL}><i class="fa-solid fa-lock"></i><span>Acceso equipo</span></a>
+      <button type="button" class="nv-btn nv-btn--oro" data-nv-reservar>Reservar cita</button>
+    </div>
+  </header>
+
+  <!-- portada -->
+  <section class="nv-hero" id="inicio">
+    <div class="nv-hero__fondo" aria-hidden="true"></div>
+    <div class="nv-hero__txt">
+      <span class="nv-estado" data-nv-estado><i></i><span>…</span></span>
+      <h1>El corte que buscas,<br /><em>sin esperar turno.</em></h1>
+      <p>Barbería de barrio en Ruzafa desde 2006. Cortes clásicos, degradados y afeitado a navaja. Elige a tu barbero y reserva en menos de un minuto.</p>
+      <div class="nv-hero__cta">
+        <button type="button" class="nv-btn nv-btn--oro nv-btn--xl" data-nv-reservar>Reservar ahora <i class="fa-solid fa-arrow-right"></i></button>
+        <a class="nv-btn nv-btn--linea nv-btn--xl" href="#mis-citas">Ver mis citas</a>
+      </div>
+      <ul role="list" class="nv-hero__datos">
+        <li><strong>4,9</strong><span><i class="fa-solid fa-star"></i> 612 reseñas</span></li>
+        <li><strong>20</strong><span>años en el barrio</span></li>
+        <li><strong data-nv-n-equipo>3</strong><span>profesionales</span></li>
+      </ul>
+    </div>
+    <aside class="nv-hueco" aria-live="polite">
+      <span class="nv-hueco__t"><i class="fa-solid fa-bolt"></i> Próximo hueco libre</span>
+      <div data-nv-hueco-cuerpo></div>
+    </aside>
+  </section>
+
+  <!-- cinta de servicios -->
+  <div class="nv-cinta" aria-hidden="true"><div data-nv-cinta></div></div>
+
+  <!-- servicios -->
+  <section class="nv-sec" id="servicios">
+    <div class="nv-sec__cab">
+      <span class="nv-kicker">01 · Servicios</span>
+      <h2>Lo que hacemos <em>(y lo hacemos bien)</em></h2>
+      <p>Precios cerrados, sin sorpresas. La duración es orientativa y la respetamos para que no esperes.</p>
+    </div>
+    <ul role="list" class="nv-servicios" data-nv-servicios></ul>
+  </section>
+
+  <!-- equipo -->
+  <section class="nv-sec nv-sec--oscura" id="equipo">
+    <div class="nv-sec__cab">
+      <span class="nv-kicker">02 · Equipo</span>
+      <h2>Elige a <em>tu barbero</em></h2>
+      <p>Cada uno tiene su horario: al reservar solo verás las horas en las que está trabajando.</p>
+    </div>
+    <ul role="list" class="nv-equipo" data-nv-equipo></ul>
+  </section>
+
+  <!-- horario y ubicación -->
+  <section class="nv-sec" id="horario">
+    <div class="nv-sec__cab">
+      <span class="nv-kicker">03 · Horario</span>
+      <h2>Cuándo <em>estamos</em></h2>
+    </div>
+    <div class="nv-horario">
+      <div class="nv-tarjeta">
+        <table class="nv-tabla-h">
+          <tbody data-nv-horario></tbody>
+        </table>
+      </div>
+      <div class="nv-tarjeta nv-donde">
+        <div class="nv-mapa" aria-hidden="true">
+          <span class="nv-mapa__pin"><i class="fa-solid fa-scissors"></i></span>
+        </div>
+        <div class="nv-donde__txt">
+          <h3>Barbería Navaja</h3>
+          <p><i class="fa-solid fa-location-dot"></i> C/ de Sueca 41, 46006 Valencia</p>
+          <p><i class="fa-solid fa-phone"></i> 963 00 00 00</p>
+          <p><i class="fa-solid fa-train-subway"></i> Metro Bailén · 5 min andando</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- reseñas -->
+  <section class="nv-sec nv-sec--crema">
+    <div class="nv-sec__cab">
+      <span class="nv-kicker">04 · Opiniones</span>
+      <h2>Lo que <em>dicen</em></h2>
+    </div>
+    <ul role="list" class="nv-resenas">
+      <li class="nv-tarjeta"><i class="fa-solid fa-quote-left"></i><p>Reservé por la web a las 10 y a las 12 estaba sentado en el sillón. Leo clavó el degradado a la primera.</p><span><strong>Hugo F.</strong> · hace 3 días</span></li>
+      <li class="nv-tarjeta"><i class="fa-solid fa-quote-left"></i><p>El afeitado clásico de Sara es otro nivel. Toalla caliente, navaja y cero prisas. Repetiré.</p><span><strong>Marcos G.</strong> · hace 1 semana</span></li>
+      <li class="nv-tarjeta"><i class="fa-solid fa-quote-left"></i><p>Llevo 10 años viniendo con Nacho. Ahora además me llega el recordatorio y no se me olvida la cita.</p><span><strong>Carlos R.</strong> · hace 2 semanas</span></li>
+    </ul>
+  </section>
+
+  <!-- mis citas -->
+  <section class="nv-sec nv-sec--oscura" id="mis-citas">
+    <div class="nv-sec__cab">
+      <span class="nv-kicker">05 · Tu espacio</span>
+      <h2>Mis <em>citas</em></h2>
+      <p>Consulta tus próximas citas o cancélalas si te surge algo. Así el hueco queda libre para otro.</p>
+    </div>
+    <div class="nv-mias" data-nv-mias></div>
+  </section>
+
+  <footer class="nv-pie">
+    <!-- llamada final -->
+    <div class="nv-pie__cta">
+      <div>
+        <span class="nv-kicker">¿Toca repaso?</span>
+        <h2>Tu sillón te <em>está esperando.</em></h2>
+      </div>
+      <button type="button" class="nv-btn nv-btn--oro nv-btn--xl" data-nv-reservar>Reservar cita <i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+
+    <div class="nv-pie__cols">
+      <div class="nv-pie__marca">
+        <a class="nv-marca" href="#inicio"><span class="nv-marca__poste" aria-hidden="true"></span>Navaja<small>barbería</small></a>
+        <p>Cortes clásicos, degradados y afeitado a navaja en Ruzafa desde 2006.</p>
+        <div class="nv-pie__redes">
+          <a href="#inicio" aria-label="Instagram"><i class="fa-solid fa-camera"></i></a>
+          <a href="#inicio" aria-label="WhatsApp"><i class="fa-solid fa-comment-dots"></i></a>
+          <a href="#inicio" aria-label="Opiniones"><i class="fa-solid fa-star"></i></a>
+        </div>
+      </div>
+      <nav class="nv-pie__col" aria-label="Barbería">
+        <strong>Barbería</strong>
+        <a href="#servicios">Servicios y precios</a>
+        <a href="#equipo">El equipo</a>
+        <a href="#horario">Horario</a>
+        <a href="#mis-citas">Mis citas</a>
+      </nav>
+      <div class="nv-pie__col">
+        <strong>Visítanos</strong>
+        <span><i class="fa-solid fa-location-dot"></i> C/ de Sueca 41, Valencia</span>
+        <span><i class="fa-solid fa-phone"></i> 963 00 00 00</span>
+        <span><i class="fa-solid fa-train-subway"></i> Metro Bailén · 5 min</span>
+      </div>
+    </div>
+
+    <div class="nv-pie__base">
+      <span>© {new Date().getFullYear()} Barbería Navaja</span>
+      <p>Reservas gestionadas con <strong>Agendo</strong> · <a href={PANEL}>Acceso para el equipo</a></p>
+    </div>
+  </footer>
+
+  <!-- reserva -->
+  <dialog class="nv-modal" data-nv-modal aria-labelledby="nv-modal-t">
+    <div class="nv-res">
+      <!-- cabecera oscura: título y las 4 pestañas del recorrido (las ya hechas se pueden pulsar para volver) -->
+      <div class="nv-res__top">
+        <header class="nv-res__cab">
+          <div>
+            <span class="nv-kicker" data-nv-paso-n>Paso 1 de 4</span>
+            <h2 id="nv-modal-t" data-nv-paso-t>Elige el servicio</h2>
+          </div>
+          <button type="button" class="nv-ico" data-nv-cerrar aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+        </header>
+        <ol role="list" class="nv-pasos" aria-label="Pasos de la reserva">
+          {
+            [
+              ["Servicio", "scissors"],
+              ["Profesional", "user"],
+              ["Día y hora", "calendar-day"],
+              ["Tus datos", "id-card"],
+            ].map(([t, i], n) => (
+              <li>
+                <button type="button" data-nv-ir={n + 1} disabled>
+                  <span class="nv-pasos__n">
+                    <i class={`fa-solid fa-${i}`} />
+                    <i class="fa-solid fa-check" />
+                  </span>
+                  <span class="nv-pasos__txt">
+                    <strong>{t}</strong>
+                    <small data-nv-paso-sel />
+                  </span>
+                </button>
+              </li>
+            ))
+          }
+        </ol>
+        <div class="nv-res__barra"><i data-nv-barra></i></div>
+      </div>
+      <div class="nv-res__cuerpo" data-nv-paso></div>
+      <footer class="nv-res__pie" data-nv-pie>
+        <div class="nv-res__resumen" data-nv-resumen></div>
+        <button type="button" class="nv-btn nv-btn--linea" data-nv-atras>Atrás</button>
+        <button type="button" class="nv-btn nv-btn--oro" data-nv-sig>Continuar</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <div class="nv-toast" data-nv-toast role="status"></div>
+</div>
+
+<script>
+  import { cargar, guardar, alCambiar, leerYo, guardarYo, serv, barb, huecos, huecosDeCualquiera, horarioLocal, estadoAhora, turnosDe, turnosTxt, horaTxt, hhmm, euro, iniciales, inicioDia, masDias, lunes, nuevoId, normalTel, choque, DIAS, type Datos, type Cita } from "@/scripts/agendo/datos";
+
+  const raiz = document.querySelector<HTMLElement>("[data-nv]")!;
+  const $ = <T extends Element = HTMLElement>(s: string, el: ParentNode = raiz) => el.querySelector<T>(s)!;
+  const $$ = <T extends Element = HTMLElement>(s: string, el: ParentNode = raiz) => [...el.querySelectorAll<T>(s)];
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, clase = "", texto = "") {
+    const e = document.createElement(tag);
+    if (clase) e.className = clase;
+    if (texto) e.textContent = texto;
+    return e;
+  }
+  const ico = (n: string) => Object.assign(document.createElement("i"), { className: `fa-solid fa-${n}` });
+  const boton = (clase: string, ...hijos: (Node | string)[]) => {
+    const b = el("button", clase);
+    b.type = "button";
+    b.append(...hijos);
+    return b;
+  };
+  const fechaLarga = (ms: number) => new Date(ms).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  const cuando = (ms: number) => {
+    const hoy = inicioDia();
+    const dia = inicioDia(ms);
+    const pre = dia === hoy ? "Hoy" : dia === masDias(hoy, 1) ? "Mañana" : fechaLarga(ms);
+    return `${pre} a las ${hhmm(ms)}`;
+  };
+
+  let datos: Datos = cargar();
+
+  function toast(t: string) {
+    const caja = $("[data-nv-toast]");
+    caja.textContent = t;
+    caja.classList.add("is-on");
+    clearTimeout(Number(caja.dataset.t));
+    caja.dataset.t = String(setTimeout(() => caja.classList.remove("is-on"), 2600));
+  }
+
+  // ── portada ─────
+  function pintarEstado() {
+    const ahora = new Date();
+    const h = ahora.getHours() + ahora.getMinutes() / 60;
+    const hoy = horarioLocal(datos, ahora);
+    const abierto = hoy.find(([a, z]) => h >= a && h < z);
+    const caja = $("[data-nv-estado]");
+    caja.classList.toggle("is-abierto", !!abierto);
+    let txt = "Cerrado";
+    if (abierto) txt = `Abierto ahora · hasta las ${horaTxt(abierto[1])}`;
+    else {
+      const luego = hoy.find(([a]) => a > h);
+      if (luego) txt = `Cerrado · abrimos a las ${horaTxt(luego[0])}`;
+      else
+        for (let i = 1; i < 8; i++) {
+          const t = horarioLocal(datos, masDias(ahora, i));
+          if (t.length) {
+            txt = `Cerrado · abrimos ${i === 1 ? "mañana" : `el ${DIAS[new Date(masDias(ahora, i)).getDay()].toLowerCase()}`} a las ${horaTxt(t[0][0])}`;
+            break;
+          }
+        }
+    }
+    $("span", caja).textContent = txt;
+  }
+
+  function pintarHueco() {
+    const cuerpo = $("[data-nv-hueco-cuerpo]");
+    for (let i = 0; i < 10; i++) {
+      const libres = huecosDeCualquiera(datos, masDias(new Date(), i), "corte");
+      if (!libres.length) continue;
+      const [ms, quienes] = libres[0];
+      const b = barb(datos, quienes[0]);
+      const quien = el("div", "nv-hueco__quien");
+      const av = el("span", "nv-avatar", iniciales(`${b.n} ${b.apellido}`));
+      av.style.setProperty("--c", b.c);
+      const txt = el("div");
+      txt.append(el("strong", "", cuando(ms)), el("small", "", `Corte con ${b.n} · 30 min · ${euro.format(serv(datos, "corte").p)}`));
+      quien.append(av, txt);
+      const cta = boton("nv-btn nv-btn--oro nv-btn--full", "Reservar este hueco ", ico("arrow-right"));
+      cta.addEventListener("click", () => abrirReserva({ servicio: "corte", barbero: b.id, dia: inicioDia(ms), hora: ms }, 4));
+      const otros = el("small", "nv-hueco__mas", `${libres.length} huecos libres ese día`);
+      cuerpo.replaceChildren(quien, cta, otros);
+      return;
+    }
+    cuerpo.replaceChildren(el("p", "", "Agenda completa estos días. ¡Llámanos!"));
+  }
+
+  function pintarCinta() {
+    const items = datos.servicios.flatMap((s) => [s.n, "✦"]);
+    const fila = [...items, ...items, ...items, ...items];
+    $("[data-nv-cinta]").replaceChildren(...fila.map((t) => el("span", "", t)));
+  }
+
+  function pintarServicios() {
+    $("[data-nv-servicios]").replaceChildren(
+      ...datos.servicios.map((s) => {
+        const li = el("li", "nv-serv");
+        li.style.setProperty("--c", s.c);
+        const cab = el("div", "nv-serv__cab");
+        const icono = el("span", "nv-serv__ico");
+        icono.append(ico(s.ico));
+        cab.append(icono, el("span", "nv-serv__precio", euro.format(s.p)));
+        const meta = el("span", "nv-serv__min");
+        meta.append(ico("clock"), ` ${s.min} min`);
+        const cta = boton("nv-serv__cta", "Reservar ", ico("arrow-right"));
+        cta.addEventListener("click", () => abrirReserva({ servicio: s.id }, 2));
+        const pie = el("div", "nv-serv__pie");
+        pie.append(meta, cta);
+        li.append(cab, el("h3", "", s.n), el("p", "", s.d), pie);
+        return li;
+      }),
+    );
+  }
+
+  function pintarEquipo() {
+    $("[data-nv-n-equipo]").textContent = String(datos.barberos.length);
+    const orden = [1, 2, 3, 4, 5, 6, 0];
+    const hoyN = new Date().getDay();
+    $("[data-nv-equipo]").replaceChildren(
+      ...datos.barberos.map((b) => {
+        const li = el("li", "nv-barbero");
+        li.style.setProperty("--c", b.c);
+        const est = estadoAhora(b);
+        const cab = el("div", "nv-barbero__cab");
+        const av = el("span", "nv-avatar nv-avatar--xl", iniciales(`${b.n} ${b.apellido}`));
+        av.style.setProperty("--c", b.c);
+        const nom = el("div");
+        nom.append(el("h3", "", `${b.n} ${b.apellido}`), el("small", "", b.rol));
+        cab.append(av, nom);
+        const estado = el("span", `nv-pill${est.activo ? " is-on" : ""}`);
+        estado.append(el("i"), est.txt);
+        // horario semanal: una celda por día, de lunes a domingo
+        const semana = el("ul", "nv-barbero__sem");
+        semana.setAttribute("role", "list");
+        orden.forEach((d) => {
+          const t = b.horario[d];
+          const x = el("li", `${t.length ? "" : "is-libra"}${d === hoyN ? " is-hoy" : ""}`);
+          x.append(el("strong", "", DIAS[d].slice(0, 1)), el("span", "", t.length ? t.map(([a, z]) => `${horaTxt(a)}-${horaTxt(z)}`).join("\n") : "Libra"));
+          x.title = `${DIAS[d]}: ${turnosTxt(t)}`;
+          semana.append(x);
+        });
+        const cta = boton("nv-btn nv-btn--linea nv-btn--full", `Reservar con ${b.n}`);
+        cta.addEventListener("click", () => abrirReserva({ barbero: b.id }, 1));
+        li.append(cab, estado, el("p", "", b.bio), semana, cta);
+        return li;
+      }),
+    );
+  }
+
+  function pintarHorario() {
+    const base = lunes();
+    const hoy = inicioDia();
+    $("[data-nv-horario]").replaceChildren(
+      ...Array.from({ length: 7 }, (_, i) => {
+        const f = masDias(base, i);
+        const t = horarioLocal(datos, f);
+        const quien = datos.barberos.filter((b) => turnosDe(b, f).length).map((b) => b.n);
+        const tr = el("tr", f === hoy ? "is-hoy" : "");
+        const dia = el("th", "", DIAS[new Date(f).getDay()]);
+        if (f === hoy) dia.append(el("em", "", "Hoy"));
+        tr.append(dia, el("td", t.length ? "" : "nv-cerrado", t.length ? turnosTxt(t) : "Cerrado"), el("td", "nv-quien", quien.join(", ")));
+        return tr;
+      }),
+    );
+  }
+
+  // ── mis citas ─────
+  function misCitas() {
+    const yo = leerYo();
+    if (!yo || !normalTel(yo.tel)) return [];
+    return datos.citas.filter((c) => normalTel(c.tel) === normalTel(yo.tel)).sort((a, b) => a.inicio - b.inicio);
+  }
+
+  function pintarMias() {
+    const caja = $("[data-nv-mias]");
+    const yo = leerYo();
+    const mias = misCitas();
+    const proximas = mias.filter((c) => c.inicio >= Date.now() && c.estado !== "cancelada");
+    $("[data-nv-mias-n]").textContent = proximas.length ? String(proximas.length) : "";
+    if (!yo) {
+      const f = el("form", "nv-tarjeta nv-buscar");
+      f.innerHTML = `<div class="nv-buscar__ico"><i class="fa-solid fa-mobile-screen"></i></div>
+        <h3>Encuentra tus citas</h3>
+        <p>Escribe el teléfono con el que reservaste.</p>
+        <div class="nv-buscar__fila"><input name="tel" inputmode="tel" autocomplete="tel" placeholder="600 000 000" aria-label="Teléfono" /><button class="nv-btn nv-btn--oro" type="submit">Ver citas</button></div>
+        <p class="nv-error" data-err></p>`;
+      const demo = boton("nv-enlace", ico("wand-magic-sparkles"), " Probar con un cliente de ejemplo");
+      demo.addEventListener("click", () => {
+        // el cliente de ejemplo con más citas por delante
+        const cuenta = new Map<string, number>();
+        datos.citas.filter((c) => c.inicio >= Date.now() && c.estado === "confirmada").forEach((c) => cuenta.set(c.tel, (cuenta.get(c.tel) ?? 0) + 1));
+        const tel = [...cuenta.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+        guardarYo(datos.clientes.find((c) => c.tel === tel) ?? datos.clientes[0]);
+        pintarMias();
+      });
+      f.append(demo);
+      f.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const tel = normalTel((f.elements.namedItem("tel") as HTMLInputElement).value);
+        const err = $("[data-err]", f);
+        if (tel.length < 9) return (err.textContent = "Escribe un teléfono de 9 cifras.");
+        const cli = datos.clientes.find((c) => normalTel(c.tel) === tel) ?? datos.citas.map((c) => ({ n: c.cliente, tel: c.tel })).find((c) => normalTel(c.tel) === tel);
+        if (!cli) return (err.textContent = "No hay citas con ese teléfono. ¿Reservas la primera?");
+        guardarYo(cli);
+        pintarMias();
+      });
+      caja.replaceChildren(f);
+      return;
+    }
+
+    const cab = el("div", "nv-mias__cab");
+    const av = el("span", "nv-avatar nv-avatar--xl", iniciales(yo.n));
+    const txt = el("div");
+    txt.append(el("h3", "", `Hola, ${yo.n.split(" ")[0]}`), el("small", "", `${proximas.length ? `${proximas.length} ${proximas.length === 1 ? "cita pendiente" : "citas pendientes"}` : "Sin citas pendientes"} · ${yo.tel}`));
+    const salir = boton("nv-enlace", ico("right-from-bracket"), " No soy yo");
+    salir.addEventListener("click", () => {
+      guardarYo(null);
+      pintarMias();
+    });
+    const nueva = boton("nv-btn nv-btn--oro", ico("plus"), " Nueva cita");
+    nueva.addEventListener("click", () => abrirReserva({}, 1));
+    cab.append(av, txt, salir, nueva);
+
+    const lista = el("ul", "nv-mias__lista");
+    lista.setAttribute("role", "list");
+    if (!proximas.length) lista.append(el("li", "nv-vacio", "No tienes citas por delante. ¿Te reservamos una?"));
+    proximas.forEach((c) => lista.append(tarjetaCita(c, true)));
+
+    const pasadas = mias.filter((c) => c.inicio < Date.now() || c.estado === "cancelada").reverse();
+    const hist = el("details", "nv-hist");
+    hist.append(el("summary", "", `Historial (${pasadas.length})`));
+    const lh = el("ul", "nv-mias__lista nv-mias__lista--hist");
+    lh.setAttribute("role", "list");
+    pasadas.slice(0, 12).forEach((c) => lh.append(tarjetaCita(c, false)));
+    hist.append(lh);
+    caja.replaceChildren(cab, lista, ...(pasadas.length ? [hist] : []));
+  }
+
+  const ESTADOS: Record<Cita["estado"], [string, string]> = {
+    confirmada: ["Confirmada", "circle-check"],
+    llego: ["Completada", "check-double"],
+    noshow: ["No asististe", "user-xmark"],
+    cancelada: ["Cancelada", "ban"],
+  };
+
+  function tarjetaCita(c: Cita, activa: boolean) {
+    const s = serv(datos, c.servicio);
+    const b = barb(datos, c.barbero);
+    const li = el("li", `nv-cita is-${c.estado}`);
+    li.style.setProperty("--c", s.c);
+    const f = new Date(c.inicio);
+    const fecha = el("div", "nv-cita__fecha");
+    fecha.append(el("small", "", f.toLocaleDateString("es-ES", { month: "short" }).replace(".", "")), el("strong", "", String(f.getDate())), el("small", "", f.toLocaleDateString("es-ES", { weekday: "short" }).replace(".", "")));
+    const info = el("div", "nv-cita__info");
+    const est = el("span", "nv-cita__estado");
+    est.append(ico(ESTADOS[c.estado][1]), ` ${ESTADOS[c.estado][0]}`);
+    info.append(el("strong", "", `${s.n} · ${hhmm(c.inicio)}`), el("span", "", `Con ${b.n} · ${s.min} min · ${euro.format(s.p)}`), est);
+    li.append(fecha, info);
+    if (activa) {
+      // cancelar en dos pasos (sin ventanas del navegador)
+      const cancelar = boton("nv-cita__cancelar", "Cancelar");
+      cancelar.addEventListener("click", () => {
+        if (!cancelar.classList.contains("is-seguro")) {
+          cancelar.classList.add("is-seguro");
+          cancelar.textContent = "¿Seguro? Sí, cancelar";
+          setTimeout(() => {
+            cancelar.classList.remove("is-seguro");
+            cancelar.textContent = "Cancelar";
+          }, 3500);
+          return;
+        }
+        const x = datos.citas.find((y) => y.id === c.id);
+        if (x) x.estado = "cancelada";
+        guardar(datos);
+        pintarTodo();
+        toast("Cita cancelada. El hueco queda libre.");
+      });
+      li.append(cancelar);
+    }
+    return li;
+  }
+
+  // ── reserva en 4 pasos ─────
+  interface Reserva {
+    servicio?: string;
+    /** id del profesional o «any» (cualquiera) */
+    barbero?: string;
+    dia?: number;
+    hora?: number;
+    /** con «cualquiera», el profesional que tiene libre la hora elegida */
+    asignado?: string;
+  }
+  const modal = $<HTMLDialogElement>("[data-nv-modal]");
+  let res: Reserva = {};
+  let paso = 1;
+  let hecha: Cita | null = null;
+  const TITULOS = ["", "Elige el servicio", "¿Con quién?", "Día y hora", "Tus datos"];
+
+  function abrirReserva(inicial: Reserva, desde: number) {
+    res = { ...inicial };
+    hecha = null;
+    // si llega con profesional pero sin servicio, empieza por el servicio y luego se salta el paso 2
+    paso = res.servicio ? desde : 1;
+    pintarPaso();
+    if (!modal.open) modal.showModal();
+  }
+
+  const profesional = () => (res.barbero === "any" ? res.asignado : res.barbero);
+
+  // paso que se pintó la última vez: si cambia, el cuerpo entra deslizándose hacia ese lado
+  let pintado = 0;
+
+  function pintarPestanas() {
+    const quien = res.barbero === "any" ? (res.asignado ? barb(datos, res.asignado).n : "Cualquiera") : res.barbero ? barb(datos, res.barbero).n : "";
+    const elegido = [res.servicio ? serv(datos, res.servicio).n : "", quien, res.hora ? `${new Date(res.hora).toLocaleDateString("es-ES", { weekday: "short", day: "numeric" }).replace(".", "")} · ${hhmm(res.hora)}` : "", hecha ? hecha.cliente.split(" ")[0] : ""];
+    $$<HTMLButtonElement>("[data-nv-ir]").forEach((b, i) => {
+      const n = i + 1;
+      const li = b.parentElement!;
+      li.classList.toggle("is-on", !hecha && n === paso);
+      li.classList.toggle("is-hecho", !!hecha || n < paso);
+      // solo se puede volver a pasos ya hechos
+      b.disabled = !!hecha || n >= paso;
+      if (n === paso && !hecha) b.setAttribute("aria-current", "step");
+      else b.removeAttribute("aria-current");
+      $("[data-nv-paso-sel]", b).textContent = elegido[i] || (n === paso && !hecha ? "Ahora" : "Pendiente");
+    });
+  }
+
+  function pintarPaso() {
+    const cuerpo = $("[data-nv-paso]");
+    cuerpo.replaceChildren();
+    cuerpo.scrollTop = 0;
+    const ahora = hecha ? 5 : paso;
+    if (ahora !== pintado) {
+      cuerpo.classList.remove("is-adelante", "is-atras");
+      void cuerpo.offsetWidth;
+      cuerpo.classList.add(ahora > pintado ? "is-adelante" : "is-atras");
+      pintado = ahora;
+    }
+    $("[data-nv-pie]").hidden = !!hecha;
+    $("[data-nv-barra]").style.width = `${hecha ? 100 : (paso / 4) * 100}%`;
+    pintarPestanas();
+    $("[data-nv-paso-n]").textContent = hecha ? "¡Listo!" : `Paso ${paso} de 4`;
+    $("[data-nv-paso-t]").textContent = hecha ? "Cita confirmada" : TITULOS[paso];
+    $<HTMLButtonElement>("[data-nv-atras]").hidden = paso === 1;
+    const sig = $<HTMLButtonElement>("[data-nv-sig]");
+    sig.textContent = paso === 4 ? "Confirmar reserva" : "Continuar";
+    pintarResumen();
+    if (hecha) return pintarHecha(cuerpo);
+    if (paso === 1) pasoServicio(cuerpo);
+    if (paso === 2) pasoBarbero(cuerpo);
+    if (paso === 3) pasoHora(cuerpo);
+    if (paso === 4) pasoDatos(cuerpo);
+    sig.disabled = !puedeSeguir();
+  }
+
+  function puedeSeguir() {
+    if (paso === 1) return !!res.servicio;
+    if (paso === 2) return !!res.barbero;
+    if (paso === 3) return !!res.hora && !!profesional();
+    return true;
+  }
+
+  function pintarResumen() {
+    const partes: string[] = [];
+    if (res.servicio) partes.push(`${serv(datos, res.servicio).n} · ${euro.format(serv(datos, res.servicio).p)}`);
+    if (res.barbero) partes.push(res.barbero === "any" ? (res.asignado ? barb(datos, res.asignado).n : "Cualquiera") : barb(datos, res.barbero).n);
+    if (res.hora) partes.push(cuando(res.hora));
+    $("[data-nv-resumen]").textContent = partes.join(" · ");
+  }
+
+  function opcion(activa: boolean, alPulsar: () => void, ...hijos: (Node | string)[]) {
+    const b = boton(`nv-op${activa ? " is-on" : ""}`, ...hijos);
+    b.setAttribute("aria-pressed", String(activa));
+    b.addEventListener("click", alPulsar);
+    return b;
+  }
+
+  function pasoServicio(cuerpo: HTMLElement) {
+    const lista = el("div", "nv-ops");
+    datos.servicios.forEach((s) => {
+      const i = el("span", "nv-op__ico");
+      i.style.setProperty("--c", s.c);
+      i.append(ico(s.ico));
+      const t = el("span", "nv-op__txt");
+      t.append(el("strong", "", s.n), el("small", "", `${s.min} min · ${s.d}`));
+      const elegir = () => {
+        res.servicio = s.id;
+        res.hora = undefined;
+        avanzar();
+      };
+      lista.append(opcion(res.servicio === s.id, elegir, i, t, el("span", "nv-op__precio", euro.format(s.p))));
+    });
+    cuerpo.append(lista);
+  }
+
+  function pasoBarbero(cuerpo: HTMLElement) {
+    const lista = el("div", "nv-ops");
+    const elegir = (id: string) => () => {
+      res.barbero = id;
+      res.hora = undefined;
+      avanzar();
+    };
+    const cualquiera = el("span", "nv-op__ico nv-op__ico--any");
+    cualquiera.append(ico("shuffle"));
+    const ct = el("span", "nv-op__txt");
+    ct.append(el("strong", "", "Cualquiera"), el("small", "", "El primer hueco libre del equipo"));
+    lista.append(opcion(res.barbero === "any", elegir("any"), cualquiera, ct));
+    datos.barberos.forEach((b) => {
+      const av = el("span", "nv-avatar", iniciales(`${b.n} ${b.apellido}`));
+      av.style.setProperty("--c", b.c);
+      const t = el("span", "nv-op__txt");
+      const dias = [1, 2, 3, 4, 5, 6, 0].filter((d) => b.horario[d].length).map((d) => DIAS[d].slice(0, 2));
+      t.append(el("strong", "", `${b.n} ${b.apellido}`), el("small", "", `${b.rol} · trabaja ${dias.join(", ")}`));
+      const est = estadoAhora(b);
+      const pill = el("span", `nv-pill nv-pill--mini${est.activo ? " is-on" : ""}`);
+      pill.append(el("i"), est.activo ? "Ahora" : est.txt.replace("Trabajando ", ""));
+      lista.append(opcion(res.barbero === b.id, elegir(b.id), av, t, pill));
+    });
+    cuerpo.append(lista);
+  }
+
+  function libresDe(dia: number): [number, string[]][] {
+    const { servicio, barbero } = res;
+    if (!servicio || !barbero) return [];
+    if (barbero === "any") return huecosDeCualquiera(datos, dia, servicio);
+    return huecos(datos, barbero, dia, servicio).map((ms) => [ms, [barbero]]);
+  }
+
+  function pasoHora(cuerpo: HTMLElement) {
+    const hoy = inicioDia();
+    const dias = Array.from({ length: 21 }, (_, i) => masDias(hoy, i));
+    if (!res.dia || !libresDe(res.dia).length) res.dia = dias.find((d) => libresDe(d).length);
+    const tira = el("div", "nv-dias");
+    dias.forEach((d) => {
+      const n = libresDe(d).length;
+      const f = new Date(d);
+      const b = boton(`nv-dia${d === res.dia ? " is-on" : ""}`, el("small", "", f.toLocaleDateString("es-ES", { weekday: "short" }).replace(".", "")), el("strong", "", String(f.getDate())), el("em", "", n ? `${n} libres` : "—"));
+      b.disabled = !n;
+      b.addEventListener("click", () => {
+        res.dia = d;
+        res.hora = undefined;
+        pintarPaso();
+      });
+      tira.append(b);
+    });
+    cuerpo.append(tira, el("p", "nv-mes", res.dia ? fechaLarga(res.dia) : "No quedan huecos en las próximas semanas"));
+    if (!res.dia) return;
+    const libres = libresDe(res.dia);
+    const grupos: [string, [number, string[]][]][] = [
+      ["Mañana", libres.filter(([ms]) => new Date(ms).getHours() < 14)],
+      ["Tarde", libres.filter(([ms]) => new Date(ms).getHours() >= 14)],
+    ];
+    grupos.forEach(([t, lista]) => {
+      if (!lista.length) return;
+      const g = el("div", "nv-horas");
+      const rej = el("div", "nv-horas__rej");
+      lista.forEach(([ms, quienes]) => {
+        const b = boton(`nv-hora${res.hora === ms ? " is-on" : ""}`, hhmm(ms));
+        if (res.barbero === "any") b.title = `Libre: ${quienes.map((q) => barb(datos, q).n).join(", ")}`;
+        b.addEventListener("click", () => {
+          res.hora = ms;
+          res.asignado = res.barbero === "any" ? quienes[0] : undefined;
+          pintarPaso();
+        });
+        rej.append(b);
+      });
+      g.append(el("span", "nv-horas__t", t), rej);
+      cuerpo.append(g);
+    });
+    // horario del profesional elegido ese día
+    if (res.barbero && res.barbero !== "any") {
+      const p = barb(datos, res.barbero);
+      cuerpo.append(el("p", "nv-nota", `${p.n} trabaja ese día: ${turnosTxt(turnosDe(p, res.dia))}`));
+    }
+  }
+
+  function pasoDatos(cuerpo: HTMLElement) {
+    const yo = leerYo();
+    const s = serv(datos, res.servicio!);
+    const b = barb(datos, profesional()!);
+    const resumen = el("div", "nv-tarjeta nv-ticket");
+    resumen.style.setProperty("--c", s.c);
+    const av = el("span", "nv-avatar", iniciales(`${b.n} ${b.apellido}`));
+    av.style.setProperty("--c", b.c);
+    const t = el("div");
+    t.append(el("strong", "", s.n), el("span", "", `${cuando(res.hora!)} · con ${b.n}`), el("span", "", `${s.min} min · ${euro.format(s.p)} · pagas en el local`));
+    resumen.append(av, t);
+    const f = el("form", "nv-form");
+    f.dataset.nvForm = "";
+    f.innerHTML = `<label>Nombre y apellido<input name="n" autocomplete="name" placeholder="Carlos Ruiz" /></label>
+      <label>Teléfono<input name="tel" inputmode="tel" autocomplete="tel" placeholder="600 000 000" /></label>
+      <label class="nv-ancho">¿Algo que debamos saber? <small>(opcional)</small><textarea name="notas" rows="2" placeholder="Degradado bajo, primera vez…"></textarea></label>
+      <p class="nv-error nv-ancho" data-err></p>`;
+    (f.elements.namedItem("n") as HTMLInputElement).value = yo?.n ?? "";
+    (f.elements.namedItem("tel") as HTMLInputElement).value = yo?.tel ?? "";
+    f.addEventListener("submit", (e) => {
+      e.preventDefault();
+      confirmar();
+    });
+    cuerpo.append(resumen, f, el("p", "nv-nota", "Te avisaremos por SMS el día antes. Puedes cancelar desde «Mis citas»."));
+    setTimeout(() => (f.elements.namedItem(yo ? "notas" : "n") as HTMLElement).focus(), 50);
+  }
+
+  function confirmar() {
+    const f = $<HTMLFormElement>("[data-nv-form]");
+    const err = $("[data-err]", f);
+    const n = (f.elements.namedItem("n") as HTMLInputElement).value.trim().replace(/\s+/g, " ");
+    const tel = normalTel((f.elements.namedItem("tel") as HTMLInputElement).value);
+    if (n.length < 2) return (err.textContent = "Escribe tu nombre.");
+    if (tel.length !== 9) return (err.textContent = "El teléfono debe tener 9 cifras.");
+    datos = cargar(); // por si el panel ha cambiado algo mientras tanto
+    const quien = profesional()!;
+    const s = serv(datos, res.servicio!);
+    if (choque(datos, quien, res.hora!, s.min)) {
+      err.textContent = "Vaya, alguien acaba de coger esa hora. Elige otra.";
+      res.hora = undefined;
+      paso = 3;
+      return setTimeout(pintarPaso, 1200);
+    }
+    const cita: Cita = { id: nuevoId(), cliente: n, tel, servicio: s.id, barbero: quien, inicio: res.hora!, estado: "confirmada", notas: (f.elements.namedItem("notas") as HTMLTextAreaElement).value.trim(), origen: "web", creada: Date.now() };
+    datos.citas.push(cita);
+    const cli = datos.clientes.find((c) => normalTel(c.tel) === tel);
+    if (cli) cli.n = n;
+    else datos.clientes.push({ n, tel });
+    guardar(datos);
+    guardarYo({ n, tel });
+    hecha = cita;
+    pintarPaso();
+    pintarTodo();
+  }
+
+  function pintarHecha(cuerpo: HTMLElement) {
+    const c = hecha!;
+    const s = serv(datos, c.servicio);
+    const b = barb(datos, c.barbero);
+    const caja = el("div", "nv-hecha");
+    const check = el("span", "nv-hecha__check");
+    check.append(ico("check"));
+    caja.append(check, el("h3", "", `¡Te esperamos, ${c.cliente.split(" ")[0]}!`), el("p", "", `${s.n} con ${b.n}`), el("p", "nv-hecha__cuando", cuando(c.inicio)));
+    const acc = el("div", "nv-hecha__acc");
+    const ver = boton("nv-btn nv-btn--oro", "Ver mis citas");
+    ver.addEventListener("click", () => {
+      cerrarModal();
+      $("#mis-citas").scrollIntoView({ behavior: "smooth" });
+    });
+    const otra = boton("nv-btn nv-btn--linea", "Reservar otra");
+    otra.addEventListener("click", () => abrirReserva({}, 1));
+    acc.append(ver, otra);
+    caja.append(acc);
+    cuerpo.append(caja);
+  }
+
+  function avanzar() {
+    if (!puedeSeguir()) return pintarPaso();
+    // si el profesional ya venía elegido desde «Reservar con…», no se pregunta otra vez
+    paso = paso === 1 && res.barbero ? 3 : paso + 1;
+    pintarPaso();
+  }
+
+  $("[data-nv-sig]").addEventListener("click", () => (paso === 4 ? confirmar() : avanzar()));
+  $("[data-nv-atras]").addEventListener("click", () => {
+    paso = Math.max(1, paso - 1);
+    pintarPaso();
+  });
+  $$<HTMLButtonElement>("[data-nv-ir]").forEach((b) =>
+    b.addEventListener("click", () => {
+      paso = Number(b.dataset.nvIr);
+      pintarPaso();
+    }),
+  );
+
+  // al cerrar, el modal baja y se desvanece (lo pinta .is-cierra) antes de quitarlo
+  function cerrarModal() {
+    if (!modal.open || modal.classList.contains("is-cierra")) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return modal.close();
+    modal.classList.add("is-cierra");
+    setTimeout(() => {
+      modal.classList.remove("is-cierra");
+      modal.close();
+    }, 300);
+  }
+  modal.addEventListener("cancel", (e) => {
+    e.preventDefault();
+    cerrarModal();
+  });
+  modal.addEventListener("close", () => (pintado = 0));
+  $("[data-nv-cerrar]").addEventListener("click", cerrarModal);
+  modal.addEventListener("click", (e) => e.target === modal && cerrarModal());
+  $$("[data-nv-reservar]").forEach((b) => b.addEventListener("click", () => abrirReserva({}, 1)));
+
+  // ── todo ─────
+  function pintarTodo() {
+    pintarEstado();
+    pintarHueco();
+    pintarServicios();
+    pintarEquipo();
+    pintarHorario();
+    pintarMias();
+  }
+  pintarCinta();
+  pintarTodo();
+  alCambiar((d) => {
+    datos = d;
+    pintarTodo();
+    if (modal.open && !hecha) pintarPaso();
+  });
+  setInterval(() => {
+    pintarEstado();
+    pintarHueco();
+  }, 60_000);
+
+  // las secciones aparecen al entrar en pantalla
+  const io = new IntersectionObserver(
+    (es) =>
+      es.forEach((e) => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("is-visto");
+        io.unobserve(e.target);
+      }),
+    { threshold: 0.1 },
+  );
+  $$(".nv-sec, .nv-pie").forEach((s) => io.observe(s));
+
+  // la barra de navegación se vuelve sólida al bajar
+  const nav = $("[data-nv-nav]");
+  const alBajar = () => nav.classList.toggle("is-solida", scrollY > 40);
+  addEventListener("scroll", alBajar, { passive: true });
+  alBajar();
+</script>
+
+<style is:global>
+  .nv {
+    --negro: #0d0c0b;
+    --negro-2: #161412;
+    --negro-3: #221f1b;
+    --crema: #f5f0e7;
+    --crema-2: #ebe3d4;
+    --oro: #d4a95a;
+    --oro-2: #e8c486;
+    --tinta: #1a1714;
+    --gris: #8a8178;
+    --linea: rgb(255 255 255 / 0.09);
+    --linea-c: #e2d9c8;
+    --r: 18px;
+    --serif: "Fraunces", Georgia, serif;
+    background: var(--crema);
+    color: var(--tinta);
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    overflow-x: clip;
+  }
+
+  .nv em {
+    font-style: italic;
+  }
+
+  .nv h1,
+  .nv h2,
+  .nv h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+
+  .nv h1 em,
+  .nv h2 em {
+    color: var(--oro);
+    font-weight: 400;
+  }
+
+  .nv-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: var(--oro);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .nv-sec__cab .nv-kicker::before,
+  .nv-pie__cta .nv-kicker::before {
+    content: "";
+    width: 2.2rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--oro));
+  }
+
+  /* botones */
+  .nv-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.7rem 1.2rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      transform 0.2s,
+      background 0.2s,
+      box-shadow 0.2s,
+      border-color 0.2s;
+  }
+
+  .nv-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .nv-btn:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .nv-btn[hidden] {
+    display: none;
+  }
+
+  .nv-btn--oro {
+    background: linear-gradient(180deg, var(--oro-2), var(--oro));
+    color: #1a1308;
+    box-shadow: 0 10px 28px -12px var(--oro);
+  }
+
+  .nv-btn--oro:hover {
+    box-shadow: 0 14px 34px -10px var(--oro);
+  }
+
+  .nv-btn--linea {
+    border-color: currentColor;
+    background: transparent;
+    color: inherit;
+  }
+
+  .nv-btn--linea:hover {
+    background: rgb(127 127 127 / 0.1);
+  }
+
+  .nv-btn--xl {
+    padding: 0.95rem 1.6rem;
+    font-size: 1rem;
+  }
+
+  .nv-btn--full {
+    width: 100%;
+  }
+
+  .nv-enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0;
+    border: 0;
+    background: none;
+    color: var(--oro);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .nv-ico {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1px solid var(--linea-c);
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s;
+  }
+
+  .nv-ico:hover {
+    transform: rotate(90deg);
+  }
+
+  .nv-avatar {
+    --c: var(--oro);
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--c) 70%, #fff), var(--c));
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    box-shadow: 0 8px 20px -10px var(--c);
+  }
+
+  .nv-avatar--xl {
+    width: 3.6rem;
+    height: 3.6rem;
+    font-size: 1.05rem;
+  }
+
+  .nv-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: fit-content;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.07);
+    color: var(--gris);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .nv-pill i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .nv-pill.is-on {
+    background: rgb(34 197 94 / 0.14);
+    color: #4ade80;
+  }
+
+  .nv-pill.is-on i {
+    animation: nv-latido 1.6s infinite;
+  }
+
+  .nv-pill--mini {
+    margin-left: auto;
+    background: var(--crema-2);
+    font-size: 0.68rem;
+  }
+
+  .nv-pill--mini.is-on {
+    color: #15803d;
+  }
+
+  .nv-tarjeta {
+    border: 1px solid var(--linea-c);
+    border-radius: var(--r);
+    background: #fffdf9;
+    box-shadow:
+      0 1px 2px rgb(26 23 20 / 0.04),
+      0 18px 40px -28px rgb(26 23 20 / 0.25);
+  }
+
+  /* ── navegación ── */
+  .nv-nav {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem clamp(1rem, 4vw, 3rem);
+    color: var(--crema);
+    transition:
+      background 0.3s,
+      padding 0.3s,
+      box-shadow 0.3s;
+  }
+
+  .nv-nav.is-solida {
+    padding-block: 0.65rem;
+    background: rgb(13 12 11 / 0.82);
+    backdrop-filter: blur(14px) saturate(1.4);
+    box-shadow: 0 1px 0 var(--linea);
+  }
+
+  .nv-marca {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    color: inherit;
+    font-family: var(--serif);
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    text-decoration: none;
+  }
+
+  .nv-marca small {
+    color: var(--oro);
+    font-family: "Inter", sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  /* el poste de barbero girando */
+  .nv-marca__poste {
+    align-self: center;
+    width: 0.55rem;
+    height: 1.35rem;
+    border-radius: 999px;
+    background: repeating-linear-gradient(-45deg, #e11d48 0 4px, #fff 4px 8px, #2563eb 8px 12px, #fff 12px 16px);
+    background-size: 100% 22.6px;
+    box-shadow: 0 0 0 2px var(--oro);
+    animation: nv-poste 1.2s linear infinite;
+  }
+
+  .nv-nav__links {
+    display: flex;
+    gap: 0.3rem;
+    margin-inline: auto;
+  }
+
+  .nv-nav__links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.85rem;
+    border-radius: 999px;
+    color: rgb(245 240 231 / 0.75);
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+      color 0.2s,
+      background 0.2s;
+  }
+
+  .nv-nav__links a:hover {
+    background: rgb(255 255 255 / 0.07);
+    color: #fff;
+  }
+
+  .nv-nav__links em {
+    min-width: 1.2rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: var(--oro);
+    color: #1a1308;
+    font-size: 0.68rem;
+    font-style: normal;
+    font-weight: 800;
+    text-align: center;
+  }
+
+  .nv-nav__links em:empty {
+    display: none;
+  }
+
+  .nv-nav__acc {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .nv-equipo-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: rgb(245 240 231 / 0.65);
+    font-size: 0.82rem;
+    text-decoration: none;
+  }
+
+  .nv-equipo-link:hover {
+    color: var(--oro);
+  }
+
+  /* ── portada ── */
+  .nv-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
+    align-items: end;
+    gap: 3rem;
+    min-height: min(100svh, 56rem);
+    padding: 9rem clamp(1rem, 5vw, 4.5rem) 5rem;
+    background: var(--negro);
+    color: var(--crema);
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .nv-hero__fondo {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(60rem 40rem at 85% 10%, rgb(212 169 90 / 0.22), transparent 60%),
+      radial-gradient(40rem 30rem at 0% 100%, rgb(225 29 72 / 0.12), transparent 60%),
+      repeating-linear-gradient(90deg, rgb(255 255 255 / 0.025) 0 1px, transparent 1px 7rem);
+  }
+
+  .nv-hero__fondo::after {
+    content: "N";
+    position: absolute;
+    right: -4vw;
+    bottom: -14vw;
+    color: transparent;
+    font-family: var(--serif);
+    font-size: 48vw;
+    font-style: italic;
+    font-weight: 700;
+    line-height: 1;
+    -webkit-text-stroke: 1px rgb(212 169 90 / 0.14);
+  }
+
+  .nv-hero__txt {
+    display: grid;
+    gap: 1.6rem;
+    animation: nv-sube 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .nv-hero h1 {
+    font-size: clamp(2.8rem, 7.2vw, 6.4rem);
+    font-weight: 500;
+    line-height: 0.98;
+  }
+
+  .nv-hero__txt > p {
+    max-width: 34rem;
+    color: rgb(245 240 231 / 0.7);
+    font-size: 1.08rem;
+  }
+
+  .nv-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: fit-content;
+    padding: 0.4rem 0.9rem 0.4rem 0.7rem;
+    border: 1px solid var(--linea);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.04);
+    color: rgb(245 240 231 / 0.8);
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .nv-estado i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f87171;
+  }
+
+  .nv-estado.is-abierto i {
+    background: #4ade80;
+    animation: nv-latido 1.6s infinite;
+  }
+
+  .nv-hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+
+  .nv-hero__datos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    margin-top: 1rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--linea);
+  }
+
+  .nv-hero__datos li {
+    display: grid;
+  }
+
+  .nv-hero__datos strong {
+    font-family: var(--serif);
+    font-size: 2.2rem;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .nv-hero__datos span {
+    color: var(--gris);
+    font-size: 0.82rem;
+  }
+
+  .nv-hero__datos .fa-star {
+    color: var(--oro);
+  }
+
+  .nv-hueco {
+    display: grid;
+    gap: 1rem;
+    padding: 1.5rem;
+    border: 1px solid rgb(212 169 90 / 0.3);
+    border-radius: 24px;
+    background: linear-gradient(160deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02));
+    backdrop-filter: blur(16px);
+    box-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.8);
+    animation: nv-sube 0.9s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .nv-hueco__t {
+    color: var(--oro);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  [data-nv-hueco-cuerpo] {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .nv-hueco__quien {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .nv-hueco__quien strong {
+    display: block;
+    font-family: var(--serif);
+    font-size: 1.45rem;
+    font-weight: 500;
+    line-height: 1.15;
+  }
+
+  .nv-hueco__quien strong::first-letter {
+    text-transform: uppercase;
+  }
+
+  .nv-hueco__quien small,
+  .nv-hueco__mas {
+    color: var(--gris);
+    font-size: 0.8rem;
+  }
+
+  .nv-hueco__mas {
+    text-align: center;
+  }
+
+  /* ── cinta ── */
+  .nv-cinta {
+    position: relative;
+    z-index: 2;
+    margin-block: -0.6rem;
+    padding-block: 1.1rem;
+    background: var(--oro);
+    color: #1a1308;
+    overflow: hidden;
+    transform: rotate(-1.2deg) scale(1.02);
+  }
+
+  .nv-cinta div {
+    display: flex;
+    gap: 2.2rem;
+    width: max-content;
+    animation: nv-cinta 40s linear infinite;
+  }
+
+  .nv-cinta span {
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    font-style: italic;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* ── secciones ── */
+  .nv-sec {
+    padding: clamp(4.5rem, 9vw, 8rem) clamp(1rem, 5vw, 4.5rem);
+    scroll-margin-top: 3rem;
+  }
+
+  .nv-sec--oscura {
+    background: var(--negro);
+    color: var(--crema);
+  }
+
+  .nv-sec--crema {
+    background: var(--crema-2);
+  }
+
+  .nv-sec__cab {
+    display: grid;
+    gap: 0.9rem;
+    max-width: 44rem;
+    margin-bottom: 3rem;
+  }
+
+  .nv-sec__cab h2 {
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 500;
+  }
+
+  .nv-sec__cab p {
+    color: var(--gris);
+    font-size: 1.02rem;
+  }
+
+  /* servicios */
+  .nv-servicios {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+    gap: 1rem;
+    counter-reset: serv;
+  }
+
+  .nv-serv {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.6rem;
+    border: 1px solid var(--linea-c);
+    border-radius: 22px;
+    background:
+      radial-gradient(16rem 10rem at 100% 0%, color-mix(in srgb, var(--c) 9%, transparent), transparent 70%),
+      #fffdf9;
+    overflow: hidden;
+    counter-increment: serv;
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.35s,
+      border-color 0.35s;
+  }
+
+  /* número grande de fondo */
+  .nv-serv::after {
+    content: counter(serv, decimal-leading-zero);
+    position: absolute;
+    right: 0.8rem;
+    bottom: -1.2rem;
+    color: color-mix(in srgb, var(--c) 9%, transparent);
+    font-family: var(--serif);
+    font-size: 6.5rem;
+    font-style: italic;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+    transition:
+      color 0.35s,
+      transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nv-serv:hover::after {
+    color: color-mix(in srgb, var(--c) 16%, transparent);
+    transform: translateY(-0.4rem);
+  }
+
+  .nv-serv > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .nv-serv:hover {
+    border-color: color-mix(in srgb, var(--c) 40%, var(--linea-c));
+  }
+
+  .nv-serv:hover .nv-serv__ico {
+    transform: rotate(-10deg) scale(1.08);
+  }
+
+  .nv-serv__ico {
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .nv-serv::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: var(--c);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nv-serv:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 50px -30px rgb(26 23 20 / 0.45);
+  }
+
+  .nv-serv:hover::before {
+    transform: none;
+  }
+
+  .nv-serv__cab {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nv-serv__ico,
+  .nv-op__ico {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.8rem;
+    height: 2.8rem;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--c) 13%, #fff);
+    color: var(--c);
+    font-size: 1.05rem;
+  }
+
+  .nv-serv__precio {
+    font-family: var(--serif);
+    font-size: 1.9rem;
+    font-weight: 500;
+  }
+
+  .nv-serv h3 {
+    font-size: 1.4rem;
+  }
+
+  .nv-serv p {
+    flex: 1;
+    color: #6b6158;
+    font-size: 0.9rem;
+  }
+
+  .nv-serv__pie {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.9rem;
+    border-top: 1px dashed var(--linea-c);
+  }
+
+  .nv-serv__min {
+    color: var(--gris);
+    font-size: 0.82rem;
+  }
+
+  .nv-serv__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--tinta);
+    color: var(--crema);
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+
+  .nv-serv__cta:hover {
+    background: var(--c);
+  }
+
+  /* equipo */
+  .nv-equipo {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+    gap: 1.2rem;
+  }
+
+  .nv-barbero {
+    --c: var(--oro);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.6rem;
+    border: 1px solid var(--linea);
+    border-radius: 24px;
+    background:
+      radial-gradient(22rem 12rem at 100% 0%, color-mix(in srgb, var(--c) 22%, transparent), transparent 70%),
+      var(--negro-2);
+    overflow: hidden;
+    transition:
+      transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.3s;
+  }
+
+  .nv-barbero:hover {
+    transform: translateY(-5px);
+    border-color: color-mix(in srgb, var(--c) 50%, transparent);
+    box-shadow: 0 30px 60px -36px color-mix(in srgb, var(--c) 70%, transparent);
+  }
+
+  .nv-barbero .nv-avatar--xl {
+    box-shadow:
+      0 0 0 3px var(--negro-2),
+      0 0 0 5px color-mix(in srgb, var(--c) 55%, transparent),
+      0 14px 28px -12px var(--c);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .nv-barbero:hover .nv-avatar--xl {
+    transform: scale(1.06) rotate(-4deg);
+  }
+
+  .nv-barbero__cab {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .nv-barbero h3 {
+    font-size: 1.55rem;
+  }
+
+  .nv-barbero small {
+    color: var(--gris);
+    font-size: 0.82rem;
+  }
+
+  .nv-barbero > p {
+    flex: 1;
+    color: rgb(245 240 231 / 0.7);
+    font-size: 0.9rem;
+  }
+
+  .nv-barbero__sem {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+
+  .nv-barbero__sem li {
+    display: grid;
+    align-content: start;
+    gap: 0.25rem;
+    min-height: 4.4rem;
+    padding: 0.45rem 0.2rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--c) 16%, transparent);
+    text-align: center;
+  }
+
+  .nv-barbero__sem li.is-libra {
+    background: rgb(255 255 255 / 0.03);
+    color: #5c554e;
+  }
+
+  .nv-barbero__sem li.is-hoy {
+    outline: 1.5px solid var(--c);
+  }
+
+  .nv-barbero__sem strong {
+    font-size: 0.75rem;
+  }
+
+  .nv-barbero__sem span {
+    color: rgb(245 240 231 / 0.75);
+    font-size: 0.6rem;
+    line-height: 1.3;
+    white-space: pre-line;
+  }
+
+  .nv-barbero__sem li.is-libra span {
+    color: #5c554e;
+  }
+
+  .nv-barbero .nv-btn--linea {
+    border-color: rgb(255 255 255 / 0.18);
+  }
+
+  .nv-barbero .nv-btn--linea:hover {
+    border-color: var(--c);
+    background: var(--c);
+    color: #fff;
+  }
+
+  /* horario */
+  .nv-horario {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 1.2rem;
+  }
+
+  .nv-tabla-h {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .nv-tabla-h tr + tr {
+    border-top: 1px solid var(--linea-c);
+  }
+
+  .nv-tabla-h th,
+  .nv-tabla-h td {
+    padding: 1rem 1.3rem;
+    text-align: left;
+  }
+
+  .nv-tabla-h th {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .nv-tabla-h th em {
+    margin-left: 0.6rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: var(--oro);
+    color: #1a1308;
+    font-family: "Inter", sans-serif;
+    font-size: 0.65rem;
+    font-style: normal;
+    font-weight: 700;
+    vertical-align: middle;
+  }
+
+  .nv-tabla-h tr.is-hoy {
+    background: color-mix(in srgb, var(--oro) 10%, transparent);
+  }
+
+  .nv-tabla-h td {
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+
+  .nv-tabla-h .nv-cerrado {
+    color: var(--gris);
+  }
+
+  .nv-tabla-h .nv-quien {
+    color: var(--gris);
+    font-size: 0.82rem;
+    font-weight: 400;
+    text-align: right;
+  }
+
+  .nv-donde {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .nv-mapa {
+    position: relative;
+    flex: 1;
+    min-height: 14rem;
+    background:
+      linear-gradient(30deg, transparent 48%, #e4d9c4 48% 52%, transparent 52%) 0 0 / 9rem 9rem,
+      linear-gradient(-60deg, transparent 47%, #e9dfcc 47% 53%, transparent 53%) 0 0 / 12rem 12rem,
+      linear-gradient(90deg, transparent 46%, #fff 46% 54%, transparent 54%) 0 0 / 6rem 6rem,
+      #efe7d8;
+  }
+
+  .nv-mapa__pin {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 3.2rem;
+    height: 3.2rem;
+    border-radius: 50% 50% 50% 0;
+    background: var(--tinta);
+    color: var(--oro);
+    transform: translate(-50%, -70%) rotate(-45deg);
+    box-shadow: 0 16px 30px -10px rgb(0 0 0 / 0.5);
+    animation: nv-pin 2.4s ease-in-out infinite;
+  }
+
+  .nv-mapa__pin i {
+    transform: rotate(45deg);
+  }
+
+  .nv-donde__txt {
+    display: grid;
+    gap: 0.4rem;
+    padding: 1.3rem 1.5rem 1.5rem;
+  }
+
+  .nv-donde__txt h3 {
+    font-size: 1.4rem;
+  }
+
+  .nv-donde__txt p {
+    color: #6b6158;
+    font-size: 0.9rem;
+  }
+
+  .nv-donde__txt i {
+    width: 1.2rem;
+    color: var(--oro);
+  }
+
+  /* reseñas */
+  .nv-resenas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1rem;
+  }
+
+  .nv-resenas li {
+    position: relative;
+    display: grid;
+    gap: 1rem;
+    padding: 1.8rem 1.7rem 1.6rem;
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.35s;
+  }
+
+  .nv-resenas li:hover {
+    transform: translateY(-4px) rotate(-0.4deg);
+    box-shadow: 0 30px 50px -32px rgb(26 23 20 / 0.45);
+  }
+
+  /* cinco estrellas en la esquina */
+  .nv-resenas li::after {
+    content: "★★★★★";
+    position: absolute;
+    top: 1.9rem;
+    right: 1.6rem;
+    color: var(--oro);
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+  }
+
+  .nv-resenas i {
+    display: grid;
+    place-items: center;
+    width: 2.8rem;
+    height: 2.8rem;
+    border-radius: 50%;
+    background: var(--tinta);
+    color: var(--oro);
+    font-size: 1rem;
+  }
+
+  .nv-resenas p {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    line-height: 1.4;
+  }
+
+  .nv-resenas span {
+    color: var(--gris);
+    font-size: 0.82rem;
+  }
+
+  .nv-resenas strong {
+    color: var(--tinta);
+  }
+
+  /* mis citas */
+  .nv-mias {
+    display: grid;
+    gap: 1.2rem;
+    max-width: 52rem;
+  }
+
+  .nv-mias .nv-tarjeta {
+    border-color: var(--linea);
+    background: var(--negro-2);
+    color: var(--crema);
+    box-shadow: none;
+  }
+
+  .nv-buscar {
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    padding: 2.4rem 1.5rem;
+    text-align: center;
+  }
+
+  .nv-buscar__ico {
+    display: grid;
+    place-items: center;
+    width: 3.4rem;
+    height: 3.4rem;
+    margin-bottom: 0.4rem;
+    border-radius: 18px;
+    background: rgb(212 169 90 / 0.14);
+    color: var(--oro);
+    font-size: 1.3rem;
+  }
+
+  .nv-buscar h3 {
+    font-size: 1.6rem;
+  }
+
+  .nv-buscar p {
+    color: var(--gris);
+  }
+
+  .nv-buscar__fila {
+    display: flex;
+    gap: 0.5rem;
+    width: min(100%, 24rem);
+    margin-top: 0.6rem;
+  }
+
+  .nv-buscar input,
+  .nv-form input,
+  .nv-form textarea {
+    flex: 1;
+    min-width: 0;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--linea-c);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--tinta);
+    outline: none;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .nv-buscar input {
+    border-color: var(--linea);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.05);
+    color: var(--crema);
+  }
+
+  .nv-buscar input:focus,
+  .nv-form input:focus,
+  .nv-form textarea:focus {
+    border-color: var(--oro);
+    box-shadow: 0 0 0 4px rgb(212 169 90 / 0.2);
+  }
+
+  .nv-error {
+    min-height: 1.2em;
+    color: #ef4444 !important;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .nv-mias__cab {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .nv-mias__cab > div {
+    flex: 1;
+  }
+
+  .nv-mias__cab h3 {
+    font-size: 1.8rem;
+  }
+
+  .nv-mias__cab small {
+    color: var(--gris);
+  }
+
+  .nv-mias__lista {
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .nv-cita {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 1rem 1.2rem 1rem 1rem;
+    border: 1px solid var(--linea);
+    border-radius: 18px;
+    background: var(--negro-2);
+    animation: nv-sube 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .nv-cita__fecha {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 4rem;
+    padding: 0.5rem 0;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--c) 18%, var(--negro-3));
+    line-height: 1.1;
+  }
+
+  .nv-cita__fecha strong {
+    font-family: var(--serif);
+    font-size: 1.7rem;
+    font-weight: 500;
+  }
+
+  .nv-cita__fecha small {
+    color: rgb(245 240 231 / 0.65);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .nv-cita__info {
+    display: grid;
+    flex: 1;
+    gap: 0.15rem;
+  }
+
+  .nv-cita__info strong {
+    font-size: 1.02rem;
+  }
+
+  .nv-cita__info > span {
+    color: var(--gris);
+    font-size: 0.85rem;
+  }
+
+  .nv-cita__info > .nv-cita__estado {
+    color: #4ade80;
+    font-size: 0.76rem;
+    font-weight: 600;
+  }
+
+  .nv-cita.is-cancelada .nv-cita__estado,
+  .nv-cita.is-noshow .nv-cita__estado {
+    color: #f87171;
+  }
+
+  .nv-cita.is-llego .nv-cita__estado {
+    color: var(--oro);
+  }
+
+  .nv-cita.is-cancelada {
+    opacity: 0.55;
+  }
+
+  .nv-cita__cancelar {
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--linea);
+    border-radius: 999px;
+    background: none;
+    color: rgb(245 240 231 / 0.7);
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .nv-cita__cancelar:hover,
+  .nv-cita__cancelar.is-seguro {
+    border-color: #f87171;
+    background: rgb(248 113 113 / 0.12);
+    color: #f87171;
+  }
+
+  .nv-vacio {
+    padding: 2rem;
+    border: 1px dashed var(--linea);
+    border-radius: 18px;
+    color: var(--gris);
+    text-align: center;
+  }
+
+  .nv-hist summary {
+    width: fit-content;
+    padding: 0.5rem 0;
+    color: var(--gris);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .nv-mias__lista--hist {
+    margin-top: 0.6rem;
+  }
+
+  .nv-mias__lista--hist .nv-cita {
+    padding-block: 0.7rem;
+    background: transparent;
+  }
+
+  /* pie */
+  .nv-pie {
+    display: grid;
+    gap: 3rem;
+    padding: 0 clamp(1rem, 5vw, 4.5rem) 5.5rem;
+    border-top: 1px solid var(--linea);
+    background:
+      radial-gradient(50rem 24rem at 100% 0%, rgb(212 169 90 / 0.12), transparent 60%),
+      var(--negro);
+    color: var(--crema);
+  }
+
+  .nv-pie__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 4rem 3rem;
+    border-bottom: 1px solid var(--linea);
+  }
+
+  .nv-pie__cta h2 {
+    margin-top: 0.6rem;
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 500;
+  }
+
+  .nv-pie__cols {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 2.5rem;
+  }
+
+  .nv-pie__marca {
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+  }
+
+  .nv-pie__marca p {
+    max-width: 22rem;
+    color: var(--gris);
+    font-size: 0.9rem;
+  }
+
+  .nv-pie__redes {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .nv-pie__redes a {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--linea);
+    border-radius: 50%;
+    color: var(--crema);
+    transition:
+      background 0.25s,
+      border-color 0.25s,
+      color 0.25s,
+      transform 0.25s;
+  }
+
+  .nv-pie__redes a:hover {
+    border-color: var(--oro);
+    background: var(--oro);
+    color: #1a1308;
+    transform: translateY(-2px);
+  }
+
+  .nv-pie__col {
+    display: grid;
+    align-content: start;
+    gap: 0.65rem;
+    color: rgb(245 240 231 / 0.7);
+    font-size: 0.9rem;
+  }
+
+  .nv-pie__col strong {
+    margin-bottom: 0.3rem;
+    color: var(--oro);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .nv-pie__col a {
+    justify-self: start;
+    color: inherit;
+    text-decoration: none;
+    transition:
+      color 0.2s,
+      transform 0.2s;
+  }
+
+  .nv-pie__col a:hover {
+    color: var(--oro-2);
+    transform: translateX(3px);
+  }
+
+  .nv-pie__col i {
+    width: 1.2rem;
+    color: var(--oro);
+  }
+
+  .nv-pie__base {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.6rem 1.5rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--linea);
+    color: var(--gris);
+    font-size: 0.82rem;
+  }
+
+  .nv-pie__base a {
+    color: var(--oro);
+  }
+
+  /* aparición de las secciones al hacer scroll */
+  .nv-sec > *,
+  .nv-pie > * {
+    opacity: 0;
+    transform: translateY(26px);
+    transition:
+      opacity 0.8s,
+      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nv-sec > :nth-child(2),
+  .nv-pie > :nth-child(2) {
+    transition-delay: 0.1s;
+  }
+
+  .nv-sec > :nth-child(3),
+  .nv-pie > :nth-child(3) {
+    transition-delay: 0.2s;
+  }
+
+  .nv-sec.is-visto > *,
+  .nv-pie.is-visto > * {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* barra de desplazamiento: negra con tirador dorado */
+  @supports not selector(::-webkit-scrollbar) {
+    html:has(.nv) {
+      scrollbar-width: thin;
+      scrollbar-color: #d4a95a #0d0c0b;
+    }
+  }
+
+  html:has(.nv)::-webkit-scrollbar {
+    width: 14px;
+  }
+
+  html:has(.nv)::-webkit-scrollbar-track {
+    background: #0d0c0b;
+  }
+
+  html:has(.nv)::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #e8c486, #b8893a) padding-box;
+  }
+
+  html:has(.nv)::-webkit-scrollbar-thumb:hover {
+    background: #e8c486 padding-box;
+  }
+
+  .nv ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .nv ::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: #cdbb9a padding-box;
+  }
+
+  .nv ::selection {
+    background: var(--oro);
+    color: #1a1308;
+  }
+
+  /* ── reserva ── */
+  .nv-modal {
+    width: min(46rem, calc(100vw - 1.5rem));
+    max-height: min(48rem, calc(100dvh - 1.5rem));
+    padding: 0;
+    border: 0;
+    border-radius: 28px;
+    background: var(--crema);
+    color: var(--tinta);
+    box-shadow:
+      0 0 0 1px rgb(212 169 90 / 0.25),
+      0 50px 120px -30px rgb(0 0 0 / 0.8);
+    overflow: hidden;
+  }
+
+  .nv-modal[open] {
+    animation: nv-modal 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nv-modal[open].is-cierra {
+    animation: nv-modal-sale 0.3s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+    pointer-events: none;
+  }
+
+  .nv-modal::backdrop {
+    background: rgb(13 12 11 / 0.75);
+    backdrop-filter: blur(8px);
+  }
+
+  .nv-modal[open]::backdrop {
+    animation: nv-fondo-entra 0.4s ease-out;
+  }
+
+  .nv-modal.is-cierra::backdrop {
+    animation: nv-fondo-sale 0.3s ease-in forwards;
+  }
+
+  .nv-res {
+    display: flex;
+    flex-direction: column;
+    max-height: min(48rem, calc(100dvh - 1.5rem));
+  }
+
+  /* cabecera oscura con brillo dorado */
+  .nv-res__top {
+    position: relative;
+    padding: 1.4rem 1.6rem 0;
+    background:
+      radial-gradient(70% 120% at 100% 0%, rgb(212 169 90 / 0.22), transparent 60%),
+      linear-gradient(180deg, var(--negro-3), var(--negro));
+    color: var(--crema);
+  }
+
+  .nv-res__cab {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .nv-res__cab h2 {
+    margin-top: 0.25rem;
+    font-size: 2rem;
+    animation: nv-sube 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nv-res__cab .nv-ico {
+    border-color: rgb(255 255 255 / 0.14);
+    background: rgb(255 255 255 / 0.06);
+    color: var(--crema);
+  }
+
+  .nv-res__cab .nv-ico:hover {
+    border-color: var(--oro);
+    color: var(--oro);
+  }
+
+  /* las 4 pestañas */
+  .nv-pasos {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin-top: 1.2rem;
+  }
+
+  .nv-pasos button {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    height: 100%;
+    padding: 0.55rem 0.6rem;
+    border: 1px solid rgb(255 255 255 / 0.08);
+    border-radius: 14px;
+    background: rgb(255 255 255 / 0.03);
+    color: var(--gris);
+    text-align: left;
+    transition:
+      border-color 0.25s,
+      background 0.25s,
+      transform 0.25s;
+  }
+
+  .nv-pasos button:disabled {
+    cursor: default;
+  }
+
+  .nv-pasos__n {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1.5px solid rgb(255 255 255 / 0.16);
+    border-radius: 50%;
+    font-size: 0.78rem;
+    transition:
+      background 0.3s,
+      border-color 0.3s,
+      color 0.3s,
+      box-shadow 0.3s;
+  }
+
+  .nv-pasos__n .fa-check {
+    display: none;
+  }
+
+  .nv-pasos__txt {
+    display: grid;
+    min-width: 0;
+    line-height: 1.25;
+  }
+
+  .nv-pasos__txt strong {
+    color: #c9c0b4;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .nv-pasos__txt small {
+    overflow: hidden;
+    color: #6f675e;
+    font-size: 0.7rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: capitalize;
+  }
+
+  .nv-pasos li.is-on button {
+    border-color: rgb(212 169 90 / 0.55);
+    background: rgb(212 169 90 / 0.12);
+  }
+
+  .nv-pasos li.is-on .nv-pasos__n {
+    border-color: transparent;
+    background: linear-gradient(180deg, var(--oro-2), var(--oro));
+    color: #1a1308;
+    animation: nv-latido-oro 2.2s ease-in-out infinite;
+  }
+
+  .nv-pasos li.is-on strong {
+    color: var(--crema);
+  }
+
+  .nv-pasos li.is-on small {
+    color: var(--oro-2);
+  }
+
+  .nv-pasos li.is-hecho .nv-pasos__n {
+    border-color: var(--oro);
+    background: rgb(212 169 90 / 0.16);
+    color: var(--oro);
+  }
+
+  .nv-pasos li.is-hecho .nv-pasos__n i:first-child {
+    display: none;
+  }
+
+  .nv-pasos li.is-hecho .nv-pasos__n .fa-check {
+    display: block;
+    animation: nv-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .nv-pasos li.is-hecho strong {
+    color: #e6ddcf;
+  }
+
+  .nv-pasos li.is-hecho small {
+    color: var(--oro);
+  }
+
+  .nv-pasos li.is-hecho button:not(:disabled):hover {
+    border-color: var(--oro);
+    background: rgb(212 169 90 / 0.08);
+    transform: translateY(-1px);
+  }
+
+  .nv-res__barra {
+    height: 3px;
+    margin: 1.1rem -1.6rem 0;
+    background: rgb(255 255 255 / 0.06);
+  }
+
+  .nv-res__barra i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--oro), var(--oro-2));
+    box-shadow: 0 0 12px var(--oro);
+    transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nv-res__cuerpo {
+    flex: 1;
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+    padding: 1.4rem 1.6rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* al cambiar de pestaña, el contenido entra desde el lado hacia el que vas */
+  .nv-res__cuerpo.is-adelante {
+    animation: nv-entra-dcha 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nv-res__cuerpo.is-atras {
+    animation: nv-entra-izq 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nv-res__pie {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.95rem 1.6rem 1.2rem;
+    border-top: 1px solid var(--linea-c);
+    background: #fffdf9;
+  }
+
+  .nv-res__pie[hidden] {
+    display: none;
+  }
+
+  .nv-res__resumen {
+    flex: 1;
+    min-width: 0;
+    color: #6b6158;
+    font-size: 0.8rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nv-res__resumen:not(:empty)::before {
+    content: "Tu cita · ";
+    color: var(--oro);
+    font-weight: 700;
+  }
+
+  .nv-res__pie .nv-btn--linea {
+    border-color: var(--linea-c);
+  }
+
+  .nv-ops {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .nv-op {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.9rem 1rem;
+    border: 1.5px solid var(--linea-c);
+    border-radius: 18px;
+    background: #fffdf9;
+    text-align: left;
+    transition:
+      border-color 0.2s,
+      transform 0.2s,
+      box-shadow 0.2s,
+      background 0.2s;
+    animation: nv-sube 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .nv-op:nth-child(2) {
+    animation-delay: 0.04s;
+  }
+
+  .nv-op:nth-child(3) {
+    animation-delay: 0.08s;
+  }
+
+  .nv-op:nth-child(4) {
+    animation-delay: 0.12s;
+  }
+
+  .nv-op:nth-child(n + 5) {
+    animation-delay: 0.16s;
+  }
+
+  .nv-op:hover {
+    border-color: var(--oro);
+    background: #fff;
+    transform: translateX(3px);
+    box-shadow: 0 14px 28px -20px rgb(26 23 20 / 0.5);
+  }
+
+  .nv-op.is-on {
+    border-color: var(--oro);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgb(212 169 90 / 0.3);
+  }
+
+  /* ✓ de la opción elegida */
+  .nv-op.is-on::after {
+    content: "✓";
+    position: absolute;
+    top: -0.45rem;
+    right: -0.45rem;
+    display: grid;
+    place-items: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    border: 2px solid var(--crema);
+    border-radius: 50%;
+    background: var(--tinta);
+    color: var(--oro);
+    font-size: 0.7rem;
+    font-weight: 800;
+    animation: nv-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .nv-op__ico--any {
+    background: var(--tinta);
+    color: var(--oro);
+  }
+
+  .nv-op__txt {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .nv-op__txt strong {
+    font-size: 0.98rem;
+  }
+
+  .nv-op__txt small {
+    color: var(--gris);
+    font-size: 0.78rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nv-op__precio {
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    font-weight: 600;
+  }
+
+  .nv-dias {
+    display: flex;
+    gap: 0.45rem;
+    margin-inline: -1.6rem;
+    padding: 0.2rem 1.6rem 0.6rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+  }
+
+  .nv-dia {
+    display: grid;
+    flex: 0 0 4.2rem;
+    justify-items: center;
+    gap: 0.1rem;
+    padding: 0.6rem 0.3rem;
+    border: 1.5px solid var(--linea-c);
+    border-radius: 16px;
+    background: #fffdf9;
+    scroll-snap-align: start;
+    transition: all 0.2s;
+  }
+
+  .nv-dia small {
+    color: var(--gris);
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .nv-dia strong {
+    font-family: var(--serif);
+    font-size: 1.45rem;
+    font-weight: 500;
+    line-height: 1.1;
+  }
+
+  .nv-dia em {
+    color: #15803d;
+    font-size: 0.62rem;
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .nv-dia:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .nv-dia:not(:disabled):hover {
+    border-color: var(--oro);
+  }
+
+  .nv-dia.is-on {
+    border-color: var(--tinta);
+    background: var(--tinta);
+    color: var(--crema);
+  }
+
+  .nv-dia.is-on em {
+    color: var(--oro);
+  }
+
+  .nv-mes {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-weight: 500;
+  }
+
+  .nv-mes::first-letter {
+    text-transform: uppercase;
+  }
+
+  .nv-horas {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .nv-horas__t {
+    color: var(--gris);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .nv-horas__rej {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4.6rem, 1fr));
+    gap: 0.4rem;
+  }
+
+  .nv-hora {
+    padding: 0.6rem 0;
+    border: 1.5px solid var(--linea-c);
+    border-radius: 12px;
+    background: #fffdf9;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+
+  .nv-hora:hover {
+    border-color: var(--oro);
+    transform: translateY(-1px);
+  }
+
+  .nv-hora.is-on {
+    border-color: var(--oro);
+    background: var(--oro);
+    color: #1a1308;
+  }
+
+  .nv-nota {
+    color: var(--gris);
+    font-size: 0.82rem;
+  }
+
+  .nv-ticket {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 1.2rem;
+    background:
+      linear-gradient(var(--c), var(--c)) left / 4px 100% no-repeat,
+      #fffdf9;
+  }
+
+  .nv-ticket div {
+    display: grid;
+  }
+
+  .nv-ticket strong {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+  }
+
+  .nv-ticket span {
+    color: #6b6158;
+    font-size: 0.85rem;
+  }
+
+  .nv-ticket span:first-of-type::first-letter {
+    text-transform: uppercase;
+  }
+
+  .nv-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+  }
+
+  .nv-form label {
+    display: grid;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .nv-form small {
+    color: var(--gris);
+    font-weight: 400;
+  }
+
+  .nv-form textarea {
+    resize: vertical;
+  }
+
+  .nv-ancho {
+    grid-column: 1 / -1;
+  }
+
+  .nv-hecha {
+    display: grid;
+    justify-items: center;
+    gap: 0.4rem;
+    padding: 1.5rem 0 1rem;
+    text-align: center;
+  }
+
+  .nv-hecha__check {
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    margin-bottom: 0.8rem;
+    border-radius: 50%;
+    background: var(--oro);
+    color: #1a1308;
+    font-size: 1.8rem;
+    box-shadow: 0 0 0 10px rgb(212 169 90 / 0.18);
+    animation: nv-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .nv-hecha h3 {
+    font-size: 2rem;
+  }
+
+  .nv-hecha p {
+    color: #6b6158;
+  }
+
+  .nv-hecha .nv-hecha__cuando {
+    color: var(--tinta);
+    font-family: var(--serif);
+    font-size: 1.3rem;
+  }
+
+  .nv-hecha__cuando::first-letter {
+    text-transform: uppercase;
+  }
+
+  .nv-hecha__acc {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 1.2rem;
+  }
+
+  .nv-hecha .nv-btn--linea {
+    border-color: var(--linea-c);
+  }
+
+  .nv-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 5.5rem;
+    z-index: 100;
+    padding: 0.8rem 1.2rem;
+    border-radius: 14px;
+    background: var(--tinta);
+    color: var(--crema);
+    font-size: 0.88rem;
+    font-weight: 500;
+    box-shadow: 0 20px 40px -12px rgb(0 0 0 / 0.5);
+    opacity: 0;
+    pointer-events: none;
+    translate: -50% 12px;
+    transition:
+      opacity 0.3s,
+      translate 0.3s;
+  }
+
+  .nv-toast.is-on {
+    opacity: 1;
+    translate: -50% 0;
+  }
+
+  /* ── animaciones ── */
+  @keyframes nv-sube {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+  }
+
+  @keyframes nv-modal {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.97);
+    }
+  }
+
+  @keyframes nv-pop {
+    from {
+      transform: scale(0);
+    }
+  }
+
+  @keyframes nv-modal-sale {
+    to {
+      opacity: 0;
+      transform: translateY(24px) scale(0.96);
+    }
+  }
+
+  @keyframes nv-hoja-baja {
+    to {
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes nv-fondo-entra {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes nv-fondo-sale {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes nv-entra-dcha {
+    from {
+      opacity: 0;
+      transform: translateX(28px);
+    }
+  }
+
+  @keyframes nv-entra-izq {
+    from {
+      opacity: 0;
+      transform: translateX(-28px);
+    }
+  }
+
+  @keyframes nv-latido-oro {
+    50% {
+      box-shadow: 0 0 0 5px rgb(212 169 90 / 0.22);
+    }
+  }
+
+  @keyframes nv-latido {
+    50% {
+      box-shadow: 0 0 0 5px rgb(74 222 128 / 0.25);
+    }
+  }
+
+  @keyframes nv-poste {
+    to {
+      background-position: 0 22.6px;
+    }
+  }
+
+  @keyframes nv-cinta {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes nv-pin {
+    50% {
+      transform: translate(-50%, -85%) rotate(-45deg);
+    }
+  }
+
+  /* ── responsive ── */
+  @media (max-width: 62rem) {
+    .nv-hero {
+      grid-template-columns: 1fr;
+      align-items: start;
+      min-height: 0;
+    }
+
+    .nv-nav__links {
+      display: none;
+    }
+
+    .nv-nav__acc {
+      margin-left: auto;
+    }
+
+    .nv-horario {
+      grid-template-columns: 1fr;
+    }
+
+    .nv-pie__cols {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .nv-pie__marca {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .nv-equipo-link span {
+      display: none;
+    }
+
+    .nv-nav .nv-btn {
+      padding: 0.55rem 0.95rem;
+      font-size: 0.82rem;
+    }
+
+    .nv-hero {
+      padding-top: 7rem;
+    }
+
+    .nv-hero__datos {
+      gap: 1.5rem;
+    }
+
+    .nv-tabla-h th,
+    .nv-tabla-h td {
+      padding: 0.8rem;
+    }
+
+    .nv-tabla-h .nv-quien {
+      display: none;
+    }
+
+    .nv-form {
+      grid-template-columns: 1fr;
+    }
+
+    /* en móvil la reserva es una hoja inferior y las pestañas se quedan en icono + nombre */
+    .nv-modal {
+      width: 100vw;
+      max-width: 100vw;
+      max-height: 94dvh;
+      margin: auto 0 0;
+      border-radius: 26px 26px 0 0;
+    }
+
+    .nv-res {
+      max-height: 94dvh;
+    }
+
+    .nv-modal[open].is-cierra {
+      animation: nv-hoja-baja 0.3s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+    }
+
+    .nv-res__top {
+      padding-inline: 1.1rem;
+    }
+
+    .nv-res__barra {
+      margin-inline: -1.1rem;
+    }
+
+    .nv-res__cab h2 {
+      font-size: 1.6rem;
+    }
+
+    .nv-pasos {
+      gap: 0.3rem;
+    }
+
+    .nv-pasos button {
+      flex-direction: column;
+      gap: 0.35rem;
+      padding: 0.5rem 0.2rem;
+      text-align: center;
+    }
+
+    .nv-pasos__txt strong {
+      font-size: 0.66rem;
+    }
+
+    .nv-pasos__txt small {
+      display: none;
+    }
+
+    .nv-res__cuerpo,
+    .nv-res__pie {
+      padding-inline: 1.1rem;
+    }
+
+    .nv-dias {
+      margin-inline: -1.1rem;
+      padding-inline: 1.1rem;
+    }
+
+    .nv-cita {
+      flex-wrap: wrap;
+    }
+
+    .nv-cita__cancelar {
+      margin-left: 5.1rem;
+    }
+
+    .nv-res__resumen {
+      display: none;
+    }
+
+    .nv-res__pie .nv-btn {
+      flex: 1;
+    }
+  }
+</style>

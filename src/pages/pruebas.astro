@@ -1,0 +1,189 @@
+---
+// /pruebas — atajos para revisar todas las páginas de servicios de la web (las de cada
+// servicio, los casos de webs y apps, las demos de Discord y los packs de FiveM).
+// Se genera con los datos, así que al añadir o quitar un caso aparece o desaparece solo.
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { services, serviceDetails, discordDemos } from "@/data/services";
+import { casosDe } from "@/data/casos";
+import { fivemPacks } from "@/data/packs";
+
+interface Enlace {
+  href: string;
+  t: string;
+  sub?: string;
+}
+
+const grupos: { titulo: string; enlaces: Enlace[] }[] = [
+  {
+    titulo: "Servicios",
+    enlaces: services.filter((s) => serviceDetails[s.id]).map((s) => ({ href: `/servicios/${s.id}`, t: s.title })),
+  },
+  {
+    titulo: "Webs online",
+    enlaces: casosDe("web").map((c) => ({ href: `/servicios/web/${c.id}`, t: c.nombre, sub: c.sector })),
+  },
+  {
+    titulo: "Aplicaciones web",
+    enlaces: casosDe("app").map((c) => ({ href: `/servicios/app/${c.id}`, t: c.nombre, sub: c.sector })),
+  },
+  {
+    titulo: "Bots de Discord",
+    enlaces: discordDemos.map((d) => ({ href: `/servicios/discord/${d.id}`, t: d.titulo })),
+  },
+  {
+    titulo: "Scripts FiveM",
+    enlaces: fivemPacks.map((p) => ({ href: `/servicios/fivem/${p.id}`, t: p.titulo })),
+  },
+].filter((g) => g.enlaces.length);
+---
+
+<BaseLayout title="Pruebas" description="Atajos a las páginas de servicios." noindex>
+  <section class="pb">
+    <div class="container pb__in">
+      <header class="pb__head">
+        <span class="pb__kicker">Pruebas</span>
+        <h1>Todas las webs de servicios</h1>
+        <p>Atajos para revisar cada página sin pasar por los menús.</p>
+      </header>
+
+      {
+        grupos.map((g) => (
+          <div class="pb__grupo">
+            <h2>
+              {g.titulo} <small>{g.enlaces.length}</small>
+            </h2>
+            <ul role="list" class="pb__lista">
+              {g.enlaces.map((e) => (
+                <li>
+                  <a class="pb__btn" href={e.href}>
+                    <span>
+                      <strong>{e.t}</strong>
+                      {e.sub && <small>{e.sub}</small>}
+                    </span>
+                    <code>{e.href}</code>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .pb {
+    padding-block: calc(var(--header-h) + var(--space-7)) var(--section);
+  }
+
+  .pb__in {
+    display: grid;
+    gap: var(--space-7);
+  }
+
+  .pb__head {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .pb__kicker {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: var(--fs-xl);
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+  }
+
+  .pb__head p {
+    color: var(--fg-muted);
+    font-size: var(--fs-md);
+  }
+
+  .pb__grupo {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  h2 {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-lg);
+    letter-spacing: -0.02em;
+  }
+
+  h2 small {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+  }
+
+  .pb__lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: var(--space-3);
+  }
+
+  .pb__btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-4);
+    height: 100%;
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+    text-decoration: none;
+    transition:
+      transform var(--dur) var(--ease),
+      border-color var(--dur) var(--ease),
+      background var(--dur) var(--ease),
+      color var(--dur) var(--ease);
+  }
+
+  .pb__btn:hover,
+  .pb__btn:focus-visible {
+    transform: translateY(-2px);
+    border-color: var(--fg);
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .pb__btn span {
+    display: grid;
+    gap: 2px;
+  }
+
+  .pb__btn strong {
+    font-size: var(--fs-md);
+  }
+
+  .pb__btn small {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .pb__btn:hover small,
+  .pb__btn:focus-visible small,
+  .pb__btn:hover code,
+  .pb__btn:focus-visible code {
+    color: inherit;
+    opacity: 0.7;
+  }
+
+  .pb__btn code {
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+</style>

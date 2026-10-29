@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi perfil de usuario | Nyx Community</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="/src/assets/perfil.css">
+
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.35); border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(168, 85, 247, 0.6); }
+        * { scrollbar-width: thin; scrollbar-color: rgba(168, 85, 247, 0.35) transparent; }
+
+        .truncate-motivo {
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .btn-view-sancion {
+            background: transparent;
+            border: 1px solid var(--border-color, rgba(255,255,255,0.1));
+            color: var(--text-main, #fff);
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-view-sancion:hover {
+            background: var(--accent-pink, #db2777);
+            border-color: var(--accent-pink, #db2777);
+        }
+        .modern-action-card {
+            position: relative;
+            text-decoration: none;
+            background: rgba(20, 24, 33, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 18px 20px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+        .modern-action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-pink, #db2777);
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        .modern-action-card:hover {
+            background: rgba(219, 39, 119, 0.08);
+            border-color: rgba(219, 39, 119, 0.45);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(219, 39, 119, 0.2);
+        }
+        .modern-action-card:hover::before {
+            opacity: 1;
+        }
+        .modern-action-card .card-arrow {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.9rem;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        .modern-action-card:hover .card-arrow {
+            transform: translateX(5px);
+            color: var(--accent-pink, #db2777);
+        }
+        #logoutBtn {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #ef4444;
+            padding: 10px 14px;
+            border-radius: 8px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+        #logoutBtn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: translateY(-1px);
+        }
+        .section-block {
+            transition: all 0.3s ease;
+        }
+        .section-collapse-content {
+            display: grid;
+            grid-template-rows: 1fr;
+            opacity: 1;
+            transition: grid-template-rows 0.45s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease, padding 0.35s ease;
+            overflow: hidden;
+        }
+        .section-collapse-inner {
+            min-height: 0;
+            overflow: hidden;
+            padding-top: 4px;
+        }
+        .section-block.collapsed .section-collapse-content {
+            grid-template-rows: 0fr;
+            opacity: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .section-toggle-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted, #94a3b8);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .section-toggle-btn:hover {
+            background: rgba(219, 39, 119, 0.2);
+            color: #fff;
+            border-color: rgba(219, 39, 119, 0.4);
+            transform: scale(1.05);
+        }
+        .section-toggle-btn i {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .section-block.collapsed .section-toggle-btn i {
+            transform: rotate(180deg);
+        }
+        .notification-item-card {
+            background: rgba(20, 24, 33, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .notification-item-card:hover {
+            background: rgba(219, 39, 119, 0.1);
+            border-color: rgba(219, 39, 119, 0.3);
+            transform: translateX(4px);
+        }
+        .notification-item-card.unread {
+            border-left: 3px solid var(--accent-pink, #db2777);
+            background: rgba(219, 39, 119, 0.05);
+        }
+        .sancion-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+        .sancion-modal-card {
+            background: #1e1f22;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            color: #fff;
+            animation: fadeInModal 0.2s ease-out;
+        }
+        @keyframes fadeInModal {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .sancion-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 12px;
+        }
+        .sancion-modal-close {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .sancion-modal-close:hover {
+            color: #fff;
+        }
+        .sancion-modal-body p {
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .sancion-modal-body strong {
+            color: var(--accent-pink, #db2777);
+        }
+
+        /* Datos adjuntados en el inicio de sesión (Nacionalidad / Steam) */
+        .info-extra-item {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            min-width: 0;
+        }
+        .info-extra-item i {
+            width: 16px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .info-extra-item .info-extra-label {
+            color: var(--text-muted, #94a3b8);
+            flex-shrink: 0;
+        }
+        .info-extra-item .info-extra-value {
+            font-weight: 600;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .info-extra-item a.info-extra-value {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        .info-extra-item a.info-extra-value:hover {
+            text-decoration: underline;
+            color: #93c5fd;
+        }
+
+        /* ===== Gestionar perfil ===== */
+        .manage-profile-btn {
+            width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: rgba(168, 85, 247, 0.12);
+            border: 1px solid rgba(168, 85, 247, 0.35);
+            color: #c084fc;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.88rem; font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            box-sizing: border-box;
+            transition: all .25s ease;
+        }
+        .manage-profile-btn i { transition: transform .6s cubic-bezier(.16,1,.3,1); }
+        .manage-profile-btn:hover { background: rgba(168,85,247,.25); color: #fff; border-color: #a855f7; transform: translateY(-1px); }
+        .manage-profile-btn:hover i { transform: rotate(180deg); }
+        a.manage-profile-btn.view-public { background: transparent; margin-top: 10px; }
+        a.manage-profile-btn.view-public:hover i { transform: none; }
+
+        .pf-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+            background: rgba(0,0,0,0); backdrop-filter: blur(0);
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transition: opacity .3s ease, background .3s ease, backdrop-filter .3s ease, visibility 0s linear .3s;
+        }
+        .pf-overlay.open {
+            background: rgba(0,0,0,.75); backdrop-filter: blur(6px);
+            opacity: 1; visibility: visible; pointer-events: auto;
+            transition: opacity .3s ease, background .3s ease, backdrop-filter .3s ease, visibility 0s;
+        }
+        .pf-card {
+            width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+            background: #13141f; border: 1px solid rgba(168,85,247,.5);
+            border-radius: 20px; padding: 26px; color: #fff;
+            box-shadow: 0 0 35px rgba(168,85,247,.3);
+            transform: scale(.92) translateY(20px); opacity: 0;
+            transition: transform .35s cubic-bezier(.16,1,.3,1), opacity .3s ease;
+        }
+        .pf-overlay.open .pf-card { transform: none; opacity: 1; }
+        .pf-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+        .pf-head h3 { margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+        .pf-head h3 i { color: #a855f7; }
+        .pf-close { background: rgba(168,85,247,.15); border: 1px solid rgba(168,85,247,.3); color: #cbd5e1; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; transition: all .25s; }
+        .pf-close:hover { background: #a855f7; color: #fff; transform: rotate(90deg); }
+        .pf-title { font-size: .75rem; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: #94a3b8; margin: 18px 0 10px; }
+        .pf-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 4px; border: 1px solid rgba(255,255,255,.1); border-radius: 12px; background: rgba(255,255,255,.03); transition: border-color .3s ease, box-shadow .3s ease, background .3s ease; }
+        .pf-row:hover { border-color: rgba(168,85,247,.4); }
+        .pf-row:focus-within {
+            border-color: #a855f7;
+            background: rgba(168,85,247,.06);
+            box-shadow: 0 0 0 3px rgba(168,85,247,.18), 0 0 22px rgba(168,85,247,.35);
+            animation: pfGlow .7s ease-out;
+        }
+        @keyframes pfGlow {
+            0%   { box-shadow: 0 0 0 0 rgba(168,85,247,.7), 0 0 0 rgba(168,85,247,0); }
+            60%  { box-shadow: 0 0 0 6px rgba(168,85,247,.25), 0 0 30px rgba(168,85,247,.55); }
+            100% { box-shadow: 0 0 0 3px rgba(168,85,247,.18), 0 0 22px rgba(168,85,247,.35); }
+        }
+        .pf-ico { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+        .pf-input { flex: 1; min-width: 0; background: transparent; border: none; padding: 10px 12px 10px 4px; color: #fff; font-size: .9rem; font-family: inherit; }
+        .pf-input:focus { outline: none; }
+        .pf-privacy { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); }
+        .pf-privacy strong { display: block; font-size: .92rem; }
+        .pf-privacy span { font-size: .8rem; color: #94a3b8; }
+        .pf-switch { position: relative; width: 52px; height: 28px; flex-shrink: 0; display: inline-block; }
+        .pf-switch input { opacity: 0; width: 0; height: 0; }
+        .pf-slider { position: absolute; inset: 0; border-radius: 999px; background: #334155; cursor: pointer; transition: background .3s; }
+        .pf-slider::before { content: ''; position: absolute; width: 22px; height: 22px; left: 3px; top: 3px; border-radius: 50%; background: #fff; transition: transform .3s cubic-bezier(.16,1,.3,1); }
+        .pf-switch input:checked + .pf-slider { background: linear-gradient(135deg, #a855f7, #ec4899); }
+        .pf-switch input:checked + .pf-slider::before { transform: translateX(24px); }
+
+        /* Qué se muestra en el perfil público */
+        .pf-opts { margin-top: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08); overflow: hidden; transition: opacity .3s ease; }
+        .pf-opts.disabled { opacity: .4; pointer-events: none; }
+        .pf-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; font-size: .86rem; color: #e2e8f0; border-bottom: 1px solid rgba(255,255,255,.06); }
+        .pf-opt:last-child { border-bottom: none; }
+        .pf-opt .pf-switch { width: 44px; height: 24px; }
+        .pf-opt .pf-slider::before { width: 18px; height: 18px; }
+        .pf-opt .pf-switch input:checked + .pf-slider::before { transform: translateX(20px); }
+
+        .pf-note { margin-top: 12px; display: block; padding: 12px; border-radius: 10px; background: rgba(251,191,36,.06); border: 1px solid rgba(251,191,36,.25); font-size: .8rem; color: #e2e8f0; line-height: 1.5; }
+        .pf-note-title { font-size: .72rem; font-weight: 800; letter-spacing: 1.2px; color: #fbbf24; margin-bottom: 6px; text-align: center; }
+        .pf-actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 20px; }
+        .pf-status { margin-right: auto; font-size: .82rem; color: #94a3b8; }
+        .pf-cancel {
+            background: transparent; border: none; color: #94a3b8;
+            padding: 10px 14px; border-radius: 10px; font-weight: 600; cursor: pointer;
+            font-family: inherit; transition: color .2s, background .2s;
+        }
+        .pf-cancel:hover { color: #fff; background: rgba(255,255,255,.06); }
+        .pf-save {
+            background: transparent; border: 1px solid rgba(168,85,247,.6); color: #c084fc;
+            padding: 10px 24px; border-radius: 10px; font-weight: 600; cursor: pointer;
+            font-family: inherit;
+            transition: background .25s, color .25s, box-shadow .25s, transform .15s;
+        }
+        .pf-save:hover { background: rgba(168,85,247,.15); color: #fff; box-shadow: 0 0 16px rgba(168,85,247,.35); }
+        .pf-save:active { transform: scale(.97); }
+        .pf-save:disabled { opacity: .6; cursor: wait; }
+        .pf-soc-link { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); text-decoration: none; transition: transform .2s, background .2s; }
+        .pf-soc-link:hover { transform: translateY(-2px); background: rgba(255,255,255,.12); }
+
+        /* Etiqueta "Perfil público" fuera y encima de la tarjeta izquierda */
+        .profile-left-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+        .profile-vis-badge {
+            align-self: flex-start;
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 14px; border-radius: 999px;
+            font-size: .8rem; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;
+            background: rgba(16,185,129,.12); color: #34d399; border: 1px solid rgba(16,185,129,.3);
+            transition: background .3s, color .3s, border-color .3s;
+        }
+        .profile-vis-badge.private { background: rgba(239,68,68,.12); color: #f87171; border-color: rgba(239,68,68,.3); }
+
+        /* ===== Fotografías ===== */
+        .foto-upload-bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+        .foto-upload-btn {
+            display: inline-flex; align-items: center; gap: 9px;
+            padding: 10px 18px; border-radius: 10px;
+            background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc;
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: .88rem; font-weight: 600;
+            cursor: pointer; transition: background .25s, color .25s, border-color .25s, transform .15s, box-shadow .25s;
+        }
+        .foto-upload-btn:hover { background: rgba(168,85,247,.25); color: #fff; border-color: #a855f7; box-shadow: 0 0 16px rgba(168,85,247,.3); transform: translateY(-1px); }
+        .foto-upload-btn:focus-visible, .foto-del:focus-visible { outline: 2px solid #a855f7; outline-offset: 2px; }
+        .foto-upload-btn:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
+        .foto-status { font-size: .82rem; color: #94a3b8; }
+        .foto-status.ok { color: #34d399; }
+        .foto-status.error { color: #f87171; }
+
+        .foto-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+        .foto-item {
+            position: relative; aspect-ratio: 3 / 2; border-radius: 12px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,.1); background: #13141f;
+            animation: fotoIn .4s cubic-bezier(.16,1,.3,1) both;
+        }
+        @keyframes fotoIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+        .foto-item a { display: block; width: 100%; height: 100%; }
+        .foto-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s ease; }
+        .foto-item:hover img { transform: scale(1.06); }
+        .foto-del {
+            position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(15, 10, 20, 0.8); border: 1px solid rgba(239, 68, 68, 0.5); color: #f87171;
+            font-size: 12px; cursor: pointer; opacity: 0; transition: opacity .2s, background .2s, color .2s;
+        }
+        .foto-item:hover .foto-del, .foto-del:focus-visible { opacity: 1; }
+        .foto-del:hover { background: #ef4444; color: #fff; }
+        @media (hover: none) { .foto-del { opacity: 1; } }
+        @media (prefers-reduced-motion: reduce) { .foto-item { animation: none; } .foto-item img { transition: none; } }
+
+        /* ===== Votos de cada sugerencia (pastillas + barra de proporción) ===== */
+        .sug-votes { display: inline-flex; flex-direction: column; gap: 6px; min-width: 132px; }
+        .sug-votes-pills { display: flex; align-items: center; gap: 6px; }
+        .sug-vote {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 10px; border-radius: 999px;
+            font-size: .8rem; font-weight: 700; font-variant-numeric: tabular-nums;
+            border: 1px solid transparent; white-space: nowrap;
+        }
+        .sug-vote i { font-size: .72rem; }
+        .sug-vote.up { background: rgba(16,185,129,.12); color: #34d399; border-color: rgba(16,185,129,.3); }
+        .sug-vote.down { background: rgba(239,68,68,.12); color: #f87171; border-color: rgba(239,68,68,.3); }
+        .sug-votes-bar { height: 4px; border-radius: 999px; background: rgba(239,68,68,.45); overflow: hidden; }
+        .sug-votes-bar span {
+            display: block; height: 100%; border-radius: 999px;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            animation: sugBarIn .7s cubic-bezier(.16,1,.3,1) both; transform-origin: left center;
+        }
+        @keyframes sugBarIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+        .sug-votes-bar.empty { background: rgba(255,255,255,.08); }
+        .sug-votes-pct { font-size: .72rem; color: #94a3b8; white-space: nowrap; }
+        @media (prefers-reduced-motion: reduce) { .sug-votes-bar span { animation: none; } }
+
+        /* ===== Borrar cuenta ===== */
+        .delete-account-btn {
+            margin-top: 10px; width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px 14px; border-radius: 8px;
+            background: transparent; border: 1px dashed rgba(239, 68, 68, 0.45); color: #f87171;
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; font-weight: 600;
+            cursor: pointer; box-sizing: border-box;
+            transition: background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
+        }
+        .delete-account-btn:hover { background: #ef4444; border-style: solid; border-color: #ef4444; color: #fff; transform: translateY(-1px); }
+        .delete-account-btn:focus-visible, .dc-delete:focus-visible { outline: 2px solid #f87171; outline-offset: 2px; }
+
+        .pf-card.dc-card { border-color: rgba(239,68,68,.5); box-shadow: 0 0 35px rgba(239,68,68,.25); }
+        .dc-card .pf-head h3 i { color: #ef4444; }
+        .dc-card .pf-close { background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.3); }
+        .dc-card .pf-close:hover { background: #ef4444; }
+        .dc-intro { margin: 0; font-size: .9rem; line-height: 1.55; color: #e2e8f0; }
+        .dc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+        .dc-list li { display: flex; align-items: flex-start; gap: 10px; font-size: .86rem; line-height: 1.45; color: #e2e8f0; }
+        .dc-list li i { width: 14px; margin-top: 3px; text-align: center; flex-shrink: 0; }
+        .dc-list.del li i { color: #f87171; }
+        .dc-list.keep li i { color: #94a3b8; }
+        .dc-relogin { margin-top: 14px; padding: 12px; border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); font-size: .84rem; line-height: 1.5; color: #e2e8f0; }
+        .dc-relogin i { color: #60a5fa; margin-right: 6px; }
+        .pf-note.danger { background: rgba(239,68,68,.07); border-color: rgba(239,68,68,.4); }
+        .pf-note.danger .pf-note-title { color: #f87171; }
+        .dc-confirm-label { display: block; margin: 18px 0 8px; font-size: .84rem; color: #cbd5e1; }
+        .dc-confirm-label b { color: #f87171; letter-spacing: .5px; }
+        .dc-card .pf-row:hover { border-color: rgba(239,68,68,.4); }
+        .dc-card .pf-row:focus-within {
+            border-color: #ef4444; background: rgba(239,68,68,.06);
+            box-shadow: 0 0 0 3px rgba(239,68,68,.18), 0 0 22px rgba(239,68,68,.3);
+            animation: none;
+        }
+        .dc-card .pf-ico { color: #f87171; }
+        .dc-delete {
+            background: #ef4444; border: 1px solid #ef4444; color: #fff;
+            padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer;
+            font-family: inherit; transition: filter .2s, box-shadow .2s, transform .15s, opacity .2s;
+        }
+        .dc-delete:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 0 18px rgba(239,68,68,.45); }
+        .dc-delete:active:not(:disabled) { transform: scale(.97); }
+        .dc-delete:disabled { opacity: .4; cursor: not-allowed; }
+    </style>
+    <link rel="stylesheet" href="/src/assets/iconos.css">
+    <link rel="stylesheet" href="/src/assets/comun.css">
+</head>
+<body>
+
+    <div class="grid-background"></div>
+
+    <div class="app-container">
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-logo-title" style="display: flex; align-items: center; gap: 10px;">
+                    <img src="https://i.imgur.com/VPqGp7U.png" alt="Nyx Community Logo" class="sidebar-logo" style="width: 32px; height: 32px; object-fit: contain;">
+                    <span class="server-main-title">Nyx Community</span>
+                </div>
+                <button class="sidebar-toggle-icon" id="sidebarToggleBtn" title="Colapsar menú">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-category">General</div>
+                <a href="/home.html" class="nav-item"><i class="fa-solid fa-house"></i> <span>Home</span></a>
+                <a href="/home.html#novedades" class="nav-item"><i class="fa-solid fa-newspaper"></i> <span>Novedades</span></a>
+                <a href="/equipo.html" class="nav-item"><i class="fa-solid fa-users"></i> <span>Equipo</span></a>
+                <a href="/calendario.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i> <span>Calendario</span></a>
+                <a href="/comercios.html" class="nav-item"><i class="fa-solid fa-store"></i> <span>Comercios</span></a>
+                <a href="/postulaciones/post-ilegales.html" class="nav-item"><i class="fa-solid fa-skull"></i> <span>Postulaciones ilegales</span></a>
+
+                <div class="nav-category">Espacio de trabajo</div>
+                <a href="/grupos.html" class="nav-item"><i class="fa-solid fa-people-group"></i> <span>Grupos</span></a>
+                <a href="/documentos.html" class="nav-item"><i class="fa-solid fa-book"></i> <span>Documentos</span></a>
+                <a href="/whitelist.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> <span>Whitelist</span></a>
+
+                <div class="nav-category">Mi Cuenta</div>
+                <a href="/perfil.html" class="nav-item active"><i class="fa-solid fa-user"></i> <span>Mi Perfil</span></a>
+                <a href="/historias.html" class="nav-item"><i class="fa-solid fa-feather-pointed"></i> <span>Historias personaje</span></a>
+                <a href="/tickets.html" class="nav-item"><i class="fa-solid fa-ticket"></i> <span>Tickets</span></a>
+
+                <div class="nav-category">SASP</div>
+                <a href="/lspd-academia.html" class="nav-item"><i class="fa-solid fa-shield-halved"></i> <span>Academia LSPD</span></a>
+                <a href="/lssd-academia.html" class="nav-item"><i class="fa-solid fa-star-badge"></i> <span>Academia LSSD</span></a>
+                <a href="/defcon.html" class="nav-item"><i class="fa-solid fa-triangle-exclamation"></i> <span>Defcon</span></a>
+                <a href="/codigo-penal.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> <span>Código penal</span></a>
+                <a href="/organigrama.html" class="nav-item"><i class="fa-solid fa-sitemap"></i> <span>Organigrama</span></a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile-mini" id="userProfileMini">
+                    <div class="avatar-placeholder" id="userAvatarContainer">
+                        <span id="userAvatarFallback">?</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="username" id="userNameDisplay">Verificando...</span>
+                        <span class="user-handle" id="userHandleDisplay" style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block;">@sesion</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <button class="sidebar-reveal-trigger" id="sidebarRevealBtn" title="Abrir menú">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <main class="main-content">
+            <div class="top-action-bar animate-fade-down">
+                <div class="breadcrumb">Perfil de usuario</div>
+            </div>
+
+            <div class="profile-dashboard-layout">
+
+                <div class="profile-left-col">
+                <div class="profile-vis-badge" id="profileVisBadge"><i class="fa-solid fa-earth-europe"></i> <span>Perfil público</span></div>
+
+                <div class="profile-sidebar-card animate-fade-down delay-1">
+                    <div class="profile-big-avatar" id="profileHeaderAvatar">
+                        <img src="" alt="Avatar" id="profileAvatarImg">
+                    </div>
+                    
+                    <h1 class="profile-user-title" id="profileNameDisplay">Verificando sesión...</h1>
+                    <p class="profile-user-tag" id="profileHandleDisplay">@cargando</p>
+                    
+                    <div class="profile-divider"></div>
+
+                    <div class="profile-sub-section">
+                        <h4 class="profile-mini-heading">ROLES</h4>
+                        <div class="profile-roles-container">
+                            <span class="profile-role-pill" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">
+                                <i class="fa-solid fa-circle" style="font-size: 8px;"></i> Sin whitelist
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="profile-divider"></div>
+
+                    <div class="profile-sub-section">
+                        <h4 class="profile-mini-heading">INFO</h4>
+                        <ul class="profile-info-list" id="profileInfoList">
+                            <li id="infoWhitelistItem"><i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> Sin whitelist activa</li>
+                            <li style="margin-top: 8px; display: flex; align-items: center; gap: 8px; color: #fbbf24; font-weight: 600;">
+                                <i class="fa-solid fa-coins"></i> <span id="userClickPointsVal">0</span> ClickPoints
+                            </li>
+                            <li class="info-extra-item" id="infoNationalityItem">
+                                <i class="fa-solid fa-earth-europe" style="color: #a855f7;"></i>
+                                <span class="info-extra-label">Nacionalidad:</span>
+                                <span class="info-extra-value" id="infoNationalityVal">—</span>
+                            </li>
+                            <li class="info-extra-item" id="infoSteamItem">
+                                <i class="fa-brands fa-steam" style="color: #60a5fa;"></i>
+                                <span class="info-extra-label">Steam:</span>
+                                <span class="info-extra-value" id="infoSteamVal">—</span>
+                            </li>
+                            <li class="info-extra-item" id="infoSocials" style="flex-wrap: wrap; gap: 10px; display: none;"></li>
+                        </ul>
+                    </div>
+
+                    <div class="profile-divider"></div>
+                    <div class="profile-sub-section">
+                        <button id="manageProfileBtn" class="manage-profile-btn" type="button">
+                            <i class="fa-solid fa-gear"></i> Gestionar perfil
+                        </button>
+                        <a id="viewPublicBtn" class="manage-profile-btn view-public" href="#" style="display: none;">
+                            <i class="fa-solid fa-eye"></i> Ver mi perfil público
+                        </a>
+                    </div>
+
+                    <div class="profile-divider"></div>
+                    <div class="profile-sub-section">
+                        <button id="logoutBtn">
+                            <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+                        </button>
+                        <button id="deleteAccountBtn" class="delete-account-btn" type="button">
+                            <i class="fa-solid fa-user-slash"></i> Borrar cuenta
+                        </button>
+                    </div>
+                </div>
+                </div>
+
+                <div class="profile-content-column">
+                    <!-- SECCIÓN 1: MEMBRESIA VIP -->
+                    <div class="section-block animate-fade-up delay-2">
+                        <div class="section-header-flex">
+                            <h2 class="section-title"><i class="fa-solid fa-shield-halved" style="color: var(--accent-pink);"></i> Membresia VIP</h2>
+                            <button class="section-toggle-btn" onclick="toggleSection(this)" title="Ocultar / Mostrar apartado"><i class="fa-solid fa-chevron-up"></i></button>
+                        </div>
+                        <div class="section-collapse-content">
+                            <div class="section-collapse-inner">
+                                <div class="normativa-grid">
+                                    <div class="normativa-card">
+                                        <div class="norm-info">
+                                            <h3>Whitelist</h3>
+                                            <!-- Cambia a "Whitelist aprobada" cuando el usuario la tiene aprobada -->
+                                            <p id="vipWhitelistStatus" style="margin-top: 6px; color: #ef4444;"><i class="fa-solid fa-clock"></i> Pendiente - Sin enviar</p>
+                                        </div>
+                                    </div>
+                                    <div class="normativa-card">
+                                        <div class="norm-info">
+                                            <h3>Membresia VIP</h3>
+                                            <p style="margin-top: 6px; color: var(--accent-pink);">Nivel Estándar</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 2: HISTORIAS DE PERSONAJE -->
+                    <div class="section-block animate-fade-up delay-3">
+                        <div class="section-header-flex">
+                            <h3 class="section-title"><i class="fa-solid fa-book-open" style="color: var(--accent-pink);"></i> Historias de personaje</h3>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="section-subtitle-info" id="historiasCountInfo">0 Registros</span>
+                                <button class="section-toggle-btn" onclick="toggleSection(this)" title="Ocultar / Mostrar apartado"><i class="fa-solid fa-chevron-up"></i></button>
+                            </div>
+                        </div>
+                        <div class="section-collapse-content">
+                            <div class="section-collapse-inner">
+                                <div class="table-container" id="userHistoriasContainer">
+                                    <table class="custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Personaje</th>
+                                                <th>Tipo</th>
+                                                <th>Estado</th>
+                                                <th>Aprobador</th>
+                                                <th>Fecha</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="5" style="text-align: center; color: var(--text-muted);">Cargando historias...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 3: SANCIONES -->
+                    <div class="section-block animate-fade-up delay-3">
+                        <div class="section-header-flex">
+                            <h2 class="section-title"><i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-pink);"></i> Sanciones</h2>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="section-subtitle-info" id="sancionesCountInfo">0 Registros</span>
+                                <button class="section-toggle-btn" onclick="toggleSection(this)" title="Ocultar / Mostrar apartado"><i class="fa-solid fa-chevron-up"></i></button>
+                            </div>
+                        </div>
+                        <div class="section-collapse-content">
+                            <div class="section-collapse-inner">
+                                <div id="userSancionesContainer">
+                                    <div class="ann-card-modern">
+                                        <p style="margin: 0;">No hay ninguna sanción activa en tu cuenta.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 4: NOTIFICACIONES -->
+                    <div class="section-block animate-fade-up delay-3">
+                        <div class="section-header-flex">
+                            <h2 class="section-title"><i class="fa-solid fa-bell" style="color: var(--accent-pink);"></i> Notificaciones</h2>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="section-subtitle-info" id="notifCountInfo">0 Registros</span>
+                                <button class="section-toggle-btn" onclick="toggleSection(this)" title="Ocultar / Mostrar apartado"><i class="fa-solid fa-chevron-up"></i></button>
+                            </div>
+                        </div>
+                        <div class="section-collapse-content">
+                            <div class="section-collapse-inner">
+                                <div id="userNotificacionesContainer">
+                                    <div class="ann-card-modern">
+                                        <p style="margin: 0;">No tienes notificaciones nuevas en este momento.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 5: PROPIEDADES -->
+                    <div class="section-block animate-fade-up delay-3">
+                        <div class="section-header-flex">
+                            <h2 class="section-title"><i class="fa-solid fa-house-chimney" style="color: var(--accent-pink);"></i> Propiedades</h2>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="section-subtitle-info" id="propiedadesCountInfo">0 Registros</span>
+                                <button class="section-toggle-btn" onclick="toggleSection(this)" title="Ocultar / Mostrar apartado"><i class="fa-solid fa-chevron-up"></i></button>
+                            </div>
+                        </div>
+                        <div class="section-collapse-content">
+                            <div class="section-collapse-inner">
+                                <div class="table-container" id="userPropiedadesContainer">
+                                    <table class="custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID Compra</th>
+                                                <th>Zona</th>
+                                                <th>Precio</th>
+                                                <th>Estado</th>
+                                                <th>Fecha</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="5" style="text-align: center; color: var(--text-muted);">Cargando propiedades...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 6: MIS SUGERENCIAS -->
+                    <div class="section-block animate-fade-up delay-3">
+                        <div class="section-header-flex">
+                            <h2 class="section-title"><i class="fa-solid fa-lightbulb" style="color: var(--accent-pink);"></i> Mis sugerencias</h2>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="section-subtitle-info" id="perfilSugerenciasCount">0 Registros</span>
+                                <button class="section-toggle-btn" onclick="toggleSection(this)" title="Ocultar / Mostrar apartado"><i class="fa-solid fa-chevron-up"></i></button>
+                            </div>
+                        </div>
+                        <div class="section-collapse-content">
+                            <div class="section-collapse-inner">
+                                <div class="table-container" id="perfilSugerenciasContainer">
+                                    <table class="custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Título</th>
+                                                <th>Categoría</th>
+                                                <th>Estado</th>
+                                                <th>Votos</th>
+                                                <th>Fecha</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="6" style="text-align: center; color: var(--text-muted);">Cargando tus sugerencias...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 7: FOTOGRAFÍAS -->
+                    <div class="section-block animate-fade-up delay-3">
+                        <div class="section-header-flex">
+                            <h2 class="section-title"><i class="fa-solid fa-camera" style="color: var(--accent-pink);"></i> Fotografias</h2>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="section-subtitle-info" id="fotosCountInfo">0 / 12</span>
+                                <button class="section-toggle-btn" onclick="toggleSection(this)" title="Ocultar / Mostrar apartado"><i class="fa-solid fa-chevron-up"></i></button>
+                            </div>
+                        </div>
+                        <div class="section-collapse-content">
+                            <div class="section-collapse-inner">
+                                <div class="foto-upload-bar">
+                                    <input type="file" id="fotoFileInput" accept="image/jpeg,image/png,image/webp" hidden>
+                                    <button type="button" class="foto-upload-btn" id="fotoUploadBtn">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i> <span id="fotoUploadBtnText">Adjuntar una fotografía</span>
+                                    </button>
+                                    <span class="foto-status" id="fotoStatus" role="status">JPG, PNG o WebP · máximo 12 fotografías</span>
+                                </div>
+                                <div id="userFotosContainer">
+                                    <div class="ann-card-modern">
+                                        <p style="margin: 0;">No hay fotografias guardadas en este perfil.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 8: DOCUMENTACIÓN Y NORMATIVAS -->
+                    <div class="section-block animate-fade-up delay-3">
+                        <div class="section-header-flex">
+                            <h2 class="section-title"><i class="fa-solid fa-book" style="color: var(--accent-pink);"></i> Documentación y normativas</h2>
+                            <button class="section-toggle-btn" onclick="toggleSection(this)" title="Ocultar / Mostrar apartado"><i class="fa-solid fa-chevron-up"></i></button>
+                        </div>
+                        <div class="section-collapse-content">
+                            <div class="section-collapse-inner">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                    <a href="/normativa.html" class="modern-action-card">
+                                        <div style="display: flex; align-items: center; gap: 14px;">
+                                            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(219, 39, 119, 0.15); color: var(--accent-pink); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; border: 1px solid rgba(219, 39, 119, 0.3); flex-shrink: 0; box-shadow: 0 4px 12px rgba(219, 39, 119, 0.15);">
+                                                <i class="fa-solid fa-book-open"></i>
+                                            </div>
+                                            <div>
+                                                <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600; color: #fff;">Normativa del servidor</h4>
+                                                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #94a3b8;">Reglas y pautas generales</p>
+                                            </div>
+                                        </div>
+                                        <i class="fa-solid fa-chevron-right card-arrow"></i>
+                                    </a>
+
+                                    <a href="https://drive.google.com/file/d/1aICILvITtRUfTmSFDuT2O26zFbxvsFHS/view" target="_blank" rel="noopener noreferrer" class="modern-action-card">
+                                        <div style="display: flex; align-items: center; gap: 14px;">
+                                            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(219, 39, 119, 0.15); color: var(--accent-pink); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; border: 1px solid rgba(219, 39, 119, 0.3); flex-shrink: 0; box-shadow: 0 4px 12px rgba(219, 39, 119, 0.15);">
+                                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                                            </div>
+                                            <div>
+                                                <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600; color: #fff;">Normativa de donaciones</h4>
+                                                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #94a3b8;">Condiciones de VIP y tienda</p>
+                                            </div>
+                                        </div>
+                                        <i class="fa-solid fa-external-link card-arrow" title="Abrir documento"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Modal de Detalles de Sanción -->
+    <div class="sancion-modal-overlay" id="sancionModalOverlay">
+        <div class="sancion-modal-card">
+            <div class="sancion-modal-header">
+                <h3 style="margin: 0;"><i class="fa-solid fa-circle-exclamation" style="color: var(--accent-pink);"></i> Detalle de la Sanción</h3>
+                <button class="sancion-modal-close" id="closeSancionModalBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="sancion-modal-body" id="sancionModalContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Notificación -->
+    <div class="sancion-modal-overlay" id="notifModalOverlay">
+        <div class="sancion-modal-card">
+            <div class="sancion-modal-header">
+                <h3 style="margin: 0;"><i class="fa-solid fa-bell" style="color: var(--accent-pink);"></i> Detalle de Notificación</h3>
+                <button class="sancion-modal-close" id="closeNotifModalBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="sancion-modal-body" id="notifModalContent"></div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button id="markAsReadBtn" style="background: var(--accent-pink, #db2777); border: none; color: #fff; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    <i class="fa-solid fa-check"></i> Marcar como leída
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Gestionar perfil -->
+    <div class="pf-overlay" id="pfOverlay">
+        <div class="pf-card">
+            <div class="pf-head">
+                <h3><i class="fa-solid fa-gear"></i> Gestionar perfil</h3>
+                <button type="button" class="pf-close" id="pfClose"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="pf-title">Redes sociales</div>
+            <div class="pf-row"><div class="pf-ico" style="color:#e1306c;"><i class="fa-brands fa-instagram"></i></div><input class="pf-input" id="pfInstagram" placeholder="Enlace del perfil de Instagram"></div>
+            <div class="pf-row"><div class="pf-ico" style="color:#ff0000;"><i class="fa-brands fa-youtube"></i></div><input class="pf-input" id="pfYoutube" placeholder="Enlace del perfil de YouTube"></div>
+            <div class="pf-row"><div class="pf-ico" style="color:#9146ff;"><i class="fa-brands fa-twitch"></i></div><input class="pf-input" id="pfTwitch" placeholder="Enlace del perfil de Twitch"></div>
+            <div class="pf-row"><div class="pf-ico" style="color:#53fc18;"><i class="fa-solid fa-k"></i></div><input class="pf-input" id="pfKick" placeholder="Enlace del perfil de Kick"></div>
+
+            <div class="pf-title">Privacidad del perfil</div>
+            <div class="pf-privacy">
+                <div>
+                    <strong id="pfVisLabel">Perfil público</strong>
+                    <span id="pfVisDesc">Cualquier usuario de la web podrá ver tu perfil y tus redes.</span>
+                </div>
+                <label class="pf-switch"><input type="checkbox" id="pfPublic" checked><span class="pf-slider"></span></label>
+            </div>
+
+            <div class="pf-title">Qué se muestra en tu perfil público</div>
+            <div class="pf-opts" id="pfOpts">
+                <div class="pf-opt"><span>Mis redes sociales</span><label class="pf-switch"><input type="checkbox" id="pfShowRedes" checked><span class="pf-slider"></span></label></div>
+                <div class="pf-opt"><span>Mis imágenes publicadas</span><label class="pf-switch"><input type="checkbox" id="pfShowFotos" checked><span class="pf-slider"></span></label></div>
+                <div class="pf-opt"><span>Mis sugerencias</span><label class="pf-switch"><input type="checkbox" id="pfShowSug" checked><span class="pf-slider"></span></label></div>
+            </div>
+
+            <div class="pf-note">
+                <div class="pf-note-title">IMPORTANTE</div>
+                <div>Estos ajustes solo afectan a la página web. No cambian nada en la aplicación principal, Discord.</div>
+                <div style="margin-top: 8px;">Si tu perfil es público, cualquier persona podrá acceder a las redes sociales, imágenes publicadas y sugerencias que hayas dejado activadas.</div>
+            </div>
+
+            <div class="pf-actions">
+                <span class="pf-status" id="pfStatus"></span>
+                <button type="button" class="pf-cancel" id="pfCancel">Cancelar</button>
+                <button type="button" class="pf-save" id="pfSave">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Borrar cuenta -->
+    <div class="pf-overlay" id="dcOverlay">
+        <div class="pf-card dc-card" role="dialog" aria-modal="true" aria-labelledby="dcTitle">
+            <div class="pf-head">
+                <h3 id="dcTitle"><i class="fa-solid fa-user-slash"></i> Borrar cuenta</h3>
+                <button type="button" class="pf-close" id="dcClose" title="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <p class="dc-intro">Vas a borrar tu cuenta de la web de Nyx Community. Revisa bien lo que ocurre antes de continuar: <strong>esta acción no se puede deshacer</strong>.</p>
+
+            <div class="pf-title">Se borrará de forma permanente</div>
+            <ul class="dc-list del">
+                <li><i class="fa-solid fa-trash"></i> <span>Tu enlace de Steam Community, tu nacionalidad y tu fecha de nacimiento.</span></li>
+                <li><i class="fa-solid fa-trash"></i> <span>Tus redes sociales y los ajustes de privacidad del perfil.</span></li>
+                <li><i class="fa-solid fa-trash"></i> <span>Todas las fotografías que has subido a tu perfil.</span></li>
+                <li><i class="fa-solid fa-trash"></i> <span>Tus preferencias de notificaciones y la sesión iniciada en este navegador.</span></li>
+            </ul>
+
+            <div class="pf-title">Se conserva</div>
+            <ul class="dc-list keep">
+                <li><i class="fa-solid fa-box-archive"></i> <span>Tus sanciones, tickets, sugerencias y el resultado de tu whitelist, que siguen asociados a tu ID de Discord.</span></li>
+                <li><i class="fa-solid fa-box-archive"></i> <span>Un registro de esta baja, con los datos que tenías, a disposición del equipo administrativo.</span></li>
+            </ul>
+
+            <div class="dc-relogin">
+                <i class="fa-solid fa-right-to-bracket"></i> Si vuelves a iniciar sesión, tendrás que indicar de nuevo tu <strong>nacionalidad</strong>, tu perfil de <strong>Steam Community</strong> y tu <strong>fecha de nacimiento</strong>.
+            </div>
+
+            <div class="pf-note danger">
+                <div class="pf-note-title">IMPORTANTE</div>
+                <div>Utilizar el borrado de cuenta para cambiar el enlace de tu cuenta de Steam, o cualquier otro dato, conlleva una <strong>sanción administrativa</strong>.</div>
+                <div style="margin-top: 8px;">Todos estos cambios quedan registrados en el sistema y se notifican automáticamente al equipo administrativo.</div>
+            </div>
+
+            <label class="dc-confirm-label" for="dcConfirmInput">Para confirmar, escribe <b>BORRAR</b> en el recuadro:</label>
+            <div class="pf-row">
+                <div class="pf-ico"><i class="fa-solid fa-keyboard"></i></div>
+                <input class="pf-input" id="dcConfirmInput" placeholder="BORRAR" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12">
+            </div>
+
+            <div class="pf-actions">
+                <span class="pf-status" id="dcStatus" role="status"></span>
+                <button type="button" class="pf-cancel" id="dcCancel">Cancelar</button>
+                <button type="button" class="dc-delete" id="dcDelete" disabled>Borrar mi cuenta</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const FALLBACK_AVATAR = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%2250%22 cy=%2238%22 r=%2216%22 fill=%22%23fff%22/%3E%3Cpath d=%22M20 88c0-18 13-30 30-30s30 12 30 30z%22 fill=%22%23fff%22/%3E%3C/svg%3E";
+
+        const COUNTRY_FLAGS = {
+            'España': '🇪🇸', 'Francia': '🇫🇷', 'Alemania': '🇩🇪', 'Italia': '🇮🇹',
+            'Reino Unido': '🇬🇧', 'Portugal': '🇵🇹', 'Países Bajos': '🇳🇱', 'Suecia': '🇸🇪',
+            'México': '🇲🇽', 'Argentina': '🇦🇷', 'Colombia': '🇨🇴', 'Chile': '🇨🇱',
+            'Perú': '🇵🇪', 'Estados Unidos': '🇺🇸', 'Uruguay': '🇺🇾', 'Venezuela': '🇻🇪'
+        };
+
+        function toggleSection(btn) {
+            const block = btn.closest('.section-block');
+            if (block) block.classList.toggle('collapsed');
+        }
+
+        async function loadUserClickPoints(userId) {
+            const pointsDisplay = document.getElementById('userClickPointsVal');
+            if (!pointsDisplay) return;
+            try {
+                const response = await fetch(`/api/clickpoints?userId=${userId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    pointsDisplay.textContent = Number(data.clickpoints || data.points || 0).toLocaleString();
+                } else {
+                    pointsDisplay.textContent = "0";
+                }
+            } catch (e) {
+                pointsDisplay.textContent = "0";
+            }
+        }
+
+        async function loadUserProfileData(userId) {
+            const natVal = document.getElementById('infoNationalityVal');
+            const steamVal = document.getElementById('infoSteamVal');
+            if (!natVal || !steamVal) return;
+
+            let data = null;
+            try {
+                const res = await fetch(`/api/user-profile-data?userId=${encodeURIComponent(userId)}`);
+                if (res.ok) {
+                    data = await res.json();
+                    if (Array.isArray(data)) {
+                        data = data.find(d => String(d.discordId || d.discord_id || userId).trim() === String(userId).trim()) || null;
+                    }
+                }
+            } catch (e) {}
+
+            const country = data && (data.country || data.nacionalidad);
+            const steam = data && (data.steam || data.steamUrl || data.steam_url);
+
+            if (country) {
+                const flag = COUNTRY_FLAGS[country] ? COUNTRY_FLAGS[country] + ' ' : '';
+                natVal.textContent = `${flag}${country}`;
+            } else {
+                natVal.textContent = 'No adjuntada';
+                natVal.style.color = '#64748b';
+            }
+
+            if (steam && /^https?:\/\//i.test(String(steam))) {
+                const link = document.createElement('a');
+                link.href = steam;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.className = 'info-extra-value';
+                link.title = steam;
+                link.textContent = String(steam).replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '');
+                steamVal.replaceWith(link);
+                link.id = 'infoSteamVal';
+            } else {
+                steamVal.textContent = 'No adjuntado';
+                steamVal.style.color = '#64748b';
+            }
+        }
+
+        async function loadDiscordSessionData() {
+            const avatarContainer = document.getElementById('userAvatarContainer');
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const userHandleDisplay = document.getElementById('userHandleDisplay');
+            const profileAvatarImg = document.getElementById('profileAvatarImg');
+            const profileNameDisplay = document.getElementById('profileNameDisplay');
+            const profileHandleDisplay = document.getElementById('profileHandleDisplay');
+
+            let discordUser = null;
+
+            try {
+                const sessionRes = await fetch('/api/auth/session');
+                if (sessionRes.ok) discordUser = await sessionRes.json();
+            } catch (e) {}
+
+            // Datos de Discord guardados al iniciar sesión: de aquí sale el nombre en calendario.html y el resto de páginas
+            let localUser = null;
+            try { localUser = JSON.parse(localStorage.getItem('discord_user') || 'null'); } catch (err) {}
+            if (!localUser || typeof localUser !== 'object') localUser = null;
+
+            if (!discordUser || !discordUser.id) {
+                if (localUser) discordUser = localUser;
+            }
+
+            if (!discordUser || (!discordUser.id && !discordUser.discord_id)) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const currentUserId = discordUser.id || discordUser.discord_id;
+
+            // Nombre visible: el MISMO que en calendario.html (displayName || username de 'discord_user').
+            // Se usa tanto en el menú lateral como en el nombre grande de la tarjeta.
+            // Solo si en este navegador no están esos datos (o son de otra cuenta) se recurre a los de la sesión.
+            const esMismaCuenta = !!localUser && String(localUser.id || localUser.discord_id || '') === String(currentUserId);
+            const displayName = (esMismaCuenta && (localUser.displayName || localUser.username))
+                || discordUser.displayName || discordUser.global_name || discordUser.username || "Usuario";
+            const handle = (esMismaCuenta && localUser.username) || discordUser.username || "discord";
+            
+            let avatarHash = discordUser.avatarUrl || discordUser.avatar;
+            let avatarUrl = "";
+
+            if (avatarHash && avatarHash.startsWith('http')) {
+                avatarUrl = avatarHash;
+            } else if (avatarHash) {
+                const ext = avatarHash.startsWith('a_') ? 'gif' : 'png';
+                avatarUrl = `https://cdn.discordapp.com/avatars/${currentUserId}/${avatarHash}.${ext}`;
+            } else {
+                avatarUrl = FALLBACK_AVATAR;
+            }
+
+            if (userNameDisplay) userNameDisplay.textContent = displayName;
+            if (userHandleDisplay) userHandleDisplay.textContent = `@${handle}`;
+            if (profileNameDisplay) profileNameDisplay.textContent = displayName;
+            if (profileHandleDisplay) profileHandleDisplay.innerHTML = `@${pfEsc(handle)} <span style="font-size:11px; opacity:0.7;">${pfEsc(currentUserId)}</span>`;
+            
+            if (avatarContainer) {
+                avatarContainer.innerHTML = `<img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.src='${FALLBACK_AVATAR}'">`;
+            }
+            if (profileAvatarImg) {
+                profileAvatarImg.src = avatarUrl;
+                profileAvatarImg.onerror = function() { this.src = FALLBACK_AVATAR; };
+            }
+
+            await verificarYActualizarRolesVIPyWhitelist(currentUserId);
+            await loadUserProfileData(currentUserId);
+            await initPerfilSettings(currentUserId);
+            await loadUserFotos(currentUserId);
+            await loadUserSanciones(currentUserId);
+            await loadUserNotificaciones(currentUserId);
+            await loadUserHistorias(currentUserId);
+            await loadUserSugerenciasPerfil(currentUserId);
+            await loadUserPropiedades(currentUserId);
+            await loadUserClickPoints(currentUserId);
+        }
+
+        async function verificarYActualizarRolesVIPyWhitelist(userId) {
+            let whitelistAprobada = false;
+            let esVip = false;
+
+            try {
+                const res = await fetch(`/api/whitelist?userId=${userId}`);
+                if (res.ok) {
+                    const whitelistList = await res.json();
+                    if (Array.isArray(whitelistList)) {
+                        whitelistAprobada = whitelistList.some(item => {
+                            if (!item || String(item.discordId || item.discord_id).trim() !== String(userId).trim()) return false;
+                            const estado = String(item.status || item.estado || '').trim().toLowerCase();
+                            return estado === 'aprobado' || estado === 'aprobada' || item.aprobado === true;
+                        });
+                    }
+                }
+
+                const vipRes = await fetch(`/api/vip?userId=${userId}`);
+                if (vipRes.ok) {
+                    const vipData = await vipRes.json();
+                    esVip = vipData.isVip || vipData.vip === true;
+                }
+            } catch (e) {}
+
+            const rolesContainer = document.querySelector('.profile-roles-container');
+            const whitelistInfoItem = document.getElementById('infoWhitelistItem');
+            const vipWhitelistStatus = document.getElementById('vipWhitelistStatus');
+
+            let rolesHtml = '';
+            if (whitelistAprobada) {
+                rolesHtml += `<span class="profile-role-pill whitelisted" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> Whitelist aceptada</span>`;
+            } else {
+                rolesHtml += `<span class="profile-role-pill" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> Sin whitelist</span>`;
+            }
+
+            if (esVip) {
+                rolesHtml += `<span class="profile-role-pill vip"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> Membresia VIP</span>`;
+            }
+
+            if (rolesContainer) rolesContainer.innerHTML = rolesHtml;
+
+            if (whitelistAprobada && whitelistInfoItem) {
+                whitelistInfoItem.innerHTML = `<i class="fa-solid fa-check-circle" style="color: #4ade80;"></i> Whitelist aprobada`;
+            }
+
+            // Tarjeta "Whitelist" del apartado Membresia VIP
+            if (whitelistAprobada && vipWhitelistStatus) {
+                vipWhitelistStatus.style.color = '#10b981';
+                vipWhitelistStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> Whitelist aprobada`;
+            }
+        }
+
+        let currentUserSanciones = [];
+        let currentUserNotificaciones = [];
+        let activeNotifId = null;
+
+        async function loadUserSanciones(userId) {
+            const container = document.getElementById('userSancionesContainer');
+            const countInfo = document.getElementById('sancionesCountInfo');
+            try {
+                const res = await fetch(`/api/sanciones?userId=${userId}`);
+                if (!res.ok) throw new Error();
+                const list = await res.json();
+                currentUserSanciones = Array.isArray(list) ? list.filter(s => String(s.discordId || s.discord_id).trim() === String(userId).trim()) : [];
+                if (countInfo) countInfo.textContent = `${currentUserSanciones.length} Registros`;
+                if (currentUserSanciones.length === 0) {
+                    container.innerHTML = `<div class="ann-card-modern"><p style="margin: 0;">No hay ninguna sanción activa en tu cuenta.</p></div>`;
+                    return;
+                }
+                let htmlTable = `<div class="table-container"><table class="custom-table"><thead><tr><th>ID</th><th>Motivo</th><th>Tipo</th><th>Estado</th><th>Fecha</th><th style="text-align: right;">Acción</th></tr></thead><tbody>`;
+                currentUserSanciones.forEach((s, index) => {
+                    let fechaStr = s.fechaRegistro ? new Date(s.fechaRegistro).toLocaleDateString('es-ES') : "N/D";
+                    let badgeClass = s.status === 'Activa' ? 'color: #ef4444;' : 'color: #10b981;';
+                    htmlTable += `<tr><td style="font-weight: 600;">${s.id}</td><td><div class="truncate-motivo" title="${s.motivo}">${s.motivo}</div></td><td><span style="font-weight: 500;">${s.tipo}</span></td><td><span style="${badgeClass} font-weight: 600;"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> ${s.status}</span></td><td style="color: var(--text-muted);">${fechaStr}</td><td style="text-align: right;"><button class="btn-view-sancion" onclick="openSancionModal(${index})" title="Ver detalles"><i class="fa-solid fa-eye"></i></button></td></tr>`;
+                });
+                htmlTable += `</tbody></table></div>`;
+                container.innerHTML = htmlTable;
+            } catch (e) {
+                if (countInfo) countInfo.textContent = "0 Registros";
+                container.innerHTML = `<div class="ann-card-modern"><p style="margin: 0;">No hay ninguna sanción activa en tu cuenta.</p></div>`;
+            }
+        }
+
+        async function loadUserNotificaciones(userId) {
+            const container = document.getElementById('userNotificacionesContainer');
+            const countInfo = document.getElementById('notifCountInfo');
+            try {
+                const res = await fetch(`/api/notificaciones?userId=${userId}`);
+                if (!res.ok) throw new Error();
+                const list = await res.json();
+                currentUserNotificaciones = Array.isArray(list) ? list.filter(n => String(n.discordId || n.discord_id).trim() === String(userId).trim()) : [];
+                const unreadNotifs = currentUserNotificaciones.filter(n => !n.leida);
+                if (countInfo) countInfo.textContent = `${unreadNotifs.length} Registros`;
+                if (currentUserNotificaciones.length === 0 || unreadNotifs.length === 0) {
+                    container.innerHTML = `<div class="ann-card-modern"><p style="margin: 0;">No tienes notificaciones nuevas en este momento.</p></div>`;
+                    return;
+                }
+                let htmlContent = '';
+                currentUserNotificaciones.forEach((n, index) => {
+                    if (n.leida) return;
+                    htmlContent += `
+                        <div class="notification-item-card unread" onclick="openNotifModal(${index})">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; background: rgba(219,39,119,0.15); color: var(--accent-pink); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fa-solid fa-bell"></i>
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0; font-size: 0.92rem; color: #fff;">${n.titulo || 'Notificación del Sistema'}</h4>
+                                    <p style="margin: 4px 0 0 0; font-size: 0.82rem; color: #94a3b8;" class="truncate-motivo">${n.mensaje || n.content || ''}</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right" style="color: rgba(255,255,255,0.3); font-size: 0.8rem;"></i>
+                        </div>
+                    `;
+                });
+                container.innerHTML = htmlContent;
+            } catch (e) {
+                if (countInfo) countInfo.textContent = "0 Registros";
+                container.innerHTML = `<div class="ann-card-modern"><p style="margin: 0;">No tienes notificaciones nuevas en este momento.</p></div>`;
+            }
+        }
+
+        function openNotifModal(index) {
+            const notif = currentUserNotificaciones[index];
+            if (!notif) return;
+            activeNotifId = notif.id;
+            const modalContent = document.getElementById('notifModalContent');
+            modalContent.innerHTML = `
+                <p><strong>Asunto:</strong> ${pfEsc(notif.titulo || 'Aviso')}</p>
+                <p><strong>Fecha:</strong> ${notif.fecha ? new Date(notif.fecha).toLocaleString('es-ES') : 'Reciente'}</p>
+                <p><strong>Mensaje:</strong></p>
+                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-top: 6px; white-space: pre-wrap; word-break: break-word;">${pfEsc(notif.mensaje || notif.content || '')}</div>
+            `;
+            document.getElementById('notifModalOverlay').style.display = 'flex';
+        }
+
+        document.getElementById('markAsReadBtn').addEventListener('click', async () => {
+            if (!activeNotifId) return;
+            try {
+                await fetch(`/api/notificaciones/read`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: activeNotifId })
+                });
+            } catch (e) {}
+            document.getElementById('notifModalOverlay').style.display = 'none';
+            currentUserNotificaciones = currentUserNotificaciones.map(n => {
+                if (n.id === activeNotifId) n.leida = true;
+                return n;
+            });
+            const sessionRes = await fetch('/api/auth/session').catch(() => {});
+            if (sessionRes && sessionRes.ok) {
+                const u = await sessionRes.json();
+                loadUserNotificaciones(u.id || u.discord_id);
+            }
+        });
+
+        async function loadUserPropiedades(userId) {
+            const container = document.getElementById('userPropiedadesContainer');
+            const countInfo = document.getElementById('propiedadesCountInfo');
+            try {
+                const res = await fetch(`/api/propiedades?userId=${userId}`);
+                if (!res.ok) throw new Error();
+                const propList = await res.json();
+                const userProps = Array.isArray(propList) ? propList.filter(p => String(p.discordId || p.discord_id).trim() === String(userId).trim()) : [];
+                
+                if (userProps.length === 0) {
+                    if (countInfo) countInfo.textContent = "0 Registros";
+                    container.innerHTML = `<table class="custom-table"><thead><tr><th>ID Compra</th><th>Zona</th><th>Precio</th><th>Estado</th><th>Fecha</th></tr></thead><tbody><tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No tienes solicitudes de propiedades activas.</td></tr></tbody></table>`;
+                    return;
+                }
+
+                if (countInfo) countInfo.textContent = `${userProps.length} Registros`;
+                let htmlTable = `<table class="custom-table"><thead><tr><th>ID Compra</th><th>Zona</th><th>Precio</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>`;
+                userProps.forEach(p => {
+                    let estado = p.status || p.estado || "En proceso";
+                    let estadoColorStyle = "color: #f59e0b; font-weight: 700;";
+                    if (estado.toLowerCase() === 'aprobado' || estado.toLowerCase() === 'activo') estadoColorStyle = "color: #10b981; font-weight: 700;";
+                    else if (estado.toLowerCase() === 'rechazado') estadoColorStyle = "color: #ef4444; font-weight: 700;";
+
+                    htmlTable += `<tr><td style="font-weight: 600; color: #c084fc;">${p.id}</td><td><span style="font-weight: 600;">${p.zone || p.zona || 'N/D'}</span></td><td><span style="color: #4ade80; font-weight: 600;">${p.price || p.precio || '0€'}</span></td><td><span style="${estadoColorStyle}"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> ${estado}</span></td><td style="color: var(--text-muted);">${p.date || p.fecha || 'N/D'}</td></tr>`;
+                });
+                htmlTable += `</tbody></table>`;
+                container.innerHTML = htmlTable;
+            } catch (e) {
+                if (countInfo) countInfo.textContent = "0 Registros";
+                container.innerHTML = `<table class="custom-table"><thead><tr><th>ID Compra</th><th>Zona</th><th>Precio</th><th>Estado</th><th>Fecha</th></tr></thead><tbody><tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No tienes solicitudes de propiedades activas.</td></tr></tbody></table>`;
+            }
+        }
+
+        async function loadUserHistorias(userId) {
+            const container = document.getElementById('userHistoriasContainer');
+            const countInfo = document.getElementById('historiasCountInfo');
+            try {
+                const res = await fetch(`/api/whitelist?userId=${userId}`);
+                if (!res.ok) throw new Error();
+                const whitelistList = await res.json();
+                const userStories = Array.isArray(whitelistList) ? whitelistList.filter(item => String(item.discordId || item.discord_id).trim() === String(userId).trim()) : [];
+
+                if (userStories.length === 0) {
+                    if (countInfo) countInfo.textContent = "0 Registros";
+                    container.innerHTML = `<table class="custom-table"><thead><tr><th>Personaje</th><th>Tipo</th><th>Estado</th><th>Aprobador</th><th>Fecha</th></tr></thead><tbody><tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No hay historias de personaje registradas.</td></tr></tbody></table>`;
+                    return;
+                }
+
+                if (countInfo) countInfo.textContent = `${userStories.length} Registros`;
+                let htmlTable = `<table class="custom-table"><thead><tr><th>Personaje</th><th>Tipo</th><th>Estado</th><th>Aprobador</th><th>Fecha</th></tr></thead><tbody>`;
+                userStories.forEach(story => {
+                    const personaje = story.nombrePnj || story.inputNombre || story.nombreCompletoPnj || story.nombrePersonaje || "Personaje sin nombre";
+                    const tipo = story.tipo || "Nueva historia";
+                    const estado = story.status || story.estado || "Pendiente";
+                    const aprobador = story.aprobador || "—";
+                    let fechaStr = story.fecha || story.fechaRegistro ? new Date(story.fecha || story.fechaRegistro).toLocaleDateString('es-ES') : "hoy";
+
+                    let estadoColorStyle = "color: var(--text-muted);";
+                    if (estado.toLowerCase() === 'aprobado') estadoColorStyle = "color: #10b981; font-weight: 700;";
+                    else if (estado.toLowerCase() === 'rechazado') estadoColorStyle = "color: #ef4444; font-weight: 700;";
+                    else if (estado.toLowerCase() === 'pendiente') estadoColorStyle = "color: #f59e0b; font-weight: 700;";
+
+                    htmlTable += `<tr><td style="font-weight: 600;">${personaje}</td><td><span class="story-type-badge">${tipo}</span></td><td><span style="${estadoColorStyle}"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> ${estado}</span></td><td style="color: var(--text-muted);">${aprobador}</td><td style="color: var(--text-muted);">${fechaStr}</td></tr>`;
+                });
+                htmlTable += `</tbody></table>`;
+                container.innerHTML = htmlTable;
+            } catch (e) {
+                if (countInfo) countInfo.textContent = "0 Registros";
+                container.innerHTML = `<table class="custom-table"><thead><tr><th>Personaje</th><th>Tipo</th><th>Estado</th><th>Aprobador</th><th>Fecha</th></tr></thead><tbody><tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No hay historias de personaje registradas.</td></tr></tbody></table>`;
+            }
+        }
+
+        // Votos de una sugerencia: pastillas con pulgar arriba / abajo y una barra con la proporción a favor
+        function sugVotosHtml(s) {
+            const up = Math.max(0, Number(s.upvotes) || 0);
+            const down = Math.max(0, Number(s.downvotes) || 0);
+            const total = up + down;
+            const pct = total ? Math.round((up / total) * 100) : 0;
+            const resumen = total ? `${pct}% a favor · ${total} voto${total === 1 ? '' : 's'}` : 'Sin votos todavía';
+            return `
+                <div class="sug-votes" title="${up} a favor · ${down} en contra">
+                    <div class="sug-votes-pills">
+                        <span class="sug-vote up"><i class="fa-solid fa-thumbs-up"></i> ${up}</span>
+                        <span class="sug-vote down"><i class="fa-solid fa-thumbs-down"></i> ${down}</span>
+                    </div>
+                    <div class="sug-votes-bar ${total ? '' : 'empty'}"><span style="width: ${pct}%;"></span></div>
+                    <span class="sug-votes-pct">${resumen}</span>
+                </div>`;
+        }
+
+        async function loadUserSugerenciasPerfil(userId) {
+            const container = document.getElementById('perfilSugerenciasContainer');
+            const countInfo = document.getElementById('perfilSugerenciasCount');
+            try {
+                const res = await fetch(`/api/sugerencias?userId=${userId}`);
+                if (!res.ok) throw new Error();
+                const sugerenciasList = await res.json();
+                const userSugerencias = Array.isArray(sugerenciasList) ? sugerenciasList.filter(s => String(s.discordId || s.discord_id).trim() === String(userId).trim()) : [];
+
+                if (userSugerencias.length === 0) {
+                    if (countInfo) countInfo.textContent = "0 Registros";
+                    container.innerHTML = `<table class="custom-table"><thead><tr><th>ID</th><th>Título</th><th>Categoría</th><th>Estado</th><th>Votos</th><th>Fecha</th></tr></thead><tbody><tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No has enviado ninguna sugerencia todavía.</td></tr></tbody></table>`;
+                    return;
+                }
+
+                if (countInfo) countInfo.textContent = `${userSugerencias.length} Registros`;
+                let htmlTable = `<table class="custom-table"><thead><tr><th>ID</th><th>Título</th><th>Categoría</th><th>Estado</th><th>Votos</th><th>Fecha</th></tr></thead><tbody>`;
+                userSugerencias.forEach(s => {
+                    let fechaStr = s.fechaRegistro ? new Date(s.fechaRegistro).toLocaleDateString('es-ES') : "N/D";
+                    let estado = String(s.status || "Pendiente");
+                    let estadoColorStyle = "color: #f59e0b; font-weight: 700;";
+                    if (estado.toLowerCase() === 'aprobada' || estado.toLowerCase() === 'implementada') estadoColorStyle = "color: #10b981; font-weight: 700;";
+                    else if (estado.toLowerCase() === 'rechazada') estadoColorStyle = "color: #ef4444; font-weight: 700;";
+
+                    htmlTable += `<tr><td style="font-weight: 600;">${pfEsc(s.id)}</td><td><span style="font-weight: 600;">${pfEsc(s.titulo)}</span></td><td><span>${pfEsc(s.categoria)}</span></td><td><span style="${estadoColorStyle}"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> ${pfEsc(estado)}</span></td><td>${sugVotosHtml(s)}</td><td style="color: var(--text-muted);">${fechaStr}</td></tr>`;
+                });
+                htmlTable += `</tbody></table>`;
+                container.innerHTML = htmlTable;
+            } catch (e) {
+                if (countInfo) countInfo.textContent = "0 Registros";
+                container.innerHTML = `<table class="custom-table"><thead><tr><th>ID</th><th>Título</th><th>Categoría</th><th>Estado</th><th>Votos</th><th>Fecha</th></tr></thead><tbody><tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No has enviado ninguna sugerencia todavía.</td></tr></tbody></table>`;
+            }
+        }
+
+        function openSancionModal(index) {
+            const sancion = currentUserSanciones[index];
+            if (!sancion) return;
+            let fechaStr = sancion.fechaRegistro ? new Date(sancion.fechaRegistro).toLocaleString('es-ES') : "N/D";
+            const modalContent = document.getElementById('sancionModalContent');
+            modalContent.innerHTML = `
+                <p><strong>ID de Sanción:</strong> ${pfEsc(sancion.id)}</p>
+                <p><strong>Tipo:</strong> ${pfEsc(sancion.tipo)}</p>
+                <p><strong>Estado:</strong> <span style="${sancion.status === 'Activa' ? 'color: #ef4444;' : 'color: #10b981;'} font-weight: bold;">${pfEsc(sancion.status)}</span></p>
+                <p><strong>Fecha de Registro:</strong> ${pfEsc(fechaStr)}</p>
+                <p><strong>Motivo detallado:</strong></p>
+                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-top: 6px; white-space: pre-wrap; word-break: break-word;">${pfEsc(sancion.motivo)}</div>
+            `;
+            document.getElementById('sancionModalOverlay').style.display = 'flex';
+        }
+
+        document.getElementById('closeSancionModalBtn').addEventListener('click', () => {
+            document.getElementById('sancionModalOverlay').style.display = 'none';
+        });
+        document.getElementById('closeNotifModalBtn').addEventListener('click', () => {
+            document.getElementById('notifModalOverlay').style.display = 'none';
+        });
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                try { await fetch('/api/auth/logout', { method: 'POST' }); } catch (e) {}
+                localStorage.removeItem('discord_user');
+                window.location.href = '/login.html';
+            });
+        }
+
+        // ===== Gestionar perfil (redes, privacidad y qué se muestra) — todo se guarda en el servidor =====
+        const PF_SOCIALS = {
+            instagram: { label: 'Instagram', icon: 'fa-brands fa-instagram', color: '#e1306c', base: 'https://instagram.com/', input: 'pfInstagram' },
+            youtube:   { label: 'YouTube',   icon: 'fa-brands fa-youtube',   color: '#ff0000', base: 'https://youtube.com/@',  input: 'pfYoutube' },
+            twitch:    { label: 'Twitch',    icon: 'fa-brands fa-twitch',    color: '#9146ff', base: 'https://twitch.tv/',     input: 'pfTwitch' },
+            kick:      { label: 'Kick',      icon: 'fa-solid fa-k',          color: '#53fc18', base: 'https://kick.com/',      input: 'pfKick' }
+        };
+        let pfUserId = null;
+        let pfSettings = { redes: {}, publico: true, mostrar: { redes: true, fotos: true, sugerencias: true } };
+
+        const pfEsc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+        function pfNorm(d) {
+            const m = (d && d.mostrar) || {};
+            return {
+                redes: (d && d.redes) || {},
+                publico: !d || d.publico !== false,
+                mostrar: { redes: m.redes !== false, fotos: m.fotos !== false, sugerencias: m.sugerencias !== false }
+            };
+        }
+
+        function pfUrl(key, val) {
+            val = String(val || '').trim();
+            if (!val) return '';
+            if (/^https?:\/\//i.test(val)) return val;
+            if (/^[a-z][a-z0-9+.-]*:/i.test(val)) return '';
+            const user = val.replace(/^@/, '').replace(/[^\w.\-]/g, '');
+            return user ? PF_SOCIALS[key].base + user : '';
+        }
+
+        function pfRenderInfo() {
+            const el = document.getElementById('infoSocials');
+            let html = '';
+            Object.keys(PF_SOCIALS).forEach(k => {
+                const url = pfUrl(k, pfSettings.redes[k]);
+                if (url) html += `<a class="pf-soc-link" href="${pfEsc(url)}" target="_blank" rel="noopener noreferrer" title="${PF_SOCIALS[k].label}" style="color:${PF_SOCIALS[k].color};"><i class="${PF_SOCIALS[k].icon}"></i></a>`;
+            });
+            if (el) { el.innerHTML = html; el.style.display = html ? 'flex' : 'none'; }
+
+            const badge = document.getElementById('profileVisBadge');
+            if (badge) {
+                const pub = !!pfSettings.publico;
+                badge.classList.toggle('private', !pub);
+                badge.innerHTML = pub
+                    ? '<i class="fa-solid fa-earth-europe"></i> <span>Perfil público</span>'
+                    : '<i class="fa-solid fa-lock"></i> <span>Perfil privado</span>';
+            }
+        }
+
+        function pfFillForm() {
+            Object.keys(PF_SOCIALS).forEach(k => {
+                document.getElementById(PF_SOCIALS[k].input).value = pfSettings.redes[k] || '';
+            });
+            document.getElementById('pfPublic').checked = !!pfSettings.publico;
+            document.getElementById('pfShowRedes').checked = !!pfSettings.mostrar.redes;
+            document.getElementById('pfShowFotos').checked = !!pfSettings.mostrar.fotos;
+            document.getElementById('pfShowSug').checked = !!pfSettings.mostrar.sugerencias;
+            pfUpdateVisText();
+        }
+
+        function pfUpdateVisText() {
+            const pub = document.getElementById('pfPublic').checked;
+            document.getElementById('pfVisLabel').textContent = pub ? 'Perfil público' : 'Perfil privado';
+            document.getElementById('pfVisDesc').textContent = pub
+                ? 'Cualquier usuario de la web podrá ver tu perfil y lo que dejes activado.'
+                : 'Solo tú podrás ver tu perfil en la web.';
+            document.getElementById('pfOpts').classList.toggle('disabled', !pub);
+        }
+
+        // Muestra el botón "Ver mi perfil público" solo si apareces en el listado del equipo
+                function pfPrepararBotonPublico(userId) {
+            const btn = document.getElementById('viewPublicBtn');
+            if (!btn) return;
+            btn.href = '/equipo.html?perfil=' + encodeURIComponent(userId);
+            btn.style.display = 'flex';
+        }
+
+        async function initPerfilSettings(userId) {
+            pfUserId = userId;
+            try {
+                const r = await fetch('/api/perfil-settings?userId=' + encodeURIComponent(userId), { cache: 'no-store', credentials: 'same-origin' });
+                if (r.ok) {
+                    const d = await r.json();
+                    if (d && typeof d === 'object' && !Array.isArray(d)) pfSettings = pfNorm(d);
+                }
+            } catch (e) {}
+            try { localStorage.removeItem('perfil_settings_' + userId); } catch (e) {}
+            pfRenderInfo();
+            pfPrepararBotonPublico(userId);
+        }
+
+        const pfOverlay = document.getElementById('pfOverlay');
+        const pfOpen = () => { pfFillForm(); document.getElementById('pfStatus').textContent = ''; pfOverlay.classList.add('open'); };
+        const pfClose = () => pfOverlay.classList.remove('open');
+
+        document.getElementById('manageProfileBtn').addEventListener('click', pfOpen);
+        document.getElementById('pfClose').addEventListener('click', pfClose);
+        document.getElementById('pfCancel').addEventListener('click', pfClose);
+        pfOverlay.addEventListener('click', e => { if (e.target === pfOverlay) pfClose(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') pfClose(); });
+        document.getElementById('pfPublic').addEventListener('change', pfUpdateVisText);
+
+        document.getElementById('pfSave').addEventListener('click', async () => {
+            const status = document.getElementById('pfStatus');
+            const saveBtn = document.getElementById('pfSave');
+            const redes = {};
+            let errorRed = '';
+            Object.keys(PF_SOCIALS).forEach(k => {
+                const v = document.getElementById(PF_SOCIALS[k].input).value.trim();
+                if (v && !pfUrl(k, v)) errorRed = PF_SOCIALS[k].label;
+                if (v) redes[k] = v;
+            });
+            if (errorRed) { status.style.color = '#f87171'; status.textContent = 'Enlace no válido en ' + errorRed; return; }
+
+            const nuevos = {
+                redes,
+                publico: document.getElementById('pfPublic').checked,
+                mostrar: {
+                    redes: document.getElementById('pfShowRedes').checked,
+                    fotos: document.getElementById('pfShowFotos').checked,
+                    sugerencias: document.getElementById('pfShowSug').checked
+                }
+            };
+            saveBtn.disabled = true;
+            status.style.color = '#94a3b8';
+            status.textContent = 'Guardando...';
+            try {
+                const r = await fetch('/api/perfil-settings', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(nuevos)
+                });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                pfSettings = nuevos;
+                pfRenderInfo();
+                status.style.color = '#34d399';
+                status.textContent = 'Guardado correctamente';
+                setTimeout(pfClose, 900);
+            } catch (e) {
+                status.style.color = '#f87171';
+                status.textContent = 'No se pudo guardar en el servidor (' + (e.message || 'error') + ')';
+            } finally {
+                saveBtn.disabled = false;
+            }
+        });
+
+        // ===== Borrar cuenta: confirmación escrita y borrado en el servidor (/api/cuenta/borrar) =====
+        const DC_PALABRA = 'BORRAR';
+        const dcOverlay = document.getElementById('dcOverlay');
+        const dcInput = document.getElementById('dcConfirmInput');
+        const dcDeleteBtn = document.getElementById('dcDelete');
+        const dcStatus = document.getElementById('dcStatus');
+        let dcBorrando = false;
+
+        const dcConfirmado = () => dcInput.value.trim().toUpperCase() === DC_PALABRA;
+
+        function dcSetStatus(texto, color) {
+            dcStatus.style.color = color || '#94a3b8';
+            dcStatus.textContent = texto;
+        }
+
+        function dcOpen() {
+            dcInput.value = '';
+            dcDeleteBtn.disabled = true;
+            dcSetStatus('');
+            dcOverlay.classList.add('open');
+            setTimeout(() => dcInput.focus(), 200);
+        }
+        function dcClose() {
+            if (dcBorrando) return;   // mientras se está borrando no se puede cerrar
+            dcOverlay.classList.remove('open');
+        }
+
+        document.getElementById('deleteAccountBtn').addEventListener('click', dcOpen);
+        document.getElementById('dcClose').addEventListener('click', dcClose);
+        document.getElementById('dcCancel').addEventListener('click', dcClose);
+        dcOverlay.addEventListener('click', e => { if (e.target === dcOverlay) dcClose(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') dcClose(); });
+        dcInput.addEventListener('input', () => { if (!dcBorrando) dcDeleteBtn.disabled = !dcConfirmado(); });
+        dcInput.addEventListener('keydown', e => { if (e.key === 'Enter' && dcConfirmado()) dcDeleteBtn.click(); });
+
+        // Quita de este navegador lo que quedaba de la cuenta
+        function dcLimpiarNavegador() {
+            try {
+                ['discord_user', 'restart_notifications_active', 'calendar_notifications_active', 'user_notifications_db']
+                    .forEach(k => localStorage.removeItem(k));
+                if (pfUserId) {
+                    const logins = JSON.parse(localStorage.getItem('recent_logins') || '[]');
+                    if (Array.isArray(logins)) {
+                        localStorage.setItem('recent_logins', JSON.stringify(logins.filter(u => !u || String(u.id) !== String(pfUserId))));
+                    }
+                }
+            } catch (e) {}
+        }
+
+        dcDeleteBtn.addEventListener('click', async () => {
+            if (dcBorrando || !dcConfirmado()) return;
+            dcBorrando = true;
+            dcDeleteBtn.disabled = true;
+            dcInput.disabled = true;
+            dcSetStatus('Borrando tu cuenta...');
+            try {
+                const r = await fetch('/api/cuenta/borrar', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ confirmacion: DC_PALABRA })
+                });
+                if (!r.ok) {
+                    let detalle = '';
+                    try {
+                        const d = await r.json();
+                        if (d && typeof d.detail === 'string') detalle = d.detail;
+                    } catch (e) {}
+                    if (r.status === 404 || r.status === 405) detalle = 'El servidor todavía no admite borrar cuentas (actualiza main.py y reinícialo).';
+                    else if (r.status === 401) detalle = 'Tu sesión ha caducado. Vuelve a iniciar sesión.';
+                    throw new Error(detalle || 'Error del servidor (' + r.status + ')');
+                }
+                dcLimpiarNavegador();
+                dcSetStatus('Cuenta borrada. Saliendo...', '#34d399');
+                setTimeout(() => { window.location.href = '/index.html'; }, 1000);
+            } catch (e) {
+                dcBorrando = false;
+                dcInput.disabled = false;
+                dcDeleteBtn.disabled = !dcConfirmado();
+                dcSetStatus(e.message === 'Failed to fetch' ? 'No se ha podido conectar con el servidor.' : (e.message || 'No se ha podido borrar la cuenta.'), '#f87171');
+            }
+        });
+
+        // ===== Fotografías: adjuntar, ver y borrar — se guardan en el servidor (/api/fotografias) =====
+        const FOTOS_MAX = 12;            // el mismo tope que tiene el servidor
+        const FOTO_LADO_MAX = 1600;      // la imagen se reduce a este tamaño antes de subirla
+        const FOTO_HINT = 'JPG, PNG o WebP · máximo ' + FOTOS_MAX + ' fotografías';
+        let userFotos = [];
+        let fotoOcupado = false;
+
+        const fotoUrlValida = u => typeof u === 'string' && (/^https?:\/\//i.test(u) || /^\/fotos\/[\w-]+\.(jpg|png|webp)$/i.test(u));
+
+        function fotoSetStatus(texto, tipo) {
+            const el = document.getElementById('fotoStatus');
+            if (!el) return;
+            el.textContent = texto;
+            el.className = 'foto-status' + (tipo ? ' ' + tipo : '');
+        }
+
+        function fotoActualizarBoton() {
+            const btn = document.getElementById('fotoUploadBtn');
+            const txt = document.getElementById('fotoUploadBtnText');
+            if (!btn || !txt) return;
+            const lleno = userFotos.length >= FOTOS_MAX;
+            btn.disabled = fotoOcupado || lleno;
+            txt.textContent = fotoOcupado ? 'Subiendo...' : 'Adjuntar una fotografía';
+        }
+
+        function renderUserFotos() {
+            const container = document.getElementById('userFotosContainer');
+            const countInfo = document.getElementById('fotosCountInfo');
+            if (countInfo) countInfo.textContent = `${userFotos.length} / ${FOTOS_MAX}`;
+            fotoActualizarBoton();
+            if (!container) return;
+
+            if (userFotos.length === 0) {
+                container.innerHTML = `<div class="ann-card-modern"><p style="margin: 0;">No hay fotografias guardadas en este perfil.</p></div>`;
+                return;
+            }
+            container.innerHTML = `<div class="foto-grid">${userFotos.map((u, i) => `
+                <div class="foto-item">
+                    <a href="${pfEsc(u)}" target="_blank" rel="noopener noreferrer" title="Ver en grande"><img src="${pfEsc(u)}" alt="Fotografía ${i + 1} de tu perfil" loading="lazy"></a>
+                    <button type="button" class="foto-del" data-url="${pfEsc(u)}" title="Eliminar fotografía" aria-label="Eliminar fotografía ${i + 1}"><i class="fa-solid fa-trash"></i></button>
+                </div>`).join('')}</div>`;
+        }
+
+        async function loadUserFotos(userId) {
+            try {
+                const r = await fetch('/api/fotografias?userId=' + encodeURIComponent(userId), { cache: 'no-store', credentials: 'same-origin' });
+                if (r.ok) {
+                    const lista = await r.json();
+                    userFotos = Array.isArray(lista) ? lista.filter(fotoUrlValida) : [];
+                }
+            } catch (e) {}
+            renderUserFotos();
+        }
+
+        // Reduce la imagen y la convierte a JPG en el navegador: sube mucho más rápido,
+        // ocupa menos en el servidor y se eliminan los datos ocultos de la foto (ubicación, móvil, etc.).
+        function fotoPreparar(file) {
+            return new Promise((resolve, reject) => {
+                const objectUrl = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    const escala = Math.min(1, FOTO_LADO_MAX / Math.max(img.naturalWidth, img.naturalHeight));
+                    const w = Math.max(1, Math.round(img.naturalWidth * escala));
+                    const h = Math.max(1, Math.round(img.naturalHeight * escala));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#13141f';   // fondo para imágenes con transparencia
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', 0.86));
+                };
+                img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('El archivo no es una imagen válida')); };
+                img.src = objectUrl;
+            });
+        }
+
+        async function fotoMensajeError(respuesta) {
+            try {
+                const d = await respuesta.json();
+                if (d && typeof d.detail === 'string') return d.detail;
+            } catch (e) {}
+            if (respuesta.status === 401) return 'Tu sesión ha caducado. Vuelve a iniciar sesión.';
+            if (respuesta.status === 404 || respuesta.status === 405) return 'El servidor no admite subir fotografías (actualiza main.py y reinícialo).';
+            return 'Error del servidor (' + respuesta.status + ')';
+        }
+
+        async function fotoSubir(file) {
+            if (fotoOcupado || !file) return;
+            if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { fotoSetStatus('Formato no admitido: solo JPG, PNG o WebP.', 'error'); return; }
+            if (userFotos.length >= FOTOS_MAX) { fotoSetStatus('Has llegado al máximo de ' + FOTOS_MAX + ' fotografías. Borra alguna para subir otra.', 'error'); return; }
+
+            fotoOcupado = true;
+            fotoActualizarBoton();
+            fotoSetStatus('Subiendo fotografía...');
+            try {
+                const imagen = await fotoPreparar(file);
+                const r = await fetch('/api/fotografias', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ imagen })
+                });
+                if (!r.ok) throw new Error(await fotoMensajeError(r));
+                const d = await r.json();
+                userFotos = Array.isArray(d.fotos) ? d.fotos.filter(fotoUrlValida) : userFotos;
+                fotoSetStatus('Fotografía guardada en tu perfil.', 'ok');
+            } catch (e) {
+                fotoSetStatus(e.message === 'Failed to fetch' ? 'No se ha podido conectar con el servidor.' : (e.message || 'No se ha podido subir la fotografía.'), 'error');
+            } finally {
+                fotoOcupado = false;
+                renderUserFotos();
+            }
+        }
+
+        async function fotoBorrar(url) {
+            if (fotoOcupado) return;
+            if (!confirm('¿Eliminar esta fotografía de tu perfil? No se puede deshacer.')) return;
+            fotoOcupado = true;
+            fotoActualizarBoton();
+            try {
+                const r = await fetch('/api/fotografias?url=' + encodeURIComponent(url), { method: 'DELETE', credentials: 'same-origin' });
+                if (!r.ok) throw new Error(await fotoMensajeError(r));
+                const d = await r.json();
+                userFotos = Array.isArray(d.fotos) ? d.fotos.filter(fotoUrlValida) : userFotos.filter(u => u !== url);
+                fotoSetStatus('Fotografía eliminada.', 'ok');
+            } catch (e) {
+                fotoSetStatus(e.message === 'Failed to fetch' ? 'No se ha podido conectar con el servidor.' : (e.message || 'No se ha podido eliminar la fotografía.'), 'error');
+            } finally {
+                fotoOcupado = false;
+                renderUserFotos();
+            }
+        }
+
+        const fotoFileInput = document.getElementById('fotoFileInput');
+        document.getElementById('fotoUploadBtn').addEventListener('click', () => fotoFileInput.click());
+        fotoFileInput.addEventListener('change', () => {
+            const file = fotoFileInput.files && fotoFileInput.files[0];
+            fotoFileInput.value = '';   // permite volver a elegir el mismo archivo
+            fotoSubir(file);
+        });
+        document.getElementById('userFotosContainer').addEventListener('click', (e) => {
+            const btn = e.target.closest('.foto-del');
+            if (btn) fotoBorrar(btn.dataset.url);
+        });
+        fotoSetStatus(FOTO_HINT);
+
+        loadDiscordSessionData();
+
+        const toggleBtn = document.getElementById('sidebarToggleBtn');
+        const revealBtn = document.getElementById('sidebarRevealBtn');
+        const sidebar = document.getElementById('sidebar');
+
+        if (toggleBtn && revealBtn && sidebar) {
+            toggleBtn.addEventListener('click', () => sidebar.classList.add('collapsed'));
+            revealBtn.addEventListener('click', () => sidebar.classList.remove('collapsed'));
+        }
+    </script>
+    
+    <script src="/guards.js"></script>
+
+    <!-- Menú lateral común: logo, lupa y buscador de páginas por categorías -->
+    <script src="src/components/hx-sidebar.js"></script>
+</body>
+</html>

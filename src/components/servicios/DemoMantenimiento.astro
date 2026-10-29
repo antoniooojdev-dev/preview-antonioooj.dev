@@ -1,0 +1,472 @@
+---
+// Ejemplo de «Mantenimiento»: panel con disponibilidad de 30 días, tiempo de respuesta
+// en vivo, copias de seguridad, actualizaciones pendientes y análisis de seguridad.
+// Todo simulado en el navegador.
+const dias = Array.from({ length: 30 }, (_, i) => (i === 11 ? "warn" : "ok"));
+const updates = [
+  { n: "Núcleo del CMS", de: "6.5.2", a: "6.6.0" },
+  { n: "Formulario de contacto", de: "5.9.1", a: "5.9.3" },
+  { n: "Caché y rendimiento", de: "3.2.0", a: "3.3.1" },
+];
+const backups = ["Hoy · 04:00", "Ayer · 04:00", "Hace 2 días · 04:00"];
+const checks = ["Certificado SSL válido", "Cortafuegos activo", "Sin archivos modificados", "Contraseñas seguras", "Sin malware detectado"];
+---
+
+<div class="dm" data-demo-mant>
+  <header class="dm__head">
+    <div>
+      <span class="dm__site mono">🌐 tusitio.es</span>
+      <strong class="dm__status"><i aria-hidden="true"></i> Todo funciona correctamente</strong>
+    </div>
+    <span class="dm__plan mono">plan mantenimiento · activo</span>
+  </header>
+
+  <div class="dm__grid">
+    <section class="dm__card dm__card--wide">
+      <div class="dm__card-head"><span class="mono">// disponibilidad · 30 días</span><b class="dm__big">99,98 %</b></div>
+      <div class="dm__uptime" aria-label="30 días en línea, 1 incidencia breve">
+        {dias.map((d, i) => <i class={d} title={d === "ok" ? "En línea" : "Caída de 2 min · resuelta"} style={`--i:${i}`} />)}
+      </div>
+      <div class="dm__resp">
+        <span class="mono">tiempo de respuesta</span>
+        <svg viewBox="0 0 300 50" preserveAspectRatio="none" aria-hidden="true"><polyline class="dm__line" points="" /></svg>
+        <b class="dm__ms mono">180 ms</b>
+      </div>
+    </section>
+
+    <section class="dm__card">
+      <div class="dm__card-head"><span class="mono">// copias de seguridad</span><button type="button" class="dm__btn dm__backup">Crear copia</button></div>
+      <div class="dm__progress" hidden><i></i><span class="mono">copiando archivos y base de datos…</span></div>
+      <ul role="list" class="dm__list dm__backups">
+        {backups.map((b) => <li><span>💾 {b}</span><span class="mono">1,2 GB</span></li>)}
+      </ul>
+    </section>
+
+    <section class="dm__card">
+      <div class="dm__card-head"><span class="mono">// actualizaciones</span><button type="button" class="dm__btn dm__update">Actualizar todo</button></div>
+      <ul role="list" class="dm__list dm__updates">
+        {
+          updates.map((u) => (
+            <li>
+              <span>{u.n}</span>
+              <span class="mono dm__ver"><s>{u.de}</s> → {u.a}</span>
+              <i class="dm__bar" aria-hidden="true"><b></b></i>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="dm__card dm__card--wide">
+      <div class="dm__card-head"><span class="mono">// seguridad</span><button type="button" class="dm__btn dm__scan">Analizar ahora</button></div>
+      <ul role="list" class="dm__checks">
+        {checks.map((c) => <li data-check><i aria-hidden="true">✓</i>{c}</li>)}
+      </ul>
+      <p class="dm__ssl mono">🔒 SSL renovado automáticamente · caduca en 74 días</p>
+    </section>
+  </div>
+
+  <div class="dm__console mono" aria-live="polite"><span>$ monitor iniciado · comprobando cada 60 s</span></div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-demo-mant]").forEach((demo) => {
+    const $ = <T extends Element>(s: string) => demo.querySelector<T>(s)!;
+    const consola = $<HTMLElement>(".dm__console");
+    const espera = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    function escribir(t: string) {
+      const l = document.createElement("span");
+      const h = new Date().toLocaleTimeString("es-ES");
+      l.textContent = `[${h}] ${t}`;
+      consola.append(l);
+      while (consola.children.length > 5) consola.firstElementChild!.remove();
+    }
+
+    // Tiempo de respuesta en vivo
+    const puntos: number[] = Array.from({ length: 30 }, () => 160 + Math.random() * 60);
+    const linea = $<SVGPolylineElement>(".dm__line");
+    function grafica() {
+      puntos.push(140 + Math.random() * 90);
+      puntos.shift();
+      linea.setAttribute("points", puntos.map((v, i) => `${(i / 29) * 300},${50 - ((v - 100) / 160) * 50}`).join(" "));
+      $(".dm__ms").textContent = `${Math.round(puntos[puntos.length - 1])} ms`;
+    }
+    grafica();
+    const timer = window.setInterval(() => {
+      if (!document.hidden && demo.isConnected) grafica();
+    }, 1500);
+    window.addEventListener("pagehide", () => clearInterval(timer), { once: true });
+
+    // Copia de seguridad
+    $<HTMLButtonElement>(".dm__backup").addEventListener("click", async (e) => {
+      const b = e.currentTarget as HTMLButtonElement;
+      b.disabled = true;
+      const prog = $<HTMLElement>(".dm__progress");
+      prog.hidden = false;
+      escribir("backup: iniciando copia completa");
+      const barra = prog.querySelector<HTMLElement>("i")!;
+      for (let p = 0; p <= 100; p += 5) {
+        barra.style.width = `${p}%`;
+        await espera(60);
+      }
+      prog.hidden = true;
+      barra.style.width = "0";
+      const li = document.createElement("li");
+      li.className = "is-new";
+      const hora = new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+      li.innerHTML = `<span></span><span class="mono">1,2 GB</span>`;
+      li.firstElementChild!.textContent = `💾 Ahora · ${hora} (manual)`;
+      $(".dm__backups").prepend(li);
+      while ($(".dm__backups").children.length > 4) $(".dm__backups").lastElementChild!.remove();
+      escribir("backup: ✓ copia guardada fuera del servidor");
+      b.disabled = false;
+    });
+
+    // Actualizaciones
+    $<HTMLButtonElement>(".dm__update").addEventListener("click", async (e) => {
+      const b = e.currentTarget as HTMLButtonElement;
+      b.disabled = true;
+      escribir("updates: copia previa creada por seguridad");
+      for (const li of demo.querySelectorAll<HTMLElement>(".dm__updates li:not(.is-done)")) {
+        li.classList.add("is-running");
+        for (let p = 0; p <= 100; p += 10) {
+          li.querySelector<HTMLElement>(".dm__bar b")!.style.width = `${p}%`;
+          await espera(50);
+        }
+        li.classList.remove("is-running");
+        li.classList.add("is-done");
+        escribir(`updates: ✓ ${li.firstElementChild!.textContent} actualizado y probado`);
+      }
+      b.textContent = "✓ Al día";
+    });
+
+    // Seguridad
+    $<HTMLButtonElement>(".dm__scan").addEventListener("click", async (e) => {
+      const b = e.currentTarget as HTMLButtonElement;
+      b.disabled = true;
+      b.textContent = "Analizando…";
+      const items = demo.querySelectorAll<HTMLElement>("[data-check]");
+      items.forEach((x) => x.classList.remove("is-ok"));
+      escribir("security: analizando archivos, permisos y certificados");
+      for (const li of items) {
+        li.classList.add("is-scan");
+        await espera(450);
+        li.classList.remove("is-scan");
+        li.classList.add("is-ok");
+      }
+      escribir("security: ✓ 0 amenazas encontradas");
+      b.disabled = false;
+      b.textContent = "Analizar ahora";
+    });
+
+    demo.querySelectorAll<HTMLElement>("[data-check]").forEach((x) => x.classList.add("is-ok"));
+  });
+</script>
+
+<style>
+  .dm {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    background: var(--bg-code);
+  }
+
+  .dm__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .dm__head > div {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .dm__site {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .dm__status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--fs-md);
+  }
+
+  .dm__status i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 4px color-mix(in srgb, #22c55e 25%, transparent);
+    animation: dm-pulse 2s ease-in-out infinite;
+  }
+
+  .dm__plan {
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, #22c55e 40%, var(--border));
+    font-size: 0.6875rem;
+    color: #16a34a;
+  }
+
+  .dm__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+  }
+
+  .dm__card {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: 12px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+  }
+
+  .dm__card--wide {
+    grid-column: 1 / -1;
+  }
+
+  .dm__card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .dm__card-head .mono {
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  .dm__big {
+    font-size: var(--fs-lg);
+    color: #16a34a;
+  }
+
+  .dm__uptime {
+    display: grid;
+    grid-template-columns: repeat(30, 1fr);
+    gap: 3px;
+    height: 34px;
+  }
+
+  .dm__uptime i {
+    border-radius: 3px;
+    background: #22c55e;
+    animation: dm-grow 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 20ms);
+    transform-origin: bottom;
+  }
+
+  .dm__uptime i.warn {
+    background: #f59e0b;
+  }
+
+  .dm__resp {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  .dm__resp svg {
+    width: 100%;
+    height: 40px;
+  }
+
+  .dm__line {
+    fill: none;
+    stroke: #6366f1;
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+    transition: all 0.6s ease;
+  }
+
+  .dm__ms {
+    color: var(--fg);
+  }
+
+  .dm__btn {
+    padding: 0.35rem 0.7rem;
+    border-radius: 6px;
+    background: var(--fg);
+    color: var(--bg);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .dm__btn:disabled {
+    opacity: 0.5;
+  }
+
+  .dm__progress {
+    position: relative;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--bg-code);
+    overflow: hidden;
+  }
+
+  .dm__progress[hidden] {
+    display: none;
+  }
+
+  .dm__progress i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0;
+    background: color-mix(in srgb, #6366f1 35%, transparent);
+    transition: width 0.06s linear;
+  }
+
+  .dm__progress span {
+    position: relative;
+    display: block;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.625rem;
+  }
+
+  .dm__list {
+    display: grid;
+    gap: 0.4rem;
+    font-size: var(--fs-xs);
+  }
+
+  .dm__list :global(li) {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: 0.45rem 0.6rem;
+    border-radius: 6px;
+    background: var(--bg-code);
+    overflow: hidden;
+  }
+
+  .dm__list :global(li .mono) {
+    color: var(--fg-subtle);
+    font-size: 0.6875rem;
+  }
+
+  .dm__list :global(li.is-new) {
+    animation: dm-in 0.4s ease;
+    background: color-mix(in srgb, #22c55e 12%, var(--bg-code));
+  }
+
+  .dm__bar {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 2px;
+  }
+
+  .dm__bar b {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: #6366f1;
+  }
+
+  .dm__updates li.is-done {
+    background: color-mix(in srgb, #22c55e 12%, var(--bg-code));
+  }
+
+  .dm__updates li.is-done .dm__ver {
+    color: #16a34a;
+  }
+
+  .dm__updates li.is-done .dm__ver::after {
+    content: " ✓";
+  }
+
+  .dm__checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    font-size: var(--fs-xs);
+  }
+
+  .dm__checks li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--fg-muted);
+    transition: all 0.3s ease;
+  }
+
+  .dm__checks i {
+    font-style: normal;
+    opacity: 0.3;
+  }
+
+  .dm__checks li.is-scan {
+    border-color: #6366f1;
+    color: var(--fg);
+    animation: dm-pulse 0.45s ease-in-out infinite;
+  }
+
+  .dm__checks li.is-ok {
+    border-color: color-mix(in srgb, #22c55e 40%, var(--border));
+    color: var(--fg);
+  }
+
+  .dm__checks li.is-ok i {
+    opacity: 1;
+    color: #16a34a;
+  }
+
+  .dm__ssl {
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  .dm__console {
+    display: grid;
+    gap: 2px;
+    min-height: 6.5rem;
+    padding: var(--space-3) var(--space-4);
+    border-radius: 10px;
+    background: #0b1020;
+    color: #a5b4fc;
+    font-size: 0.6875rem;
+  }
+
+  .dm__console :global(span) {
+    animation: dm-in 0.3s ease;
+  }
+
+  @keyframes dm-pulse { 50% { opacity: 0.5; } }
+  @keyframes dm-grow { from { transform: scaleY(0); } }
+  @keyframes dm-in { from { opacity: 0; transform: translateY(-4px); } }
+
+  @media (max-width: 52rem) {
+    .dm {
+      padding: var(--space-3);
+    }
+
+    .dm__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .dm__resp {
+      grid-template-columns: 1fr auto;
+    }
+
+    .dm__resp > .mono:first-child {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

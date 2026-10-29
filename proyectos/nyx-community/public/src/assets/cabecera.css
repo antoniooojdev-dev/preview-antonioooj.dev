@@ -1,0 +1,119 @@
+/* =====================================================================
+   cabecera.css · Cabecera de página con el estilo de la de sugerencias.html
+   (las versiones de pruebas.html). No es una tarjeta: título grande (Lexend)
+   con su descripción y las acciones a la derecha y, debajo, una barra con
+   buscador, selector de orden/filtro, datos y el total.
+
+   Piezas:
+     .cab-head     título + descripción + acciones
+     .cab-toolbar  barra de debajo
+     .cab-search   buscador
+     .cab-seg      selector con "pulgar" deslizante (lo mueve cabecera.js)
+     .cab-pill     dato en píldora (puede ser <button>)
+     .cab-total    total a la derecha
+     .cab-btn      botón (.primario = cristal morado)
+     .cab-mes      selector de mes (‹ Mes ›)
+   ===================================================================== */
+.cab-head {
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+    padding: 14px 0 22px;
+    animation: cabSube .6s cubic-bezier(.16, 1, .3, 1) both;
+}
+.cab-head h1 {
+    margin: 0 0 6px; font-family: 'Lexend', 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(1.7rem, 3vw, 2.3rem); font-weight: 700; letter-spacing: -0.4px; line-height: 1.1; color: #fff;
+}
+.cab-head p { margin: 0; color: #9a95ad; font-size: .98rem; line-height: 1.55; max-width: 64ch; }
+.cab-acciones { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+@keyframes cabSube { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Botones ---------- */
+.cab-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    padding: 11px 20px; border-radius: 12px; cursor: pointer; white-space: nowrap; text-decoration: none;
+    font-family: 'Plus Jakarta Sans', sans-serif; font-size: .9rem; font-weight: 600; color: #fff;
+    background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: background .25s, border-color .25s, box-shadow .25s;
+}
+.cab-btn:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.15); color: #fff; }
+.cab-btn.primario { background: rgba(168, 85, 247, 0.14); border-color: rgba(168, 85, 247, 0.45); }
+.cab-btn.primario:hover { border-color: #a855f7; box-shadow: 0 0 18px rgba(168, 85, 247, 0.4); }
+.cab-btn i { transition: transform .4s cubic-bezier(.16, 1, .3, 1); }
+.cab-btn.primario:hover .fa-plus { transform: rotate(90deg); }
+
+/* ---------- Barra ---------- */
+.cab-toolbar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;
+    position: relative; z-index: 5;
+    animation: cabSube .6s cubic-bezier(.16, 1, .3, 1) .08s both;
+}
+.cab-search { position: relative; flex: 1 1 260px; max-width: 360px; display: flex; align-items: center; }
+.cab-search i { position: absolute; left: 14px; color: #9a95ad; font-size: .85rem; pointer-events: none; transition: color .25s; }
+.cab-search input {
+    width: 100%; padding: 11px 14px 11px 38px; border-radius: 12px; outline: none;
+    background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; font-size: .9rem;
+    transition: border-color .25s, background .25s, box-shadow .25s;
+}
+.cab-search input::placeholder { color: #9a95ad; }
+.cab-search input:focus { border-color: #a855f7; background: rgba(168, 85, 247, 0.06); box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.14); }
+.cab-search:focus-within i { color: #c084fc; }
+
+.cab-seg { position: relative; display: inline-flex; padding: 4px; border-radius: 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); }
+.cab-seg-thumb {
+    position: absolute; top: 4px; bottom: 4px; left: 0; width: 0; border-radius: 9px;
+    background: rgba(255, 255, 255, 0.1); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    transition: transform .4s cubic-bezier(.16, 1, .3, 1), width .4s cubic-bezier(.16, 1, .3, 1);
+}
+.cab-seg button {
+    position: relative; z-index: 1; padding: 7px 14px; border: none; background: none; cursor: pointer; border-radius: 9px;
+    font-family: 'Plus Jakarta Sans', sans-serif; font-size: .86rem; font-weight: 600; color: #9a95ad; transition: color .25s;
+}
+.cab-seg button:hover, .cab-seg button.on { color: #fff; }
+/* Botones del selector que la página marca con .active (tickets.html usa .filter-tab):
+   se ven igual que el resto, sin el fondo propio de esa página */
+.cab-seg button.filter-tab, .cab-seg button.filter-tab.active, .cab-seg button.filter-tab:hover {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 7px 14px; border-radius: 9px; background: none; box-shadow: none;
+    font-size: .86rem; font-weight: 600; color: #9a95ad;
+}
+.cab-seg button.filter-tab.active, .cab-seg button.filter-tab:hover { color: #fff; }
+/* Número dentro de un botón del selector (p. ej. "Activos 2") */
+.cab-seg button b {
+    font-size: .76rem; font-weight: 700; color: inherit;
+    padding: 1px 7px; border-radius: 999px; background: rgba(255, 255, 255, 0.08);
+}
+
+.cab-pill {
+    display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: 'Plus Jakarta Sans', sans-serif; font-size: .86rem; color: #cbd5e1; white-space: nowrap;
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+.cab-pill b { color: #fff; font-weight: 700; }
+.cab-pill i { color: #c084fc; }
+button.cab-pill { cursor: pointer; transition: border-color .2s, background .2s; }
+button.cab-pill:hover:not(:disabled) { border-color: rgba(168, 85, 247, 0.45); background: rgba(168, 85, 247, 0.08); }
+button.cab-pill:disabled { cursor: default; }
+
+.cab-total { margin-left: auto; font-size: .84rem; color: #9a95ad; }
+
+/* ---------- Selector de mes ---------- */
+.cab-mes { display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); }
+.cab-mes button {
+    width: 34px; height: 34px; padding: 0; border-radius: 9px; border: 0; cursor: pointer;
+    display: grid; place-items: center; background: transparent; color: #cbd5e1; box-shadow: none;
+}
+.cab-mes button:hover { background: rgba(168, 85, 247, 0.18); color: #fff; transform: none; }
+.cab-mes span { min-width: 124px; text-align: center; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: .9rem; color: #fff; }
+
+:is(.cab-btn, .cab-seg button, .cab-pill, .cab-mes button):focus-visible { outline: 2px solid #c084fc; outline-offset: 2px; }
+
+@media (max-width: 720px) {
+    .cab-total { display: none; }
+    .cab-search { max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .cab-head, .cab-toolbar { animation: none; }
+    .cab-seg-thumb, .cab-btn i { transition: none; }
+}

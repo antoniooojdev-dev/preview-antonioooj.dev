@@ -1,0 +1,28 @@
+---
+// Iconos de línea (24×24, trazo) para las páginas de /servicios. Heredan el color
+// (currentColor). Uso: <Icono nombre="globe" />. Si el nombre no existe, se pinta «help».
+import { ICONOS } from "@/data/iconos";
+
+interface Props {
+  nombre: string;
+  class?: string;
+  size?: number;
+}
+
+const { nombre, class: clase, size = 24 } = Astro.props;
+const svg = ICONOS[nombre] ?? ICONOS.help;
+---
+
+<svg
+  class:list={["icono", clase]}
+  viewBox="0 0 24 24"
+  width={size}
+  height={size}
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.7"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  set:html={svg}
+/>

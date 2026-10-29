@@ -1,0 +1,2812 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postulaciones Ilegales | Nyx Community</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lexend:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/src/assets/comercios.css">
+    <link rel="stylesheet" href="/src/assets/perfil.css">
+    
+    <style>
+        :root {
+            --bg-main: #07050b;
+            --bg-sidebar: #050308;
+            --bg-card: #110c1a;
+            --bg-card-hover: #171024;
+            --border-color: rgba(168, 85, 247, 0.2);
+            --text-primary: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-pink: #ec4899;
+            --accent-purple: #a855f7;
+            --accent-green: #4ade80;
+            --border-glass: rgba(255, 255, 255, 0.06);
+            --border-glow: rgba(236, 72, 153, 0.4);
+            --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(168, 85, 247, 0.05);
+            --font-title: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            position: relative;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -20vh;
+            left: 20vw;
+            width: 60vw;
+            height: 60vh;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.06) 0%, rgba(236, 72, 153, 0.03) 40%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(10, 8, 15, 0.8); }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.25);
+            border-radius: 4px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            transition: background 0.3s ease;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(168, 85, 247, 0.6);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes dropdownFadeIn {
+            from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .animate-entrance {
+            animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .main-content {
+            padding: 36px 48px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        @media (max-width: 768px) {
+            .main-content { padding: 20px 16px; }
+        }
+
+        /* Foco visible al navegar con teclado */
+        :where(a, button, [tabindex]):focus-visible {
+            outline: 2px solid var(--accent-pink);
+            outline-offset: 3px;
+        }
+
+        /* ===== Cabecera de la sección: contadores de estado ===== */
+        .org-counters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .org-counter {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 4px 11px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #cbd5e1;
+            font-family: var(--font-title);
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .org-counter::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #94a3b8;
+        }
+        .org-counter.is-open::before {
+            background: var(--accent-green);
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
+        }
+
+        /* ===== Tarjetas de organizaciones ===== */
+        .comercios-grid-modern {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 22px;
+        }
+
+        .comercio-card {
+            position: relative;
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 18px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: var(--shadow-card);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+            /* "backwards": al terminar la entrada, la animación suelta la tarjeta y el hover puede moverla */
+            animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+        }
+        .comercio-card:hover,
+        .comercio-card:focus-visible {
+            border-color: rgba(236, 72, 153, 0.5);
+            transform: translateY(-4px);
+            background: var(--bg-card-hover);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7), 0 0 20px rgba(236, 72, 153, 0.15);
+        }
+
+        /* Imagen completa (sin recortar) sobre un fondo con halo */
+        .comercio-img-container {
+            position: relative;
+            width: 100%;
+            height: 172px;
+            padding: 14px;
+            box-sizing: border-box;
+            background:
+                radial-gradient(circle at 50% 42%, rgba(168, 85, 247, 0.14), transparent 62%),
+                #090610;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .comercio-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.4s ease, filter 0.3s ease, opacity 0.3s ease;
+        }
+        .comercio-card:hover .comercio-img-container img {
+            transform: scale(1.04);
+        }
+        /* Las ocupadas se apagan un poco para que las disponibles destaquen al primer vistazo */
+        .comercio-card.is-ocupado .comercio-img-container img {
+            filter: grayscale(0.75);
+            opacity: 0.55;
+        }
+        .comercio-card.is-ocupado:hover .comercio-img-container img,
+        .comercio-card.is-ocupado:focus-visible .comercio-img-container img {
+            filter: none;
+            opacity: 1;
+        }
+
+        /* Estado sobre la imagen */
+        .card-status {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 4px 11px;
+            border-radius: 999px;
+            background: rgba(7, 5, 11, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #cbd5e1;
+            font-family: var(--font-title);
+            font-size: 11.5px;
+            font-weight: 700;
+            backdrop-filter: blur(6px);
+        }
+        .card-status::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #94a3b8;
+        }
+        .card-status.is-open {
+            color: #bbf7d0;
+            border-color: rgba(74, 222, 128, 0.4);
+        }
+        .card-status.is-open::before {
+            background: var(--accent-green);
+            box-shadow: 0 0 8px rgba(74, 222, 128, 0.8);
+        }
+
+        .comercio-card-content {
+            flex: 1;
+            padding: 16px 18px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .comercio-card-type {
+            font-family: var(--font-title);
+            font-size: 12px;
+            font-weight: 700;
+            color: #f472b6;
+        }
+        .comercio-card-title {
+            font-size: 1.12rem;
+            font-weight: 800;
+            color: #fff;
+            font-family: var(--font-title);
+            margin: 0;
+            letter-spacing: -0.2px;
+        }
+        .comercio-card-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.55;
+            margin: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: normal;
+            overflow-wrap: break-word;
+        }
+
+        .comercio-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 18px 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .comercio-card-location {
+            min-width: 0;
+            font-size: 12px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .comercio-card-location i {
+            color: var(--accent-purple);
+            margin-right: 5px;
+        }
+
+        .btn-card-pill {
+            flex-shrink: 0;
+            background: rgba(236, 72, 153, 0.1);
+            border: 1px solid rgba(236, 72, 153, 0.4);
+            color: #fff;
+            padding: 7px 14px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            font-family: var(--font-title);
+            cursor: pointer;
+            transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-card-pill:hover {
+            background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-purple) 100%);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+            transform: translateY(-1px);
+        }
+        .card-link-muted {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-title);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: color 0.2s ease;
+        }
+        .comercio-card:hover .card-link-muted,
+        .comercio-card:focus-visible .card-link-muted {
+            color: #fff;
+        }
+
+        .grid-empty {
+            grid-column: 1 / -1;
+            padding: 46px 24px;
+            text-align: center;
+            background: var(--bg-card);
+            border: 1px dashed rgba(168, 85, 247, 0.25);
+            border-radius: 18px;
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .grid-empty i {
+            font-size: 30px;
+            margin-bottom: 12px;
+            display: block;
+            color: var(--accent-purple);
+        }
+        .grid-empty strong {
+            display: block;
+            color: #fff;
+            font-family: var(--font-title);
+            margin-bottom: 2px;
+        }
+
+        @keyframes filterClickAnim {
+            0% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.3) rotate(15deg); color: var(--accent-pink); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .filter-icon-animate {
+            animation: filterClickAnim 0.35s ease;
+        }
+
+        .whitelist-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            margin-top: 32px;
+        }
+
+        /* ===== Aviso flotante ===== */
+        #toastNotification {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120px);
+            background: rgba(14, 10, 22, 0.92);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(168, 85, 247, 0.2);
+            z-index: 99999;
+            opacity: 0;
+            max-width: calc(100vw - 32px);
+            box-sizing: border-box;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+            font-family: var(--font-title);
+            font-size: 0.92rem;
+            backdrop-filter: blur(16px);
+        }
+        #toastNotification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        .toast-icon {
+            width: 26px;
+            height: 26px;
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+        }
+        .toast-code-tag {
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            color: #d8b4fe;
+            font-family: monospace;
+        }
+        /* Cuando es un error: icono rojo y sin etiqueta de código */
+        #toastNotification.is-error {
+            border-color: rgba(239, 68, 68, 0.5);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(239, 68, 68, 0.18);
+        }
+        #toastNotification.is-error .toast-icon {
+            background: rgba(239, 68, 68, 0.18);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.45);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+        }
+        #toastNotification.is-error .toast-code-tag,
+        #toastNotification.is-info .toast-code-tag {
+            display: none;
+        }
+        /* Aviso informativo (p. ej. borrador recuperado): icono morado y sin etiqueta de código */
+        #toastNotification.is-info .toast-icon {
+            background: rgba(168, 85, 247, 0.18);
+            color: #d8b4fe;
+            border-color: rgba(168, 85, 247, 0.45);
+        }
+
+        @keyframes slideDownSmooth {
+            from { opacity: 0; transform: translateY(-15px) scale(0.99); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ===== Formulario de postulación por pasos ===== */
+        #inlineFormContainer { display: none; opacity: 0; margin-top: 10px; scroll-margin-top: 20px; }
+        #inlineFormContainer.show { display: block; animation: slideDownSmooth 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .wizard-container {
+            background: linear-gradient(145deg, rgba(15, 10, 23, 0.95), rgba(10, 7, 16, 0.98));
+            border: 1px solid var(--border-glow);
+            border-radius: 22px;
+            padding: 32px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(236, 72, 153, 0.1);
+            backdrop-filter: blur(16px);
+        }
+        @media (max-width: 600px) {
+            .wizard-container { padding: 22px 18px; }
+        }
+
+        .wizard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .wizard-header h3 {
+            margin: 0;
+            font-family: var(--font-title);
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.3px;
+        }
+        .wizard-header p {
+            margin: 4px 0 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .wizard-header p strong { color: #f472b6; font-weight: 700; }
+
+        /* Indicador de pasos: 1 Normativa → 2 Integrantes → 3 Proyecto */
+        .wizard-steps {
+            list-style: none;
+            margin: 0 0 14px;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .wizard-step-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-muted);
+            font-family: var(--font-title);
+            font-size: 0.86rem;
+            font-weight: 600;
+            transition: border-color 0.3s ease, background 0.3s ease, color 0.3s ease;
+        }
+        .wizard-step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.06);
+            font-size: 0.8rem;
+            font-weight: 700;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        .wizard-step-item.is-active {
+            border-color: rgba(236, 72, 153, 0.5);
+            background: rgba(236, 72, 153, 0.08);
+            color: #fff;
+        }
+        .wizard-step-item.is-active .wizard-step-num {
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            color: #fff;
+            box-shadow: 0 0 14px rgba(236, 72, 153, 0.5);
+        }
+        .wizard-step-item.is-done { color: #cbd5e1; }
+        .wizard-step-item.is-done .wizard-step-num {
+            background: rgba(34, 197, 94, 0.18);
+            color: var(--accent-green);
+            font-size: 0.7rem;
+        }
+        @media (max-width: 600px) {
+            .wizard-step-item { justify-content: center; }
+            .wizard-step-item:not(.is-active) .wizard-step-name { display: none; }
+        }
+
+        .wizard-progress-bar-wrapper { margin-bottom: 28px; }
+        .wizard-progress-info {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+            font-size: 0.8rem; font-weight: 600; color: var(--text-muted); font-family: var(--font-title);
+        }
+        .wizard-progress-bar-bg {
+            width: 100%; height: 4px; background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px; overflow: hidden;
+        }
+        .wizard-progress-bar-fill {
+            height: 100%; background: linear-gradient(90deg, var(--accent-pink), var(--accent-purple));
+            width: 33%; transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1); border-radius: 6px;
+            box-shadow: 0 0 12px rgba(236, 72, 153, 0.6);
+        }
+
+        .wizard-step-pane { display: none; animation: slideDownSmooth 0.35s ease forwards; }
+        .wizard-step-pane.active { display: block; }
+
+        .wizard-step-title {
+            font-size: 1.15rem; font-weight: 700; color: #fff; margin: 0 0 18px;
+            font-family: var(--font-title); display: flex; align-items: center; gap: 12px;
+        }
+        .wizard-step-title i { color: var(--accent-pink); }
+
+        .wizard-buttons-bar {
+            display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+            margin-top: 32px; padding-top: 22px; border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .btn-wizard-secondary {
+            background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #cbd5e1; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 0.9rem;
+            cursor: pointer; transition: all 0.25s; font-family: var(--font-title);
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-wizard-secondary:hover { background: rgba(255, 255, 255, 0.08); color: #fff; border-color: rgba(255, 255, 255, 0.15); }
+        .btn-wizard-secondary.is-compact { padding: 9px 16px; font-size: 0.84rem; flex-shrink: 0; }
+
+        .btn-wizard-primary {
+            background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-purple) 100%);
+            border: none; color: #fff; padding: 12px 28px; border-radius: 12px; font-weight: 700;
+            font-size: 0.9rem; cursor: pointer; transition: all 0.25s; font-family: var(--font-title);
+            display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 6px 20px rgba(236, 72, 153, 0.35);
+        }
+        .btn-wizard-primary:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 8px 25px rgba(236, 72, 153, 0.5); }
+
+        .legal-notice-box {
+            background: rgba(8, 5, 12, 0.8); border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 14px; padding: 22px; color: #cbd5e1; font-size: 0.92rem; line-height: 1.7;
+            max-height: 250px; overflow-y: auto; margin-bottom: 20px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .legal-notice-box h4 { margin-top: 0; color: #f472b6; font-family: var(--font-title); }
+        .legal-notice-box p:last-child { margin-bottom: 0; }
+
+        .custom-checkbox-container {
+            display: flex; align-items: center; gap: 14px; cursor: pointer; color: #fff;
+            font-size: 0.95rem; font-weight: 500; user-select: none; font-family: var(--font-title);
+        }
+        .custom-checkbox-container input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+        
+        .checkmark {
+            height: 24px; width: 24px; background-color: rgba(12, 8, 18, 0.9);
+            border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 8px; display: flex; align-items: center;
+            justify-content: center; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0;
+        }
+        .custom-checkbox-container:hover input ~ .checkmark { border-color: var(--accent-pink); }
+        .custom-checkbox-container input:focus-visible ~ .checkmark {
+            outline: 2px solid var(--accent-pink);
+            outline-offset: 3px;
+        }
+        
+        @keyframes checkmarkPopAnim {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.35); box-shadow: 0 0 20px var(--accent-pink); }
+            100% { transform: scale(1); }
+        }
+        .custom-checkbox-container input:checked ~ .checkmark {
+            background: linear-gradient(135deg, var(--accent-pink) 0%, var(--accent-purple) 100%);
+            border-color: var(--accent-pink);
+            animation: checkmarkPopAnim 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .checkmark:after {
+            content: ""; display: none; width: 6px; height: 11px; border: solid white;
+            border-width: 0 2px 2px 0; transform: rotate(45deg);
+        }
+        .custom-checkbox-container input:checked ~ .checkmark:after { display: block; }
+
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+        .form-group:last-child { margin-bottom: 0; }
+        .form-group label {
+            font-size: 0.8rem; font-weight: 700; color: var(--text-muted); font-family: var(--font-title);
+            letter-spacing: 0.8px; text-transform: uppercase;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 13px 16px; background: rgba(9, 6, 14, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #fff;
+            font-family: 'Inter', sans-serif; font-size: 0.92rem; outline: none; transition: all 0.25s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); box-sizing: border-box;
+        }
+        .form-group textarea { resize: vertical; min-height: 64px; line-height: 1.55; }
+        .form-group input::placeholder, .form-group textarea::placeholder { color: #5b6577; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: var(--accent-pink); background: rgba(15, 10, 22, 0.95);
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2), inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 768px) { .form-row-2 { grid-template-columns: 1fr; } }
+
+        .member-card-box {
+            background: rgba(12, 8, 18, 0.7); border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px; border-radius: 16px; margin-bottom: 16px; transition: all 0.25s;
+        }
+        .member-card-box:hover { border-color: rgba(168, 85, 247, 0.3); background: rgba(15, 10, 22, 0.85); }
+        .member-card-box h4 {
+            margin: 0 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            color: #f472b6;
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: var(--font-title);
+        }
+        .member-tag {
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+        }
+        .member-tag.is-required {
+            background: rgba(236, 72, 153, 0.12);
+            border-color: rgba(236, 72, 153, 0.35);
+            color: #f9a8d4;
+        }
+
+        .btn-extra-members {
+            background: rgba(236, 72, 153, 0.08);
+            border: 1px dashed rgba(236, 72, 153, 0.4);
+            color: #f472b6;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            font-family: var(--font-title);
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.25s;
+        }
+        .btn-extra-members:hover { background: rgba(236, 72, 153, 0.15); border-color: var(--accent-pink); color: #fff; }
+
+        /* ===== Mis postulaciones ===== */
+        .my-applications-card {
+            background: linear-gradient(145deg, rgba(15, 10, 23, 0.9), rgba(10, 7, 16, 0.95));
+            border: 1px solid var(--border-glass); border-radius: 20px;
+            padding: 2rem; margin-top: 10px; box-shadow: var(--shadow-card); backdrop-filter: blur(12px);
+        }
+        @media (max-width: 600px) {
+            .my-applications-card { padding: 1.25rem; }
+        }
+        .my-applications-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+            flex-wrap: wrap; gap: 14px;
+        }
+        .my-applications-card h3 {
+            margin: 0; font-size: 1.25rem; color: #fff; font-family: var(--font-title);
+            display: flex; align-items: center; gap: 12px; font-weight: 700;
+        }
+        .my-applications-card h3 i { color: var(--accent-pink); }
+
+        .apps-search {
+            position: relative;
+            min-width: 260px;
+        }
+        .apps-search i {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-size: 13px; pointer-events: none;
+        }
+        .apps-search input {
+            width: 100%; box-sizing: border-box;
+            background: rgba(9, 6, 14, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px;
+            padding: 10px 14px 10px 38px; color: #fff; font-size: 13px; outline: none; font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .apps-search input:focus { border-color: var(--accent-pink); box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.18); }
+        @media (max-width: 600px) { .apps-search { min-width: 0; width: 100%; } }
+
+        .apps-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; font-size: 0.92rem; }
+        .apps-table th {
+            padding: 14px 18px; background: rgba(18, 12, 28, 0.95); color: var(--text-muted); font-weight: 700;
+            font-family: var(--font-title); border-bottom: 1px solid rgba(255, 255, 255, 0.06); letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .apps-table th:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+        .apps-table th:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+
+        .apps-table td { padding: 16px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.03); color: #cbd5e1; }
+        .apps-table tbody tr:last-child td { border-bottom: none; }
+        .apps-table tr:hover td { background: rgba(168, 85, 247, 0.03); }
+        .apps-table tr.is-empty-row:hover td { background: transparent; }
+
+        .apps-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 2rem 1rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .apps-empty i { font-size: 26px; color: var(--accent-purple); margin-bottom: 6px; }
+        .apps-empty strong { color: #fff; font-family: var(--font-title); font-size: 0.98rem; }
+
+        .badge-status {
+            padding: 6px 12px; border-radius: 8px; font-size: 0.72rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.8px; display: inline-block; white-space: nowrap;
+        }
+        .badge-pending { background: rgba(245, 158, 11, 0.12); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-approved { background: rgba(34, 197, 94, 0.12); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .badge-rejected { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .btn-view-app {
+            background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25);
+            padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            transition: all 0.25s ease; font-family: var(--font-title); display: inline-flex;
+            align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+        }
+        .btn-view-app:hover {
+            background: rgba(59, 130, 246, 0.25); border-color: rgba(59, 130, 246, 0.5); color: #fff;
+            transform: translateY(-2px); box-shadow: 0 6px 16px rgba(59, 130, 246, 0.2);
+        }
+
+        /* ===== Modal de ficha de la organización ===== */
+        .custom-modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5, 3, 10, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100000;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .custom-modal-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+        .custom-modal-card-wide {
+            background: linear-gradient(145deg, #130d1e, #0c0816);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 1000px;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: 0 25px 65px rgba(0,0,0,0.9), 0 0 35px rgba(168, 85, 247, 0.15);
+            color: #fff;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+            opacity: 0;
+        }
+        @media (max-width: 600px) {
+            .custom-modal-card-wide { padding: 22px 18px; }
+        }
+        .custom-modal-overlay.open .custom-modal-card-wide {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        .modal-top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(168, 85, 247, 0.25);
+            padding-bottom: 16px;
+        }
+        .modal-business-main-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #fff;
+            font-family: var(--font-title);
+            letter-spacing: -0.2px;
+        }
+        .modal-close-btn {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            color: #d8b4fe;
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            font-size: 14px;
+        }
+        .modal-close-btn:hover {
+            background: rgba(236, 72, 153, 0.25);
+            border-color: var(--accent-pink);
+            color: #fff;
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.4);
+        }
+
+        .modal-form-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+            animation: fadeInUp 0.3s ease;
+        }
+        @media (max-width: 900px) {
+            .modal-form-grid { grid-template-columns: 1fr; }
+        }
+        .modal-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+        .modal-input-group label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.8px;
+        }
+        .modal-readonly-field {
+            background: rgba(10, 7, 16, 0.8);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            word-break: normal;
+            overflow-wrap: break-word;
+        }
+        /* Pie de la ficha: postularse desde aquí o aviso de que está ocupada */
+        .modal-detail-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(168, 85, 247, 0.2);
+        }
+        .modal-detail-footer p {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-muted);
+        }
+
+        /* ===== Buscador y filtro ===== */
+        .announcements-filter-box {
+            display: flex;
+            align-items: center;
+            background: rgba(12, 8, 18, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 9px 14px;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        .announcements-filter-box input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            width: 190px;
+            max-width: 100%;
+        }
+        .announcements-filter-box input::placeholder { color: #64748b; }
+        .announcements-filter-box:focus-within {
+            border-color: var(--accent-pink);
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+            background: rgba(15, 10, 22, 0.95);
+        }
+
+        .filter-dropdown-container {
+            position: relative;
+            user-select: none;
+        }
+        .filter-dropdown-btn {
+            background: rgba(12, 8, 18, 0.9);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.25s ease;
+            font-family: var(--font-title);
+        }
+        .filter-dropdown-btn:hover,
+        .filter-dropdown-container.active .filter-dropdown-btn {
+            border-color: var(--accent-pink);
+            background: rgba(236, 72, 153, 0.08);
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.25);
+        }
+
+        .filter-dropdown-options {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: #110c1a;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 14px;
+            margin-top: 8px;
+            display: none;
+            z-index: 50;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 20px rgba(168, 85, 247, 0.1);
+            min-width: 190px;
+            overflow: hidden;
+            padding: 8px;
+        }
+        .filter-dropdown-options.open {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            animation: dropdownFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .filter-dropdown-option {
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s ease, transform 0.15s ease;
+        }
+        .filter-dropdown-option:hover {
+            background: rgba(236, 72, 153, 0.15);
+            transform: translateX(4px);
+        }
+
+        .equipo-hero-card {
+            position: relative !important;
+            background: linear-gradient(135deg, rgba(24, 14, 34, 0.9) 0%, rgba(12, 9, 18, 0.95) 100%) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            border: 1px solid rgba(139, 92, 246, 0.25) !important;
+            border-radius: 20px !important;
+            padding: 32px !important;
+            box-shadow: var(--shadow-card) !important;
+            margin-bottom: 28px !important;
+            overflow: hidden !important;
+        }
+        .equipo-hero-card::before {
+            content: '' !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 6px !important;
+            height: 100% !important;
+            background: linear-gradient(to bottom, #ec4899, #8b5cf6) !important;
+        }
+
+        /* ===== Modal del expediente enviado ===== */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0;
+            pointer-events: none; transition: opacity 0.35s ease; padding: 20px;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-card {
+            background: linear-gradient(145deg, #130d1e, #0c0816); border: 1px solid rgba(236, 72, 153, 0.35); border-radius: 22px;
+            width: 100%; max-width: 880px; max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 30px rgba(236, 72, 153, 0.15);
+            display: flex; flex-direction: column; scrollbar-width: thin;
+            transform: translateY(16px) scale(0.98);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal-overlay.active .modal-card { transform: none; }
+        .modal-header {
+            padding: 22px 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex; align-items: center; justify-content: space-between; gap: 14px; background: rgba(20, 13, 31, 0.8);
+            position: sticky; top: 0; z-index: 2; backdrop-filter: blur(10px);
+        }
+        .modal-header h3 { margin: 0; font-size: 1.25rem; color: #fff; font-family: var(--font-title); font-weight: 700; overflow-wrap: anywhere; }
+        .modal-close {
+            background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #94a3b8; width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px; font-size: 1rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+        }
+        .modal-close:hover { background: rgba(239, 68, 68, 0.2); color: #fff; border-color: rgba(239, 68, 68, 0.4); }
+        .modal-body { padding: 30px; display: flex; flex-direction: column; gap: 20px; color: #cbd5e1; font-size: 0.95rem; }
+        @media (max-width: 600px) {
+            .modal-header { padding: 18px 20px; }
+            .modal-body { padding: 20px; }
+        }
+        .detail-group label {
+            font-weight: 700; color: #f472b6; display: block; margin-bottom: 8px;
+            font-family: var(--font-title); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px;
+        }
+        .detail-group p {
+            margin: 0; background: rgba(9, 6, 14, 0.8); padding: 14px 18px; border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05); word-break: break-word; line-height: 1.65; white-space: pre-wrap;
+        }
+
+        /* ===== Botón de Soporte en la barra superior ===== */
+        /* Estilos de reserva: van dentro de :where() (prioridad cero), así que si perfil.css
+           ya da estilo a estas clases mandan los suyos y el botón se ve igual que en Home. */
+        :where(.top-action-bar) { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        :where(.top-buttons) { display: flex; align-items: center; gap: 10px; }
+        :where(.top-btn) {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+        :where(.top-btn.highlight-btn) {
+            background: rgba(168, 85, 247, 0.14);
+            border-color: rgba(168, 85, 247, 0.45);
+            color: #fff;
+        }
+        :where(.top-btn.highlight-btn:hover) {
+            border-color: #a855f7;
+            box-shadow: 0 0 18px rgba(168, 85, 247, 0.4);
+        }
+
+        /* ===== Menú desplegable de Soporte (igual que en Home y Equipo) ===== */
+        .support-dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+        .support-dropdown-menu {
+            position: fixed;
+            width: 250px;
+            background: #13141f;
+            border: 1px solid rgba(168, 85, 247, 0.5);
+            border-radius: 14px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 30px rgba(168, 85, 247, 0.4);
+            display: flex;
+            flex-direction: column;
+            z-index: 2147483647;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+            pointer-events: none;
+            transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 6px 0;
+        }
+        .support-dropdown-menu.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .support-menu-section {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .support-menu-section:last-child {
+            border-bottom: none;
+        }
+        .support-menu-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #94a3b8;
+            padding: 6px 16px 4px 16px;
+            letter-spacing: 0.5px;
+        }
+        .support-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 16px;
+            font-size: 13px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+            font-weight: 500;
+        }
+        .support-dropdown-item:hover {
+            background: rgba(168, 85, 247, 0.2);
+            color: #fff;
+        }
+        .support-dropdown-item i {
+            color: #a855f7;
+            width: 16px;
+            text-align: center;
+        }
+
+        /* Quien prefiera menos movimiento: sin animaciones de entrada ni desplazamientos */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        /* Validación del formulario: campo con error, mensaje y contador de caracteres */
+        .form-group input.is-invalid, .form-group textarea.is-invalid, .form-group select.is-invalid {
+            border-color: rgba(248, 113, 113, 0.75) !important;
+            box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15) !important;
+        }
+        .il-error { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #f87171; margin-top: 2px; }
+        .il-count { align-self: flex-end; font-size: 11.5px; color: #64748b; font-variant-numeric: tabular-nums; }
+        .il-count.is-ok { color: #34d399; }
+        #submitPostulacionBtn[disabled] { opacity: .65; cursor: wait; }
+    </style>
+    <link rel="stylesheet" href="/src/assets/soporte.css">
+    <link rel="stylesheet" href="/src/assets/botones.css">
+    <link rel="stylesheet" href="/src/assets/desplegables.css">
+    <link rel="stylesheet" href="/src/assets/iconos.css">
+    <link rel="stylesheet" href="/src/assets/cabecera.css">
+    <link rel="stylesheet" href="/src/assets/comun.css">
+</head>
+<body>
+
+    <!-- NOTIFICACIÓN FLOTANTE -->
+    <div id="toastNotification" role="status" aria-live="polite">
+        <div class="toast-icon" id="toastIcon"><i class="fa-solid fa-check"></i></div>
+        <div>
+            <span id="toastMainText">La postulación</span> <span class="toast-code-tag" id="toastTicketCode">#IL-0000</span> <span id="toastSubText">ha sido enviada correctamente.</span>
+        </div>
+    </div>
+
+    <div class="grid-background"></div>
+
+    <!-- Modal de Detalles de la Organización (Tarjetas) -->
+    <div class="custom-modal-overlay" id="detailModal">
+        <div class="custom-modal-card-wide" role="dialog" aria-modal="true" aria-labelledby="modalBusinessTitleDisplay">
+            <div class="modal-top-header">
+                <span class="modal-business-main-title" id="modalBusinessTitleDisplay">Nombre de la organización</span>
+                <button type="button" class="modal-close-btn" onclick="closeDetailModal()" title="Cerrar (Esc)" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="modalBusinessContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Expediente de Postulación Enviada -->
+    <div class="modal-overlay" id="userAppModal">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalAppTitle">
+            <div class="modal-header">
+                <h3 id="modalAppTitle">Detalles de la Postulación</h3>
+                <button class="modal-close" onclick="closeUserAppModal()" title="Cerrar (Esc)" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" id="modalAppBodyContent"></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-logo-title" style="display: flex; align-items: center; gap: 10px;">
+                    <img src="https://i.imgur.com/VPqGp7U.png" alt="Nyx Community Logo" class="sidebar-logo" style="width: 32px; height: 32px; object-fit: contain;">
+                    <span class="server-main-title">Nyx Community</span>
+                </div>
+                <button class="sidebar-toggle-icon" id="sidebarToggleBtn" title="Colapsar menú">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-category">General</div>
+                <a href="/home.html" class="nav-item"><i class="fa-solid fa-house"></i> <span>Home</span></a>
+                <a href="/equipo.html" class="nav-item"><i class="fa-solid fa-users"></i> <span>Equipo</span></a>
+                <a href="/calendario.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i> <span>Calendario</span></a>
+                <a href="/comercios.html" class="nav-item"><i class="fa-solid fa-store"></i> <span>Comercios</span></a>
+                <a href="/postulaciones/post-ilegales.html" class="nav-item active"><i class="fa-solid fa-skull"></i> <span>Postulaciones ilegales</span></a>
+
+                <div class="nav-category">Espacio de trabajo</div>
+                <a href="/grupos.html" class="nav-item"><i class="fa-solid fa-people-group"></i> <span>Grupos</span></a>
+                <a href="/documentos.html" class="nav-item"><i class="fa-solid fa-book"></i> <span>Documentos</span></a>
+                <a href="/whitelist.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> <span>Whitelist</span></a>
+
+                <div class="nav-category">Mi Cuenta</div>
+                <a href="/perfil.html" class="nav-item"><i class="fa-solid fa-user"></i> <span>Mi Perfil</span></a>
+                <a href="/historias.html" class="nav-item"><i class="fa-solid fa-feather-pointed"></i> <span>Historias personaje</span></a>
+                <a href="/tickets.html" class="nav-item"><i class="fa-solid fa-ticket"></i> <span>Tickets</span></a>
+
+                <div class="nav-category">SASP</div>
+                <a href="/lspd-academia.html" class="nav-item"><i class="fa-solid fa-shield-halved"></i> <span>Academia LSPD</span></a>
+                <a href="/lssd-academia.html" class="nav-item"><i class="fa-solid fa-star-badge"></i> <span>Academia LSSD</span></a>
+                <a href="/defcon.html" class="nav-item"><i class="fa-solid fa-triangle-exclamation"></i> <span>Defcon</span></a>
+                <a href="/codigo-penal.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> <span>Código penal</span></a>
+                <a href="/organigrama.html" class="nav-item"><i class="fa-solid fa-sitemap"></i> <span>Organigrama</span></a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile-mini" id="userProfileMini">
+                    <div class="avatar-placeholder" id="userAvatarContainer" style="background: var(--accent-pink);">
+                        <span id="userAvatarFallback">?</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="username" id="userNameDisplay">Usuario</span>
+                        <span class="user-handle" id="userHandleDisplay" style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block;">@tag</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <button class="sidebar-reveal-trigger" id="sidebarRevealBtn" title="Abrir menú">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <main class="main-content">
+            <header class="top-action-bar animate-entrance" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <div class="breadcrumb"><a href="postulaciones.html" style="color: inherit; text-decoration: none; border-bottom: 1px solid rgba(203, 213, 225, 0.35);">Postulaciones</a> <span style="margin: 0 8px; color: #4b5563;">›</span> <span style="color: #fff; font-weight: 600;">Ilegales y bandas</span></div>
+                <div class="top-buttons">
+                    <!-- Botón de Soporte -->
+                    <div class="support-dropdown-container" id="supportDropdownContainer">
+                        <button class="top-btn highlight-btn" id="supportDropdownBtn">
+                            <i class="fa-solid fa-circle-question"></i> Soporte
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Menú desplegable de Soporte (al abrirse se mueve al body para quedar por encima de todo) -->
+            <div class="support-dropdown-menu" id="supportDropdownMenu">
+                <!-- Sección Soporte -->
+                <div class="support-menu-section">
+                    <div class="support-menu-title">Soporte</div>
+                    <a href="/tickets.html" class="support-dropdown-item"><i class="fa-solid fa-ticket"></i> Crear un ticket</a>
+                </div>
+                <!-- Sección Apoyo -->
+                <div class="support-menu-section">
+                    <div class="support-menu-title">Apoyo</div>
+                    <a href="/sugerencias.html" class="support-dropdown-item"><i class="fa-solid fa-lightbulb"></i> Enviar una sugerencia</a>
+                    <a href="/feedback.html" class="support-dropdown-item"><i class="fa-solid fa-comment-dots"></i> Dar tu feedback</a>
+                    <a href="/perfil.html" class="support-dropdown-item"><i class="fa-solid fa-user"></i> Acceder al perfil</a>
+                    <a href="/index.html" class="support-dropdown-item"><i class="fa-solid fa-house-chimney"></i> Acceder al panel principal</a>
+                </div>
+                <!-- Sección Información -->
+                <div class="support-menu-section">
+                    <div class="support-menu-title">Información</div>
+                    <a href="/normativa.html" class="support-dropdown-item"><i class="fa-solid fa-book"></i> Normativa general</a>
+                    <a href="/pol-privacidad.html" class="support-dropdown-item"><i class="fa-solid fa-shield-halved"></i> Política de privacidad</a>
+                    <a href="/terminos.html" class="support-dropdown-item"><i class="fa-solid fa-file-contract"></i> Términos y condiciones</a>
+                </div>
+            </div>
+
+            <!-- Cabecera estilo Sugerencias (src/assets/cabecera.css) -->
+            <header class="cab-head">
+                <div>
+                    <h1>Postulaciones ilegales</h1>
+                    <p>Consulta las bandas, facciones y organizaciones criminales oficiales del bajo mundo en Nyx Community.</p>
+                </div>
+            </header>
+
+            <!-- Sección de Organizaciones Activas -->
+            <section class="section-block animate-entrance" style="animation-delay: 0.1s; margin-top: 25px;">
+                <div class="section-header-flex" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px; margin-bottom: 22px;">
+                    <div>
+                        <h2 class="section-title" style="font-size: 1.25rem; font-weight: 700; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; align-items: center; gap: 10px; margin: 0;"><i class="fa-solid fa-users-viewfinder" style="color: var(--accent-purple);"></i> Organizaciones activas en el servidor</h2>
+                        <!-- Cuántas admiten postulaciones y cuántas están ocupadas -->
+                        <div class="org-counters" id="orgCounters"></div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div class="announcements-filter-box">
+                            <i class="fa-solid fa-magnifying-glass" style="color: var(--accent-purple);"></i>
+                            <input type="text" id="filterComercios" placeholder="Buscar organización..." aria-label="Buscar organización" oninput="renderComerciosGrid()">
+                        </div>
+
+                        <div class="filter-dropdown-container" id="filterDropdownContainer">
+                            <button type="button" class="filter-dropdown-btn" onclick="toggleStatusDropdown(event)">
+                                <i class="fa-solid fa-filter" id="filterIcon" style="color: var(--accent-purple);"></i> <span id="currentStatusFilterLabel">Todos los estados</span> <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+                            </button>
+                            <div class="filter-dropdown-options" id="statusFilterOptions">
+                                <div class="filter-dropdown-option" onclick="applyStatusFilter('Todos', 'Todos los estados')">
+                                    <i class="fa-solid fa-skull" style="color: #c084fc;"></i> Todos los estados
+                                </div>
+                                <div class="filter-dropdown-option" onclick="applyStatusFilter('Disponible', '<i class=\'fa-solid fa-circle-check\' style=\'color: #4ade80;\'></i> Disponible')">
+                                    <i class="fa-solid fa-circle-check" style="color: #4ade80;"></i> Disponible
+                                </div>
+                                <div class="filter-dropdown-option" onclick="applyStatusFilter('Ocupado', '<i class=\'fa-solid fa-circle-dot\' style=\'color: #94a3b8;\'></i> Ocupado')">
+                                    <i class="fa-solid fa-circle-dot" style="color: #94a3b8;"></i> Ocupado
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comercios-grid-modern" id="comerciosList"></div>
+            </section>
+
+            <!-- Sección del Formulario y Tabla -->
+            <div class="whitelist-content-wrapper">
+                
+                <!-- Formulario WIZARD Multietapa -->
+                <div id="inlineFormContainer">
+                    <div class="wizard-container">
+
+                        <!-- Para qué organización es la postulación, y cómo salir del formulario -->
+                        <div class="wizard-header">
+                            <div>
+                                <h3>Nueva postulación</h3>
+                                <p>Organización elegida: <strong id="wizardOrgName">—</strong></p>
+                            </div>
+                            <button type="button" class="btn-wizard-secondary is-compact" onclick="cancelarPostulacion()">
+                                <i class="fa-solid fa-xmark"></i> Cancelar
+                            </button>
+                        </div>
+                        
+                        <div class="wizard-progress-bar-wrapper">
+                            <ol class="wizard-steps" id="wizardSteps">
+                                <li class="wizard-step-item is-active" data-step="1" aria-current="step"><span class="wizard-step-num">1</span><span class="wizard-step-name">Normativa</span></li>
+                                <li class="wizard-step-item" data-step="2"><span class="wizard-step-num">2</span><span class="wizard-step-name">Integrantes</span></li>
+                                <li class="wizard-step-item" data-step="3"><span class="wizard-step-num">3</span><span class="wizard-step-name">Proyecto</span></li>
+                            </ol>
+                            <div class="wizard-progress-info">
+                                <span id="wizardStepLabel">Paso 1 de 3: Normativa vigente</span>
+                            </div>
+                            <div class="wizard-progress-bar-bg">
+                                <div class="wizard-progress-bar-fill" id="wizardProgressBarFill" style="width: 33%;"></div>
+                            </div>
+                        </div>
+
+                        <form id="postulacionForm">
+                            
+                            <!-- PASO 1 -->
+                            <div class="wizard-step-pane active" id="wizardStep1">
+                                <h3 class="wizard-step-title"><i class="fa-solid fa-gavel"></i> 1. Normativa vigente de organizaciones ilegales</h3>
+                                <div class="legal-notice-box" tabindex="0">
+                                    <h4>Términos y Condiciones del Rol Ilegal</h4>
+                                    <p>1. Toda organización ilegal debe mantener un estándar estricto de interpretación de personaje (Roleplay de calidad).</p>
+                                    <p>2. Queda prohibido el abuso de zonas seguras o mecánicas in-game para beneficio ilícito injustificado.</p>
+                                    <p>3. Las alianzas, guerras de bandas y atracos mayores deben ser reportados y coordinados según las directrices del equipo de administración.</p>
+                                    <p>4. El incumplimiento de las directrices supondrá un "wipe" o disolución forzosa de la organización sin derecho a reclamación.</p>
+                                    <p style="margin-top: 10px;"><a href="../normativas/n-ilegales.html" target="_blank" rel="noopener" style="color: #d8b4fe; font-weight: 700;"><i class="fa-solid fa-book-open"></i> Leer la normativa completa de organizaciones ilegales</a></p>
+                                </div>
+                                <div class="form-group" style="margin-top: 15px;">
+                                    <label class="custom-checkbox-container">
+                                        <input type="checkbox" id="checkNormativa" required>
+                                        <span class="checkmark"></span>
+                                        <span>Comprendo y estoy de acuerdo con la normativa vigente.</span>
+                                    </label>
+                                </div>
+                                <div class="wizard-buttons-bar" style="justify-content: flex-end;">
+                                    <button type="button" class="btn-wizard-primary" onclick="goToStep(2)">
+                                        Continuar <i class="fa-solid fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- PASO 2 -->
+                            <div class="wizard-step-pane" id="wizardStep2">
+                                <h3 class="wizard-step-title"><i class="fa-solid fa-users"></i> 2. Información de los integrantes</h3>
+                                <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0 0 16px 0;">Introduce la información de los miembros fundadores o principales de la organización. Solo los datos del líder son obligatorios; si añades a otro integrante, rellena sus tres datos.</p>
+                                <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0 0 16px 0;"><i class="fa-solid fa-circle-info" style="color: var(--accent-purple);"></i> El ID de Discord son 17-20 números (Ajustes › Avanzado › Modo desarrollador, y luego clic derecho en el perfil › Copiar ID). El Steam tiene que ser el enlace a tu perfil.</p>
+                                
+                                <div class="member-card-box">
+                                    <h4>Líder - Representante Principal <span class="member-tag is-required">Obligatorio</span></h4>
+                                    <div class="form-row-2">
+                                        <div class="form-group">
+                                            <label for="int1Discord">Usuario de Discord</label>
+                                            <input type="text" id="int1Discord" placeholder="Ej. usuario#1234">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="int1Id">ID de Discord</label>
+                                            <input type="text" id="int1Id" placeholder="Ej. 123456789012345678">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="int1Steam">Enlace de Steam</label>
+                                        <input type="url" id="int1Steam" placeholder="https://steamcommunity.com/id/...">
+                                    </div>
+                                </div>
+
+                                <div class="member-card-box">
+                                    <h4>Co-líder <span class="member-tag">Opcional</span></h4>
+                                    <div class="form-row-2">
+                                        <div class="form-group">
+                                            <label for="int2Discord">Usuario de Discord</label>
+                                            <input type="text" id="int2Discord" placeholder="Ej. usuario#1234">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="int2Id">ID de Discord</label>
+                                            <input type="text" id="int2Id" placeholder="Ej. 123456789012345678">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="int2Steam">Enlace de Steam</label>
+                                        <input type="url" id="int2Steam" placeholder="https://steamcommunity.com/id/...">
+                                    </div>
+                                </div>
+
+                                <div class="member-card-box">
+                                    <h4>Miembro 3 <span class="member-tag">Opcional</span></h4>
+                                    <div class="form-row-2">
+                                        <div class="form-group">
+                                            <label for="int3Discord">Usuario de Discord</label>
+                                            <input type="text" id="int3Discord" placeholder="Ej. usuario#1234">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="int3Id">ID de Discord</label>
+                                            <input type="text" id="int3Id" placeholder="Ej. 123456789012345678">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="int3Steam">Enlace de Steam</label>
+                                        <input type="url" id="int3Steam" placeholder="https://steamcommunity.com/id/...">
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn-extra-members" id="toggleExtraMembersBtn" onclick="toggleExtraMembers()">
+                                    <i class="fa-solid fa-plus" id="extraMembersIcon"></i> <span id="extraMembersText">Mostrar Miembros 4, 5 y 6 (Opcional)</span>
+                                </button>
+
+                                <div id="extraMembersContainer" style="display: none;">
+                                    <div class="member-card-box">
+                                        <h4>Miembro 4 <span class="member-tag">Opcional</span></h4>
+                                        <div class="form-row-2">
+                                            <div class="form-group">
+                                                <label for="int4Discord">Usuario de Discord</label>
+                                                <input type="text" id="int4Discord" placeholder="Ej. usuario#1234">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="int4Id">ID de Discord</label>
+                                                <input type="text" id="int4Id" placeholder="Ej. 123456789012345678">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="int4Steam">Enlace de Steam</label>
+                                            <input type="url" id="int4Steam" placeholder="https://steamcommunity.com/id/...">
+                                        </div>
+                                    </div>
+
+                                    <div class="member-card-box">
+                                        <h4>Miembro 5 <span class="member-tag">Opcional</span></h4>
+                                        <div class="form-row-2">
+                                            <div class="form-group">
+                                                <label for="int5Discord">Usuario de Discord</label>
+                                                <input type="text" id="int5Discord" placeholder="Ej. usuario#1234">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="int5Id">ID de Discord</label>
+                                                <input type="text" id="int5Id" placeholder="Ej. 123456789012345678">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="int5Steam">Enlace de Steam</label>
+                                            <input type="url" id="int5Steam" placeholder="https://steamcommunity.com/id/...">
+                                        </div>
+                                    </div>
+
+                                    <div class="member-card-box">
+                                        <h4>Miembro 6 <span class="member-tag">Opcional</span></h4>
+                                        <div class="form-row-2">
+                                            <div class="form-group">
+                                                <label for="int6Discord">Usuario de Discord</label>
+                                                <input type="text" id="int6Discord" placeholder="Ej. usuario#1234">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="int6Id">ID de Discord</label>
+                                                <input type="text" id="int6Id" placeholder="Ej. 123456789012345678">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="int6Steam">Enlace de Steam</label>
+                                            <input type="url" id="int6Steam" placeholder="https://steamcommunity.com/id/...">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="wizard-buttons-bar">
+                                    <button type="button" class="btn-wizard-secondary" onclick="goToStep(1)">
+                                        <i class="fa-solid fa-arrow-left"></i> Anterior
+                                    </button>
+                                    <button type="button" class="btn-wizard-primary" onclick="goToStep(3)">
+                                        Continuar <i class="fa-solid fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- PASO 3 -->
+                            <div class="wizard-step-pane" id="wizardStep3">
+                                <h3 class="wizard-step-title"><i class="fa-solid fa-folder-open"></i> 3. Información del proyecto y detalles</h3>
+                                
+                                <div class="form-group">
+                                    <label for="projName">NOMBRE DEL PROYECTO</label>
+                                    <input type="text" id="projName" placeholder="Ej. South Side Syndicate">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="projLore">HISTORIA O CONTEXTO GENERAL DE LA ORGANIZACIÓN</label>
+                                    <textarea id="projLore" rows="4" minlength="150" placeholder="Orígenes, trasfondo y motivaciones en la ciudad... (mínimo 150 caracteres)"></textarea>
+                                    <span class="il-count" data-count-for="projLore"></span>
+                                </div>
+
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="projShortGoals">OBJETIVOS A CORTO PLAZO</label>
+                                        <textarea id="projShortGoals" rows="2" placeholder="Metas iniciales..."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="projLongGoals">OBJETIVOS A LARGO PLAZO</label>
+                                        <textarea id="projLongGoals" rows="2" placeholder="Metas a futuro..."></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="projProfile">ESTILO DE LA ORGANIZACIÓN</label>
+                                    <select id="projProfile">
+                                        <option value="Bajo perfil">Bajo perfil (Ocultos, discretos, lavado de dinero y sigilo)</option>
+                                        <option value="Alto perfil">Alto perfil (Agresivos, visibles, control territorial y confrontación)</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="projStructure">ESTRUCTURA INTERNA (RANGOS Y JERARQUÍA)</label>
+                                    <textarea id="projStructure" rows="2" placeholder="Ej. Líder, Mano derecha, Soldados, Iniciados..."></textarea>
+                                </div>
+
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="projMiembros">NÚMERO DE INTEGRANTES PREVISTO</label>
+                                        <select id="projMiembros">
+                                            <option value="" selected disabled>Elige una opción</option>
+                                            <option>Hasta 6 integrantes</option>
+                                            <option>Entre 7 y 10 integrantes</option>
+                                            <option>Entre 11 y 15 integrantes</option>
+                                            <option>Más de 15 integrantes</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="projHorario">HORARIO HABITUAL DEL GRUPO</label>
+                                        <select id="projHorario">
+                                            <option value="" selected disabled>Elige una opción</option>
+                                            <option>Mañanas</option>
+                                            <option>Tardes</option>
+                                            <option>Noches</option>
+                                            <option>Madrugadas</option>
+                                            <option>Variable, según el día</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="projActividades">ACTIVIDADES PRINCIPALES</label>
+                                    <textarea id="projActividades" rows="2" placeholder="¿A qué se dedicará la organización para ganar dinero e influencia? Ej. contrabando, robos, venta en la calle..."></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="projRelaciones">RELACIÓN CON OTRAS ORGANIZACIONES Y CON LA POLICÍA <span style="text-transform:none; font-weight:500; color: var(--text-muted);">(opcional)</span></label>
+                                    <textarea id="projRelaciones" rows="2" placeholder="Aliados, rivales y cómo pensáis reaccionar ante la policía..."></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="projExperiencia">EXPERIENCIA DEL GRUPO EN ROL ILEGAL</label>
+                                    <textarea id="projExperiencia" rows="2" placeholder="Servidores, organizaciones en las que habéis estado y cuánto tiempo..."></textarea>
+                                </div>
+
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="projVehicles">VEHÍCULOS QUE UTILIZARÁ</label>
+                                        <input type="text" id="projVehicles" placeholder="Ej. Deportivos negros, muscle cars...">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="projClothing">VESTIMENTA REPRESENTATIVA</label>
+                                        <input type="text" id="projClothing" placeholder="Ej. Ropa oscura, pañuelos rojos...">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="projLocation">UBICACIÓN PROPUESTA DEL BARRIO O ZONA DE OPERACIÓN</label>
+                                    <input type="text" id="projLocation" placeholder="Ej. Vinewood Hills / Davis / Pillbox Hill...">
+                                </div>
+
+                                <div class="wizard-buttons-bar">
+                                    <button type="button" class="btn-wizard-secondary" onclick="goToStep(2)">
+                                        <i class="fa-solid fa-arrow-left"></i> Anterior
+                                    </button>
+                                    <button type="button" class="btn-wizard-primary" id="submitPostulacionBtn" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">
+                                        <i class="fa-solid fa-check-circle"></i> Enviar Postulación Oficial
+                                    </button>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tabla de Mis Postulaciones -->
+                <div class="my-applications-card animate-entrance">
+                    <div class="my-applications-header">
+                        <h3><i class="fa-solid fa-list-check"></i> Mis postulaciones enviadas</h3>
+                        <div class="apps-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="searchAppInput" placeholder="Filtrar por ID o proyecto..." aria-label="Filtrar postulaciones por ID o proyecto" oninput="filterApplications()">
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="apps-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Proyecto</th>
+                                    <th>Estilo</th>
+                                    <th>Estado</th>
+                                    <th>Fecha de envío</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myApplicationsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        window.scrollTo(0, 0);
+
+        let cachedAllComercios = [
+            {
+                nombre: "The Families",
+                tipo: "Banda Callejera",
+                estado: "adquirido",
+                estadoText: "Ocupado",
+                imagen: "https://i.imgur.com/EaBMQHU.png",
+                historia: "Banda callejera histórica con base en Davis y Grove Street. Defienden su territorio frente a las agresiones de los Ballas y controlan el tráfico menor de estupefacientes en el barrio.",
+                ubicacion: "Davis / Grove Street",
+                horario: "24/7 Activos",
+                precio: "Control de Territorio",
+                fundado: "1992",
+                etiquetas: ["Callejera", "Davis", "Verde", "Armas"],
+                imagenesData: ["https://i.imgur.com/EaBMQHU.png"]
+            },
+            {
+                nombre: "Ballas",
+                tipo: "Banda Callejera",
+                estado: "adquirido",
+                estadoText: "Ocupado",
+                imagen: "https://i.imgur.com/P1Z8bGB.png",
+                historia: "Poderosa organización criminal de South Los Santos identificada por su vestimenta morada. Involucrados profundamente en la distribución de narcóticos y extorsión.",
+                ubicacion: "Strawberry / Idlewood",
+                horario: "Nocturno / Diurno",
+                precio: "Control de Territorio",
+                fundado: "1990",
+                etiquetas: ["Callejera", "Morado", "Narcotráfico", "South LS"],
+                imagenesData: ["https://i.imgur.com/P1Z8bGB.png"]
+            },
+            {
+                nombre: "Los Santos Vagos",
+                tipo: "Pandilla Hispana",
+                estado: "disponible",
+                estadoText: "Disponible",
+                imagen: "https://i.imgur.com/rrkwaVq.png",
+                historia: "Pandilla callejera de origen hispano con fuerte presencia en Rancho y Mirror Park. Especialistas en contrabando de armas pesadas y peleas territoriales.",
+                ubicacion: "Rancho / East LS",
+                horario: "Variable",
+                precio: "Postulación Abierta",
+                fundado: "1994",
+                etiquetas: ["Hispana", "Rancho", "Armas", "Contrabando"],
+                imagenesData: ["https://i.imgur.com/rrkwaVq.png"]
+            },
+            {
+                nombre: "The Lost MC",
+                tipo: "Club de Motociclistas",
+                estado: "adquirido",
+                estadoText: "Ocupado",
+                imagen: "https://i.imgur.com/mwsFZ9h.png",
+                historia: "Club de motociclistas rudos y fuertemente armados con base en Blaine County y Los Santos. Operan redes de metanfetamina y contrabando de piezas.",
+                ubicacion: "Sandy Shores / Grapeseed",
+                horario: "24/7",
+                precio: "Ocupado por facción",
+                fundado: "1964",
+                etiquetas: ["Motociclistas", "Blaine County", "Metanfetamina", "Motos"],
+                imagenesData: ["https://i.imgur.com/mwsFZ9h.png"]
+            },
+            {
+                nombre: "Marabunta Grande",
+                tipo: "Pandilla Transnacional",
+                estado: "disponible",
+                estadoText: "Disponible",
+                imagen: "https://i.imgur.com/iAo37Mk.jpeg",
+                historia: "Organización criminal internacional brutal conocida por sus tatuajes corporales y métodos despiadados de intimidación en los canales de Vespucci.",
+                ubicacion: "Vespucci Canals",
+                horario: "Variable",
+                precio: "Postulación Abierta",
+                fundado: "2001",
+                etiquetas: ["Vespucci", "Violenta", "Extorsión", "Tatuajes"],
+                imagenesData: ["https://i.imgur.com/iAo37Mk.jpeg"]
+            },
+            {
+                nombre: "Triadas de Cheng",
+                tipo: "Sindicato Criminal",
+                estado: "disponible",
+                estadoText: "Disponible",
+                imagen: "https://i.imgur.com/TE2AtXM.png",
+                historia: "Sindicato asiático vinculado a la familia Cheng. Gestionan operaciones de contrabando internacional, juego ilegal y lavado de dinero a gran escala.",
+                ubicacion: "Vinewood / Rockford Hills",
+                horario: "Nocturno",
+                precio: "Postulación Abierta",
+                fundado: "1985",
+                etiquetas: ["Triadas", "Vinewood", "Lavado", "Contrabando"],
+                imagenesData: ["https://i.imgur.com/TE2AtXM.png"]
+            },
+            {
+                nombre: "Hermanos O'Neil",
+                tipo: "Clan Rural",
+                estado: "adquirido",
+                estadoText: "Ocupado",
+                imagen: "https://i.imgur.com/Yhi09do.jpeg",
+                historia: "Clan familiar rural asentado en Grapeseed y el condado de Blaine. Expertos en la producción artesanal de licor ilegal y metanfetamina rural.",
+                ubicacion: "Grapeseed / Railyard",
+                horario: "24/7",
+                precio: "Ocupado",
+                fundado: "1975",
+                etiquetas: ["Rural", "Blaine County", "Metanfetamina", "Clan"],
+                imagenesData: ["https://i.imgur.com/Yhi09do.jpeg"]
+            },
+            {
+                nombre: "Aztecas",
+                tipo: "Banda Callejera",
+                estado: "disponible",
+                estadoText: "Disponible",
+                imagen: "https://i.imgur.com/3TCxJil.jpeg",
+                historia: "Tradicional banda de barrio con fuerte código de honor callejero, especializados en carreras ilegales, contrabando automotriz y control de barrios bajos.",
+                ubicacion: "El Burro Heights",
+                horario: "Variable",
+                precio: "Postulación Abierta",
+                fundado: "1991",
+                etiquetas: ["Aztecas", "El Burro", "Carreras", "Honor"],
+                imagenesData: ["https://i.imgur.com/3TCxJil.jpeg"]
+            },
+            {
+                nombre: "M.O.B. Bloods",
+                tipo: "Banda Callejera",
+                estado: "disponible",
+                estadoText: "Disponible",
+                imagen: "https://i.imgur.com/MJ0JZAv.png",
+                historia: "Frenética organización callejera caracterizada por sus pañuelos rojos y fuerte presencia en los bloques residenciales del sur de la ciudad.",
+                ubicacion: "Rancho / South LS",
+                horario: "24/7",
+                precio: "Postulación Abierta",
+                fundado: "2015",
+                etiquetas: ["Bloods", "Rojo", "Callejera", "Rancho"],
+                imagenesData: ["https://i.imgur.com/MJ0JZAv.png"]
+            },
+            {
+                nombre: "Rolling 60 Crips",
+                tipo: "Banda Callejera",
+                estado: "disponible",
+                estadoText: "Disponible",
+                imagen: "https://i.imgur.com/v89zZPV.png",
+                historia: "Uno de los conjuntos callejeros más grandes y temidos de la cultura urbana, reconocidos por su disciplina táctica en los vecindarios.",
+                ubicacion: "Davis / Chamberlain Hills",
+                horario: "Variable",
+                precio: "Postulación Abierta",
+                fundado: "1970",
+                etiquetas: ["Crips", "Azul", "Davis", "Urbana"],
+                imagenesData: ["https://i.imgur.com/v89zZPV.png"]
+            }
+        ];
+
+        let selectedStatusFilter = 'Todos';
+        let modalActiveImages = [];
+        let modalActiveImgIndex = 0;
+
+        // Escapa texto antes de meterlo en HTML (nombres con comillas, datos escritos por el usuario...)
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        // Solo se enlazan direcciones http(s)
+        const safeUrl = u => /^https?:\/\//i.test(String(u || '').trim()) ? String(u).trim() : '';
+        const estaDisponible = c => String(c.estadoText || '').toLowerCase() === 'disponible';
+
+        /* ---------- Formulario: organización elegida, validación, contador y borrador ---------- */
+        let orgElegida = '';
+        const ID_DISCORD_RE = /^\d{17,20}$/;
+        const STEAM_RE = /^https?:\/\/(www\.)?steamcommunity\.com\/(id|profiles)\/\S+$/i;
+        const LORE_MIN = 150;
+
+        function usuarioSesion() {
+            try { return JSON.parse(localStorage.getItem('discord_user') || '{}') || {}; } catch (e) { return {}; }
+        }
+        const claveBorradorIl = () => 'pf_borrador_ilegal_' + (usuarioSesion().id || 'anon');
+
+        // Marca un campo en rojo con su mensaje debajo, o lo limpia
+        function marcarError(el, msg) {
+            el.classList.add('is-invalid');
+            el.setAttribute('aria-invalid', 'true');
+            let e = el.parentElement.querySelector('.il-error');
+            if (!e) {
+                e = document.createElement('span');
+                e.className = 'il-error';
+                e.setAttribute('role', 'alert');
+                el.after(e);
+            }
+            e.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + esc(msg);
+        }
+        function limpiarError(el) {
+            el.classList.remove('is-invalid');
+            el.removeAttribute('aria-invalid');
+            const e = el.parentElement.querySelector('.il-error');
+            if (e) e.remove();
+        }
+        // Lleva al primer campo con error y avisa
+        function avisarErrores(errores, texto) {
+            if (!errores.length) return true;
+            errores.forEach(([el, msg]) => marcarError(el, msg));
+            const primero = errores[0][0];
+            primero.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => primero.focus({ preventScroll: true }), 250);
+            showToastNotification("#IL-ERROR", texto, errores.length === 1 ? "Revisa el campo marcado en rojo." : `Revisa los ${errores.length} campos marcados en rojo.`);
+            return false;
+        }
+
+        const $ = id => document.getElementById(id);
+
+        // Paso 2: el líder es obligatorio; el resto, si se empieza a rellenar, completo
+        function validarIntegrantes() {
+            const errores = [];
+            for (let i = 1; i <= 6; i++) {
+                const d = $(`int${i}Discord`), id = $(`int${i}Id`), st = $(`int${i}Steam`);
+                [d, id, st].forEach(limpiarError);
+                const algo = d.value.trim() || id.value.trim() || st.value.trim();
+                if (i > 1 && !algo) continue;
+                if (!d.value.trim()) errores.push([d, 'Escribe el usuario de Discord.']);
+                if (!ID_DISCORD_RE.test(id.value.trim())) errores.push([id, id.value.trim() ? 'El ID de Discord son entre 17 y 20 números.' : 'Escribe el ID de Discord.']);
+                if (!STEAM_RE.test(st.value.trim())) errores.push([st, st.value.trim() ? 'Tiene que ser el enlace a un perfil: https://steamcommunity.com/id/... o /profiles/...' : 'Pega el enlace a su perfil de Steam.']);
+            }
+            // Un mismo ID no puede repetirse entre integrantes
+            const vistos = {};
+            for (let i = 1; i <= 6; i++) {
+                const id = $(`int${i}Id`);
+                const v = id.value.trim();
+                if (!v || !ID_DISCORD_RE.test(v)) continue;
+                if (vistos[v]) errores.push([id, `Este ID ya lo has puesto en ${vistos[v]}.`]);
+                else vistos[v] = i === 1 ? 'el líder' : (i === 2 ? 'el co-líder' : `el miembro ${i}`);
+            }
+            return errores;
+        }
+
+        // Paso 3: todos obligatorios salvo "relaciones"; la historia, con un mínimo de caracteres
+        const CAMPOS_PROYECTO = ['projName', 'projLore', 'projShortGoals', 'projLongGoals', 'projStructure', 'projMiembros', 'projHorario', 'projActividades', 'projExperiencia', 'projVehicles', 'projClothing', 'projLocation'];
+        function validarProyecto() {
+            const errores = [];
+            CAMPOS_PROYECTO.forEach(id => {
+                const el = $(id);
+                limpiarError(el);
+                const v = el.value.trim();
+                if (!v) errores.push([el, el.tagName === 'SELECT' ? 'Elige una opción.' : 'Este campo es obligatorio.']);
+                else if (id === 'projLore' && v.length < LORE_MIN) errores.push([el, `Cuéntanos un poco más: mínimo ${LORE_MIN} caracteres (llevas ${v.length}).`]);
+            });
+            return errores;
+        }
+
+        function actualizarContadores() {
+            document.querySelectorAll('.il-count[data-count-for]').forEach(c => {
+                const n = ($(c.dataset.countFor).value || '').trim().length;
+                c.textContent = `${n} / ${LORE_MIN} mín.`;
+                c.classList.toggle('is-ok', n >= LORE_MIN);
+            });
+        }
+
+        // Borrador: lo escrito se guarda en este navegador y se recupera al volver a la misma organización
+        let tBorradorIl = null;
+        function guardarBorradorIl() {
+            clearTimeout(tBorradorIl);
+            tBorradorIl = setTimeout(() => {
+                const valores = {};
+                document.querySelectorAll('#postulacionForm input, #postulacionForm textarea, #postulacionForm select').forEach(el => {
+                    if (!el.id) return;
+                    valores[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+                });
+                try { localStorage.setItem(claveBorradorIl(), JSON.stringify({ org: orgElegida, valores })); } catch (e) {}
+            }, 400);
+        }
+        function recuperarBorradorIl(org) {
+            let b = null;
+            try { b = JSON.parse(localStorage.getItem(claveBorradorIl()) || 'null'); } catch (e) {}
+            if (!b || b.org !== org || !b.valores) return false;
+            let hay = false;
+            Object.entries(b.valores).forEach(([id, v]) => {
+                const el = $(id);
+                if (!el) return;
+                if (el.type === 'checkbox') el.checked = !!v;
+                else { el.value = v; if (v && el.readOnly !== true) hay = true; }
+            });
+            // Si el borrador tenía miembros 4-6, se enseñan
+            if (['int4Discord', 'int5Discord', 'int6Discord'].some(id => $(id).value.trim())) {
+                $('extraMembersContainer').style.display = 'block';
+                $('extraMembersIcon').className = 'fa-solid fa-minus';
+                $('extraMembersText').textContent = 'Ocultar Miembros 4, 5 y 6';
+            }
+            actualizarContadores();
+            return hay;
+        }
+        function borrarBorradorIl() {
+            clearTimeout(tBorradorIl);
+            try { localStorage.removeItem(claveBorradorIl()); } catch (e) {}
+        }
+
+        document.getElementById('postulacionForm').addEventListener('input', (e) => {
+            if (e.target.classList.contains('is-invalid')) limpiarError(e.target);
+            if (e.target.id === 'projLore') actualizarContadores();
+            guardarBorradorIl();
+        });
+        document.getElementById('postulacionForm').addEventListener('change', (e) => {
+            if (e.target.classList.contains('is-invalid')) limpiarError(e.target);
+            guardarBorradorIl();
+        });
+
+        async function loadDiscordSessionData() {
+            const storedUser = localStorage.getItem('discord_user');
+            const avatarContainer = document.getElementById('userAvatarContainer');
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const userHandleDisplay = document.getElementById('userHandleDisplay');
+
+            if (!storedUser) return;
+
+            try {
+                const discordUser = JSON.parse(storedUser);
+                if (userNameDisplay) userNameDisplay.textContent = discordUser.displayName || discordUser.username || "Usuario";
+                if (userHandleDisplay) userHandleDisplay.textContent = `@${discordUser.username || "discord"}`;
+                if (avatarContainer && discordUser.avatarUrl) {
+                    avatarContainer.innerHTML = `<img src="${discordUser.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                }
+            } catch (e) {
+                console.error("Error al cargar la sesión de Discord", e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDiscordSessionData();
+            renderComerciosGrid();
+            renderMyApplications();
+            checkUserNotifications();
+        });
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'user_notifications' || event.key === 'postulaciones_ilegales_data') {
+                checkUserNotifications();
+                renderMyApplications();
+            }
+        });
+
+        const toggleBtn = document.getElementById('sidebarToggleBtn');
+        const revealBtn = document.getElementById('sidebarRevealBtn');
+        const sidebar = document.getElementById('sidebar');
+
+        if (toggleBtn && revealBtn && sidebar) {
+            toggleBtn.addEventListener('click', () => sidebar.classList.add('collapsed'));
+            revealBtn.addEventListener('click', () => sidebar.classList.remove('collapsed'));
+        }
+
+        // ===== Menú desplegable de Soporte: se coloca bajo el botón y se cierra al pulsar fuera =====
+        const supportBtn = document.getElementById('supportDropdownBtn');
+        const supportMenu = document.getElementById('supportDropdownMenu');
+
+        function cerrarFiltroEstados() {
+            document.getElementById('statusFilterOptions')?.classList.remove('open');
+            document.getElementById('filterDropdownContainer')?.classList.remove('active');
+        }
+
+        if (supportBtn && supportMenu) {
+            supportBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = supportMenu.classList.contains('show');
+
+                // Si el filtro de estados está abierto, se cierra al abrir Soporte
+                cerrarFiltroEstados();
+
+                if (!isOpen) {
+                    if (supportMenu.parentElement !== document.body) {
+                        document.body.appendChild(supportMenu);
+                    }
+                    const rect = supportBtn.getBoundingClientRect();
+                    supportMenu.style.top = (rect.bottom + 8) + 'px';
+                    supportMenu.style.right = (window.innerWidth - rect.right) + 'px';
+                    supportMenu.classList.add('show');
+                } else {
+                    supportMenu.classList.remove('show');
+                }
+            });
+
+            window.addEventListener('click', () => {
+                supportMenu.classList.remove('show');
+            });
+
+            window.addEventListener('resize', () => {
+                supportMenu.classList.remove('show');
+            });
+
+            // En esta página el contenido se desplaza dentro de <main>: al hacer scroll el menú se cierra
+            // para que no se quede flotando lejos del botón
+            window.addEventListener('scroll', (e) => {
+                if (e.target === supportMenu || supportMenu.contains(e.target)) return;
+                supportMenu.classList.remove('show');
+            }, true);
+        }
+
+        function toggleStatusDropdown(e) {
+            e.stopPropagation();
+            // Si el menú de Soporte está abierto, se cierra al abrir el filtro
+            if (supportMenu) supportMenu.classList.remove('show');
+
+            const opts = document.getElementById('statusFilterOptions');
+            const container = document.getElementById('filterDropdownContainer');
+            const filterIcon = document.getElementById('filterIcon');
+            
+            if (filterIcon) {
+                filterIcon.classList.remove('filter-icon-animate');
+                void filterIcon.offsetWidth;
+                filterIcon.classList.add('filter-icon-animate');
+            }
+
+            opts.classList.toggle('open');
+            container.classList.toggle('active', opts.classList.contains('open'));
+        }
+
+        window.addEventListener('click', () => {
+            cerrarFiltroEstados();
+        });
+
+        function applyStatusFilter(statusVal, labelHtml) {
+            selectedStatusFilter = statusVal;
+            document.getElementById('currentStatusFilterLabel').innerHTML = labelHtml;
+            cerrarFiltroEstados();
+            renderComerciosGrid();
+        }
+
+        // Cuántas organizaciones admiten postulaciones y cuántas están ocupadas (sobre el total, sin filtros)
+        function renderOrgCounters() {
+            const box = document.getElementById('orgCounters');
+            if (!box) return;
+            const disponibles = cachedAllComercios.filter(estaDisponible).length;
+            const ocupadas = cachedAllComercios.length - disponibles;
+            box.innerHTML = `
+                <span class="org-counter is-open">${disponibles} disponible${disponibles === 1 ? '' : 's'}</span>
+                <span class="org-counter">${ocupadas} ocupada${ocupadas === 1 ? '' : 's'}</span>
+            `;
+        }
+
+        function renderComerciosGrid() {
+            const container = document.getElementById('comerciosList');
+            if (!container) return;
+
+            renderOrgCounters();
+
+            const searchVal = document.getElementById('filterComercios') ? document.getElementById('filterComercios').value.toLowerCase().trim() : '';
+
+            let filtered = cachedAllComercios.filter(c => {
+                const matchesSearch = c.nombre.toLowerCase().includes(searchVal) || c.historia.toLowerCase().includes(searchVal) || c.tipo.toLowerCase().includes(searchVal);
+                const matchesStatus = (selectedStatusFilter === 'Todos' || c.estadoText.toLowerCase() === selectedStatusFilter.toLowerCase());
+                return matchesSearch && matchesStatus;
+            });
+
+            if (selectedStatusFilter === 'Todos') {
+                filtered.sort((a, b) => {
+                    const aIsDisp = estaDisponible(a);
+                    const bIsDisp = estaDisponible(b);
+                    if (aIsDisp && !bIsDisp) return -1;
+                    if (!aIsDisp && bIsDisp) return 1;
+                    return 0;
+                });
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="grid-empty">
+                        <i class="fa-solid fa-skull-crossbones"></i>
+                        <strong>Ninguna organización coincide con la búsqueda</strong>
+                        Prueba con otro nombre o cambia el filtro de estado.
+                    </div>
+                `;
+                return;
+            }
+
+            let html = "";
+            filtered.forEach((c, idx) => {
+                const globalIndex = cachedAllComercios.indexOf(c);
+                const isAvailable = estaDisponible(c);
+
+                const actionHtml = isAvailable
+                    ? `<button type="button" class="btn-card-pill" data-postular="${globalIndex}">Postularse <i class="fa-solid fa-arrow-right" style="font-size: 10px;"></i></button>`
+                    : `<span class="card-link-muted">Ver ficha <i class="fa-solid fa-chevron-right" style="font-size: 9px;"></i></span>`;
+
+                html += `
+                    <div class="comercio-card ${isAvailable ? '' : 'is-ocupado'}" style="animation-delay: ${idx * 0.04}s;" data-index="${globalIndex}" tabindex="0">
+                        <div class="comercio-img-container">
+                            <img src="${esc(c.imagen)}" alt="" loading="lazy">
+                            <span class="card-status ${isAvailable ? 'is-open' : ''}">${isAvailable ? 'Disponible' : 'Ocupado'}</span>
+                        </div>
+                        <div class="comercio-card-content">
+                            <span class="comercio-card-type">${esc(c.tipo)}</span>
+                            <h3 class="comercio-card-title">${esc(c.nombre)}</h3>
+                            <p class="comercio-card-desc">${esc(c.historia)}</p>
+                        </div>
+                        <div class="comercio-card-footer">
+                            <span class="comercio-card-location" title="${esc(c.ubicacion)}"><i class="fa-solid fa-location-dot"></i>${esc(c.ubicacion)}</span>
+                            ${actionHtml}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Clics en las tarjetas (delegación: sigue funcionando aunque la cuadrícula se vuelva a pintar).
+        // "Postularse" abre el formulario; el resto de la tarjeta abre la ficha.
+        const comerciosListEl = document.getElementById('comerciosList');
+        comerciosListEl.addEventListener('click', (e) => {
+            const postularBtn = e.target.closest('[data-postular]');
+            if (postularBtn) {
+                const org = cachedAllComercios[Number(postularBtn.dataset.postular)];
+                if (org) prepararPostulacion(org.nombre);
+                return;
+            }
+            const card = e.target.closest('.comercio-card');
+            if (card) openBusinessModal(Number(card.dataset.index));
+        });
+        comerciosListEl.addEventListener('keydown', (e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('comercio-card')) {
+                e.preventDefault();
+                openBusinessModal(Number(e.target.dataset.index));
+            }
+        });
+
+        window.prepararPostulacion = function(nombreOrg) {
+            const inlineFormContainer = document.getElementById('inlineFormContainer');
+            if (!inlineFormContainer) return;
+
+            inlineFormContainer.classList.add('show');
+
+            // Si se cambia de organización, se empieza de cero (o con el borrador de esa organización)
+            const cambiaDeOrg = orgElegida && orgElegida !== nombreOrg;
+            if (cambiaDeOrg) {
+                document.getElementById('postulacionForm').reset();
+                document.querySelectorAll('#postulacionForm .is-invalid').forEach(limpiarError);
+                goToStep(1);
+            }
+            orgElegida = nombreOrg;
+            const recuperado = recuperarBorradorIl(nombreOrg);
+
+            const projNameInput = document.getElementById('projName');
+            if (projNameInput && !projNameInput.value.trim()) {
+                projNameInput.value = nombreOrg;
+            }
+            const orgLabel = document.getElementById('wizardOrgName');
+            if (orgLabel) orgLabel.textContent = nombreOrg;
+
+            // El líder se rellena con tu cuenta de Discord (se puede cambiar si el líder es otra persona)
+            const u = usuarioSesion();
+            if (!$('int1Discord').value.trim() && (u.username || u.displayName)) $('int1Discord').value = u.username || u.displayName;
+            if (!$('int1Id').value.trim() && u.id) $('int1Id').value = u.id;
+
+            actualizarContadores();
+            if (recuperado) showToastNotification("#IL-INFO", "Hemos recuperado", "lo que dejaste escrito para esta organización.");
+
+            inlineFormContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        // Oculta el formulario sin borrar lo que ya se haya escrito
+        window.cancelarPostulacion = function() {
+            document.getElementById('inlineFormContainer').classList.remove('show');
+            document.getElementById('comerciosList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        function openBusinessModal(index) {
+            const item = cachedAllComercios[index];
+            if (!item) return;
+            document.getElementById('modalBusinessTitleDisplay').textContent = item.nombre;
+            modalActiveImages = item.imagenesData && item.imagenesData.length > 0 ? item.imagenesData : [item.imagen];
+            modalActiveImgIndex = 0;
+            renderModalBody(item);
+            document.getElementById('detailModal').classList.add('open');
+        }
+
+        function renderModalBody(item) {
+            const content = document.getElementById('modalBusinessContent');
+            const itemIndex = cachedAllComercios.indexOf(item);
+            const isAvailable = estaDisponible(item);
+            
+            let statusText = "Disponible";
+            let statusColor = "#4ade80";
+            if (item.estado === 'adquirido' || item.estadoText === 'Ocupado') { statusText = "Ocupado"; statusColor = "#94a3b8"; }
+
+            let imageBoxInner = '';
+            if (modalActiveImages.length > 0) {
+                const currentImg = modalActiveImages[modalActiveImgIndex];
+                const showBtns = modalActiveImages.length > 1;
+                imageBoxInner = `
+                    <div style="position: relative; width: 100%; height: 260px; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                        <img src="${esc(currentImg)}" alt="Organización" style="width: 100%; height: 100%; object-fit: contain; transition: opacity 0.3s ease;">
+                        ${showBtns ? `
+                            <button type="button" onclick="prevModalImg()" aria-label="Imagen anterior" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;"><i class="fa-solid fa-chevron-left" style="font-size: 11px;"></i></button>
+                            <button type="button" onclick="nextModalImg()" aria-label="Imagen siguiente" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;"><i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i></button>
+                            <div style="position: absolute; bottom: 8px; right: 10px; background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; color: #fff;">${modalActiveImgIndex + 1} /${modalActiveImages.length}</div>
+                        ` : ''}
+                    </div>
+                `;
+            } else {
+                imageBoxInner = `
+                    <div style="width: 100%; height: 260px; background: rgba(0,0,0,0.4); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: rgba(255,255,255,0.4);">
+                        <i class="fa-solid fa-image" style="font-size: 32px;"></i>
+                        <span style="font-size: 12px;">Sin imágenes adjuntas</span>
+                    </div>
+                `;
+            }
+
+            let tagsHtml = item.etiquetas ? item.etiquetas.map(t => `<span style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); padding: 3px 8px; border-radius: 6px; font-size: 11px; color: var(--text-muted);">${esc(t)}</span>`).join('') : '<span style="color: var(--text-muted); font-size: 12px;">Sin etiquetas</span>';
+
+            // Pie de la ficha: si admite postulaciones se puede empezar desde aquí
+            const footerHtml = isAvailable
+                ? `<p>Esta organización admite postulaciones.</p>
+                   <button type="button" class="btn-wizard-primary" onclick="postularDesdeModal(${itemIndex})">Postularse <i class="fa-solid fa-arrow-right"></i></button>`
+                : `<p><i class="fa-solid fa-lock" style="margin-right: 6px;"></i> Esta organización ya está ocupada y no admite postulaciones. Filtra por «Disponible» para ver las que siguen abiertas.</p>`;
+
+            content.innerHTML = `
+                <div class="modal-form-grid">
+                    <div>
+                        <div class="modal-input-group" style="border: 1px dashed rgba(168, 85, 247, 0.25); border-radius: 14px; padding: 12px; background: rgba(10, 7, 16, 0.5);">
+                            ${imageBoxInner}
+                        </div>
+                        <div class="modal-input-group" style="margin-top: 14px; border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 12px; padding: 16px; background: rgba(10, 7, 16, 0.85);">
+                            <label style="margin-bottom: 8px; display: block;"><i class="fa-solid fa-book-open" style="color: var(--accent-purple); margin-right: 6px;"></i> Historia de la facción</label>
+                            <div style="max-height: 140px; overflow-y: auto; line-height: 1.65; word-break: normal; overflow-wrap: break-word; white-space: pre-wrap; font-size: 13px; color: var(--text-muted); padding-right: 4px;">${esc(item.historia)}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <div class="modal-input-group">
+                            <label>ESTADO</label>
+                            <div class="modal-readonly-field" style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-circle" style="color: ${statusColor}; font-size: 10px;"></i> <strong>${statusText}</strong>
+                            </div>
+                        </div>
+                        <div class="modal-input-group">
+                            <label>TIPO DE ORGANIZACIÓN</label>
+                            <div class="modal-readonly-field"><strong>${esc(item.tipo)}</strong></div>
+                        </div>
+                        <div class="modal-input-group">
+                            <label>ZONA</label>
+                            <div class="modal-readonly-field"><i class="fa-solid fa-location-dot" style="color: var(--accent-purple); margin-right: 6px;"></i>${esc(item.ubicacion)}</div>
+                        </div>
+                        <div class="modal-input-group">
+                            <label>REQUISITO / CONDICIÓN</label>
+                            <div class="modal-readonly-field">${esc(item.precio)}</div>
+                        </div>
+                        <div class="modal-input-group">
+                            <label>ORÍGEN EN EL LORE</label>
+                            <div class="modal-readonly-field">${esc(item.fundado)}</div>
+                        </div>
+                        <div class="modal-input-group">
+                            <label>ETIQUETAS</label>
+                            <div class="modal-readonly-field" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                                ${tagsHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-detail-footer">${footerHtml}</div>
+            `;
+        }
+
+        function prevModalImg() {
+            if (modalActiveImages.length <= 1) return;
+            modalActiveImgIndex = (modalActiveImgIndex - 1 + modalActiveImages.length) % modalActiveImages.length;
+            const name = document.getElementById('modalBusinessTitleDisplay').textContent;
+            const item = cachedAllComercios.find(b => b.nombre === name);
+            if (item) renderModalBody(item);
+        }
+
+        function nextModalImg() {
+            if (modalActiveImages.length <= 1) return;
+            modalActiveImgIndex = (modalActiveImgIndex + 1) % modalActiveImages.length;
+            const name = document.getElementById('modalBusinessTitleDisplay').textContent;
+            const item = cachedAllComercios.find(b => b.nombre === name);
+            if (item) renderModalBody(item);
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('open');
+        }
+
+        // Empezar la postulación directamente desde la ficha
+        window.postularDesdeModal = function(index) {
+            const org = cachedAllComercios[index];
+            if (!org) return;
+            closeDetailModal();
+            prepararPostulacion(org.nombre);
+        };
+
+        window.goToStep = function(stepNumber) {
+            if (stepNumber === 2) {
+                const checkNormativa = document.getElementById("checkNormativa");
+                if (!checkNormativa.checked) {
+                    showToastNotification("#IL-ERROR", "Debes aceptar la normativa", "vigente antes de continuar.");
+                    checkNormativa.focus();
+                    return;
+                }
+            } else if (stepNumber === 3) {
+                // Integrantes: el líder completo y válido; los demás, completos si se han empezado
+                if (!avisarErrores(validarIntegrantes(), "Revisa los integrantes")) return;
+            }
+
+            document.querySelectorAll('.wizard-step-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+
+            document.getElementById(`wizardStep${stepNumber}`).classList.add('active');
+
+            const fill = document.getElementById('wizardProgressBarFill');
+            const stepLabel = document.getElementById('wizardStepLabel');
+
+            if (stepNumber === 1) {
+                fill.style.width = '33%';
+                stepLabel.textContent = 'Paso 1 de 3: Normativa vigente';
+            } else if (stepNumber === 2) {
+                fill.style.width = '66%';
+                stepLabel.textContent = 'Paso 2 de 3: Información de integrantes';
+            } else if (stepNumber === 3) {
+                fill.style.width = '100%';
+                stepLabel.textContent = 'Paso 3 de 3: Proyecto y detalles';
+            }
+
+            // Indicador de pasos: el actual resaltado y los anteriores marcados como hechos
+            document.querySelectorAll('#wizardSteps .wizard-step-item').forEach(li => {
+                const n = Number(li.dataset.step);
+                li.classList.toggle('is-active', n === stepNumber);
+                li.classList.toggle('is-done', n < stepNumber);
+                li.querySelector('.wizard-step-num').innerHTML = n < stepNumber ? '<i class="fa-solid fa-check"></i>' : String(n);
+                if (n === stepNumber) li.setAttribute('aria-current', 'step');
+                else li.removeAttribute('aria-current');
+            });
+
+            document.querySelector('.wizard-container').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        };
+
+        window.toggleExtraMembers = function() {
+            const container = document.getElementById('extraMembersContainer');
+            const icon = document.getElementById('extraMembersIcon');
+            const text = document.getElementById('extraMembersText');
+            const isVisible = container.style.display === 'block';
+
+            if (isVisible) {
+                container.style.display = 'none';
+                icon.className = 'fa-solid fa-plus';
+                text.textContent = 'Mostrar Miembros 4, 5 y 6 (Opcional)';
+                for(let i = 4; i <= 6; i++) {
+                    document.getElementById(`int${i}Discord`).value = '';
+                    document.getElementById(`int${i}Id`).value = '';
+                    document.getElementById(`int${i}Steam`).value = '';
+                }
+            } else {
+                container.style.display = 'block';
+                icon.className = 'fa-solid fa-minus';
+                text.textContent = 'Ocultar Miembros 4, 5 y 6';
+            }
+        };
+
+        let toastTimer = null;
+        function showToastNotification(code, mainText = "La postulación", subText = "ha sido enviada correctamente.") {
+            const toast = document.getElementById('toastNotification');
+            // Los avisos de error se distinguen de los de éxito: icono rojo y sin etiqueta de código
+            const isError = code === '#IL-ERROR';
+            const isInfo = code === '#IL-INFO';
+            toast.classList.toggle('is-error', isError);
+            toast.classList.toggle('is-info', isInfo);
+            document.getElementById('toastIcon').innerHTML = `<i class="fa-solid ${isError ? 'fa-xmark' : isInfo ? 'fa-circle-info' : 'fa-check'}"></i>`;
+
+            document.getElementById('toastTicketCode').textContent = code;
+            document.getElementById('toastMainText').textContent = mainText;
+            document.getElementById('toastSubText').textContent = subText;
+            
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+
+        function checkUserNotifications() {
+            try {
+                const notifsData = localStorage.getItem('user_notifications');
+                if (!notifsData) return;
+                let notifs = JSON.parse(notifsData);
+
+                let shownNotifs = JSON.parse(sessionStorage.getItem('shown_notifs') || '[]');
+                let hasUnread = false;
+
+                notifs.forEach(n => {
+                    if (!n.read && !shownNotifs.includes(n.id)) {
+                        showToastNotification(n.code || "#IL-NOTIF", "Tu postulación", "ha recibido una actualización.");
+                        shownNotifs.push(n.id);
+                        n.read = true;
+                        hasUnread = true;
+                    }
+                });
+
+                sessionStorage.setItem('shown_notifs', JSON.stringify(shownNotifs));
+                if (hasUnread) {
+                    localStorage.setItem('user_notifications', JSON.stringify(notifs));
+                }
+            } catch (e) {
+                console.error("Error al comprobar notificaciones:", e);
+            }
+        }
+
+        function renderMyApplications() {
+            filterApplications();
+        }
+
+        window.filterApplications = function() {
+            const query = document.getElementById('searchAppInput') ? document.getElementById('searchAppInput').value.toLowerCase().trim() : '';
+            const tbody = document.getElementById('myApplicationsTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let list = [];
+            try {
+                const data = localStorage.getItem('postulaciones_ilegales_data');
+                if (data) list = JSON.parse(data);
+            } catch (e) {
+                console.error("Error al leer postulaciones:", e);
+            }
+            if (!Array.isArray(list)) list = [];
+
+            // Solo las del usuario con la sesión iniciada (el navegador del staff puede guardar las de otros)
+            const yo = String(usuarioSesion().id || '');
+            const filtered = list.filter(app => {
+                if (yo && app.discordId && String(app.discordId) !== yo) return false;
+                const id = (app.id || '').toLowerCase();
+                const name = (app.orgName || '').toLowerCase();
+                const org = (app.organizacion || '').toLowerCase();
+                return id.includes(query) || name.includes(query) || org.includes(query);
+            });
+            const mias = list.filter(app => !yo || !app.discordId || String(app.discordId) === yo);
+
+            if (filtered.length === 0) {
+                // No es lo mismo no haber enviado nada que no encontrar resultados con el filtro
+                const sinEnvios = mias.length === 0;
+                tbody.innerHTML = `
+                    <tr class="is-empty-row"><td colspan="6">
+                        <div class="apps-empty">
+                            <i class="fa-regular fa-folder-open"></i>
+                            <strong>${sinEnvios ? 'Aún no has enviado ninguna postulación' : 'Ninguna postulación coincide con el filtro'}</strong>
+                            <span>${sinEnvios ? 'Elige una organización disponible y pulsa «Postularse» para empezar.' : 'Prueba con otro ID o nombre de proyecto.'}</span>
+                        </div>
+                    </td></tr>`;
+                return;
+            }
+
+            filtered.forEach((app) => {
+                const originalIndex = list.indexOf(app);
+                const status = app.status || 'Pendiente';
+                let badgeClass = 'badge-pending';
+                if (status === 'Aprobada') badgeClass = 'badge-approved';
+                else if (status === 'Rechazada') badgeClass = 'badge-rejected';
+
+                const fechaStr = app.fechaRegistro ? new Date(app.fechaRegistro).toLocaleDateString() : 'N/A';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong style="color: #fff; font-family: monospace;">${esc(app.id || '#IL-0000')}</strong></td>
+                    <td>${esc(app.orgName || 'Sin Nombre')}</td>
+                    <td><span style="color: var(--text-muted);">${esc(app.orgType || 'N/A')}</span></td>
+                    <td><span class="badge-status ${badgeClass}">${esc(status)}</span></td>
+                    <td><span style="color: var(--text-muted);">${esc(fechaStr)}</span></td>
+                    <td>
+                        <button class="btn-view-app" onclick="viewAppModal(${originalIndex})"><i class="fa-solid fa-eye"></i> Ver</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.viewAppModal = function(index) {
+            let list = [];
+            try {
+                const data = localStorage.getItem('postulaciones_ilegales_data');
+                if (data) list = JSON.parse(data);
+            } catch (e) {}
+
+            const app = list[index];
+            if (!app) return;
+
+            let membersHtml = '';
+            if (app.members && Array.isArray(app.members)) {
+                app.members.forEach(m => {
+                    const steamUrl = safeUrl(m.steam);
+                    const steamHtml = steamUrl
+                        ? `<a href="${esc(steamUrl)}" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; word-break: break-all; text-decoration: underline;">${esc(m.steam)}</a>`
+                        : `<span style="color: #fff; word-break: break-all;">${esc(m.steam || 'N/A')}</span>`;
+                    membersHtml += `
+                        <div style="background: rgba(12, 8, 18, 0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 14px 18px; margin-bottom: 12px;">
+                            <div style="font-weight: 700; color: #f472b6; margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.6px; font-family: 'Plus Jakarta Sans', sans-serif;">${esc(m.role)}</div>
+                            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.88rem; color: #cbd5e1;">
+                                <div><strong>Discord:</strong> <span style="background: rgba(0,0,0,0.5); padding: 3px 8px; border-radius: 6px; user-select: all; color: #fff;">${esc(m.discord)}</span></div>
+                                <div><strong>ID Discord:</strong> <span style="background: rgba(0,0,0,0.5); padding: 3px 8px; border-radius: 6px; user-select: all; color: #fff;">${esc(m.id)}</span></div>
+                                <div><strong>Steam:</strong> ${steamHtml}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                membersHtml = `<p>${esc(app.leader || 'N/A')}</p>`;
+            }
+
+            const status = app.status || 'Pendiente';
+            let badgeClass = 'badge-pending';
+            if (status === 'Aprobada') badgeClass = 'badge-approved';
+            else if (status === 'Rechazada') badgeClass = 'badge-rejected';
+
+            document.getElementById('modalAppTitle').textContent = `Expediente: ${app.orgName}`;
+            const content = document.getElementById('modalAppBodyContent');
+            content.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(12, 8, 18, 0.9); padding: 16px 20px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 4px; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 2px;">Identificador</span>
+                        <strong style="font-size: 15px; color: #fff; font-family: monospace;">${esc(app.id)}</strong>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 2px;">Estado actual</span>
+                        <span class="badge-status ${badgeClass}">${esc(status)}</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 2px;">Fecha de Registro</span>
+                        <span style="font-size: 13px; color: #cbd5e1;">${esc(new Date(app.fechaRegistro).toLocaleString())}</span>
+                    </div>
+                </div>
+
+                ${app.notaStaff ? `<div class="detail-group" style="border-left: 3px solid #a855f7; padding-left: 14px;"><label><i class="fa-solid fa-comment-dots"></i> Nota del staff</label><p>${esc(app.notaStaff)}</p></div>` : ''}
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    ${app.organizacion ? `<div class="detail-group" style="margin: 0;"><label><i class="fa-solid fa-skull"></i> Organización</label><p>${esc(app.organizacion)}</p></div>` : ''}
+                    <div class="detail-group" style="margin: 0;"><label><i class="fa-solid fa-diagram-project"></i> Proyecto</label><p>${esc(app.orgName)}</p></div>
+                    <div class="detail-group" style="margin: 0;"><label><i class="fa-solid fa-sliders"></i> Estilo</label><p>${esc(app.orgType)}</p></div>
+                </div>
+
+                <div class="detail-group"><label><i class="fa-solid fa-users"></i> Integrantes</label><div>${membersHtml}</div></div>
+                <div class="detail-group"><label><i class="fa-solid fa-book-open"></i> Historia</label><p>${esc(app.lore)}</p></div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                    <div class="detail-group" style="margin: 0;"><label><i class="fa-solid fa-bullseye"></i> Objetivos a corto plazo</label><p>${esc(app.objetivosCorto)}</p></div>
+                    <div class="detail-group" style="margin: 0;"><label><i class="fa-solid fa-flag"></i> Objetivos a largo plazo</label><p>${esc(app.objetivosLargo)}</p></div>
+                </div>
+
+                <div class="detail-group"><label><i class="fa-solid fa-sitemap"></i> Estructura interna</label><p>${esc(app.estructura)}</p></div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                    <div class="detail-group" style="margin: 0;"><label><i class="fa-solid fa-car"></i> Vehículos</label><p>${esc(app.vehiculos)}</p></div>
+                    <div class="detail-group" style="margin: 0;"><label><i class="fa-solid fa-shirt"></i> Vestimenta</label><p>${esc(app.vestimenta)}</p></div>
+                </div>
+
+                <div class="detail-group"><label><i class="fa-solid fa-map-location-dot"></i> Ubicación propuesta</label><p>${esc(app.ubicacion)}</p></div>
+
+                ${(app.numeroIntegrantes || app.horario) ? `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                    <div class="detail-group" style="margin: 0;"><label><i class="fa-solid fa-people-group"></i> Integrantes previstos</label><p>${esc(app.numeroIntegrantes || '—')}</p></div>
+                    <div class="detail-group" style="margin: 0;"><label><i class="fa-regular fa-clock"></i> Horario habitual</label><p>${esc(app.horario || '—')}</p></div>
+                </div>` : ''}
+                ${app.actividades ? `<div class="detail-group"><label><i class="fa-solid fa-sack-dollar"></i> Actividades principales</label><p>${esc(app.actividades)}</p></div>` : ''}
+                ${app.relaciones ? `<div class="detail-group"><label><i class="fa-solid fa-handshake"></i> Relación con otras organizaciones y la policía</label><p>${esc(app.relaciones)}</p></div>` : ''}
+                ${app.experiencia ? `<div class="detail-group"><label><i class="fa-solid fa-medal"></i> Experiencia en rol ilegal</label><p>${esc(app.experiencia)}</p></div>` : ''}
+            `;
+
+            document.getElementById('userAppModal').classList.add('active');
+        };
+
+        window.closeUserAppModal = function() {
+            document.getElementById('userAppModal').classList.remove('active');
+        };
+
+        // Cerrar las ventanas pulsando fuera de ellas o con la tecla Esc
+        document.getElementById('detailModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeDetailModal();
+        });
+        document.getElementById('userAppModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeUserAppModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            closeDetailModal();
+            closeUserAppModal();
+            cerrarFiltroEstados();
+            if (supportMenu) supportMenu.classList.remove('show');
+        });
+
+        const submitBtn = document.getElementById('submitPostulacionBtn');
+        let enviandoPostulacion = false;
+        submitBtn.addEventListener('click', async () => {
+            if (enviandoPostulacion) return;
+
+            // Se revisa todo: normativa, integrantes y proyecto
+            if (!$('checkNormativa').checked) { goToStep(1); showToastNotification("#IL-ERROR", "Debes aceptar la normativa", "vigente antes de enviar."); return; }
+            const erroresInt = validarIntegrantes();
+            if (erroresInt.length) { goToStep(2); avisarErrores(erroresInt, "Revisa los integrantes"); return; }
+            if (!avisarErrores(validarProyecto(), "Faltan datos del proyecto")) return;
+
+            const u = usuarioSesion();
+            if (!u.id) {
+                showToastNotification("#IL-ERROR", "Inicia sesión con Discord", "para poder enviar la postulación.");
+                return;
+            }
+
+            const ROLES = ['Líder', 'Co-líder', 'Miembro 3', 'Miembro 4', 'Miembro 5', 'Miembro 6'];
+            const integrantes = [];
+            for (let i = 1; i <= 6; i++) {
+                const discord = $(`int${i}Discord`).value.trim();
+                if (!discord) continue;
+                integrantes.push({ rol: ROLES[i - 1], discord, id: $(`int${i}Id`).value.trim(), steam: $(`int${i}Steam`).value.trim() });
+            }
+            const v = id => $(id).value.trim();
+
+            // Lo que se guarda en el servidor (con el texto de cada pregunta, para el panel del staff)
+            const respuestas = {
+                organizacion: orgElegida || v('projName'),
+                proyecto: v('projName'),
+                estilo: v('projProfile'),
+                integrantes,
+                historia: v('projLore'),
+                objetivosCorto: v('projShortGoals'),
+                objetivosLargo: v('projLongGoals'),
+                estructura: v('projStructure'),
+                numeroIntegrantes: v('projMiembros'),
+                horario: v('projHorario'),
+                actividades: v('projActividades'),
+                relaciones: v('projRelaciones'),
+                experiencia: v('projExperiencia'),
+                vehiculos: v('projVehicles'),
+                vestimenta: v('projClothing'),
+                ubicacion: v('projLocation'),
+                aceptaNormativa: true,
+                _preguntas: {
+                    organizacion: 'Organización a la que se postula', proyecto: 'Nombre del proyecto', estilo: 'Estilo',
+                    integrantes: 'Integrantes', historia: 'Historia', objetivosCorto: 'Objetivos a corto plazo',
+                    objetivosLargo: 'Objetivos a largo plazo', estructura: 'Estructura interna',
+                    numeroIntegrantes: 'Integrantes previstos', horario: 'Horario habitual', actividades: 'Actividades principales',
+                    relaciones: 'Relación con otras organizaciones y la policía', experiencia: 'Experiencia en rol ilegal',
+                    vehiculos: 'Vehículos', vestimenta: 'Vestimenta', ubicacion: 'Ubicación propuesta',
+                    aceptaNormativa: 'Acepta la normativa'
+                }
+            };
+
+            enviandoPostulacion = true;
+            const htmlBoton = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+
+            const res = window.PostulacionesAPI
+                ? await window.PostulacionesAPI.enviar('ilegal', respuestas)
+                : { ok: false, status: 0, error: 'No se ha cargado el sistema de envío.' };
+
+            enviandoPostulacion = false;
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = htmlBoton;
+
+            if (!res.ok) {
+                // No se borra nada: lo escrito sigue en el formulario y en el borrador
+                if (res.status === 401) showToastNotification("#IL-ERROR", "Tu sesión ha caducado.", "Vuelve a iniciar sesión con Discord; lo que has escrito sigue guardado.");
+                else if (res.status === 409) showToastNotification("#IL-ERROR", "No se ha enviado:", res.error);
+                else showToastNotification("#IL-ERROR", "No se ha podido enviar.", (res.status ? res.error : 'Sin conexión con el servidor') + '. Inténtalo de nuevo; lo que has escrito sigue guardado.');
+                return;
+            }
+
+            // Copia en este navegador (la lee el panel admin/organizaciones-ilegal.html)
+            const p = res.data;
+            try {
+                const list = JSON.parse(localStorage.getItem('postulaciones_ilegales_data') || '[]');
+                list.unshift(desdeServidor(p));
+                localStorage.setItem('postulaciones_ilegales_data', JSON.stringify(list));
+            } catch (e) {
+                console.error("Error guardando la copia local de la postulación:", e);
+            }
+
+            borrarBorradorIl();
+            renderMyApplications();
+            showToastNotification('#' + p.id, "La postulación", "se ha enviado. Te avisaremos por MD de Discord cuando el staff la revise.");
+
+            document.getElementById('postulacionForm').reset();
+            document.getElementById('extraMembersContainer').style.display = 'none';
+            document.getElementById('extraMembersIcon').className = 'fa-solid fa-plus';
+            document.getElementById('extraMembersText').textContent = 'Mostrar Miembros 4, 5 y 6 (Opcional)';
+            document.getElementById('inlineFormContainer').classList.remove('show');
+            orgElegida = '';
+            actualizarContadores();
+            goToStep(1);
+            document.querySelector('.my-applications-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        /* ---------- Mis postulaciones: el estado real sale del servidor ---------- */
+        const ESTADO_LOCAL = { 'Aprobada': 'Aprobada', 'Rechazada': 'Rechazada', 'En revisión': 'En revisión', 'Pendiente': 'Pendiente' };
+
+        // Convierte una postulación del servidor al formato que usa esta página y el panel de admin
+        function desdeServidor(p) {
+            const r = p.respuestas || {};
+            return {
+                id: '#' + p.id,
+                organizacion: r.organizacion || '',
+                orgName: r.proyecto || r.organizacion || '',
+                orgType: r.estilo || '',
+                members: (r.integrantes || []).map(m => ({ role: m.rol, discord: m.discord, id: m.id, steam: m.steam })),
+                lore: r.historia || '',
+                objetivosCorto: r.objetivosCorto || '',
+                objetivosLargo: r.objetivosLargo || '',
+                estructura: r.estructura || '',
+                numeroIntegrantes: r.numeroIntegrantes || '',
+                horario: r.horario || '',
+                actividades: r.actividades || '',
+                relaciones: r.relaciones || '',
+                experiencia: r.experiencia || '',
+                vehiculos: r.vehiculos || '',
+                vestimenta: r.vestimenta || '',
+                ubicacion: r.ubicacion || '',
+                autor: p.usuario || '',
+                discordId: p.discordId,
+                status: ESTADO_LOCAL[p.estado] || 'Pendiente',
+                notaStaff: p.nota || '',
+                fechaRegistro: p.fecha
+            };
+        }
+
+        async function sincronizarConServidor() {
+            if (!window.PostulacionesAPI) return;
+            const res = await window.PostulacionesAPI.listar('ilegal');
+            if (!res.ok || !Array.isArray(res.data)) return;
+            const yo = String(usuarioSesion().id || '');
+            let list = [];
+            try { list = JSON.parse(localStorage.getItem('postulaciones_ilegales_data') || '[]'); } catch (e) {}
+            if (!Array.isArray(list)) list = [];
+            res.data.filter(p => !yo || String(p.discordId) === yo).forEach(p => {
+                const nueva = desdeServidor(p);
+                const i = list.findIndex(x => x && x.id === nueva.id);
+                if (i >= 0) list[i] = Object.assign({}, list[i], { status: nueva.status, notaStaff: nueva.notaStaff });
+                else list.push(nueva);
+            });
+            list.sort((a, b) => new Date(b.fechaRegistro || 0) - new Date(a.fechaRegistro || 0));
+            try { localStorage.setItem('postulaciones_ilegales_data', JSON.stringify(list)); } catch (e) {}
+            renderMyApplications();
+        }
+        document.addEventListener('DOMContentLoaded', sincronizarConServidor);
+        window.addEventListener('focus', sincronizarConServidor);
+    </script>
+
+    <!-- Envío y consulta de postulaciones en el servidor (window.PostulacionesAPI) -->
+    <script src="postulaciones.js"></script>
+    <script src="../guards.js"></script>
+    <!-- Menú lateral común: logo, lupa y buscador de páginas por categorías -->
+    <script src="../src/components/hx-sidebar.js"></script>
+    <script src="/src/components/desplegables.js"></script>
+    <script src="/src/components/cabecera.js"></script>
+</body>
+</html>

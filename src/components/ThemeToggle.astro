@@ -1,0 +1,74 @@
+<button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar tema claro/oscuro">
+  <svg class="sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="4"></circle>
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+  </svg>
+  <svg class="moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+  </svg>
+</button>
+
+<style>
+  .theme-toggle {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    color: var(--fg-muted);
+    transition:
+      color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease);
+  }
+
+  .theme-toggle:hover {
+    color: var(--fg);
+    border-color: var(--border-strong);
+  }
+
+  .theme-toggle svg {
+    grid-area: 1 / 1;
+  }
+
+  /* al pulsar, el icono nuevo entra girando */
+  .theme-toggle:global(.is-girando) svg {
+    animation: icono-gira 0.6s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+
+  @keyframes icono-gira {
+    from {
+      opacity: 0;
+      transform: rotate(-120deg) scale(0.4);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-toggle:global(.is-girando) svg {
+      animation: none;
+    }
+  }
+
+  /* claro → se muestra la luna; oscuro → el sol */
+  .sun {
+    display: none;
+  }
+
+  :global(:root[data-theme="dark"]) .sun {
+    display: block;
+  }
+
+  :global(:root[data-theme="dark"]) .moon {
+    display: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .sun {
+      display: block;
+    }
+
+    :global(:root:not([data-theme="light"])) .moon {
+      display: none;
+    }
+  }
+</style>

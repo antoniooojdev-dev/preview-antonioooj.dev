@@ -1,0 +1,194 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import ContactForm from "@/components/ContactForm.astro";
+import { site, socials } from "@/data/site";
+import { process } from "@/data/process";
+---
+
+<BaseLayout
+  title="Contacto"
+  description="Cuéntame tu proyecto web y te respondo en menos de 24 horas con una propuesta sin compromiso."
+>
+  <section class="page">
+    <div class="container grid">
+      <div class="intro">
+        <span class="eyebrow mono">~/contacto</span>
+        <h1>Hablemos de tu proyecto</h1>
+        <p class="lead">
+          Rellena el formulario con lo que sepas: no hace falta tenerlo todo claro. Te respondo en
+          {" "}{site.responseTime} y, si encaja, agendamos una llamada gratuita.
+        </p>
+
+        <div class="card form-card">
+          <ContactForm />
+        </div>
+      </div>
+
+      <aside class="side">
+        <div class="block">
+          <h2 class="mono">// qué pasa después</h2>
+          <ol role="list" class="next">
+            {
+              process.slice(0, 3).map((step, i) => (
+                <li>
+                  <span class="mono">{String(i + 1).padStart(2, "0")}</span>
+                  <div>
+                    <strong>{step.title}</strong>
+                    <p>{step.description}</p>
+                  </div>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+
+        <div class="block">
+          <h2 class="mono">// chat directo</h2>
+          <p class="chat-hint">Entra con Discord y escríbeme por el chat: la conversación queda guardada.</p>
+          <a class="btn btn-ghost" href="/chat">Abrir el chat <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+
+        <div class="block">
+          <h2 class="mono">// prefieres email</h2>
+          <a class="link big" href={`mailto:${site.email}`}>{site.email}</a>
+        </div>
+
+        <div class="block">
+          <h2 class="mono">// redes</h2>
+          <ul role="list" class="socials">
+            {
+              socials.map((s) => (
+                <li>
+                  <a class="link" href={s.href} target="_blank" rel="noopener noreferrer">
+                    {s.label}
+                  </a>
+                  <span class="mono">{s.handle}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--space-8) var(--section);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    gap: var(--space-8);
+    align-items: start;
+  }
+
+  .intro {
+    min-width: 0;
+  }
+
+  .eyebrow {
+    font-size: var(--fs-sm);
+    color: var(--fg-subtle);
+  }
+
+  h1 {
+    font-size: var(--fs-xl);
+    letter-spacing: -0.035em;
+    margin-block: var(--space-3) var(--space-4);
+  }
+
+  .lead {
+    color: var(--fg-muted);
+    font-size: var(--fs-md);
+    max-width: 38rem;
+    margin-bottom: var(--space-7);
+  }
+
+  .form-card {
+    padding: clamp(1.25rem, 1rem + 2vw, 2.5rem);
+  }
+
+  .form-card:hover {
+    border-color: var(--border);
+  }
+
+  .side {
+    display: grid;
+    gap: var(--space-7);
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-6));
+  }
+
+  .block h2 {
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--fg-subtle);
+    margin-bottom: var(--space-4);
+  }
+
+  .next {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .next li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+  }
+
+  .next li > span {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+    padding-top: 0.2rem;
+  }
+
+  .next strong {
+    font-weight: 600;
+  }
+
+  .next p {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .chat-hint {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    margin-bottom: var(--space-3);
+  }
+
+  .big {
+    font-size: var(--fs-md);
+    word-break: break-all;
+  }
+
+  .socials {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .socials li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .socials span {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  @media (max-width: 60rem) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+
+    .side {
+      position: static;
+    }
+  }
+</style>

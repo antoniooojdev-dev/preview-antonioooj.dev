@@ -1,0 +1,58 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import CodeBlock from "@/components/CodeBlock.astro";
+import { site } from "@/data/site";
+
+const code = `
+await mensaje.enviar();   // ✓ hecho
+await antonio.leer();     // en curso…
+await antonio.responder(); // en ${site.responseTime}
+`;
+---
+
+<BaseLayout title="Mensaje enviado" noindex>
+  <section class="page">
+    <div class="container inner">
+      <span class="eyebrow mono">200 OK</span>
+      <h1>¡Gracias! He recibido tu mensaje.</h1>
+      <p>
+        Lo reviso y te contesto en {site.responseTime}. Si es urgente, escríbeme directamente a
+        {" "}<a class="link" href={`mailto:${site.email}`}>{site.email}</a>.
+      </p>
+      <CodeBlock code={code} lang="js" filename="estado.js" />
+      <a href="/" class="btn btn-ghost">← Volver al inicio</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-block: var(--section);
+  }
+
+  .inner {
+    display: grid;
+    gap: var(--space-5);
+    max-width: 40rem;
+    justify-items: start;
+  }
+
+  .inner > :global(figure) {
+    width: 100%;
+  }
+
+  .eyebrow {
+    font-size: var(--fs-sm);
+    color: var(--ok);
+  }
+
+  h1 {
+    font-size: var(--fs-xl);
+    letter-spacing: -0.035em;
+  }
+
+  p {
+    color: var(--fg-muted);
+    font-size: var(--fs-md);
+  }
+</style>

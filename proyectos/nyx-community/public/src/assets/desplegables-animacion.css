@@ -1,0 +1,42 @@
+/* =====================================================================
+   desplegables-animacion.css · Solo la ANIMACIÓN de apertura del filtro de
+   home.html, para los desplegables de las páginas de administración
+   (que conservan su diseño y su color rojo de admin).
+
+   Igual que en Home: al abrirse aparece con un fundido, bajando y creciendo
+   un poco (0,25 s); al cerrarse hace lo mismo al revés.
+
+   Antes estos menús pasaban de display:none a display:block de golpe.
+   Ahora siempre están en la página, pero invisibles y sin poder pulsarse
+   hasta que su página les pone la clase de abierto:
+     .dropdown-options.open           (ck, comercios, creadores, facciones-legales)
+     .filter-options.open             (comercios)
+     .filter-dropdown-menu.active     (playmakers, sanciones, staff, whitelist)
+     .custom-select-wrapper.open      (sanciones, staff)
+   El #desplegables-anim dentro de :is() da prioridad de ID a estas reglas.
+   ===================================================================== */
+:is(#desplegables-anim, .dropdown-options, .filter-options, .filter-dropdown-menu, .custom-select-wrapper .custom-options) {
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transform-origin: top center;
+    pointer-events: none;
+    animation: none;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0s linear 0.25s;
+}
+:is(#desplegables-anim, .dropdown-options.open, .filter-options.open, .filter-dropdown-menu.active, .custom-select-wrapper.open .custom-options) {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0s linear 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(#desplegables-anim, .dropdown-options, .filter-options, .filter-dropdown-menu, .custom-select-wrapper .custom-options) { transition: none; }
+}

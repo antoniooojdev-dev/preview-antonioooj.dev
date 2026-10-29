@@ -1,0 +1,115 @@
+/* =====================================================================
+   campanita.css · Campanita para activar/desactivar notificaciones
+   Diseño "Neón circular", igual en todas las páginas:
+   - Apagada: círculo con borde de neón morado y el icono fa-bell-slash.
+   - Encendida: se rellena con el degradado, brilla y lanza ondas.
+
+   Cada página marca el estado encendido con su propia clase:
+     .nv-bell-btn.on                    → home.html (Novedades)
+     .notif-bell-btn.active             → comercios.html, lspd-academia.html
+     .restart-notification-bell.active  → calendario.html, servidor.html
+   ===================================================================== */
+.nv-bell-btn,
+.notif-bell-btn,
+.restart-notification-bell {
+    position: relative;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 50%;
+    background: transparent;
+    border: 1.5px solid rgba(168, 85, 247, 0.55);
+    color: #c084fc;
+    cursor: pointer;
+    font-size: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 10px rgba(168, 85, 247, 0.15);
+    transition: transform .25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .3s ease, color .3s ease, border-color .3s ease, background .3s ease;
+}
+.nv-bell-btn i,
+.notif-bell-btn i,
+.restart-notification-bell i { transform-origin: 50% 8%; }
+
+.nv-bell-btn:hover,
+.notif-bell-btn:hover,
+.restart-notification-bell:hover {
+    color: #fff;
+    border-color: #a855f7;
+    box-shadow: 0 0 18px rgba(168, 85, 247, 0.55), inset 0 0 12px rgba(168, 85, 247, 0.3);
+    transform: scale(1.06);
+}
+.nv-bell-btn:hover i,
+.notif-bell-btn:hover i,
+.restart-notification-bell:hover i { animation: campRing .7s ease; }
+
+.nv-bell-btn:active,
+.notif-bell-btn:active,
+.restart-notification-bell:active { transform: scale(0.9); }
+
+.nv-bell-btn:focus-visible,
+.notif-bell-btn:focus-visible,
+.restart-notification-bell:focus-visible { outline: 2px solid #a855f7; outline-offset: 3px; }
+
+.nv-bell-btn:disabled,
+.notif-bell-btn:disabled,
+.restart-notification-bell:disabled { opacity: .6; cursor: wait; }
+
+/* Encendida: relleno degradado, brillo y ondas */
+.nv-bell-btn.on,
+.notif-bell-btn.active,
+.restart-notification-bell.active {
+    background: radial-gradient(circle at 30% 30%, #c084fc, #a855f7 45%, #ec4899);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 0 22px rgba(236, 72, 153, 0.55);
+}
+.nv-bell-btn.on i,
+.notif-bell-btn.active i,
+.restart-notification-bell.active i { animation: campRing .7s ease; }
+
+.nv-bell-btn.on::before,
+.nv-bell-btn.on::after,
+.notif-bell-btn.active::before,
+.notif-bell-btn.active::after,
+.restart-notification-bell.active::before,
+.restart-notification-bell.active::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 50%;
+    border: 2px solid rgba(236, 72, 153, 0.7);
+    animation: campPulse 2.2s ease-out infinite;
+    pointer-events: none;
+}
+.nv-bell-btn.on::after,
+.notif-bell-btn.active::after,
+.restart-notification-bell.active::after { animation-delay: 1.1s; }
+
+/* Pequeño salto al pulsar (home.html añade .burst) */
+.nv-bell-btn.burst { animation: campPop .45s cubic-bezier(0.16, 1, 0.3, 1); }
+
+@keyframes campPulse {
+    from { transform: scale(1);   opacity: .8; }
+    to   { transform: scale(1.7); opacity: 0; }
+}
+@keyframes campPop {
+    0%   { transform: scale(0.8); }
+    60%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+}
+@keyframes campRing {
+    0% { transform: rotate(0); } 20% { transform: rotate(18deg); }
+    40% { transform: rotate(-16deg); } 60% { transform: rotate(10deg); }
+    80% { transform: rotate(-6deg); } 100% { transform: rotate(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nv-bell-btn, .notif-bell-btn, .restart-notification-bell,
+    .nv-bell-btn *, .notif-bell-btn *, .restart-notification-bell * { transition: none; animation: none !important; }
+    .nv-bell-btn::before, .nv-bell-btn::after,
+    .notif-bell-btn::before, .notif-bell-btn::after,
+    .restart-notification-bell::before, .restart-notification-bell::after { animation: none !important; display: none; }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "aj-discord-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bot de Discord automatizado: tickets, verificación, automod, niveles, sorteos, encuestas, recordatorios y mensajes programados",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "scripts": {
+    "start": "node --env-file=.env src/index.js",
+    "dev": "node --watch --env-file=.env src/index.js",
+    "deploy": "node --env-file=.env src/deploy-commands.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.19.0"
+  }
+}

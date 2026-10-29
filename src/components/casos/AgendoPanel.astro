@@ -1,0 +1,3742 @@
+---
+// Caso «Agendo» · panel del equipo de la Barbería Navaja (/servicios/app/agendo/panel).
+// - Entrada eligiendo quién eres: el administrador ve a todo el equipo; cada barbero, solo lo suyo.
+// - Inicio: todas las citas agendadas (próximas, hoy, pasadas, canceladas), el equipo ahora y las reservas web.
+// - Agenda: semana de UN profesional, con su turno marcado (fuera de turno no se puede citar) y citas arrastrables.
+// - Equipo: horario de cada uno (editable por el administrador), su carga de la semana y sus próximas citas.
+// - Clientes, servicios y estadísticas.
+// Comparte los datos con la web pública vía src/scripts/agendo/datos.ts.
+const WEB = "/servicios/app/agendo";
+---
+
+<div class="pa" data-pa>
+  <!-- entrada -->
+  <section class="pa-login" data-pa-login hidden>
+    <div class="pa-login__fondo" aria-hidden="true"></div>
+    <div class="pa-login__txt">
+      <span class="pa-logo"><span><i class="fa-solid fa-calendar-check"></i></span>Agendo</span>
+      <h1>El panel de <em>Barbería Navaja</em></h1>
+      <p>Cada profesional ve su agenda con su horario. El administrador ve a todo el equipo, las reservas que llegan desde la web y cómo va el negocio.</p>
+      <ul role="list" class="pa-login__pts">
+        <li><i class="fa-solid fa-user-clock"></i> Agenda por profesional según su turno</li>
+        <li><i class="fa-solid fa-globe"></i> Las reservas de la web aparecen al momento</li>
+        <li><i class="fa-solid fa-chart-line"></i> Ocupación e ingresos de la semana</li>
+      </ul>
+    </div>
+    <div class="pa-login__caja">
+      <h2>¿Quién entra?</h2>
+      <p>Demo: elige un perfil, no hace falta contraseña.</p>
+      <div class="pa-login__lista" data-pa-quien></div>
+      <a class="pa-login__web" href={WEB}><i class="fa-solid fa-arrow-left"></i> Ir a la web de la barbería</a>
+    </div>
+  </section>
+
+  <!-- app -->
+  <div class="pa-app" data-pa-app hidden>
+    <aside class="pa-side">
+      <div class="pa-side__top">
+        <span class="pa-logo"><span><i class="fa-solid fa-calendar-check"></i></span>Agendo</span>
+        <div class="pa-negocio">
+          <span class="pa-negocio__ico"><i class="fa-solid fa-scissors"></i></span>
+          <span><strong>Barbería Navaja</strong><small data-pa-negocio-sub></small></span>
+        </div>
+      </div>
+      <nav class="pa-menu" data-pa-menu aria-label="Secciones">
+        <button type="button" data-vista="inicio"><i class="fa-solid fa-house"></i><span>Inicio</span><em data-pa-badge></em></button>
+        <button type="button" data-vista="agenda"><i class="fa-solid fa-calendar-week"></i><span>Agenda</span></button>
+        <button type="button" data-vista="equipo"><i class="fa-solid fa-user-clock"></i><span>Equipo y horarios</span></button>
+        <button type="button" data-vista="clientes"><i class="fa-solid fa-address-book"></i><span>Clientes</span></button>
+        <button type="button" data-vista="servicios" data-admin><i class="fa-solid fa-scissors"></i><span>Servicios</span></button>
+        <button type="button" data-vista="stats" data-admin><i class="fa-solid fa-chart-simple"></i><span>Estadísticas</span></button>
+      </nav>
+      <div class="pa-side__pie">
+        <a class="pa-side__web" href={WEB} target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver la web pública</a>
+        <button type="button" class="pa-side__mini" data-pa-reset><i class="fa-solid fa-rotate-left"></i> Restablecer ejemplo</button>
+        <div class="pa-yo" data-pa-yo></div>
+      </div>
+    </aside>
+
+    <main class="pa-main">
+      <header class="pa-top">
+        <div class="pa-top__titulo">
+          <h1 data-pa-titulo>Inicio</h1>
+          <p data-pa-sub></p>
+        </div>
+        <div class="pa-top__acc">
+          <div class="pa-seg" data-solo-vista="agenda">
+            <button type="button" data-pa-sem="-1" aria-label="Semana anterior"><i class="fa-solid fa-chevron-left"></i></button>
+            <button type="button" data-pa-hoy>Hoy</button>
+            <button type="button" data-pa-sem="1" aria-label="Semana siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+          <label class="pa-buscar" data-solo-vista="clientes"><i class="fa-solid fa-magnifying-glass"></i><input type="search" placeholder="Buscar cliente o teléfono…" data-pa-buscar-cli /></label>
+          <button type="button" class="pa-btn" data-pa-nueva><i class="fa-solid fa-plus"></i> Nueva cita</button>
+        </div>
+      </header>
+
+      <!-- inicio -->
+      <section class="pa-vista" data-vista-panel="inicio">
+        <div class="pa-kpis" data-pa-kpis></div>
+        <div class="pa-inicio">
+          <div class="pa-card pa-citas">
+            <div class="pa-citas__cab">
+              <h2>Citas agendadas</h2>
+              <div class="pa-filtros" data-pa-filtros>
+                <button type="button" data-f="proximas">Próximas <em></em></button>
+                <button type="button" data-f="hoy">Hoy <em></em></button>
+                <button type="button" data-f="pasadas">Pasadas <em></em></button>
+                <button type="button" data-f="canceladas">Canceladas <em></em></button>
+              </div>
+            </div>
+            <div class="pa-citas__barra">
+              <label class="pa-buscar pa-buscar--suave"><i class="fa-solid fa-magnifying-glass"></i><input type="search" placeholder="Cliente o teléfono…" data-pa-busca /></label>
+              <select class="pa-select" data-pa-fbarb aria-label="Profesional"></select>
+            </div>
+            <div class="pa-citas__lista" data-pa-lista></div>
+          </div>
+          <div class="pa-inicio__lado">
+            <div class="pa-card pa-ahora">
+              <h2>El equipo ahora</h2>
+              <div data-pa-ahora></div>
+            </div>
+            <div class="pa-card pa-web">
+              <h2><i class="fa-solid fa-globe"></i> Últimas reservas web</h2>
+              <ul role="list" data-pa-web></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- agenda -->
+      <section class="pa-vista" data-vista-panel="agenda" hidden>
+        <div class="pa-agenda-cab">
+          <div class="pa-tabs" data-pa-tabs></div>
+          <div class="pa-agenda-resumen" data-pa-ag-resumen></div>
+        </div>
+        <div class="pa-card pa-cal">
+          <div class="pa-cal__scroll">
+            <div class="pa-cal__cab" data-pa-cab></div>
+            <div class="pa-cal__cuerpo" data-pa-cuerpo>
+              <div class="pa-cal__horas" data-pa-horas></div>
+              <div class="pa-cal__cols" data-pa-cols></div>
+            </div>
+          </div>
+        </div>
+        <footer class="pa-cal__pie">
+          <div class="pa-leyenda" data-pa-leyenda></div>
+          <p><i class="fa-solid fa-hand-pointer"></i> Pulsa un hueco dentro del turno para citar · arrastra una cita para moverla</p>
+        </footer>
+      </section>
+
+      <!-- equipo -->
+      <section class="pa-vista" data-vista-panel="equipo" hidden>
+        <div class="pa-equipo" data-pa-equipo></div>
+      </section>
+
+      <!-- clientes -->
+      <section class="pa-vista" data-vista-panel="clientes" hidden>
+        <div class="pa-clientes">
+          <div class="pa-card pa-card--tabla">
+            <table class="pa-tabla">
+              <thead><tr><th>Cliente</th><th>Teléfono</th><th>Visitas</th><th>Gastado</th><th>Próxima cita</th></tr></thead>
+              <tbody data-pa-cli></tbody>
+            </table>
+          </div>
+          <aside class="pa-card pa-ficha" data-pa-ficha>
+            <div class="pa-vacio"><i class="fa-solid fa-address-card"></i><p>Elige un cliente para ver su ficha, su historial y sus próximas citas.</p></div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- servicios -->
+      <section class="pa-vista" data-vista-panel="servicios" hidden>
+        <ul role="list" class="pa-servicios" data-pa-servicios></ul>
+      </section>
+
+      <!-- estadísticas -->
+      <section class="pa-vista" data-vista-panel="stats" hidden>
+        <div class="pa-kpis" data-pa-skpis></div>
+        <div class="pa-graficas">
+          <div class="pa-card pa-panel">
+            <h2>Ingresos por día <small data-pa-rango></small></h2>
+            <div class="pa-barras" data-pa-barras></div>
+          </div>
+          <div class="pa-card pa-panel">
+            <h2>Ocupación por profesional</h2>
+            <div class="pa-ocup" data-pa-ocup></div>
+          </div>
+          <div class="pa-card pa-panel pa-panel--ancho">
+            <h2>Servicios más pedidos</h2>
+            <div class="pa-hbarras" data-pa-hbarras></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- modal de cita -->
+  <dialog class="pa-modal" data-pa-modal aria-labelledby="pa-modal-t">
+    <form class="pa-form" data-pa-form novalidate>
+      <header class="pa-form__cab">
+        <div>
+          <h2 id="pa-modal-t" data-pa-modal-t>Nueva cita</h2>
+          <p data-pa-modal-sub></p>
+        </div>
+        <button type="button" class="pa-ico" data-pa-cerrar aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+      </header>
+      <div class="pa-form__cuerpo">
+        <label>Cliente
+          <input name="cliente" list="pa-lista-cli" autocomplete="off" placeholder="Nombre del cliente" />
+          <datalist id="pa-lista-cli" data-pa-datalist></datalist>
+        </label>
+        <label>Teléfono<input name="tel" inputmode="tel" placeholder="600 000 000" /></label>
+        <label>Servicio<select name="servicio"></select></label>
+        <label>Profesional<select name="barbero"></select></label>
+        <label>Día<input type="date" name="fecha" /></label>
+        <label>Hora<select name="hora"></select></label>
+        <p class="pa-turno pa-ancho" data-pa-turno></p>
+        <div class="pa-ancho pa-campo">
+          <span>Estado</span>
+          <div class="pa-estados" data-pa-estados>
+            <button type="button" data-e="confirmada"><i class="fa-solid fa-circle-check"></i> Confirmada</button>
+            <button type="button" data-e="llego"><i class="fa-solid fa-user-check"></i> Atendida</button>
+            <button type="button" data-e="noshow"><i class="fa-solid fa-user-xmark"></i> No vino</button>
+            <button type="button" data-e="cancelada"><i class="fa-solid fa-ban"></i> Cancelada</button>
+          </div>
+        </div>
+        <label class="pa-ancho">Notas<textarea name="notas" rows="2" placeholder="Degradado bajo, barba perfilada…"></textarea></label>
+        <p class="pa-error pa-ancho" data-pa-error></p>
+      </div>
+      <footer class="pa-form__pie">
+        <button type="button" class="pa-btn pa-btn--peligro" data-pa-borrar hidden><i class="fa-solid fa-trash"></i> Borrar</button>
+        <button type="button" class="pa-btn pa-btn--suave" data-pa-cancelar>Cerrar</button>
+        <button type="submit" class="pa-btn">Guardar cita</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- modal de horario -->
+  <dialog class="pa-modal" data-pa-hmodal aria-labelledby="pa-hmodal-t">
+    <form class="pa-form" data-pa-hform novalidate>
+      <header class="pa-form__cab">
+        <div>
+          <h2 id="pa-hmodal-t" data-pa-hmodal-t>Horario</h2>
+          <p>Marca los días que trabaja y sus turnos. El segundo turno es opcional (para partir el día).</p>
+        </div>
+        <button type="button" class="pa-ico" data-pa-hcerrar aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+      </header>
+      <div class="pa-form__cuerpo pa-hdias" data-pa-hdias></div>
+      <p class="pa-error" data-pa-herror></p>
+      <footer class="pa-form__pie">
+        <button type="button" class="pa-btn pa-btn--suave" data-pa-hcancelar>Cancelar</button>
+        <button type="submit" class="pa-btn">Guardar horario</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <div class="pa-toast" data-pa-toast role="status"></div>
+</div>
+
+<script>
+  import { cargar, guardar, alCambiar, restablecer, serv, barb, huecos, choque, dentroDeHorario, turnosDe, turnosTxt, horaTxt, hhmm, euro, iniciales, inicioDia, masDias, lunes, aLas, sameDay, nuevoId, normalTel, estadoAhora, minutosDeTrabajo, DIAS, H_INI, H_FIN, DIA, type Datos, type Cita, type Barbero, type Estado, type Turnos } from "@/scripts/agendo/datos";
+
+  const raiz = document.querySelector<HTMLElement>("[data-pa]")!;
+  const $ = <T extends Element = HTMLElement>(s: string, el: ParentNode = raiz) => el.querySelector<T>(s)!;
+  const $$ = <T extends Element = HTMLElement>(s: string, el: ParentNode = raiz) => [...el.querySelectorAll<T>(s)];
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, clase = "", texto = "") {
+    const e = document.createElement(tag);
+    if (clase) e.className = clase;
+    if (texto) e.textContent = texto;
+    return e;
+  }
+  const ico = (n: string) => Object.assign(document.createElement("i"), { className: `fa-solid fa-${n}` });
+  const boton = (clase: string, ...hijos: (Node | string)[]) => {
+    const b = el("button", clase);
+    b.type = "button";
+    b.append(...hijos);
+    return b;
+  };
+  const avatar = (b: Barbero, clase = "") => {
+    const a = el("span", `pa-av ${clase}`, iniciales(`${b.n} ${b.apellido}`));
+    a.style.setProperty("--c", b.c);
+    return a;
+  };
+  const ALTO_H = 64; // px por hora
+  raiz.style.setProperty("--h", `${ALTO_H}px`);
+  const ORDEN = [1, 2, 3, 4, 5, 6, 0]; // días de lunes a domingo
+  const diaCorto = new Intl.DateTimeFormat("es-ES", { weekday: "short" });
+  const fechaCorta = new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short" });
+  const fechaDia = (ms: number) => new Date(ms).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  const fin = (c: Cita) => c.inicio + serv(datos, c.servicio).min * 60_000;
+  const ESTADOS: Record<Estado, [string, string]> = {
+    confirmada: ["Confirmada", "circle-check"],
+    llego: ["Atendida", "user-check"],
+    noshow: ["No vino", "user-xmark"],
+    cancelada: ["Cancelada", "ban"],
+  };
+  function hace(ms: number) {
+    const m = Math.round((Date.now() - ms) / 60_000);
+    if (m < 1) return "ahora mismo";
+    if (m < 60) return `hace ${m} min`;
+    if (m < 1440) return `hace ${Math.round(m / 60)} h`;
+    const d = Math.round(m / 1440);
+    return d === 1 ? "ayer" : `hace ${d} días`;
+  }
+  function etiquetaDia(ms: number) {
+    const d = inicioDia(ms);
+    const hoy = inicioDia();
+    if (d === hoy) return "Hoy";
+    if (d === masDias(hoy, 1)) return "Mañana";
+    if (d === masDias(hoy, -1)) return "Ayer";
+    return fechaDia(ms);
+  }
+
+  let datos: Datos = cargar();
+
+  function toast(t: string) {
+    const caja = $("[data-pa-toast]");
+    caja.textContent = t;
+    caja.classList.add("is-on");
+    clearTimeout(Number(caja.dataset.t));
+    caja.dataset.t = String(setTimeout(() => caja.classList.remove("is-on"), 2800));
+  }
+
+  // ── sesión: quién ha entrado ─────
+  const CLAVE_SESION = "agendo-v3-sesion";
+  let yo: string | null = null;
+  try {
+    yo = sessionStorage.getItem(CLAVE_SESION);
+  } catch {}
+  const esAdmin = () => yo === datos.barberos[0].id;
+  const yoB = () => barb(datos, yo!);
+  /** las citas que ve quien ha entrado: el administrador todas, cada barbero las suyas */
+  const visibles = () => (esAdmin() ? datos.citas : datos.citas.filter((c) => c.barbero === yo));
+
+  function pintarLogin() {
+    $("[data-pa-quien]").replaceChildren(
+      ...datos.barberos.map((b, i) => {
+        const txt = el("span", "pa-quien__txt");
+        txt.append(el("strong", "", `${b.n} ${b.apellido}`), el("small", "", i === 0 ? "Administrador · ve a todo el equipo" : `${b.rol} · ve su agenda`));
+        const est = estadoAhora(b);
+        const pill = el("span", `pa-pill${est.activo ? " is-on" : ""}`);
+        pill.append(el("i"), est.activo ? "Trabajando" : est.txt.replace("Ya ha terminado hoy", "Terminó"));
+        const b2 = boton("pa-quien", avatar(b), txt, pill, ico("arrow-right"));
+        b2.addEventListener("click", () => entrar(b.id));
+        return b2;
+      }),
+    );
+  }
+
+  function entrar(id: string | null) {
+    yo = id;
+    try {
+      if (id) sessionStorage.setItem(CLAVE_SESION, id);
+      else sessionStorage.removeItem(CLAVE_SESION);
+    } catch {}
+    arrancar();
+  }
+
+  function arrancar() {
+    if (yo && !datos.barberos.some((b) => b.id === yo)) yo = null;
+    $("[data-pa-login]").hidden = !!yo;
+    $("[data-pa-app]").hidden = !yo;
+    if (!yo) return pintarLogin();
+    agendaDe = yo;
+    filtroBarb = "todos";
+    $$("[data-admin]").forEach((x) => (x.hidden = !esAdmin()));
+    $("[data-pa-fbarb]").hidden = !esAdmin();
+    $("[data-pa-negocio-sub]").textContent = `${datos.barberos.length} profesionales · Valencia`;
+    const b = yoB();
+    const quien = el("div", "pa-yo__txt");
+    quien.append(el("strong", "", `${b.n} ${b.apellido}`), el("small", "", esAdmin() ? "Administrador" : b.rol));
+    const salir = boton("pa-ico pa-ico--osc", ico("right-from-bracket"));
+    salir.title = "Cambiar de usuario";
+    salir.setAttribute("aria-label", "Cambiar de usuario");
+    salir.addEventListener("click", () => entrar(null));
+    $("[data-pa-yo]").replaceChildren(avatar(b), quien, salir);
+    const v = location.hash.slice(1);
+    irVista(v in TITULOS && (esAdmin() || !["servicios", "stats"].includes(v)) ? v : "inicio");
+  }
+
+  // ── vistas ─────
+  let vista = "inicio";
+  const TITULOS: Record<string, string> = {
+    inicio: "Inicio",
+    agenda: "Agenda",
+    equipo: "Equipo y horarios",
+    clientes: "Clientes",
+    servicios: "Servicios",
+    stats: "Estadísticas",
+  };
+  const sub = (t: string) => ($("[data-pa-sub]").textContent = t);
+  function irVista(v: string) {
+    vista = v;
+    $$<HTMLButtonElement>("[data-pa-menu] button").forEach((b) => b.toggleAttribute("aria-current", b.dataset.vista === v));
+    $$("[data-vista-panel]").forEach((p) => (p.hidden = p.dataset.vistaPanel !== v));
+    $$("[data-solo-vista]").forEach((x) => (x.hidden = x.dataset.soloVista !== v));
+    $("[data-pa-titulo]").textContent = v === "inicio" ? saludo() : TITULOS[v];
+    sub("");
+    history.replaceState(null, "", v === "inicio" ? location.pathname : `#${v}`);
+    pintar();
+    $(".pa-main").scrollTop = 0;
+    if (v === "agenda") bajarAHora();
+  }
+  $$<HTMLButtonElement>("[data-pa-menu] button").forEach((b) => b.addEventListener("click", () => irVista(b.dataset.vista!)));
+
+  function saludo() {
+    const h = new Date().getHours();
+    return `${h < 6 ? "Buenas noches" : h < 14 ? "Buenos días" : h < 21 ? "Buenas tardes" : "Buenas noches"}, ${yoB().n}`;
+  }
+
+  function pintar() {
+    if (!yo) return;
+    const hoy = visibles().filter((c) => sameDay(c.inicio, Date.now()) && c.estado === "confirmada").length;
+    $("[data-pa-badge]").textContent = hoy ? String(hoy) : "";
+    if (vista === "inicio") pintarInicio();
+    if (vista === "agenda") pintarAgenda();
+    if (vista === "equipo") pintarEquipo();
+    if (vista === "clientes") pintarClientes();
+    if (vista === "servicios") pintarServicios();
+    if (vista === "stats") pintarStats();
+  }
+
+  // ── inicio ─────
+  type Filtro = "proximas" | "hoy" | "pasadas" | "canceladas";
+  let filtro: Filtro = "proximas";
+  let filtroBarb = "todos";
+  let limite = 40;
+
+  function kpi(icono: string, titulo: string, valor: string, nota: string, color = "#6366f1") {
+    const d = el("div", "pa-card pa-kpi");
+    d.style.setProperty("--c", color);
+    const chip = el("span", "pa-kpi__ico");
+    chip.append(ico(icono));
+    d.append(chip, el("span", "pa-kpi__t", titulo), el("strong", "", valor), el("small", "", nota));
+    return d;
+  }
+
+  function filtrar(f: Filtro) {
+    const ahora = Date.now();
+    const v = visibles();
+    if (f === "proximas") return v.filter((c) => c.inicio >= ahora && c.estado !== "cancelada").sort((a, b) => a.inicio - b.inicio);
+    if (f === "hoy") return v.filter((c) => sameDay(c.inicio, ahora) && c.estado !== "cancelada").sort((a, b) => a.inicio - b.inicio);
+    if (f === "pasadas") return v.filter((c) => c.inicio < ahora && c.estado !== "cancelada").sort((a, b) => b.inicio - a.inicio);
+    return v.filter((c) => c.estado === "cancelada").sort((a, b) => b.inicio - a.inicio);
+  }
+
+  function pintarInicio() {
+    $("[data-pa-titulo]").textContent = saludo();
+    const ahora = Date.now();
+    const mias = visibles();
+    const deHoy = mias.filter((c) => sameDay(c.inicio, ahora) && c.estado !== "cancelada");
+    const atendidas = deHoy.filter((c) => c.estado === "llego").length;
+    const sig = mias.filter((c) => c.inicio >= ahora && c.estado === "confirmada").sort((a, b) => a.inicio - b.inicio)[0];
+    const web = mias.filter((c) => c.origen === "web" && c.creada >= ahora - 7 * DIA);
+    const caja = deHoy.filter((c) => c.estado !== "noshow").reduce((s, c) => s + serv(datos, c.servicio).p, 0);
+    sub(`${fechaDia(ahora).replace(/^./, (x) => x.toUpperCase())} · ${esAdmin() ? "todo el equipo" : "tu agenda"}`);
+    $("[data-pa-kpis]").replaceChildren(
+      kpi("calendar-day", "Citas hoy", String(deHoy.length), `${atendidas} atendidas · ${deHoy.length - atendidas} pendientes`, "#6366f1"),
+      kpi("clock", "Siguiente cita", sig ? hhmm(sig.inicio) : "—", sig ? `${sig.cliente}${sameDay(sig.inicio, ahora) ? "" : ` · ${etiquetaDia(sig.inicio).toLowerCase()}`}` : "No hay más citas", "#f59e0b"),
+      kpi("globe", "Reservas web", String(web.length), "en los últimos 7 días", "#10b981"),
+      kpi("euro-sign", "Caja prevista hoy", euro.format(caja), esAdmin() ? "todo el equipo" : "tus servicios", "#ec4899"),
+    );
+
+    // filtros con su número
+    $$<HTMLButtonElement>("[data-pa-filtros] button").forEach((b) => {
+      const f = b.dataset.f as Filtro;
+      b.setAttribute("aria-pressed", String(f === filtro));
+      $("em", b).textContent = String(filtrar(f).length);
+    });
+    const sel = $<HTMLSelectElement>("[data-pa-fbarb]");
+    sel.replaceChildren(Object.assign(el("option", "", "Todo el equipo"), { value: "todos" }), ...datos.barberos.map((b) => Object.assign(el("option", "", b.n), { value: b.id })));
+    sel.value = filtroBarb;
+
+    const q = $<HTMLInputElement>("[data-pa-busca]").value.toLowerCase().trim();
+    const lista = filtrar(filtro).filter((c) => (filtroBarb === "todos" || c.barbero === filtroBarb) && (!q || c.cliente.toLowerCase().includes(q) || c.tel.includes(q)));
+    const caja2 = $("[data-pa-lista]");
+    caja2.replaceChildren();
+    if (!lista.length) {
+      const v = el("div", "pa-vacio");
+      v.append(ico("calendar-xmark"), el("p", "", q ? `Nada con «${q}».` : "No hay citas en esta lista."));
+      caja2.append(v);
+    }
+    let diaActual = -1;
+    let grupo: HTMLElement | null = null;
+    lista.slice(0, limite).forEach((c) => {
+      const d = inicioDia(c.inicio);
+      if (d !== diaActual) {
+        diaActual = d;
+        const n = lista.filter((x) => inicioDia(x.inicio) === d).length;
+        const cab = el("div", `pa-grupo__cab${d === inicioDia() ? " is-hoy" : ""}`);
+        cab.append(el("strong", "", etiquetaDia(d)), el("span", "", d === inicioDia() || d === masDias(inicioDia(), 1) ? fechaCorta.format(d) : ""), el("em", "", n === 1 ? "1 cita" : `${n} citas`));
+        grupo = el("div", "pa-grupo");
+        grupo.append(cab);
+        caja2.append(grupo);
+      }
+      grupo!.append(filaCita(c));
+    });
+    if (lista.length > limite) {
+      const mas = boton("pa-mas", `Ver ${Math.min(40, lista.length - limite)} más`);
+      mas.addEventListener("click", () => {
+        limite += 40;
+        pintarInicio();
+      });
+      caja2.append(mas);
+    }
+
+    pintarEquipoAhora();
+    pintarWeb();
+  }
+
+  function filaCita(c: Cita) {
+    const s = serv(datos, c.servicio);
+    const b = barb(datos, c.barbero);
+    const f = boton(`pa-fila is-${c.estado}${c.inicio <= Date.now() && Date.now() < fin(c) && c.estado !== "cancelada" ? " is-ahora" : ""}`);
+    f.style.setProperty("--c", s.c);
+    const hora = el("span", "pa-fila__hora");
+    hora.append(el("strong", "", hhmm(c.inicio)), el("small", "", `${s.min} min`));
+    const txt = el("span", "pa-fila__txt");
+    const nom = el("strong", "", c.cliente);
+    if (c.origen === "web") {
+      const w = el("em", "pa-web-tag");
+      w.append(ico("globe"), " Web");
+      nom.append(w);
+    }
+    txt.append(nom, el("small", "", `${s.n}${c.notas ? ` · ${c.notas}` : ""}`));
+    const quien = el("span", "pa-fila__quien");
+    quien.append(avatar(b, "pa-av--sm"), b.n);
+    const est = el("span", `pa-estado is-${c.estado}`);
+    est.append(ico(ESTADOS[c.estado][1]), ` ${ESTADOS[c.estado][0]}`);
+    f.append(hora, txt, quien, est, el("span", "pa-fila__precio", euro.format(s.p)));
+    f.addEventListener("click", () => abrirModal(c));
+    return f;
+  }
+
+  function pintarEquipoAhora() {
+    const ahora = Date.now();
+    $("[data-pa-ahora]").replaceChildren(
+      ...datos.barberos.map((b) => {
+        const est = estadoAhora(b);
+        const suyas = datos.citas.filter((c) => c.barbero === b.id && c.estado !== "cancelada");
+        const hoy = suyas.filter((c) => sameDay(c.inicio, ahora));
+        const enCurso = hoy.find((c) => c.inicio <= ahora && ahora < fin(c));
+        const sig = hoy.filter((c) => c.inicio > ahora).sort((a, x) => a.inicio - x.inicio)[0];
+        const puede = esAdmin() || b.id === yo;
+        const fila = boton(`pa-miembro${puede ? "" : " is-solo"}`);
+        fila.style.setProperty("--c", b.c);
+        const txt = el("span", "pa-miembro__txt");
+        txt.append(el("strong", "", b.n), el("small", "", turnosDe(b, ahora).length ? `Hoy ${turnosTxt(turnosDe(b, ahora))}` : "Hoy libra"));
+        const dcha = el("span", "pa-miembro__dcha");
+        const pill = el("span", `pa-pill${est.activo ? " is-on" : ""}${enCurso ? " is-ocupado" : ""}`);
+        pill.append(el("i"), enCurso ? `Con ${enCurso.cliente.split(" ")[0]}` : est.activo ? "Libre" : est.txt.replace("Ya ha terminado hoy", "Terminó"));
+        dcha.append(pill, el("small", "", sig ? `Siguiente ${hhmm(sig.inicio)}` : `${hoy.length} citas hoy`));
+        fila.append(avatar(b), txt, dcha);
+        if (puede)
+          fila.addEventListener("click", () => {
+            agendaDe = b.id;
+            semana = lunes();
+            irVista("agenda");
+          });
+        else fila.disabled = true;
+        return fila;
+      }),
+    );
+  }
+
+  function pintarWeb() {
+    const lista = visibles()
+      .filter((c) => c.origen === "web")
+      .sort((a, b) => b.creada - a.creada)
+      .slice(0, 6);
+    const caja = $("[data-pa-web]");
+    caja.replaceChildren();
+    if (!lista.length) caja.append(el("li", "pa-muted", "Aún no hay reservas desde la web."));
+    lista.forEach((c) => {
+      const s = serv(datos, c.servicio);
+      const li = el("li");
+      const b = boton("pa-webr");
+      b.style.setProperty("--c", s.c);
+      const t = el("span");
+      t.append(el("strong", "", c.cliente), el("small", "", `${s.n} con ${barb(datos, c.barbero).n} · ${etiquetaDia(c.inicio)} ${hhmm(c.inicio)}`));
+      b.append(el("i", "pa-webr__punto"), t, el("em", "", hace(c.creada)));
+      b.addEventListener("click", () => abrirModal(c));
+      li.append(b);
+      caja.append(li);
+    });
+  }
+
+  $$<HTMLButtonElement>("[data-pa-filtros] button").forEach((b) =>
+    b.addEventListener("click", () => {
+      filtro = b.dataset.f as Filtro;
+      limite = 40;
+      pintarInicio();
+    }),
+  );
+  $("[data-pa-busca]").addEventListener("input", () => {
+    limite = 40;
+    pintarInicio();
+  });
+  $<HTMLSelectElement>("[data-pa-fbarb]").addEventListener("change", (e) => {
+    filtroBarb = (e.target as HTMLSelectElement).value;
+    pintarInicio();
+  });
+
+  // ── agenda de un profesional ─────
+  let agendaDe = "";
+  let semana = lunes();
+
+  function diasDeAgenda(b: Barbero) {
+    // de lunes a sábado; el domingo solo si ese profesional trabaja
+    return Array.from({ length: 7 }, (_, i) => masDias(semana, i)).filter((d, i) => i < 6 || turnosDe(b, d).length);
+  }
+
+  function pintarAgenda() {
+    if (!esAdmin()) agendaDe = yo!;
+    const b = barb(datos, agendaDe);
+    raiz.style.setProperty("--quien", b.c);
+    // pestañas: una por profesional (solo el administrador puede cambiar)
+    const tabs = $("[data-pa-tabs]");
+    tabs.replaceChildren(
+      ...(esAdmin() ? datos.barberos : [b]).map((x) => {
+        const t = boton("pa-tab", avatar(x, "pa-av--sm"), x.n);
+        t.style.setProperty("--c", x.c);
+        t.setAttribute("aria-pressed", String(x.id === b.id));
+        t.addEventListener("click", () => {
+          agendaDe = x.id;
+          pintarAgenda();
+        });
+        return t;
+      }),
+    );
+
+    const dias = diasDeAgenda(b);
+    const iniSem = semana.getTime();
+    const delaSemana = datos.citas.filter((c) => c.barbero === b.id && c.inicio >= iniSem && c.inicio < masDias(iniSem, 7));
+    const activas = delaSemana.filter((c) => c.estado !== "cancelada");
+    const minTrabajo = minutosDeTrabajo(b, iniSem, 7);
+    const minOcupados = activas.filter((c) => c.estado !== "noshow").reduce((s, c) => s + serv(datos, c.servicio).min, 0);
+    sub(`${b.n} ${b.apellido} · ${fechaCorta.format(iniSem)} – ${fechaCorta.format(masDias(iniSem, 6))} ${new Date(masDias(iniSem, 6)).getFullYear()}`);
+    const res = $("[data-pa-ag-resumen]");
+    res.replaceChildren(
+      ...[
+        ["calendar-check", `${activas.length} citas`],
+        ["clock", `${Math.round(minTrabajo / 60)} h de turno`],
+        ["gauge-high", `${minTrabajo ? Math.round((minOcupados / minTrabajo) * 100) : 0}% ocupado`],
+        ["euro-sign", euro.format(activas.filter((c) => c.estado !== "noshow").reduce((s, c) => s + serv(datos, c.servicio).p, 0))],
+      ].map(([i, t]) => {
+        const x = el("span");
+        x.append(ico(i), t);
+        return x;
+      }),
+    );
+
+    const cab = $("[data-pa-cab]");
+    const cols = $("[data-pa-cols]");
+    cab.style.setProperty("--n", String(dias.length));
+    cols.style.setProperty("--n", String(dias.length));
+    cab.replaceChildren(el("span"));
+    cols.replaceChildren();
+    const hoy = inicioDia();
+    const alto = (H_FIN - H_INI) * ALTO_H;
+
+    dias.forEach((d) => {
+      const turnos = turnosDe(b, d);
+      const suyas = delaSemana.filter((c) => sameDay(c.inicio, d));
+      const ocup = suyas.filter((c) => c.estado !== "cancelada" && c.estado !== "noshow").reduce((s, c) => s + serv(datos, c.servicio).min, 0);
+      const disp = turnos.reduce((s, [a, z]) => s + (z - a) * 60, 0);
+      const c = el("div", `pa-cab-dia${d === hoy ? " is-hoy" : ""}${turnos.length ? "" : " is-libra"}`);
+      const f = el("span", "pa-cab-dia__fecha");
+      f.append(el("small", "", diaCorto.format(d).replace(".", "")), el("strong", "", String(new Date(d).getDate())));
+      const info = el("span", "pa-cab-dia__info");
+      info.append(el("small", "", turnos.length ? turnosTxt(turnos) : "Libra"), el("em", "", turnos.length ? `${suyas.filter((x) => x.estado !== "cancelada").length} citas` : ""));
+      const barra = el("i", "pa-cab-dia__barra");
+      barra.style.setProperty("--p", `${disp ? Math.min(100, (ocup / disp) * 100) : 0}%`);
+      c.append(f, info, barra);
+      cab.append(c);
+
+      const col = el("div", `pa-col${d === hoy ? " is-hoy" : ""}`);
+      col.dataset.dia = String(d);
+      col.style.height = `${alto}px`;
+      // lo que queda fuera de su turno, rayado
+      let prev = H_INI;
+      const tramos: [number, number, string][] = [];
+      for (const [a, z] of turnos) {
+        if (a > prev) tramos.push([prev, a, prev === H_INI ? `Entra a las ${horaTxt(a)}` : "Descanso"]);
+        prev = Math.max(prev, z);
+      }
+      if (!turnos.length) tramos.push([H_INI, H_FIN, `${b.n} libra`]);
+      else if (prev < H_FIN) tramos.push([prev, H_FIN, `Sale a las ${horaTxt(prev)}`]);
+      tramos.forEach(([a, z, t]) => {
+        const x = el("div", "pa-fuera");
+        x.style.top = `${(a - H_INI) * ALTO_H}px`;
+        x.style.height = `${(z - a) * ALTO_H}px`;
+        if ((z - a) * ALTO_H >= 28) x.append(el("span", "", t));
+        x.addEventListener("click", () => toast(turnos.length ? `${b.n} no trabaja a esa hora (${turnosTxt(turnos)})` : `${b.n} no trabaja este día`));
+        col.append(x);
+      });
+      suyas.sort((a, x) => Number(a.estado === "cancelada") - Number(x.estado === "cancelada")).forEach((cita) => col.append(bloqueCita(cita)));
+      if (d === hoy) {
+        const ahora = new Date();
+        const h = ahora.getHours() + ahora.getMinutes() / 60;
+        if (h >= H_INI && h <= H_FIN) {
+          const linea = el("div", "pa-linea-ahora");
+          linea.style.top = `${(h - H_INI) * ALTO_H}px`;
+          linea.append(el("span", "", hhmm(ahora.getTime())));
+          col.append(linea);
+        }
+      }
+      col.addEventListener("click", (e) => {
+        if (e.target !== col) return;
+        const h = H_INI + Math.floor((e.offsetY / ALTO_H) * 4) / 4;
+        const ms = aLas(d, h);
+        if (ms < Date.now()) return toast("Esa hora ya ha pasado");
+        if (!dentroDeHorario(b, ms, 15)) return toast(`${b.n} no trabaja a esa hora`);
+        abrirModal(null, ms, b.id);
+      });
+      cols.append(col);
+    });
+
+    $("[data-pa-horas]").replaceChildren(
+      ...Array.from({ length: H_FIN - H_INI }, (_, i) => {
+        const s = el("span", "", `${String(H_INI + i).padStart(2, "0")}:00`);
+        s.style.height = `${ALTO_H}px`;
+        return s;
+      }),
+    );
+    $("[data-pa-leyenda]").replaceChildren(
+      ...datos.servicios.map((s) => {
+        const x = el("span");
+        const p = el("i");
+        p.style.background = s.c;
+        x.append(p, s.n);
+        return x;
+      }),
+    );
+  }
+
+  function bloqueCita(c: Cita) {
+    const s = serv(datos, c.servicio);
+    const b = boton(`pa-cita is-${c.estado}`);
+    const d = new Date(c.inicio);
+    const h = d.getHours() + d.getMinutes() / 60;
+    b.style.top = `${(h - H_INI) * ALTO_H + 1}px`;
+    b.style.height = `${(s.min / 60) * ALTO_H - 3}px`;
+    b.style.setProperty("--c", s.c);
+    if (s.min < 30) b.classList.add("is-corta");
+    b.setAttribute("aria-label", `${c.cliente}, ${hhmm(c.inicio)}, ${s.n}, ${ESTADOS[c.estado][0]}`);
+    b.title = `${hhmm(c.inicio)}–${hhmm(fin(c))} · ${c.cliente} · ${s.n} · ${ESTADOS[c.estado][0]}${c.origen === "web" ? " · reservada en la web" : ""}`;
+    const top = el("span", "pa-cita__hora", `${hhmm(c.inicio)}–${hhmm(fin(c))}`);
+    if (c.origen === "web") top.append(ico("globe"));
+    if (c.estado !== "confirmada") top.append(ico(ESTADOS[c.estado][1]));
+    b.append(top, el("strong", "", c.cliente), el("span", "pa-cita__serv", s.n));
+    if (c.estado === "cancelada") b.addEventListener("click", () => abrirModal(c));
+    else arrastrable(b, c);
+    return b;
+  }
+
+  // arrastrar para mover (a otra hora o a otro día, dentro del turno); un clic sin moverse abre la cita
+  function arrastrable(b: HTMLElement, c: Cita) {
+    b.addEventListener("click", (e) => e.detail === 0 && abrirModal(c));
+    b.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      const y0 = e.clientY;
+      const x0 = e.clientX;
+      const top0 = parseFloat(b.style.top);
+      let movido = false;
+      b.setPointerCapture(e.pointerId);
+      const mover = (ev: PointerEvent) => {
+        const dy = ev.clientY - y0;
+        if (!movido && Math.abs(dy) + Math.abs(ev.clientX - x0) < 5) return;
+        movido = true;
+        b.classList.add("is-arrastrando");
+        const paso = ALTO_H / 4;
+        b.style.top = `${Math.round((top0 + dy) / paso) * paso}px`;
+        b.style.translate = `${ev.clientX - x0}px 0`;
+      };
+      const soltar = (ev: PointerEvent) => {
+        b.removeEventListener("pointermove", mover);
+        b.removeEventListener("pointerup", soltar);
+        if (!movido) return abrirModal(c);
+        b.style.visibility = "hidden";
+        const debajo = document.elementFromPoint(ev.clientX, ev.clientY)?.closest<HTMLElement>(".pa-col");
+        b.style.visibility = "";
+        const dia = debajo ? Number(debajo.dataset.dia) : inicioDia(c.inicio);
+        const min = serv(datos, c.servicio).min;
+        const h = Math.max(H_INI, Math.min(H_FIN - min / 60, H_INI + parseFloat(b.style.top) / ALTO_H));
+        const nueva = aLas(dia, h);
+        const quien = barb(datos, c.barbero);
+        const otro = choque(datos, c.barbero, nueva, min, c.id);
+        if (nueva < Date.now()) toast("No se puede mover al pasado");
+        else if (!dentroDeHorario(quien, nueva, min)) toast(`Fuera del turno de ${quien.n}`);
+        else if (otro) toast(`${quien.n} ya tiene a ${otro.cliente.split(" ")[0]} a esa hora`);
+        else {
+          c.inicio = nueva;
+          guardar(datos);
+          toast(`Cita movida: ${etiquetaDia(nueva).toLowerCase()} a las ${hhmm(nueva)}`);
+        }
+        pintarAgenda();
+      };
+      b.addEventListener("pointermove", mover);
+      b.addEventListener("pointerup", soltar);
+    });
+  }
+
+  function bajarAHora() {
+    const b = barb(datos, agendaDe);
+    const t = turnosDe(b, Date.now());
+    const h = Math.max(new Date().getHours() - 1, t[0]?.[0] ?? H_INI);
+    $(".pa-cal__scroll").scrollTop = Math.max(0, (h - H_INI) * ALTO_H - 8);
+  }
+
+  $$<HTMLButtonElement>("[data-pa-sem]").forEach((b) =>
+    b.addEventListener("click", () => {
+      semana = new Date(masDias(semana, Number(b.dataset.paSem) * 7));
+      pintarAgenda();
+    }),
+  );
+  $("[data-pa-hoy]").addEventListener("click", () => {
+    semana = lunes();
+    pintarAgenda();
+    bajarAHora();
+  });
+
+  // ── equipo y horarios ─────
+  function pintarEquipo() {
+    sub(esAdmin() ? "El horario de cada profesional decide qué horas se pueden reservar en la web." : "Horarios del equipo esta semana.");
+    const iniSem = lunes().getTime();
+    const hoyN = new Date().getDay();
+    $("[data-pa-equipo]").replaceChildren(
+      ...datos.barberos.map((b, i) => {
+        const card = el("article", "pa-card pa-miembro-card");
+        card.style.setProperty("--c", b.c);
+        const est = estadoAhora(b);
+        const cab = el("header", "pa-mc__cab");
+        const nom = el("div");
+        nom.append(el("h3", "", `${b.n} ${b.apellido}`), el("small", "", i === 0 ? `${b.rol} · administrador` : b.rol));
+        const pill = el("span", `pa-pill${est.activo ? " is-on" : ""}`);
+        pill.append(el("i"), est.txt);
+        cab.append(avatar(b, "pa-av--xl"), nom, pill);
+
+        // horario semanal en una línea de tiempo de 9:00 a 21:00
+        const sem = el("div", "pa-mc__sem");
+        ORDEN.forEach((d) => {
+          const t = b.horario[d];
+          const fila = el("div", `pa-mc__dia${d === hoyN ? " is-hoy" : ""}${t.length ? "" : " is-libra"}`);
+          const pista = el("span", "pa-mc__pista");
+          t.forEach(([a, z]) => {
+            const seg = el("i");
+            seg.style.left = `${((a - H_INI) / (H_FIN - H_INI)) * 100}%`;
+            seg.style.width = `${((z - a) / (H_FIN - H_INI)) * 100}%`;
+            pista.append(seg);
+          });
+          fila.append(el("strong", "", DIAS[d].slice(0, 3)), pista, el("small", "", turnosTxt(t)));
+          sem.append(fila);
+        });
+        const regla = el("div", "pa-mc__regla");
+        regla.append(el("span"), ...[9, 12, 15, 18, 21].map((h) => el("em", "", `${h}h`)), el("span"));
+
+        // la semana actual en números
+        const suyas = datos.citas.filter((c) => c.barbero === b.id && c.inicio >= iniSem && c.inicio < masDias(iniSem, 7) && c.estado !== "cancelada" && c.estado !== "noshow");
+        const minT = minutosDeTrabajo(b, iniSem, 7);
+        const minO = suyas.reduce((s, c) => s + serv(datos, c.servicio).min, 0);
+        const nums = el("div", "pa-mc__nums");
+        [
+          ["Citas", String(suyas.length)],
+          ["Horas", `${Math.round(minT / 60)} h`],
+          ["Ocupación", `${minT ? Math.round((minO / minT) * 100) : 0}%`],
+          ["Ingresos", euro.format(suyas.reduce((s, c) => s + serv(datos, c.servicio).p, 0))],
+        ].forEach(([k, v]) => {
+          const x = el("div");
+          x.append(el("small", "", k), el("strong", "", v));
+          nums.append(x);
+        });
+
+        const prox = el("div", "pa-mc__prox");
+        prox.append(el("h4", "", "Próximas citas"));
+        const proximas = datos.citas.filter((c) => c.barbero === b.id && c.inicio >= Date.now() && c.estado === "confirmada").sort((a, x) => a.inicio - x.inicio);
+        if (!proximas.length) prox.append(el("p", "pa-muted", "Ninguna."));
+        proximas.slice(0, 3).forEach((c) => {
+          const x = boton("pa-mini-cita");
+          x.style.setProperty("--c", serv(datos, c.servicio).c);
+          const dia = etiquetaDia(c.inicio);
+          x.append(el("strong", "", `${["Hoy", "Mañana"].includes(dia) ? dia : `${diaCorto.format(c.inicio).replace(".", "")} ${fechaCorta.format(c.inicio)}`} · ${hhmm(c.inicio)}`), el("span", "", `${c.cliente} · ${serv(datos, c.servicio).n}`));
+          x.addEventListener("click", () => abrirModal(c));
+          if (!esAdmin() && b.id !== yo) x.disabled = true;
+          prox.append(x);
+        });
+
+        const acc = el("footer", "pa-mc__acc");
+        if (esAdmin() || b.id === yo) {
+          const ver = boton("pa-btn pa-btn--suave", ico("calendar-week"), " Ver su agenda");
+          ver.addEventListener("click", () => {
+            agendaDe = b.id;
+            semana = lunes();
+            irVista("agenda");
+          });
+          acc.append(ver);
+        }
+        if (esAdmin()) {
+          const ed = boton("pa-btn", ico("pen"), " Editar horario");
+          ed.addEventListener("click", () => abrirHorario(b));
+          acc.append(ed);
+        }
+        card.append(cab, sem, regla, nums, prox, acc);
+        return card;
+      }),
+    );
+  }
+
+  // ── modal de horario ─────
+  const hmodal = $<HTMLDialogElement>("[data-pa-hmodal]");
+  const hform = $<HTMLFormElement>("[data-pa-hform]");
+  let horarioDe: Barbero | null = null;
+
+  function abrirHorario(b: Barbero) {
+    horarioDe = b;
+    $("[data-pa-hmodal-t]").textContent = `Horario de ${b.n}`;
+    $("[data-pa-herror]").textContent = "";
+    $("[data-pa-hdias]").replaceChildren(
+      ...ORDEN.map((d) => {
+        const t = b.horario[d];
+        const fila = el("div", `pa-hdia${t.length ? "" : " is-off"}`);
+        fila.dataset.d = String(d);
+        const chk = Object.assign(el("input"), { type: "checkbox", checked: t.length > 0 });
+        const lab = el("label", "pa-hdia__n");
+        lab.append(chk, DIAS[d]);
+        const campos = el("div", "pa-hdia__turnos");
+        const hora = (v: number | undefined, n: string) => Object.assign(el("input"), { type: "time", step: "900", min: horaTxt(H_INI), max: horaTxt(H_FIN), value: v === undefined ? "" : horaTxt(v), name: n });
+        const t1 = el("span", "pa-hdia__t");
+        t1.append(hora(t[0]?.[0] ?? 9, "a1"), "–", hora(t[0]?.[1] ?? 14, "z1"));
+        const t2 = el("span", "pa-hdia__t");
+        t2.append(hora(t[1]?.[0], "a2"), "–", hora(t[1]?.[1], "z2"));
+        campos.append(t1, el("small", "", "y"), t2);
+        chk.addEventListener("change", () => fila.classList.toggle("is-off", !chk.checked));
+        fila.append(lab, campos);
+        return fila;
+      }),
+    );
+    hmodal.showModal();
+  }
+
+  const aHoras = (v: string) => {
+    if (!v) return NaN;
+    const [h, m] = v.split(":").map(Number);
+    return h + m / 60;
+  };
+
+  hform.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!horarioDe) return;
+    const err = $("[data-pa-herror]");
+    const nuevo: Turnos[] = [[], [], [], [], [], [], []];
+    for (const fila of $$("[data-pa-hdias] .pa-hdia")) {
+      const d = Number(fila.dataset.d);
+      if (!$<HTMLInputElement>("input[type=checkbox]", fila).checked) continue;
+      const v = (n: string) => aHoras($<HTMLInputElement>(`input[name=${n}]`, fila).value);
+      const [a1, z1, a2, z2] = [v("a1"), v("z1"), v("a2"), v("z2")];
+      if (!(a1 < z1)) return (err.textContent = `${DIAS[d]}: el turno debe empezar antes de acabar.`);
+      if (a1 < H_INI || z1 > H_FIN) return (err.textContent = `${DIAS[d]}: el local abre de ${horaTxt(H_INI)} a ${horaTxt(H_FIN)}.`);
+      nuevo[d].push([a1, z1]);
+      if (!Number.isNaN(a2) || !Number.isNaN(z2)) {
+        if (!(a2 < z2) || a2 < z1 || z2 > H_FIN) return (err.textContent = `${DIAS[d]}: el segundo turno debe ir después del primero y acabar antes de las ${horaTxt(H_FIN)}.`);
+        nuevo[d].push([a2, z2]);
+      }
+    }
+    horarioDe.horario = nuevo;
+    guardar(datos);
+    hmodal.close();
+    // citas ya dadas que se quedan fuera del nuevo horario
+    const fuera = datos.citas.filter((c) => c.barbero === horarioDe!.id && c.inicio >= Date.now() && c.estado === "confirmada" && !dentroDeHorario(horarioDe!, c.inicio, serv(datos, c.servicio).min));
+    toast(fuera.length ? `Horario guardado. Ojo: ${fuera.length} ${fuera.length === 1 ? "cita queda" : "citas quedan"} fuera del turno` : `Horario de ${horarioDe.n} guardado`);
+    pintar();
+  });
+  $("[data-pa-hcerrar]").addEventListener("click", () => hmodal.close());
+  $("[data-pa-hcancelar]").addEventListener("click", () => hmodal.close());
+  hmodal.addEventListener("click", (e) => e.target === hmodal && hmodal.close());
+
+  // ── modal de cita ─────
+  const modal = $<HTMLDialogElement>("[data-pa-modal]");
+  const form = $<HTMLFormElement>("[data-pa-form]");
+  let editando: Cita | null = null;
+  let estado: Estado = "confirmada";
+  const campo = <T extends HTMLElement>(n: string) => form.elements.namedItem(n) as unknown as T;
+  const fechaInput = (ms: number) => {
+    const d = new Date(ms);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const diaDelInput = () => {
+    const [y, m, d] = campo<HTMLInputElement>("fecha").value.split("-").map(Number);
+    return y ? new Date(y, m - 1, d).getTime() : NaN;
+  };
+
+  function abrirModal(c: Cita | null, inicio?: number, barbero?: string) {
+    if (c && !esAdmin() && c.barbero !== yo) return;
+    editando = c;
+    $("[data-pa-modal-t]").textContent = c ? c.cliente : "Nueva cita";
+    $("[data-pa-modal-sub]").textContent = c ? `${c.origen === "web" ? "Reservada en la web" : "Creada en el panel"} ${hace(c.creada)}` : "Solo se ofrecen las horas libres dentro del turno.";
+    campo<HTMLSelectElement>("servicio").replaceChildren(...datos.servicios.map((s) => Object.assign(el("option", "", `${s.n} · ${s.min} min · ${s.p} €`), { value: s.id })));
+    const quienes = esAdmin() ? datos.barberos : [yoB()];
+    campo<HTMLSelectElement>("barbero").replaceChildren(...quienes.map((b) => Object.assign(el("option", "", b.n), { value: b.id })));
+    campo<HTMLSelectElement>("barbero").disabled = !esAdmin();
+    $("[data-pa-datalist]").replaceChildren(...datos.clientes.map((x) => Object.assign(el("option"), { value: x.n })));
+    const ms = c?.inicio ?? inicio ?? Date.now();
+    campo<HTMLInputElement>("cliente").value = c?.cliente ?? "";
+    campo<HTMLInputElement>("tel").value = c?.tel ?? "";
+    campo<HTMLSelectElement>("servicio").value = c?.servicio ?? datos.servicios[0].id;
+    campo<HTMLSelectElement>("barbero").value = c?.barbero ?? barbero ?? (esAdmin() && vista === "agenda" ? agendaDe : yo!);
+    campo<HTMLInputElement>("fecha").value = fechaInput(ms);
+    campo<HTMLTextAreaElement>("notas").value = c?.notas ?? "";
+    estado = c?.estado ?? "confirmada";
+    pintarEstado();
+    // una cita nueva salta al primer día (en dos semanas) en que ese profesional tiene huecos
+    if (!c) {
+      let dia = inicioDia(ms);
+      for (let i = 0; i < 14 && !huecos(datos, campo<HTMLSelectElement>("barbero").value, dia, campo<HTMLSelectElement>("servicio").value).length; i++) dia = masDias(dia, 1);
+      campo<HTMLInputElement>("fecha").value = fechaInput(dia);
+    }
+    pintarHoras(ms);
+    $("[data-pa-borrar]").hidden = !c || !esAdmin();
+    $("[data-pa-error]").textContent = "";
+    modal.showModal();
+    if (!c) campo<HTMLInputElement>("cliente").focus();
+  }
+
+  /** Rellena el desplegable de horas con los huecos libres del profesional ese día */
+  function pintarHoras(preferida?: number) {
+    const sel = campo<HTMLSelectElement>("hora");
+    const quiero = preferida ?? Number(sel.value);
+    const dia = diaDelInput();
+    const b = barb(datos, campo<HTMLSelectElement>("barbero").value);
+    const sId = campo<HTMLSelectElement>("servicio").value;
+    const turnos = Number.isNaN(dia) ? [] : turnosDe(b, dia);
+    $("[data-pa-turno]").textContent = Number.isNaN(dia) ? "" : turnos.length ? `${b.n} trabaja ese día: ${turnosTxt(turnos)}` : `${b.n} libra ese día`;
+    $("[data-pa-turno]").classList.toggle("is-libra", !turnos.length);
+    let lista = Number.isNaN(dia) ? [] : huecos(datos, b.id, dia, sId, editando?.id);
+    // al editar, la hora que ya tenía la cita siempre se puede mantener
+    if (editando && sameDay(editando.inicio, dia) && !lista.includes(editando.inicio)) lista = [...lista, editando.inicio].sort((a, x) => a - x);
+    if (!lista.length) {
+      sel.replaceChildren(Object.assign(el("option", "", "Sin horas libres"), { value: "" }));
+      return;
+    }
+    sel.replaceChildren(...lista.map((ms) => Object.assign(el("option", "", hhmm(ms)), { value: String(ms) })));
+    // mantiene la misma hora del día si existe; si no, la más cercana
+    const objetivo = Number.isNaN(quiero) ? lista[0] : aLas(dia, new Date(quiero).getHours() + new Date(quiero).getMinutes() / 60);
+    const cerca = lista.reduce((m, x) => (Math.abs(x - objetivo) < Math.abs(m - objetivo) ? x : m), lista[0]);
+    sel.value = String(cerca);
+  }
+  ["servicio", "barbero", "fecha"].forEach((n) => campo<HTMLElement>(n).addEventListener("change", () => pintarHoras()));
+  campo<HTMLInputElement>("cliente").addEventListener("change", () => {
+    const cli = datos.clientes.find((x) => x.n.toLowerCase() === campo<HTMLInputElement>("cliente").value.trim().toLowerCase());
+    if (cli && !campo<HTMLInputElement>("tel").value) campo<HTMLInputElement>("tel").value = cli.tel;
+  });
+
+  function pintarEstado() {
+    $$<HTMLButtonElement>("[data-pa-estados] button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.e === estado)));
+  }
+  $$<HTMLButtonElement>("[data-pa-estados] button").forEach((b) =>
+    b.addEventListener("click", () => {
+      estado = b.dataset.e as Estado;
+      pintarEstado();
+    }),
+  );
+  $("[data-pa-cerrar]").addEventListener("click", () => modal.close());
+  $("[data-pa-cancelar]").addEventListener("click", () => modal.close());
+  modal.addEventListener("click", (e) => e.target === modal && modal.close());
+  $("[data-pa-nueva]").addEventListener("click", () => abrirModal(null, Date.now(), vista === "agenda" ? agendaDe : undefined));
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const err = $("[data-pa-error]");
+    const nombre = campo<HTMLInputElement>("cliente").value.trim().replace(/\s+/g, " ");
+    const tel = normalTel(campo<HTMLInputElement>("tel").value);
+    if (nombre.length < 2) return (err.textContent = "Escribe el nombre del cliente.");
+    if (tel && tel.length !== 9) return (err.textContent = "El teléfono debe tener 9 cifras.");
+    const inicio = Number(campo<HTMLSelectElement>("hora").value);
+    const b = barb(datos, campo<HTMLSelectElement>("barbero").value);
+    const s = serv(datos, campo<HTMLSelectElement>("servicio").value);
+    if (!inicio) return (err.textContent = `${b.n} no tiene horas libres ese día para ${s.n.toLowerCase()}.`);
+    const igual = editando && editando.inicio === inicio && editando.barbero === b.id && editando.servicio === s.id;
+    if (!igual && estado !== "cancelada") {
+      if (!dentroDeHorario(b, inicio, s.min)) return (err.textContent = `Fuera del turno de ${b.n}.`);
+      const otro = choque(datos, b.id, inicio, s.min, editando?.id);
+      if (otro) return (err.textContent = `${b.n} ya tiene cita con ${otro.cliente} a las ${hhmm(otro.inicio)}.`);
+    }
+    const cli = datos.clientes.find((c) => c.n.toLowerCase() === nombre.toLowerCase() || (tel && normalTel(c.tel) === tel));
+    if (!cli) datos.clientes.push({ n: nombre, tel });
+    else if (tel && !cli.tel) cli.tel = tel;
+    const nueva = !editando;
+    const cita: Cita = {
+      id: editando?.id ?? nuevoId(),
+      cliente: nombre,
+      tel: tel || cli?.tel || "",
+      servicio: s.id,
+      barbero: b.id,
+      inicio,
+      estado,
+      notas: campo<HTMLTextAreaElement>("notas").value.trim(),
+      origen: editando?.origen ?? "panel",
+      creada: editando?.creada ?? Date.now(),
+    };
+    if (editando) Object.assign(editando, cita);
+    else datos.citas.push(cita);
+    guardar(datos);
+    modal.close();
+    if (vista === "agenda") {
+      agendaDe = b.id;
+      semana = lunes(inicio);
+    }
+    pintar();
+    toast(nueva ? `Cita creada para ${nombre.split(" ")[0]} · ${etiquetaDia(inicio).toLowerCase()} ${hhmm(inicio)}` : "Cita actualizada");
+  });
+
+  $("[data-pa-borrar]").addEventListener("click", () => {
+    const btn = $("[data-pa-borrar]");
+    if (!editando) return;
+    // borrar en dos pasos (sin ventanas del navegador)
+    if (!btn.classList.contains("is-seguro")) {
+      btn.classList.add("is-seguro");
+      btn.lastChild!.textContent = " ¿Seguro?";
+      setTimeout(() => {
+        btn.classList.remove("is-seguro");
+        btn.lastChild!.textContent = " Borrar";
+      }, 3000);
+      return;
+    }
+    datos.citas = datos.citas.filter((x) => x.id !== editando!.id);
+    guardar(datos);
+    modal.close();
+    pintar();
+    toast("Cita borrada");
+  });
+  modal.addEventListener("close", () => {
+    const btn = $("[data-pa-borrar]");
+    btn.classList.remove("is-seguro");
+    btn.lastChild!.textContent = " Borrar";
+  });
+
+  // ── clientes ─────
+  let cliSel = "";
+  function resumenCliente(n: string) {
+    const suyas = visibles().filter((c) => c.cliente === n);
+    const pasadas = suyas.filter((c) => c.inicio < Date.now() && c.estado === "llego");
+    const favoritos = pasadas.reduce<Record<string, number>>((a, c) => ((a[c.servicio] = (a[c.servicio] ?? 0) + 1), a), {});
+    return {
+      todas: suyas,
+      visitas: pasadas.length,
+      gastado: pasadas.reduce((s, c) => s + serv(datos, c.servicio).p, 0),
+      proximas: suyas.filter((c) => c.inicio >= Date.now() && c.estado === "confirmada").sort((a, b) => a.inicio - b.inicio),
+      noshow: suyas.filter((c) => c.estado === "noshow").length,
+      favorito: Object.entries(favoritos).sort((a, b) => b[1] - a[1])[0]?.[0],
+    };
+  }
+  function pintarClientes() {
+    const q = $<HTMLInputElement>("[data-pa-buscar-cli]").value.toLowerCase().trim();
+    // cada barbero ve solo a los clientes que ha atendido o tiene citados
+    const conmigo = new Set(visibles().map((c) => c.cliente));
+    const lista = datos.clientes.filter((c) => (esAdmin() || conmigo.has(c.n)) && (!q || c.n.toLowerCase().includes(q) || c.tel.includes(q))).sort((a, b) => a.n.localeCompare(b.n));
+    sub(`${lista.length} ${lista.length === 1 ? "cliente" : "clientes"}${q ? ` con «${q}»` : ""}`);
+    $("[data-pa-cli]").replaceChildren(
+      ...lista.map((c) => {
+        const r = resumenCliente(c.n);
+        const tr = el("tr", c.n === cliSel ? "is-sel" : "");
+        const nom = el("td");
+        const quien = el("span", "pa-cli");
+        quien.append(el("span", "pa-av pa-av--gris", iniciales(c.n)), c.n);
+        nom.append(quien);
+        const prox = r.proximas[0];
+        tr.append(nom, el("td", "", c.tel || "—"), el("td", "", String(r.visitas)), el("td", "", euro.format(r.gastado)), el("td", "", prox ? `${fechaCorta.format(prox.inicio)} · ${hhmm(prox.inicio)}` : "—"));
+        tr.addEventListener("click", () => {
+          cliSel = c.n;
+          pintarClientes();
+        });
+        return tr;
+      }),
+    );
+    pintarFicha();
+  }
+  function pintarFicha() {
+    const caja = $("[data-pa-ficha]");
+    if (!cliSel) return;
+    const c = datos.clientes.find((x) => x.n === cliSel);
+    if (!c) return;
+    const r = resumenCliente(cliSel);
+    caja.replaceChildren();
+    const cab = el("div", "pa-ficha__cab");
+    const txt = el("div");
+    const tel = el("p", "pa-muted");
+    tel.append(ico("phone"), ` ${c.tel || "Sin teléfono"}`);
+    txt.append(el("h3", "", c.n), tel);
+    cab.append(el("span", "pa-av pa-av--xl pa-av--gris", iniciales(c.n)), txt);
+    const kp = el("div", "pa-ficha__kpis");
+    [
+      ["Visitas", String(r.visitas)],
+      ["Gastado", euro.format(r.gastado)],
+      ["No vino", String(r.noshow)],
+    ].forEach(([k, v]) => {
+      const d = el("div");
+      d.append(el("small", "", k), el("strong", "", v));
+      kp.append(d);
+    });
+    caja.append(cab, kp);
+    if (r.favorito) caja.append(el("p", "pa-ficha__fav", `Suele pedir: ${serv(datos, r.favorito).n}`));
+    caja.append(el("h4", "", "Próximas citas"));
+    if (!r.proximas.length) caja.append(el("p", "pa-muted", "Ninguna."));
+    r.proximas.slice(0, 4).forEach((x) => {
+      const b = boton("pa-mini-cita");
+      b.style.setProperty("--c", serv(datos, x.servicio).c);
+      b.append(el("strong", "", `${fechaCorta.format(x.inicio)} · ${hhmm(x.inicio)}`), el("span", "", `${serv(datos, x.servicio).n} con ${barb(datos, x.barbero).n}`));
+      b.addEventListener("click", () => abrirModal(x));
+      caja.append(b);
+    });
+    caja.append(el("h4", "", "Historial"));
+    const hist = r.todas.filter((x) => x.inicio < Date.now()).sort((a, b) => b.inicio - a.inicio);
+    if (!hist.length) caja.append(el("p", "pa-muted", "Sin visitas todavía."));
+    const ul = el("ul", "pa-hist");
+    ul.setAttribute("role", "list");
+    hist.slice(0, 5).forEach((x) => {
+      const li = el("li", `is-${x.estado}`);
+      li.append(el("span", "", fechaCorta.format(x.inicio)), el("span", "", serv(datos, x.servicio).n), el("em", "", ESTADOS[x.estado][0]));
+      ul.append(li);
+    });
+    caja.append(ul);
+    const nueva = boton("pa-btn pa-btn--full", ico("plus"), " Darle cita");
+    nueva.addEventListener("click", () => {
+      abrirModal(null, masDias(Date.now(), 1) + 10 * 3_600_000);
+      campo<HTMLInputElement>("cliente").value = c.n;
+      campo<HTMLInputElement>("tel").value = c.tel;
+    });
+    caja.append(nueva);
+  }
+  $("[data-pa-buscar-cli]").addEventListener("input", pintarClientes);
+
+  // ── servicios ─────
+  function pintarServicios() {
+    sub("Cambia precios y duraciones: se aplican a la web, a las citas nuevas y a las estadísticas.");
+    const iniSem = lunes().getTime();
+    $("[data-pa-servicios]").replaceChildren(
+      ...datos.servicios.map((s) => {
+        const li = el("li", "pa-card pa-serv");
+        li.style.setProperty("--c", s.c);
+        const min = Object.assign(el("input"), { type: "number", min: "10", max: "120", step: "5", value: String(s.min) });
+        const p = Object.assign(el("input"), { type: "number", min: "1", max: "200", step: "1", value: String(s.p) });
+        const campoServ = (txt: string, input: HTMLInputElement, unidad: string) => {
+          const l = el("label", "pa-serv__campo");
+          const caja = el("span", "pa-serv__input");
+          caja.append(input, el("em", "", unidad));
+          l.append(el("span", "", txt), caja);
+          return l;
+        };
+        const n = datos.citas.filter((c) => c.servicio === s.id && c.inicio >= iniSem && c.inicio < masDias(iniSem, 7) && c.estado !== "cancelada").length;
+        const cab = el("div", "pa-serv__cab");
+        const i = el("span", "pa-serv__ico");
+        i.append(ico(s.ico));
+        const t = el("div");
+        t.append(el("strong", "", s.n), el("small", "", s.d));
+        cab.append(i, t);
+        const campos = el("div", "pa-serv__campos");
+        campos.append(campoServ("Duración", min, "min"), campoServ("Precio", p, "€"));
+        li.append(cab, campos, el("span", "pa-serv__uso", n === 1 ? "1 cita esta semana" : `${n} citas esta semana`));
+        const cambiar = () => {
+          s.min = Math.max(10, Number(min.value) || s.min);
+          s.p = Math.max(1, Number(p.value) || s.p);
+          guardar(datos);
+          toast(`${s.n}: ${s.min} min · ${s.p} €`);
+        };
+        min.addEventListener("change", cambiar);
+        p.addEventListener("change", cambiar);
+        return li;
+      }),
+    );
+  }
+
+  // ── estadísticas ─────
+  function pintarStats() {
+    const ini = lunes().getTime();
+    sub(`Semana del ${fechaCorta.format(ini)} al ${fechaCorta.format(masDias(ini, 6))}`);
+    const sem = datos.citas.filter((c) => c.inicio >= ini && c.inicio < masDias(ini, 7) && c.estado !== "cancelada");
+    const validas = sem.filter((c) => c.estado !== "noshow");
+    const ingresos = validas.reduce((s, c) => s + serv(datos, c.servicio).p, 0);
+    const minutos = validas.reduce((s, c) => s + serv(datos, c.servicio).min, 0);
+    const capacidad = datos.barberos.reduce((s, b) => s + minutosDeTrabajo(b, ini, 7), 0);
+    const noshow = sem.length - validas.length;
+    const web = sem.filter((c) => c.origen === "web").length;
+    $("[data-pa-skpis]").replaceChildren(
+      kpi("euro-sign", "Ingresos", euro.format(ingresos), "esta semana", "#10b981"),
+      kpi("calendar-check", "Citas", String(sem.length), `${validas.length} atendidas o previstas`, "#6366f1"),
+      kpi("gauge-high", "Ocupación", `${capacidad ? Math.round((minutos / capacidad) * 100) : 0}%`, "de las horas de turno", "#f59e0b"),
+      kpi("globe", "Desde la web", `${sem.length ? Math.round((web / sem.length) * 100) : 0}%`, `${web} reservas online`, "#0ea5e9"),
+      kpi("user-xmark", "No vinieron", String(noshow), `${sem.length ? Math.round((noshow / sem.length) * 100) : 0}% de las citas`, "#f43f5e"),
+    );
+    $("[data-pa-rango]").textContent = `${fechaCorta.format(ini)} – ${fechaCorta.format(masDias(ini, 6))}`;
+    const porDia = Array.from({ length: 7 }, (_, d) => validas.filter((c) => sameDay(c.inicio, masDias(ini, d))).reduce((s, c) => s + serv(datos, c.servicio).p, 0));
+    const max = Math.max(...porDia, 1);
+    $("[data-pa-barras]").replaceChildren(
+      ...porDia.map((v, d) => {
+        const col = el("div", `pa-barra${sameDay(masDias(ini, d), Date.now()) ? " is-hoy" : ""}`);
+        const b = el("i");
+        b.style.height = `${(v / max) * 100}%`;
+        b.style.animationDelay = `${d * 0.05}s`;
+        col.append(el("span", "", v ? euro.format(v) : ""), b, el("small", "", diaCorto.format(masDias(ini, d)).replace(".", "")));
+        return col;
+      }),
+    );
+    $("[data-pa-ocup]").replaceChildren(
+      ...datos.barberos.map((b) => {
+        const suyas = validas.filter((c) => c.barbero === b.id);
+        const minT = minutosDeTrabajo(b, ini, 7);
+        const p = minT ? Math.round((suyas.reduce((s, c) => s + serv(datos, c.servicio).min, 0) / minT) * 100) : 0;
+        const fila = el("div", "pa-ocup__fila");
+        fila.style.setProperty("--c", b.c);
+        const txt = el("div", "pa-ocup__txt");
+        txt.append(el("strong", "", b.n), el("small", "", `${suyas.length} citas · ${euro.format(suyas.reduce((s, c) => s + serv(datos, c.servicio).p, 0))} · ${Math.round(minT / 60)} h de turno`));
+        const barra = el("div", "pa-ocup__barra");
+        const i = el("i");
+        i.style.width = `${p}%`;
+        barra.append(i);
+        fila.append(avatar(b), txt, el("strong", "pa-ocup__p", `${p}%`), barra);
+        return fila;
+      }),
+    );
+    const porServ = datos.servicios.map((s) => ({ s, n: validas.filter((c) => c.servicio === s.id).length })).sort((a, b) => b.n - a.n);
+    const maxS = Math.max(...porServ.map((x) => x.n), 1);
+    $("[data-pa-hbarras]").replaceChildren(
+      ...porServ.map(({ s, n }) => {
+        const f = el("div", "pa-hbarra");
+        f.style.setProperty("--c", s.c);
+        const pista = el("span", "pa-hbarra__pista");
+        const i = el("i");
+        i.style.width = `${(n / maxS) * 100}%`;
+        pista.append(i);
+        f.append(el("span", "pa-hbarra__n", s.n), pista, el("strong", "", `${n} · ${euro.format(n * s.p)}`));
+        return f;
+      }),
+    );
+  }
+
+  // ── restablecer ─────
+  $("[data-pa-reset]").addEventListener("click", () => {
+    datos = restablecer();
+    semana = lunes();
+    pintar();
+    toast("Datos de ejemplo restablecidos");
+  });
+
+  // ── arranque y avisos de la web ─────
+  alCambiar((d) => {
+    const antes = new Set(datos.citas.map((c) => c.id));
+    datos = d;
+    const nuevas = datos.citas.filter((c) => !antes.has(c.id) && c.origen === "web" && (esAdmin() || c.barbero === yo));
+    if (nuevas.length) toast(`Nueva reserva web: ${nuevas[0].cliente.split(" ")[0]} · ${etiquetaDia(nuevas[0].inicio).toLowerCase()} ${hhmm(nuevas[0].inicio)}`);
+    pintar();
+  });
+  setInterval(() => (vista === "agenda" || vista === "inicio") && !modal.open && pintar(), 60_000);
+  arrancar();
+</script>
+
+<style is:global>
+  .pa {
+    --acento: #6366f1;
+    --acento-2: #8b5cf6;
+    --fondo: #f5f6fa;
+    --panel: #fff;
+    --suave: #f3f4f8;
+    --tinta: #111827;
+    --gris: #6b7280;
+    --gris-2: #9ca3af;
+    --linea: #e8eaf0;
+    --side: #0c0d14;
+    --r: 16px;
+    --sombra: 0 1px 2px rgb(17 24 39 / 0.04), 0 8px 24px -12px rgb(17 24 39 / 0.12);
+    --h: 64px;
+    background: var(--fondo);
+    color: var(--tinta);
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 14px;
+    letter-spacing: -0.006em;
+  }
+
+  .pa [hidden] {
+    display: none !important;
+  }
+
+  .pa-muted {
+    color: var(--gris);
+  }
+
+  .pa .pa-card {
+    border: 1px solid var(--linea);
+    border-radius: var(--r);
+    background: var(--panel);
+    box-shadow: var(--sombra);
+  }
+
+  .pa-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .pa-logo > span {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 10px;
+    background: linear-gradient(140deg, var(--acento), var(--acento-2));
+    color: #fff;
+    font-size: 0.9rem;
+    box-shadow: 0 8px 20px -8px var(--acento);
+  }
+
+  .pa-av {
+    --c: var(--acento);
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.3rem;
+    height: 2.3rem;
+    border-radius: 50%;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--c) 65%, #fff), var(--c));
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .pa-av--sm {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.55rem;
+  }
+
+  .pa-av--xl {
+    width: 3.2rem;
+    height: 3.2rem;
+    font-size: 0.95rem;
+  }
+
+  .pa-av--gris {
+    background: linear-gradient(145deg, #e5e7eb, #d1d5db);
+    color: #374151;
+  }
+
+  .pa-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: fit-content;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: var(--suave);
+    color: var(--gris);
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .pa-pill i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .pa-pill.is-on {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  .pa-pill.is-on i {
+    animation: pa-latido 1.6s infinite;
+  }
+
+  .pa-pill.is-ocupado {
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  /* botones */
+  .pa-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.6rem 1rem;
+    border: 0;
+    border-radius: 10px;
+    background: var(--tinta);
+    color: #fff;
+    font-weight: 600;
+    white-space: nowrap;
+    transition:
+      transform 0.15s,
+      box-shadow 0.2s,
+      background 0.2s;
+  }
+
+  .pa-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px -10px rgb(17 24 39 / 0.5);
+  }
+
+  .pa-btn--suave {
+    background: var(--suave);
+    color: var(--tinta);
+  }
+
+  .pa-btn--suave:hover {
+    background: #e9ebf1;
+    box-shadow: none;
+  }
+
+  .pa-btn--peligro {
+    margin-right: auto;
+    background: #fef2f2;
+    color: #dc2626;
+  }
+
+  .pa-btn--peligro.is-seguro {
+    background: #dc2626;
+    color: #fff;
+  }
+
+  .pa-btn--full {
+    width: 100%;
+  }
+
+  .pa-ico {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 1px solid var(--linea);
+    border-radius: 10px;
+    background: var(--panel);
+    color: var(--gris);
+    transition: all 0.15s;
+  }
+
+  .pa-ico:hover {
+    color: var(--tinta);
+  }
+
+  .pa-ico--osc {
+    border-color: rgb(255 255 255 / 0.1);
+    background: transparent;
+    color: #9ca3af;
+  }
+
+  .pa-ico--osc:hover {
+    background: rgb(255 255 255 / 0.08);
+    color: #fff;
+  }
+
+  /* ── entrada ── */
+  .pa-login {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(20rem, 28rem);
+    align-items: center;
+    gap: clamp(2rem, 6vw, 6rem);
+    min-height: 100dvh;
+    padding: clamp(2rem, 6vw, 6rem);
+    background: var(--side);
+    color: #f9fafb;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .pa-login__fondo {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(50rem 30rem at 10% 0%, rgb(99 102 241 / 0.35), transparent 60%),
+      radial-gradient(40rem 30rem at 90% 100%, rgb(139 92 246 / 0.25), transparent 60%),
+      radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.07) 1px, transparent 0) 0 0 / 28px 28px;
+  }
+
+  .pa-login__txt {
+    display: grid;
+    gap: 1.5rem;
+    animation: pa-sube 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .pa-login h1 {
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  .pa-login h1 em {
+    background: linear-gradient(100deg, #a5b4fc, #c4b5fd 60%, #f0abfc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-style: normal;
+  }
+
+  .pa-login__txt > p {
+    max-width: 32rem;
+    color: #9ca3af;
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+
+  .pa-login__pts {
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .pa-login__pts li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #d1d5db;
+  }
+
+  .pa-login__pts i {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9px;
+    background: rgb(99 102 241 / 0.18);
+    color: #a5b4fc;
+    font-size: 0.8rem;
+  }
+
+  .pa-login__caja {
+    display: grid;
+    gap: 0.6rem;
+    padding: 1.8rem;
+    border: 1px solid rgb(255 255 255 / 0.1);
+    border-radius: 24px;
+    background: rgb(255 255 255 / 0.05);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.7);
+    animation: pa-sube 0.8s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .pa-login__caja h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .pa-login__caja > p {
+    margin-bottom: 0.6rem;
+    color: #9ca3af;
+  }
+
+  .pa-login__lista {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .pa-quien {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgb(255 255 255 / 0.08);
+    border-radius: 14px;
+    background: rgb(255 255 255 / 0.04);
+    color: inherit;
+    text-align: left;
+    transition: all 0.2s;
+  }
+
+  .pa-quien:hover {
+    border-color: rgb(165 180 252 / 0.5);
+    background: rgb(99 102 241 / 0.12);
+    transform: translateX(3px);
+  }
+
+  .pa-quien > i {
+    color: #6b7280;
+    transition: color 0.2s;
+  }
+
+  .pa-quien:hover > i {
+    color: #fff;
+  }
+
+  .pa-quien__txt {
+    display: grid;
+    flex: 1;
+  }
+
+  .pa-quien__txt small {
+    color: #9ca3af;
+    font-size: 0.78rem;
+  }
+
+  .pa-quien .pa-pill {
+    background: rgb(255 255 255 / 0.06);
+    color: #9ca3af;
+  }
+
+  .pa-quien .pa-pill.is-on {
+    background: rgb(34 197 94 / 0.15);
+    color: #4ade80;
+  }
+
+  .pa-login__web {
+    margin-top: 0.8rem;
+    color: #a5b4fc;
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+
+  .pa-login__web:hover {
+    color: #fff;
+  }
+
+  /* ── app ── */
+  .pa-app {
+    display: grid;
+    grid-template-columns: 16rem minmax(0, 1fr);
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .pa-side {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.25rem 0.9rem;
+    background: var(--side);
+    color: #e5e7eb;
+    overflow-y: auto;
+  }
+
+  .pa-side__top {
+    display: grid;
+    gap: 1.1rem;
+    padding-inline: 0.4rem;
+  }
+
+  .pa-negocio {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.6rem 0.7rem;
+    border: 1px solid rgb(255 255 255 / 0.08);
+    border-radius: 12px;
+    background: rgb(255 255 255 / 0.04);
+  }
+
+  .pa-negocio__ico {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+    background: linear-gradient(140deg, #d4a95a, #a47a32);
+    color: #1a1308;
+    font-size: 0.8rem;
+  }
+
+  .pa-negocio strong,
+  .pa-negocio small {
+    display: block;
+  }
+
+  .pa-negocio strong {
+    font-size: 0.85rem;
+  }
+
+  .pa-negocio small {
+    color: #9ca3af;
+    font-size: 0.72rem;
+  }
+
+  .pa-menu {
+    display: grid;
+    gap: 2px;
+  }
+
+  .pa-menu button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.62rem 0.8rem;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #9ca3af;
+    font-weight: 500;
+    text-align: left;
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+
+  .pa-menu button i {
+    width: 1rem;
+    text-align: center;
+  }
+
+  .pa-menu button:hover {
+    background: rgb(255 255 255 / 0.05);
+    color: #fff;
+  }
+
+  .pa-menu button[aria-current] {
+    background: linear-gradient(90deg, rgb(99 102 241 / 0.28), rgb(99 102 241 / 0.08));
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .pa-menu button[aria-current]::before {
+    content: "";
+    position: absolute;
+    left: -0.9rem;
+    top: 20%;
+    bottom: 20%;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--acento);
+  }
+
+  .pa-menu button[aria-current] i {
+    color: #a5b4fc;
+  }
+
+  .pa-menu em {
+    margin-left: auto;
+    min-width: 1.35rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 999px;
+    background: var(--acento);
+    color: #fff;
+    font-size: 0.68rem;
+    font-style: normal;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .pa-menu em:empty {
+    display: none;
+  }
+
+  .pa-side__pie {
+    display: grid;
+    gap: 0.3rem;
+    margin-top: auto;
+  }
+
+  .pa-side__web,
+  .pa-side__mini {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.5rem 0.8rem;
+    border: 0;
+    border-radius: 9px;
+    background: none;
+    color: #9ca3af;
+    font-size: 0.8rem;
+    text-align: left;
+    text-decoration: none;
+  }
+
+  .pa-side__web:hover,
+  .pa-side__mini:hover {
+    background: rgb(255 255 255 / 0.05);
+    color: #fff;
+  }
+
+  .pa-yo {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-top: 0.6rem;
+    padding: 0.75rem 0.4rem 0;
+    border-top: 1px solid rgb(255 255 255 / 0.08);
+  }
+
+  .pa-yo__txt {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pa-yo__txt strong {
+    font-size: 0.85rem;
+  }
+
+  .pa-yo__txt small {
+    color: #9ca3af;
+    font-size: 0.72rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pa-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    padding: 1.6rem clamp(1rem, 2.5vw, 2.2rem) 6rem;
+    overflow-y: auto;
+  }
+
+  .pa-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .pa-top h1 {
+    font-size: 1.65rem;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+  }
+
+  .pa-top p {
+    margin-top: 0.15rem;
+    color: var(--gris);
+  }
+
+  .pa-top__acc {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .pa-seg {
+    display: flex;
+    padding: 3px;
+    border: 1px solid var(--linea);
+    border-radius: 11px;
+    background: var(--panel);
+  }
+
+  .pa-seg button {
+    padding: 0.42rem 0.75rem;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--gris);
+    font-weight: 600;
+  }
+
+  .pa-seg button:hover {
+    background: var(--suave);
+    color: var(--tinta);
+  }
+
+  .pa-buscar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0.8rem;
+    border: 1px solid var(--linea);
+    border-radius: 10px;
+    background: var(--panel);
+    color: var(--gris-2);
+  }
+
+  .pa-buscar input {
+    width: 14rem;
+    padding: 0.58rem 0;
+    border: 0;
+    background: none;
+    outline: none;
+  }
+
+  .pa-buscar:focus-within {
+    border-color: var(--acento);
+    box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
+  }
+
+  .pa-buscar--suave {
+    flex: 1;
+    background: var(--suave);
+    border-color: transparent;
+  }
+
+  .pa-buscar--suave input {
+    width: 100%;
+  }
+
+  .pa-select {
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--linea);
+    border-radius: 10px;
+    background: var(--panel);
+    font-weight: 500;
+  }
+
+  .pa-vista {
+    display: grid;
+    gap: 1.2rem;
+    animation: pa-sube 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* kpis */
+  .pa-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 0.9rem;
+  }
+
+  .pa-kpi {
+    position: relative;
+    display: grid;
+    gap: 0.15rem;
+    padding: 1.1rem 1.2rem;
+    overflow: hidden;
+  }
+
+  .pa-kpi::after {
+    content: "";
+    position: absolute;
+    right: -2.5rem;
+    top: -2.5rem;
+    width: 7rem;
+    height: 7rem;
+    border-radius: 50%;
+    background: radial-gradient(color-mix(in srgb, var(--c) 18%, transparent), transparent 70%);
+  }
+
+  .pa-kpi__ico {
+    display: grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--c) 12%, #fff);
+    color: var(--c);
+    font-size: 0.85rem;
+  }
+
+  .pa-kpi__t {
+    color: var(--gris);
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+
+  .pa-kpi strong {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pa-kpi small {
+    color: var(--gris-2);
+    font-size: 0.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* inicio */
+  .pa-inicio {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    align-items: start;
+    gap: 1.2rem;
+  }
+
+  .pa-inicio__lado {
+    display: grid;
+    gap: 1.2rem;
+  }
+
+  .pa-card h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .pa-citas {
+    display: grid;
+    overflow: hidden;
+  }
+
+  .pa-citas__cab {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    padding: 1.1rem 1.2rem 0.8rem;
+  }
+
+  .pa-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .pa-filtros button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--linea);
+    border-radius: 999px;
+    background: var(--panel);
+    color: var(--gris);
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+
+  .pa-filtros em {
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: var(--suave);
+    font-size: 0.7rem;
+    font-style: normal;
+  }
+
+  .pa-filtros button[aria-pressed="true"] {
+    border-color: var(--tinta);
+    background: var(--tinta);
+    color: #fff;
+  }
+
+  .pa-filtros button[aria-pressed="true"] em {
+    background: rgb(255 255 255 / 0.18);
+  }
+
+  .pa-citas__barra {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0 1.2rem 0.9rem;
+    border-bottom: 1px solid var(--linea);
+  }
+
+  .pa-citas__lista {
+    max-height: 38rem;
+    overflow-y: auto;
+  }
+
+  .pa-grupo__cab {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.65rem 1.2rem;
+    border-bottom: 1px solid var(--linea);
+    background: rgb(250 250 252 / 0.95);
+    backdrop-filter: blur(6px);
+  }
+
+  .pa-grupo__cab strong {
+    font-size: 0.85rem;
+  }
+
+  .pa-grupo__cab strong::first-letter {
+    text-transform: uppercase;
+  }
+
+  .pa-grupo__cab span {
+    color: var(--gris-2);
+    font-size: 0.78rem;
+  }
+
+  .pa-grupo__cab em {
+    margin-left: auto;
+    color: var(--gris);
+    font-size: 0.75rem;
+    font-style: normal;
+  }
+
+  .pa-grupo__cab.is-hoy strong {
+    color: var(--acento);
+  }
+
+  .pa-fila {
+    display: grid;
+    grid-template-columns: 3.6rem minmax(0, 1fr) 7.5rem 7.5rem 3rem;
+    align-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    padding: 0.7rem 1.2rem;
+    border: 0;
+    border-bottom: 1px solid var(--linea);
+    background:
+      linear-gradient(var(--c), var(--c)) left / 3px 100% no-repeat,
+      var(--panel);
+    text-align: left;
+    transition: background-color 0.15s;
+  }
+
+  .pa-fila:hover {
+    background-color: #fafaff;
+  }
+
+  .pa-fila.is-ahora {
+    background-color: color-mix(in srgb, var(--acento) 6%, #fff);
+  }
+
+  .pa-fila.is-cancelada,
+  .pa-fila.is-noshow {
+    opacity: 0.6;
+  }
+
+  .pa-fila__hora {
+    display: grid;
+  }
+
+  .pa-fila__hora strong {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pa-fila__hora small,
+  .pa-fila__txt small {
+    color: var(--gris-2);
+    font-size: 0.74rem;
+  }
+
+  .pa-fila__txt {
+    display: grid;
+    min-width: 0;
+  }
+
+  .pa-fila__txt strong,
+  .pa-fila__txt small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pa-web-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: 0.45rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 6px;
+    background: #ecfdf5;
+    color: #059669;
+    font-size: 0.66rem;
+    font-style: normal;
+    font-weight: 700;
+    vertical-align: 1px;
+  }
+
+  .pa-fila__quien {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--gris);
+    font-size: 0.82rem;
+  }
+
+  .pa-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    width: fit-content;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .pa-estado.is-confirmada {
+    background: #eef2ff;
+    color: #4f46e5;
+  }
+
+  .pa-estado.is-llego {
+    background: #ecfdf5;
+    color: #059669;
+  }
+
+  .pa-estado.is-noshow {
+    background: #fff7ed;
+    color: #c2410c;
+  }
+
+  .pa-estado.is-cancelada {
+    background: #fef2f2;
+    color: #dc2626;
+  }
+
+  .pa-fila__precio {
+    color: var(--gris);
+    font-weight: 600;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pa-mas {
+    width: 100%;
+    padding: 0.9rem;
+    border: 0;
+    background: none;
+    color: var(--acento);
+    font-weight: 600;
+  }
+
+  .pa-ahora,
+  .pa-web {
+    display: grid;
+    gap: 0.8rem;
+    padding: 1.1rem 1.1rem 0.8rem;
+  }
+
+  .pa-web h2 i {
+    margin-right: 0.3rem;
+    color: #10b981;
+  }
+
+  [data-pa-ahora] {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .pa-miembro {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.6rem;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    text-align: left;
+    transition: background 0.15s;
+  }
+
+  .pa-miembro:not(:disabled):hover {
+    background: var(--suave);
+  }
+
+  .pa-miembro:disabled {
+    cursor: default;
+  }
+
+  .pa-miembro__txt,
+  .pa-miembro__dcha {
+    display: grid;
+  }
+
+  .pa-miembro__txt {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pa-miembro__txt small,
+  .pa-miembro__dcha small {
+    color: var(--gris-2);
+    font-size: 0.72rem;
+  }
+
+  .pa-miembro__dcha {
+    justify-items: end;
+    gap: 0.2rem;
+  }
+
+  [data-pa-web] {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .pa-webr {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    padding: 0.55rem 0.5rem;
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    text-align: left;
+  }
+
+  .pa-webr:hover {
+    background: var(--suave);
+  }
+
+  .pa-webr__punto {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--c);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 20%, transparent);
+  }
+
+  .pa-webr span {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pa-webr strong {
+    font-size: 0.85rem;
+  }
+
+  .pa-webr small {
+    color: var(--gris);
+    font-size: 0.74rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pa-webr em {
+    color: var(--gris-2);
+    font-size: 0.7rem;
+    font-style: normal;
+    white-space: nowrap;
+  }
+
+  .pa-vacio {
+    display: grid;
+    justify-items: center;
+    gap: 0.7rem;
+    padding: 3rem 1.5rem;
+    color: var(--gris);
+    text-align: center;
+  }
+
+  .pa-vacio i {
+    color: #d1d5db;
+    font-size: 2rem;
+  }
+
+  /* ── agenda ── */
+  .pa-agenda-cab {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+  }
+
+  .pa-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 4px;
+    border: 1px solid var(--linea);
+    border-radius: 14px;
+    background: var(--panel);
+  }
+
+  .pa-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.9rem 0.4rem 0.45rem;
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    color: var(--gris);
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .pa-tab:hover {
+    background: var(--suave);
+  }
+
+  .pa-tab[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--c) 12%, #fff);
+    color: var(--tinta);
+    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 45%, transparent);
+  }
+
+  .pa-agenda-resumen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .pa-agenda-resumen span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--linea);
+    border-radius: 999px;
+    background: var(--panel);
+    color: var(--gris);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .pa-agenda-resumen i {
+    color: var(--quien, var(--acento));
+  }
+
+  .pa-cal {
+    overflow: hidden;
+  }
+
+  .pa-cal__scroll {
+    max-height: calc(100dvh - 15rem);
+    min-height: 26rem;
+    overflow: auto;
+  }
+
+  .pa-cal__cab,
+  .pa-cal__cuerpo {
+    min-width: 46rem;
+  }
+
+  .pa-cal__cab {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: 3.6rem repeat(var(--n, 6), minmax(0, 1fr));
+    border-bottom: 1px solid var(--linea);
+    background: var(--panel);
+  }
+
+  .pa-cab-dia {
+    position: relative;
+    display: grid;
+    gap: 0.3rem;
+    padding: 0.7rem 0.75rem 0.8rem;
+    border-left: 1px solid var(--linea);
+  }
+
+  .pa-cab-dia__fecha {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+
+  .pa-cab-dia__fecha small {
+    color: var(--gris);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .pa-cab-dia__fecha strong {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .pa-cab-dia.is-hoy .pa-cab-dia__fecha strong {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--quien, var(--acento));
+    color: #fff;
+    font-size: 1rem;
+  }
+
+  .pa-cab-dia__info {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.3rem;
+    font-size: 0.68rem;
+  }
+
+  .pa-cab-dia__info small {
+    color: var(--gris);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pa-cab-dia__info em {
+    color: var(--gris-2);
+    font-style: normal;
+    white-space: nowrap;
+  }
+
+  .pa-cab-dia.is-libra .pa-cab-dia__info small {
+    color: #dc2626;
+    font-weight: 600;
+  }
+
+  .pa-cab-dia__barra {
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(var(--quien, var(--acento)), var(--quien, var(--acento))) left / var(--p) 100% no-repeat, var(--suave);
+  }
+
+  .pa-cal__cuerpo {
+    display: grid;
+    grid-template-columns: 3.6rem minmax(0, 1fr);
+  }
+
+  .pa-cal__horas span {
+    display: block;
+    padding-right: 0.5rem;
+    color: var(--gris-2);
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    translate: 0 -0.45rem;
+  }
+
+  .pa-cal__horas span:first-child {
+    visibility: hidden;
+  }
+
+  .pa-cal__cols {
+    display: grid;
+    grid-template-columns: repeat(var(--n, 6), minmax(0, 1fr));
+  }
+
+  .pa-col {
+    position: relative;
+    border-left: 1px solid var(--linea);
+    background:
+      repeating-linear-gradient(to bottom, var(--linea) 0 1px, transparent 1px calc(var(--h) / 2)),
+      transparent;
+    background-size: 100% var(--h);
+    cursor: copy;
+  }
+
+  .pa-col.is-hoy {
+    background-color: color-mix(in srgb, var(--quien, var(--acento)) 3%, transparent);
+  }
+
+  .pa-fuera {
+    position: absolute;
+    inset-inline: 0;
+    display: grid;
+    place-items: center;
+    background: repeating-linear-gradient(-45deg, rgb(17 24 39 / 0.035) 0 6px, rgb(17 24 39 / 0.07) 6px 12px);
+    cursor: not-allowed;
+  }
+
+  .pa-fuera span {
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.85);
+    color: var(--gris-2);
+    font-size: 0.68rem;
+    font-weight: 600;
+    pointer-events: none;
+  }
+
+  .pa-cita {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    padding: 0.32rem 0.5rem;
+    border: 0;
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--c) 13%, #fff);
+    box-shadow: inset 3px 0 0 var(--c);
+    color: color-mix(in srgb, var(--c) 55%, #111827);
+    font-size: 0.74rem;
+    line-height: 1.25;
+    text-align: left;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: none;
+    transition:
+      box-shadow 0.15s,
+      transform 0.15s;
+  }
+
+  .pa-cita:hover {
+    z-index: 2;
+    box-shadow:
+      inset 3px 0 0 var(--c),
+      0 8px 20px -8px color-mix(in srgb, var(--c) 60%, transparent);
+    transform: scale(1.015);
+  }
+
+  .pa-cita strong {
+    color: var(--tinta);
+    font-size: 0.8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pa-cita__hora {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.66rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pa-cita__hora i {
+    font-size: 0.62rem;
+  }
+
+  .pa-cita__hora i:first-of-type {
+    margin-left: auto;
+  }
+
+  .pa-cita__serv {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pa-cita.is-corta {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    padding-block: 0;
+  }
+
+  .pa-cita.is-corta .pa-cita__serv {
+    display: none;
+  }
+
+  .pa-cita.is-corta .pa-cita__hora i {
+    display: none;
+  }
+
+  .pa-cita.is-llego {
+    background: color-mix(in srgb, var(--c) 7%, #fff);
+    opacity: 0.8;
+  }
+
+  .pa-cita.is-noshow {
+    background: repeating-linear-gradient(-45deg, #fff7ed 0 5px, #ffedd5 5px 10px);
+    box-shadow: inset 3px 0 0 #f97316;
+    color: #9a3412;
+  }
+
+  .pa-cita.is-cancelada {
+    z-index: 0;
+    border: 1.5px dashed #fca5a5;
+    background: rgb(255 255 255 / 0.7);
+    box-shadow: none;
+    color: #dc2626;
+    opacity: 0.7;
+    cursor: pointer;
+  }
+
+  .pa-cita.is-cancelada strong {
+    color: #dc2626;
+    text-decoration: line-through;
+  }
+
+  .pa-cita.is-arrastrando {
+    z-index: 5;
+    box-shadow: 0 18px 40px -10px rgb(17 24 39 / 0.45);
+    opacity: 0.92;
+    cursor: grabbing;
+  }
+
+  .pa-linea-ahora {
+    position: absolute;
+    inset-inline: 0;
+    z-index: 4;
+    height: 2px;
+    background: #ef4444;
+    pointer-events: none;
+  }
+
+  .pa-linea-ahora::before {
+    content: "";
+    position: absolute;
+    left: -5px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+  }
+
+  .pa-linea-ahora span {
+    position: absolute;
+    right: 4px;
+    top: -1.2rem;
+    padding: 0 0.3rem;
+    border-radius: 4px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 700;
+  }
+
+  .pa-cal__pie {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    color: var(--gris);
+    font-size: 0.78rem;
+  }
+
+  .pa-leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+  }
+
+  .pa-leyenda span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .pa-leyenda i {
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+  }
+
+  /* ── equipo ── */
+  .pa-equipo {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+    gap: 1.2rem;
+  }
+
+  .pa-miembro-card {
+    position: relative;
+    display: grid;
+    gap: 1.1rem;
+    padding: 1.3rem;
+    overflow: hidden;
+  }
+
+  .pa-miembro-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 5.5rem;
+    background: linear-gradient(120deg, color-mix(in srgb, var(--c) 16%, #fff), transparent);
+    pointer-events: none;
+  }
+
+  .pa-mc__cab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .pa-mc__cab > div {
+    flex: 1;
+  }
+
+  .pa-mc__cab h3 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .pa-mc__cab small {
+    color: var(--gris);
+  }
+
+  .pa-mc__sem {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .pa-mc__dia {
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr) 8.5rem;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.78rem;
+  }
+
+  .pa-mc__dia strong {
+    color: var(--gris);
+    font-weight: 600;
+  }
+
+  .pa-mc__dia small {
+    color: var(--gris);
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .pa-mc__dia.is-hoy strong {
+    color: var(--c);
+    font-weight: 800;
+  }
+
+  .pa-mc__dia.is-libra small {
+    color: var(--gris-2);
+  }
+
+  .pa-mc__pista {
+    position: relative;
+    height: 0.7rem;
+    border-radius: 999px;
+    background: var(--suave);
+  }
+
+  .pa-mc__pista i {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--c) 75%, #fff), var(--c));
+  }
+
+  .pa-mc__dia.is-hoy .pa-mc__pista {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 25%, transparent);
+  }
+
+  .pa-mc__regla {
+    display: grid;
+    grid-template-columns: 3rem repeat(4, 1fr) 0 9.1rem;
+    margin-top: -0.6rem;
+    color: var(--gris-2);
+    font-size: 0.62rem;
+  }
+
+  .pa-mc__regla em {
+    font-style: normal;
+    translate: -40% 0;
+  }
+
+  .pa-mc__nums {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+  }
+
+  .pa-mc__nums div,
+  .pa-ficha__kpis div {
+    display: grid;
+    padding: 0.6rem 0.7rem;
+    border-radius: 11px;
+    background: var(--suave);
+  }
+
+  .pa-mc__nums small,
+  .pa-ficha__kpis small {
+    color: var(--gris);
+    font-size: 0.68rem;
+  }
+
+  .pa-mc__nums strong,
+  .pa-ficha__kpis strong {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .pa-mc__prox {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .pa-mc__prox h4,
+  .pa-ficha h4 {
+    color: var(--gris);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pa-mini-cita {
+    display: grid;
+    gap: 0.05rem;
+    padding: 0.5rem 0.7rem;
+    border: 0;
+    border-radius: 10px;
+    background:
+      linear-gradient(var(--c), var(--c)) left / 3px 100% no-repeat,
+      var(--suave);
+    text-align: left;
+  }
+
+  .pa-mini-cita:not(:disabled):hover {
+    background-color: #eceef4;
+  }
+
+  .pa-mini-cita:disabled {
+    cursor: default;
+  }
+
+  .pa-mini-cita strong {
+    font-size: 0.8rem;
+  }
+
+  .pa-mini-cita strong::first-letter {
+    text-transform: uppercase;
+  }
+
+  .pa-mini-cita span {
+    color: var(--gris);
+    font-size: 0.75rem;
+  }
+
+  .pa-mc__acc {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .pa-mc__acc .pa-btn {
+    flex: 1;
+  }
+
+  /* modal de horario */
+  .pa-hdias {
+    grid-template-columns: 1fr !important;
+    gap: 0.4rem !important;
+  }
+
+  .pa-hdia {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--linea);
+    border-radius: 12px;
+    transition: opacity 0.2s;
+  }
+
+  .pa-hdia.is-off .pa-hdia__turnos {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  .pa-hdia__n {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 0.55rem !important;
+    min-width: 7rem;
+    color: var(--tinta) !important;
+    font-size: 0.88rem !important;
+  }
+
+  .pa-hdia__n input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--acento);
+  }
+
+  .pa-hdia__turnos {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gris-2);
+  }
+
+  .pa-hdia__t {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .pa-hdia__t input {
+    width: 6.2rem;
+    padding: 0.35rem 0.45rem !important;
+  }
+
+  /* ── clientes ── */
+  .pa-clientes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    align-items: start;
+    gap: 1.2rem;
+  }
+
+  .pa-card--tabla {
+    overflow: auto;
+  }
+
+  .pa-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+  }
+
+  .pa-tabla th {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--linea);
+    background: #fafbfc;
+    color: var(--gris);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .pa-tabla td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--linea);
+    color: var(--gris);
+  }
+
+  .pa-tabla tbody tr {
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+
+  .pa-tabla tbody tr:hover {
+    background: #fafaff;
+  }
+
+  .pa-tabla tr.is-sel {
+    background: #eef2ff;
+  }
+
+  .pa-cli {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--tinta);
+    font-weight: 600;
+  }
+
+  .pa-cli .pa-av {
+    width: 1.9rem;
+    height: 1.9rem;
+    font-size: 0.62rem;
+  }
+
+  .pa-ficha {
+    position: sticky;
+    top: 0;
+    display: grid;
+    gap: 0.8rem;
+    padding: 1.2rem;
+  }
+
+  .pa-ficha__cab {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .pa-ficha__cab h3 {
+    font-size: 1.1rem;
+    font-weight: 800;
+  }
+
+  .pa-ficha__kpis {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+  }
+
+  .pa-ficha__fav {
+    padding: 0.5rem 0.7rem;
+    border-radius: 10px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .pa-hist {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pa-hist li {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr auto;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px dashed var(--linea);
+    color: var(--gris);
+    font-size: 0.78rem;
+  }
+
+  .pa-hist em {
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .pa-hist .is-llego em {
+    color: #059669;
+  }
+
+  .pa-hist .is-noshow em,
+  .pa-hist .is-cancelada em {
+    color: #dc2626;
+  }
+
+  /* ── servicios ── */
+  .pa-servicios {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pa-serv {
+    display: grid;
+    gap: 1rem;
+    padding: 1.2rem;
+    border-top: 3px solid var(--c) !important;
+  }
+
+  .pa-serv__cab {
+    display: flex;
+    gap: 0.8rem;
+  }
+
+  .pa-serv__cab div {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .pa-serv__cab small {
+    color: var(--gris);
+    font-size: 0.76rem;
+    line-height: 1.4;
+  }
+
+  .pa-serv__ico {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--c) 13%, #fff);
+    color: var(--c);
+  }
+
+  .pa-serv__campos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  .pa-serv__campo {
+    display: grid;
+    gap: 0.3rem;
+    color: var(--gris);
+    font-size: 0.74rem;
+    font-weight: 600;
+  }
+
+  .pa-serv__input {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--linea);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .pa-serv__input:focus-within {
+    border-color: var(--acento);
+    box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
+  }
+
+  .pa-serv__input input {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    border: 0;
+    outline: none;
+    font-weight: 700;
+  }
+
+  .pa-serv__input em {
+    padding: 0 0.6rem;
+    color: var(--gris-2);
+    font-style: normal;
+  }
+
+  .pa-serv__uso {
+    color: var(--gris-2);
+    font-size: 0.75rem;
+  }
+
+  /* ── estadísticas ── */
+  .pa-graficas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.2rem;
+  }
+
+  .pa-panel {
+    display: grid;
+    align-content: start;
+    gap: 1.2rem;
+    padding: 1.2rem 1.3rem;
+  }
+
+  .pa-panel--ancho {
+    grid-column: 1 / -1;
+  }
+
+  .pa-panel h2 small {
+    margin-left: 0.4rem;
+    color: var(--gris-2);
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+
+  .pa-barras {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    align-items: end;
+    gap: 0.6rem;
+    height: 14rem;
+  }
+
+  .pa-barra {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    justify-items: center;
+    gap: 0.35rem;
+    height: 100%;
+  }
+
+  .pa-barra span {
+    color: var(--gris);
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+
+  .pa-barra i {
+    align-self: end;
+    width: 100%;
+    min-height: 3px;
+    border-radius: 8px 8px 3px 3px;
+    background: linear-gradient(180deg, #a5b4fc, var(--acento));
+    transform-origin: bottom;
+    animation: pa-crece 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .pa-barra.is-hoy i {
+    background: linear-gradient(180deg, #c4b5fd, var(--acento-2));
+  }
+
+  .pa-barra small {
+    color: var(--gris-2);
+    font-size: 0.7rem;
+    text-transform: capitalize;
+  }
+
+  .pa-ocup {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .pa-ocup__fila {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.4rem 0.8rem;
+  }
+
+  .pa-ocup__txt {
+    display: grid;
+  }
+
+  .pa-ocup__txt small {
+    color: var(--gris);
+    font-size: 0.74rem;
+  }
+
+  .pa-ocup__p {
+    font-size: 1.15rem;
+    font-weight: 800;
+  }
+
+  .pa-ocup__barra {
+    grid-column: 2 / -1;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--suave);
+    overflow: hidden;
+  }
+
+  .pa-ocup__barra i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--c);
+    transform-origin: left;
+    animation: pa-ancho 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .pa-hbarras {
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .pa-hbarra {
+    display: grid;
+    grid-template-columns: 10rem minmax(0, 1fr) 7rem;
+    align-items: center;
+    gap: 0.9rem;
+    font-size: 0.82rem;
+  }
+
+  .pa-hbarra__pista {
+    height: 0.75rem;
+    border-radius: 999px;
+    background: var(--suave);
+    overflow: hidden;
+  }
+
+  .pa-hbarra__pista i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--c);
+    transform-origin: left;
+    animation: pa-ancho 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .pa-hbarra strong {
+    color: var(--gris);
+    font-size: 0.78rem;
+    text-align: right;
+  }
+
+  /* ── modales ── */
+  .pa-modal {
+    width: min(36rem, calc(100vw - 1.5rem));
+    max-height: calc(100dvh - 1.5rem);
+    padding: 0;
+    border: 0;
+    border-radius: 20px;
+    background: var(--panel);
+    color: var(--tinta);
+    box-shadow: 0 40px 100px -20px rgb(17 24 39 / 0.45);
+  }
+
+  .pa-modal[open] {
+    animation: pa-modal 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pa-modal::backdrop {
+    background: rgb(12 13 20 / 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .pa-form__cab {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.3rem 1.4rem 0.6rem;
+  }
+
+  .pa-form__cab h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .pa-form__cab p {
+    margin-top: 0.15rem;
+    color: var(--gris);
+    font-size: 0.8rem;
+  }
+
+  .pa-form__cuerpo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+    padding: 0.8rem 1.4rem;
+  }
+
+  .pa-form label,
+  .pa-campo {
+    display: grid;
+    gap: 0.3rem;
+    color: var(--gris);
+    font-size: 0.76rem;
+    font-weight: 600;
+  }
+
+  .pa-form input,
+  .pa-form select,
+  .pa-form textarea {
+    padding: 0.58rem 0.7rem;
+    border: 1px solid var(--linea);
+    border-radius: 10px;
+    background: var(--panel);
+    color: var(--tinta);
+    font-size: 0.88rem;
+    font-weight: 500;
+    outline: none;
+  }
+
+  .pa-form input:focus,
+  .pa-form select:focus,
+  .pa-form textarea:focus {
+    border-color: var(--acento);
+    box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
+  }
+
+  .pa-form select:disabled {
+    background: var(--suave);
+  }
+
+  .pa-ancho {
+    grid-column: 1 / -1;
+  }
+
+  .pa-turno {
+    margin-top: -0.3rem;
+    color: #059669;
+    font-size: 0.76rem;
+    font-weight: 600;
+  }
+
+  .pa-turno.is-libra {
+    color: #dc2626;
+  }
+
+  .pa-estados {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.35rem;
+  }
+
+  .pa-estados button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.3rem;
+    border: 1px solid var(--linea);
+    border-radius: 10px;
+    background: var(--panel);
+    color: var(--gris);
+    font-size: 0.74rem;
+    font-weight: 600;
+  }
+
+  .pa-estados button[aria-pressed="true"] {
+    border-color: var(--acento);
+    background: #eef2ff;
+    color: var(--acento);
+  }
+
+  .pa-estados button[data-e="cancelada"][aria-pressed="true"] {
+    border-color: #dc2626;
+    background: #fef2f2;
+    color: #dc2626;
+  }
+
+  .pa-error {
+    min-height: 1.1em;
+    padding-inline: 1.4rem;
+    color: #dc2626;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .pa-form__cuerpo .pa-error {
+    padding: 0;
+  }
+
+  .pa-form__pie {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 0.9rem 1.4rem 1.3rem;
+    border-top: 1px solid var(--linea);
+  }
+
+  .pa-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 5rem;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.1rem;
+    border-radius: 12px;
+    background: var(--tinta);
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 20px 40px -12px rgb(17 24 39 / 0.5);
+    opacity: 0;
+    pointer-events: none;
+    translate: -50% 12px;
+    transition:
+      opacity 0.25s,
+      translate 0.25s;
+  }
+
+  .pa-toast.is-on {
+    opacity: 1;
+    translate: -50% 0;
+  }
+
+  @keyframes pa-sube {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+
+  @keyframes pa-modal {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.98);
+    }
+  }
+
+  @keyframes pa-latido {
+    50% {
+      box-shadow: 0 0 0 4px rgb(34 197 94 / 0.25);
+    }
+  }
+
+  @keyframes pa-crece {
+    from {
+      transform: scaleY(0);
+    }
+  }
+
+  @keyframes pa-ancho {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  /* ── responsive ── */
+  @media (max-width: 75rem) {
+    .pa-inicio,
+    .pa-clientes {
+      grid-template-columns: 1fr;
+    }
+
+    .pa-inicio__lado {
+      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    }
+  }
+
+  @media (max-width: 56rem) {
+    .pa-login {
+      grid-template-columns: 1fr;
+    }
+
+    .pa-app {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .pa-side {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.6rem 0.8rem;
+      overflow-x: auto;
+    }
+
+    .pa-side__top .pa-negocio,
+    .pa-side__web,
+    .pa-side__mini,
+    .pa-yo__txt {
+      display: none;
+    }
+
+    .pa-menu {
+      display: flex;
+    }
+
+    .pa-menu button {
+      white-space: nowrap;
+    }
+
+    .pa-menu button[aria-current]::before {
+      display: none;
+    }
+
+    .pa-side__pie {
+      margin: 0 0 0 auto;
+    }
+
+    .pa-yo {
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .pa-yo > .pa-av {
+      display: none;
+    }
+
+    .pa-fila {
+      grid-template-columns: 3.2rem minmax(0, 1fr) auto;
+    }
+
+    .pa-fila__quien,
+    .pa-fila__precio {
+      display: none;
+    }
+
+    .pa-graficas {
+      grid-template-columns: 1fr;
+    }
+
+    .pa-hbarra {
+      grid-template-columns: 7rem minmax(0, 1fr) 5.5rem;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .pa-form__cuerpo {
+      grid-template-columns: 1fr;
+    }
+
+    .pa-estados {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .pa-buscar input {
+      width: 9rem;
+    }
+
+    .pa-equipo {
+      grid-template-columns: 1fr;
+    }
+
+    .pa-mc__dia {
+      grid-template-columns: 2.4rem minmax(0, 1fr);
+    }
+
+    .pa-mc__dia small,
+    .pa-mc__regla {
+      display: none;
+    }
+
+    .pa-mc__nums {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .pa-hdia__turnos {
+      flex-wrap: wrap;
+    }
+  }
+</style>

@@ -1,0 +1,137 @@
+---
+// Pie: descripción, contacto, redes y legal sobre el logo, que ocupa todo el fondo del pie
+// estirado a su tamaño (máscara de logo-mask.png con 100 % × 100 %).
+import { site, socials } from "@/data/site";
+import logoMask from "@/assets/logo-mask.png";
+
+interface Props {
+  /** false = sin el logo de fondo (lo quita /pruebas) */
+  fondo?: boolean;
+}
+
+const { fondo = true } = Astro.props;
+---
+
+<footer class:list={["footer", { "sin-fondo": !fondo }]} style={`--logo: url("${logoMask.src}")`}>
+  {fondo && <div class="fondo" aria-hidden="true"></div>}
+
+  <div class="container grid">
+    <p class="intro">{site.description}</p>
+
+    <div>
+      <h2>Contacto</h2>
+      <ul role="list">
+        <li><a class="link" href={`mailto:${site.email}`}>{site.email}</a></li>
+        <li>{site.location}</li>
+        <li><a class="link" href="/contacto">Formulario de proyecto</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h2>Redes</h2>
+      <ul role="list">
+        {
+          socials.map((s) => (
+            <li>
+              <a class="link" href={s.href} target="_blank" rel="noopener noreferrer">
+                {s.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div>
+      <h2>Legal</h2>
+      <ul role="list">
+        <li><a class="link" href="/aviso-legal">Aviso legal</a></li>
+        <li><a class="link" href="/privacidad">Privacidad</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: clamp(20rem, 34vw, 30rem);
+    margin-top: var(--space-6);
+    padding-block: var(--space-8);
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+  }
+
+  /* el logo, estirado a lo ancho y alto del pie, muy suave para que se lea lo de encima */
+  .fondo {
+    position: absolute;
+    inset: var(--space-5) var(--gutter);
+    z-index: -1;
+    background: var(--fg);
+    opacity: 0.07;
+    -webkit-mask: var(--logo) center / 100% 100% no-repeat;
+    mask: var(--logo) center / 100% 100% no-repeat;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+
+  /* sin el logo no hace falta tanta altura */
+  .footer.sin-fondo {
+    min-height: 0;
+  }
+
+  .footer:hover .fondo {
+    opacity: 0.1;
+  }
+
+  .footer a:hover {
+    color: var(--fg);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 2fr repeat(3, 1fr);
+    gap: var(--space-7);
+  }
+
+  .intro {
+    max-width: 24rem;
+    font-size: var(--fs-md);
+    line-height: 1.45;
+    color: var(--fg);
+  }
+
+  h2 {
+    margin-bottom: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--fg-subtle);
+  }
+
+  li + li {
+    margin-top: var(--space-2);
+  }
+
+  @media (max-width: 52rem) {
+    .grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .intro {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 26rem) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

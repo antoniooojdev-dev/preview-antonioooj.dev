@@ -1,0 +1,12 @@
+---
+// Panel del equipo del caso «Agendo» (la web pública está en /servicios/app/agendo).
+import CasoLayout from "@/layouts/CasoLayout.astro";
+import AgendoPanel from "@/components/casos/AgendoPanel.astro";
+import { casos } from "@/data/casos";
+
+const caso = casos.find((c) => c.id === "agendo")!;
+---
+
+<CasoLayout caso={caso} fuentes={["Inter:wght@400;500;600;700;800"]}>
+  <AgendoPanel />
+</CasoLayout>

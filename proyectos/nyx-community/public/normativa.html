@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Normativa | Nyx Community</title>
+    <!-- Google Fonts: Plus Jakarta Sans, Inter y Lexend -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lexend:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome para los iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/src/assets/home.css">
+    <link rel="stylesheet" href="/src/assets/perfil.css">
+    
+    <!-- Estilos específicos para la Normativa en formato Acordeón, Pestañas y Buscador -->
+    <style>
+        /* Scrollbar personalizado acorde al diseño */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 18, 25, 0.6);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            transition: background 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.5);
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        /* Tarjeta superior de bienvenida */
+        .normativa-hero-card {
+            position: relative !important;
+            background: linear-gradient(90deg, rgba(28, 16, 38, 0.85) 0%, rgba(15, 12, 22, 0.95) 100%) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border: 1px solid rgba(139, 92, 246, 0.2) !important;
+            border-radius: 16px !important;
+            padding: 28px !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
+            margin-bottom: 20px !important;
+            overflow: hidden !important;
+        }
+        .normativa-hero-card::before {
+            content: '' !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 5px !important;
+            height: 100% !important;
+            background: linear-gradient(to bottom, #ec4899, #8b5cf6) !important;
+        }
+
+        /* Sistema de Pestañas (Tabs Navigation) */
+        .normativa-tabs-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .normativa-tabs-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .normativa-tab-btn {
+            background: rgba(20, 24, 33, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 12px 20px;
+            color: #94a3b8;
+            font-family: 'Lexend', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .normativa-tab-btn:hover {
+            border-color: rgba(139, 92, 246, 0.4);
+            color: #ffffff;
+            background: rgba(25, 30, 42, 0.95);
+        }
+
+        .normativa-tab-btn.active {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(236, 72, 153, 0.25) 100%);
+            border-color: rgba(139, 92, 246, 0.7);
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Barra de Filtro de Búsqueda */
+        .search-filter-input-container {
+            position: relative;
+            width: 300px;
+            max-width: 100%;
+        }
+
+        .search-filter-input-container i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .search-filter-input {
+            width: 100%;
+            background: rgba(20, 24, 33, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 11px 14px 11px 40px;
+            color: #ffffff;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .search-filter-input:focus {
+            border-color: rgba(139, 92, 246, 0.6);
+            background: rgba(25, 30, 42, 0.9);
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+        }
+
+        /* Estilo para las cabeceras estáticas .0 (ej: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1) */
+        .section-header-static {
+            background: linear-gradient(90deg, rgba(30, 25, 45, 0.9) 0%, rgba(20, 18, 30, 0.95) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            border-radius: 10px;
+            padding: 16px 24px;
+            font-family: 'Lexend', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .section-header-static span {
+            color: #ec4899;
+        }
+
+        /* Contenedores de Secciones (Pestañas) */
+        .normativa-section-pane {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 3rem;
+        }
+
+        .normativa-section-pane.active {
+            display: flex;
+        }
+
+        /* Elemento del Acordeón */
+        .accordion-item {
+            background: rgba(17, 18, 20, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: border-color 0.3s ease, background 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .accordion-item:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(23, 25, 30, 0.95);
+        }
+
+        .accordion-item.active {
+            border-color: rgba(139, 92, 246, 0.4);
+            background: rgba(22, 20, 30, 0.95);
+        }
+
+        /* Cabecera Clicable del Acordeón */
+        .accordion-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .accordion-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .accordion-number {
+            font-family: 'Lexend', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            min-width: 45px;
+        }
+
+        .accordion-title {
+            font-family: 'Lexend', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .accordion-icon {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
+        }
+
+        .accordion-item.active .accordion-icon {
+            transform: rotate(180deg);
+            color: #ec4899;
+        }
+
+        .accordion-item.active .accordion-number {
+            color: #ec4899;
+        }
+
+        /* Cuerpo / Contenido Desplegable Animado */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s ease;
+            padding: 0 24px;
+            background: rgba(13, 14, 18, 0.6);
+            border-top: 0px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .accordion-item.active .accordion-content {
+            max-height: 2500px;
+            padding: 20px 24px 24px 24px;
+            border-top-width: 1px;
+        }
+
+        .accordion-body-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin: 0 0 10px 0;
+        }
+        .accordion-body-text:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+    <link rel="stylesheet" href="/src/assets/comun.css">
+</head>
+<body>
+
+    <!-- Fondo de cuadrícula 3D unificado -->
+    <div class="grid-background"></div>
+
+    <div class="app-container">
+        <!-- Menú Lateral (Sidebar) Estilo Panel -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-logo-title" style="display: flex; align-items: center; gap: 10px;">
+                    <img src="https://i.imgur.com/VPqGp7U.png" alt="Nyx Community Logo" class="sidebar-logo" style="width: 32px; height: 32px; object-fit: contain;">
+                    <span class="server-main-title">Nyx Community</span>
+                </div>
+                <button class="sidebar-toggle-icon" id="sidebarToggleBtn" title="Colapsar menú">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-category">General</div>
+                <a href="/home.html" class="nav-item"><i class="fa-solid fa-house"></i> <span>Home</span></a>
+                <a href="/normativa.html" class="nav-item active"><i class="fa-solid fa-book-open"></i> <span>Normativa</span></a>
+                <a href="/equipo.html" class="nav-item"><i class="fa-solid fa-users"></i> <span>Equipo</span></a>
+                <a href="/calendario.html" class="nav-item"><i class="fa-solid fa-calendar-days"></i> <span>Calendario</span></a>
+                <a href="/comercios.html" class="nav-item"><i class="fa-solid fa-store"></i> <span>Comercios</span></a>
+                <a href="/postulaciones/post-ilegales.html" class="nav-item"><i class="fa-solid fa-skull"></i> <span>Postulaciones ilegales</span></a>
+
+                <div class="nav-category">Espacio de trabajo</div>
+                <a href="/grupos.html" class="nav-item"><i class="fa-solid fa-people-group"></i> <span>Grupos</span></a>
+                <a href="/documentos.html" class="nav-item"><i class="fa-solid fa-book"></i> <span>Documentos</span></a>
+                <a href="/whitelist.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> <span>Whitelist</span></a>
+
+                <div class="nav-category">Mi Cuenta</div>
+                <a href="/perfil.html" class="nav-item"><i class="fa-solid fa-user"></i> <span>Mi Perfil</span></a>
+                <a href="/historias.html" class="nav-item"><i class="fa-solid fa-feather-pointed"></i> <span>Historias personaje</span></a>
+                <a href="/tickets.html" class="nav-item"><i class="fa-solid fa-ticket"></i> <span>Tickets</span></a>
+
+                <div class="nav-category">SASP</div>
+                <a href="/lspd-academia.html" class="nav-item"><i class="fa-solid fa-shield-halved"></i> <span>Academia LSPD</span></a>
+                <a href="/lssd-academia.html" class="nav-item"><i class="fa-solid fa-star-badge"></i> <span>Academia LSSD</span></a>
+                <a href="/defcon.html" class="nav-item"><i class="fa-solid fa-triangle-exclamation"></i> <span>Defcon</span></a>
+                <a href="/codigo-penal.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> <span>Código penal</span></a>
+                <a href="/organigrama.html" class="nav-item"><i class="fa-solid fa-sitemap"></i> <span>Organigrama</span></a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile-mini" id="userProfileMini">
+                    <div class="avatar-placeholder" id="userAvatarContainer">
+                        <span id="userAvatarFallback">?</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="username" id="userNameDisplay">Usuario</span>
+                        <span class="user-handle" id="userHandleDisplay" style="font-size: 11px; color: var(--text-muted, #94a3b8); display: block;">@tag</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Botón flotante para revelar el menú -->
+        <button class="sidebar-reveal-trigger" id="sidebarRevealBtn" title="Abrir menú">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <!-- Contenido Principal -->
+        <main class="main-content">
+            <header class="top-action-bar animate-fade-down">
+                <div class="breadcrumb">Normativa</div>
+                <div class="top-buttons">
+                    <a href="/tickets.html" class="top-btn highlight-btn"><i class="fa-solid fa-circle-question"></i> Ayuda</a>
+                    <button class="top-btn highlight-btn"><i class="fa-solid fa-lightbulb"></i> Enviar sugerencia</button>
+                    <button class="top-btn highlight-btn"><i class="fa-solid fa-comment-dots"></i> Dar tu opinión</button>
+                </div>
+            </header>
+
+            <div class="normativa-hero-card animate-fade-up">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: #db2777; letter-spacing: 1px; text-transform: uppercase;">
+                        <i class="fa-solid fa-shield"></i> NORMATIVA GENERAL
+                    </span>
+                </div>
+                <h1 style="margin: 0 0 8px 0; font-size: 1.8rem; font-weight: 800; color: #fff; font-family: 'Lexend', sans-serif;">Normativa del servidor</h1>
+                <p style="color: #94a3b8; margin: 0; font-size: 0.95rem; line-height: 1.5;">Consulta detalladamente cada una de las normas y políticas oficiales para garantizar una correcta convivencia y experiencia de rol. Cada usuario debe leerlas y cumplirlas obligatoriamente; en caso de no cumplirlas, podrán acarrear sanciones de diversa índole por parte del equipo administrativo.</p>
+            </div>
+
+            <!-- Botones de Pestañas (Tabs) y Buscador -->
+            <div class="normativa-tabs-container animate-fade-up">
+                <div class="normativa-tabs-group">
+                    <button class="normativa-tab-btn active" onclick="switchNormativaTab('general', this)">
+                        <i class="fa-solid fa-book-open"></i> Normativa general
+                    </button>
+                    <button class="normativa-tab-btn" onclick="switchNormativaTab('delictivos', this)">
+                        <i class="fa-solid fa-mask"></i> Normativa de actos delictivos
+                    </button>
+                    <button class="normativa-tab-btn" onclick="switchNormativaTab('creadores', this)">
+                        <i class="fa-solid fa-video"></i> Normativa Creadores de Contenido
+                    </button>
+                    <button class="normativa-tab-btn" onclick="switchNormativaTab('playmakers', this)">
+                        <i class="fa-solid fa-masks-theater"></i> Normativa Playmakers
+                    </button>
+                </div>
+                <div class="search-filter-input-container">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="normativaSearchInput" class="search-filter-input" placeholder="Buscar entre las normas..." onkeyup="filterNormativa()">
+                </div>
+            </div>
+
+            <!-- PESTAÑA 1: NORMATIVA GENERAL (1.0 a 4.18) -->
+            <section class="normativa-section-pane active animate-fade-up delay-1" id="pane-general">
+
+                <!-- 1.0 NORMATIVA GENERAL (Estático) -->
+                <div class="section-header-static searchable-section" data-search="1.0 normativa general actualizaciones">
+                    <span>1.0</span> NORMATIVA GENERAL
+                </div>
+
+                <!-- 1.1 -->
+                <div class="accordion-item" data-search="1.1 chat de voz">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">1.1</span>
+                            <span class="accordion-title">Chat de voz</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Utiliza el chat de voz de manera coherente con la situación de tu personaje.</p>
+                    </div>
+                </div>
+
+                <!-- 1.2 -->
+                <div class="accordion-item" data-search="1.2 uso del comando /msg">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">1.2</span>
+                            <span class="accordion-title">Uso del comando: /msg</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No inundes el chat de texto con spam o mensajes irrelevantes.</p>
+                    </div>
+                </div>
+
+                <!-- 1.3 -->
+                <div class="accordion-item" data-search="1.3 comportamiento de los usuarios jugadores miembros comunidad staff">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">1.3</span>
+                            <span class="accordion-title">Comportamiento de los usuarios</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Los jugadores deben mostrar respeto en todo momento hacia el resto de miembros de la Comunidad y del STAFF.</p>
+                        <p class="accordion-body-text">El servidor se basa en el RolePlay, por lo que se espera que todos los jugadores participen de manera seria y realista en la interpretación de sus personajes.</p>
+                        <p class="accordion-body-text">La Administración no se hace responsable del comportamiento y actuaciones que puedan llevar a cabo los miembros de la Comunidad, sí tomando acciones contra aquellos que contravengan la normativa, la ética y el buen comportamiento.</p>
+                    </div>
+                </div>
+
+                <!-- 1.4 -->
+                <div class="accordion-item" data-search="1.4 creación del personaje construcción nombre apellido troll historia">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">1.4</span>
+                            <span class="accordion-title">Creación del personaje</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Los nombres de personajes deben ser realistas y apropiados para el entorno del juego, siguiendo el formato de Nombre y Apellido y no pudiendo tener significados "troll".</p>
+                        <p class="accordion-body-text">El personaje debe tener una historia de fondo y una personalidad coherente la cual has de seguir en todo momento.</p>
+                    </div>
+                </div>
+
+                <!-- 1.5 -->
+                <div class="accordion-item" data-search="1.5 requisitos mínimos para acceder al servidor edad mínima 18 años expulsión">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">1.5</span>
+                            <span class="accordion-title">Requisitos mínimos para acceder al servidor</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Los jugadores deben tener al menos 18 años para acceder al servidor.</p>
+                        <p class="accordion-body-text">Cualquier jugador que se detecte o se tenga el conocimiento que no llegue a la mayoría de edad, éste podrá ser expulsado de la Comunidad por parte de la Administración.</p>
+                    </div>
+                </div>
+
+                <!-- 1.6 -->
+                <div class="accordion-item" data-search="1.6 reportar un rol ticket discord de nyx community disconformidad video abuso">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">1.6</span>
+                            <span class="accordion-title">Reportar un rol</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Deberás de finalizar siempre el rol con normalidad antes de realizar cualquier tipo de acción relacionada con un reporte.</p>
+                        <p class="accordion-body-text">Podrás comunicar cualquier disconformidad con cómo ha podido transcurrir un rol o el comportamiento de otros jugadores a través de un ticket en el Discord de Nyx Community.</p>
+                        <p class="accordion-body-text">Antes de comunicar dicha disconformidad, deberás de hablar con la otra parte para aclarar los extremos que consideres que no se ajustan al RP o a la normativa.</p>
+                        <p class="accordion-body-text">Si no llegas a un entendimiento con la otra parte, podrás abrir el ticket correspondiente indicando el nombre del jugador o jugadores de los cuales no estás de acuerdo con su actuación o comportamiento y describiendo los hechos que lo motivan.</p>
+                        <p class="accordion-body-text">Será necesario adjuntar vídeo que demuestre dicha disconformidad.</p>
+                        <p class="accordion-body-text">El abuso de reportes sin ningún tipo de criterio ni razón podrá ser sancionable.</p>
+                    </div>
+                </div>
+
+                <!-- 1.7 -->
+                <div class="accordion-item" data-search="1.7 sanciones moderación advertencias suspensiones temporales expulsiones permanentes">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">1.7</span>
+                            <span class="accordion-title">Sanciones</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Las violaciones de la normativa pueden resultar en advertencias, suspensiones temporales o expulsiones permanentes, dependiendo de la gravedad de la infracción.</p>
+                        <p class="accordion-body-text">Las decisiones de moderación son finales y no se discuten públicamente en el servidor.</p>
+                    </div>
+                </div>
+
+                <!-- 2.0 CONCEPTOS BÁSICOS (Estático) -->
+                <div class="section-header-static searchable-section" data-search="2.0 conceptos básicos">
+                    <span>2.0</span> CONCEPTOS BÁSICOS
+                </div>
+
+                <!-- 2.1 -->
+                <div class="accordion-item" data-search="2.1 character kill ck muerte personaje wipe standby ley rico administración">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">2.1</span>
+                            <span class="accordion-title">Character Kill - CK</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">El Character Kill, o muerte de personaje, tiene dos variantes:</p>
+                        <p class="accordion-body-text">Muerte del personaje: Tu personaje muere y, por tanto, no podrás volver a interpretarlo dentro del servidor hasta el siguiente wipe.</p>
+                        <p class="accordion-body-text">Otros: No vas a interpretar más tu personaje (p.ej.: marcha de la ciudad, se aplica Ley Rico, ...) y decides dejarlo en standby para traer otro personaje que interpretar.</p>
+                        <p class="accordion-body-text">Todo CK, propio o hacia otro jugador, debe de ser autorizado y aceptado por la Administración.</p>
+                    </div>
+                </div>
+
+                <!-- 2.2 -->
+                <div class="accordion-item" data-search="2.2 in character ic interacciones acciones conversaciones rol">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">2.2</span>
+                            <span class="accordion-title">In Character - IC</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">"IC" significa "In Character" (en el personaje). Se utiliza para distinguir las interacciones, acciones o conversaciones que se llevan a cabo dentro del rol o personaje que un jugador está interpretando en el juego.</p>
+                    </div>
+                </div>
+
+                <!-- 2.3 -->
+                <div class="accordion-item" data-search="2.3 interpretación de personaje idp acciones omisiones historia lore evolución coherente">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">2.3</span>
+                            <span class="accordion-title">Interpretación de personaje - IDP</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Acciones u omisiones que nuestro personaje realizaría en consecuencia con su historia y lore en todo aquello que le ocurra. La evolución de esta interpretación debe de ser coherente y progresiva.</p>
+                    </div>
+                </div>
+
+                <!-- 2.4 -->
+                <div class="accordion-item" data-search="2.4 fairplay fp respetar jugadores reglas juego justa ética acoso sabotaje exploits">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">2.4</span>
+                            <span class="accordion-title">Fairplay - FP</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">El concepto de "Fairplay" se refiere a jugar el juego de una manera que respeta a otros jugadores y sigue las reglas del juego de manera justa y ética:</p>
+                        <p class="accordion-body-text">Respeto a otros jugadores: Evitar acciones que puedan perjudicar injustamente a otros jugadores, como el acoso, el sabotaje intencional o el uso de trampas para obtener ventajas injustas.</p>
+                        <p class="accordion-body-text">Seguir las reglas del juego: Seguir las reglas establecidas por el juego y no aprovecharse de fallos o errores del sistema para obtener beneficios injustos.</p>
+                        <p class="accordion-body-text">Jugar con ética: Actuar con honestidad y no engañar a otros jugadores. Por ejemplo, no hacer trampas, no utilizar programas externos que proporcionen ventajas injustas o no utilizar exploits para obtener recompensas de manera indebida.</p>
+                    </div>
+                </div>
+
+                <!-- 2.5 -->
+                <div class="accordion-item" data-search="2.5 out of character ooc fuera de personaje comunicación acciones chat de voz">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">2.5</span>
+                            <span class="accordion-title">Out Of Character - OOC</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">"OOC" significa "Out Of Character" (fuera de personaje). Este término se utiliza para distinguir la comunicación y las acciones que ocurren fuera de la interpretación del personaje, es decir, cuando un jugador está hablando, interactuando o discutiendo algo que no está directamente relacionado con el personaje que está representando en el juego.</p>
+                        <p class="accordion-body-text">Utilizar el chat de voz dentro del juego para hablar OOC no está permitido.</p>
+                    </div>
+                </div>
+
+                <!-- 2.6 -->
+                <div class="accordion-item" data-search="2.6 player kill pk coma reanimado médico pérdida memoria recordar">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">2.6</span>
+                            <span class="accordion-title">Player Kill - PK</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Si nuestro personaje queda en coma y luego es reanimado por un médico, se deberá de interpretar una pérdida de memoria y no se podrá recordar la identificación o hacer identificable a quién haya generado tal causa de inconsciencia a menos que alguien presente en la escena lo recuerde. Se podrá recordar qué ha sucedido y cómo o en qué contexto, pero nunca recordar quién lo ha realizado.</p>
+                    </div>
+                </div>
+
+                <!-- 2.7 -->
+                <div class="accordion-item" data-search="2.7 rol de entorno rde contextualizar adaptar actuación lugar cantidad personas zona">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">2.7</span>
+                            <span class="accordion-title">Rol de entorno - RDE</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Es una herramienta para contextualizar, y adaptar nuestra actuación en consecuencia, del rol en el que nos encontramos. Éste tiene en consideración el lugar y la cantidad de personas que habría eventualmente en la zona.</p>
+                    </div>
+                </div>
+
+                <!-- 2.8 -->
+                <div class="accordion-item" data-search="2.8 evasión de rol tirar de e desconectarse problemas técnicos administración roles sensibles">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">2.8</span>
+                            <span class="accordion-title">Evasión de rol</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Está terminantemente prohibido evadir el rol bajo ninguna circunstancia y sin ninguna explicación. (Tirar de E, desconectarse de manera intencionada, ...)</p>
+                        <p class="accordion-body-text">Si surgen problemas técnicos o situaciones de fuerza mayor que te obliguen a abandonar dicho rol, es tu responsabilidad informar y retomar ese rol lo antes posible.</p>
+                        <p class="accordion-body-text">En la ocurrencia de roles sensibles sin permiso de la Administración se deberá seguir con el rol, posteriormente siendo reportado para que no ocurra algo similar.</p>
+                    </div>
+                </div>
+
+                <!-- 3.0 USO DE COMANDOS EN EL JUEGO (Estático) -->
+                <div class="section-header-static searchable-section" data-search="3.0 uso de comandos en el juego in game">
+                    <span>3.0</span> USO DE COMANDOS "IN GAME"
+                </div>
+
+                <!-- 3.1 -->
+                <div class="accordion-item" data-search="3.1 /auxilio emergencia médica detallada servicios de emergencia">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">3.1</span>
+                            <span class="accordion-title">Uso del comando /auxilio</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">La finalidad del comando /auxilio es la de describir una situación de emergencia médica de la forma más detallada posible con el objetivo de que los servicios de emergencia puedan actuar en consecuencia.</p>
+                    </div>
+                </div>
+
+                <!-- 3.2 -->
+                <div class="accordion-item" data-search="3.2 /do describir acciones ambiente detalles clarificación situaciones inmersiva">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">3.2</span>
+                            <span class="accordion-title">Uso del comando /do</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">El propósito principal del comando /do es describir acciones que se están llevando a cabo o que podrían influir en la situación actual de juego. Algunos ejemplos de su uso incluyen:</p>
+                        <p class="accordion-body-text">Ambiente y detalles: Se usa para establecer el entorno o proporcionar detalles adicionales que podrían ser relevantes para la situación. Por ejemplo: "/do El ruido de la sirena de la policía se escucha a lo lejos."</p>
+                        <p class="accordion-body-text">Clarificación de situaciones: Puede utilizarse para aclarar situaciones ambiguas o dar contexto adicional a lo que está ocurriendo en el rol. Por ejemplo: "/do Juan muestra signos de nerviosismo mientras habla con el oficial."</p>
+                        <p class="accordion-body-text">El uso del comando /do permite a los jugadores comunicar información relevante que no se refleja directamente en las mecánicas del juego, creando una experiencia más inmersiva y detallada para todos los participantes.</p>
+                    </div>
+                </div>
+
+                <!-- 3.3 -->
+                <div class="accordion-item" data-search="3.3 /entorno acto ilegal detallada antes acto delictivo robo coche">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">3.3</span>
+                            <span class="accordion-title">Uso del comando /entorno</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">La finalidad del comando /entorno es la de describir un acto ilegal de la forma más detallada posible. Éste debe de enviarse siempre ANTES de cualquier acto delictivo. Exceptuando el robo de coche para realizar otro acto delictivo.</p>
+                    </div>
+                </div>
+
+                <!-- 3.4 -->
+                <div class="accordion-item" data-search="3.4 /forzar /force enviar entorno policia robo vehículo">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">3.4</span>
+                            <span class="accordion-title">Uso del comando /forzar</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">La finalidad del comando /forzar es la de enviar un /entorno a la policía cuando se roba un vehículo. Éste debe de enviarse en el momento que se sube en el vehículo.</p>
+                    </div>
+                </div>
+
+                <!-- 3.5 -->
+                <div class="accordion-item" data-search="3.5 /me acciones descriptivas juego personaje moneda al aire">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">3.5</span>
+                            <span class="accordion-title">Uso del comando /me</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">El comando /me se utiliza para realizar acciones descriptivas en el juego que no se pueden llevar a cabo directamente con las acciones normales del personaje.</p>
+                        <p class="accordion-body-text">Por ejemplo, si un jugador está interpretando a su personaje y quiere mostrar una acción que no puede realizarse directamente en el juego podría usar el comando /me de la siguiente manera:</p>
+                        <p class="accordion-body-text"><em>"/me tira una moneda al aire"</em></p>
+                    </div>
+                </div>
+
+                <!-- 3.6 -->
+                <div class="accordion-item" data-search="3.6 /msg ID id del receptor mensaje privado rol ético respetuoso">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">3.6</span>
+                            <span class="accordion-title">Uso del comando /msg [ID del receptor] [Mensaje]</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">El comando /msg se utiliza para escribir un mensaje privado a otro jugador para aclarar cualquier tipo de situación dentro de un rol. Éste comando deberá de utilizarse de forma correcta, ética y respetuosa en todo momento.</p>
+                    </div>
+                </div>
+
+                <!-- 3.7 -->
+                <div class="accordion-item" data-search="3.7 /pid pedir id jugador concreto aclarar /msg">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">3.7</span>
+                            <span class="accordion-title">Uso del comando /pid</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">La finalidad del comando /pid es la de pedir el ID a un jugador en concreto con el objetivo de poder aclarar por /msg cualquier extremo que sea necesario en un rol en concreto.</p>
+                    </div>
+                </div>
+
+                <!-- 3.8 -->
+                <div class="accordion-item" data-search="3.8 /report comunicar detalle administración servidor fallo error prejuicio">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">3.8</span>
+                            <span class="accordion-title">Uso del comando /report</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">La finalidad del comando /report es la de comunicar con detalle a la administración del servidor un fallo, error u otra situación dentro del servidor que esté perjudicando el correcto transcurso de la interpretación de tu personaje, de un rol en general o del servidor.</p>
+                    </div>
+                </div>
+
+                <!-- 3.9 -->
+                <div class="accordion-item" data-search="3.9 /tiroteo enviar forma automática entorno situación tiroteo sapd inicio">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">3.9</span>
+                            <span class="accordion-title">Uso del comando /tiroteo</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">La finalidad del comando /tiroteo es la de enviar de forma automática un entorno que comunica una situación de tiroteo al SAPD. Éste se deberá de enviar al inicio del mismo.</p>
+                    </div>
+                </div>
+
+                <!-- 4.0 CONDUCTAS Y COMPORTAMIENTOS PROHIBIDOS (Estático) -->
+                <div class="section-header-static searchable-section" data-search="4.0 conductas y comportamientos prohibidos">
+                    <span>4.0</span> CONDUCTAS Y COMPORTAMIENTOS PROHIBIDOS
+                </div>
+
+                <!-- Nota aclaratoria para 4.0 -->
+                <div class="accordion-item" style="pointer-events: none; background: rgba(17, 18, 20, 0.4); border-style: dashed;">
+                    <div class="accordion-header" style="cursor: default;">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number" style="color: #ec4899;"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                            <span class="accordion-title" style="font-size: 0.85rem; color: #94a3b8; font-weight: 500; text-transform: none;">A continuación se identifican todas las conductas y comportamientos que no están permitidos dentro del servidor y que pueden llevar a la imposición de una sanción dentro del servidor:</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4.1 -->
+                <div class="accordion-item" data-search="4.1 abuso de tercera persona tercera persona cámara muro">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.1</span>
+                            <span class="accordion-title">Abuso de tercera persona</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Teniendo en cuenta que el juego se desarrolla en tercera persona, será considerado ABUSO de tercera persona toda acción que conlleve el uso de la mecánica propia del juego que permitan visualizar lo que sucede alrededor nuestro y que en la vida real sería imposible (p.ej.: estar detrás de un muro y mirar con la cámara por encima de éste, ...)</p>
+                    </div>
+                </div>
+
+                <!-- 4.2 -->
+                <div class="accordion-item" data-search="4.2 bad driving bd conducción vehículo injustificada ilógica altas velocidades mobiliario urbano">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.2</span>
+                            <span class="accordion-title">Bad Driving - BD</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Será considerado Bad Driving cualquier tipo de conducción de un vehículo que, de forma injustificada, suponga una interpretación ilógica del rol llevado a cabo en ese momento dentro del servidor siempre y cuando el rol no lo justifique (circular a altas velocidades de forma continuada, destrozar mobiliario urbano de forma intencionada, circular por aceras, contra...</p>
+                    </div>
+                </div>
+
+                <!-- 4.3 -->
+                <div class="accordion-item" data-search="4.3 comportamientos inapropiados o tóxicos servidor discord redes sociales streaming">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.3</span>
+                            <span class="accordion-title">Comportamientos inapropiados o tóxicos</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Cualquier tipo de comportamiento tóxico, ya sea dentro del servidor, Discord, redes sociales o plataformas de streaming, será sancionado.</p>
+                    </div>
+                </div>
+
+                <!-- 4.4 -->
+                <div class="accordion-item" data-search="4.4 death match dm agresión física sin motivo rol aparente poco argumentado">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.4</span>
+                            <span class="accordion-title">Death Match (DM)</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Death Match es cualquier agresión física hacía otro personaje sin un motivo de rol aparente, con un motivo poco argumentado que lo justifique y sin dar la oportunidad a la otra parte de poder interactuar de cualquier manera.</p>
+                    </div>
+                </div>
+
+                <!-- 4.5 -->
+                <div class="accordion-item" data-search="4.5 denuncias falsas policía robo vehículo acto delictivo">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.5</span>
+                            <span class="accordion-title">Denuncias falsas</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Queda prohibido denunciar o hacer una denuncia falsa a la policía (p.ej.: denuncio el robo de mi vehículo para que yo mismo o un conocido realice un acto delictivo).</p>
+                    </div>
+                </div>
+
+                <!-- 4.6 -->
+                <div class="accordion-item" data-search="4.6 away from keyboard afk evitar roles desconectarse">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.6</span>
+                            <span class="accordion-title">Away From Keyboard (AFK)</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Queda prohibido quedarse AFK con el jugador dentro del servidor, evitar roles o desconectarse del servidor para evitarlo.</p>
+                    </div>
+                </div>
+
+                <!-- 4.7 -->
+                <div class="accordion-item" data-search="4.7 hablar ooc chat de voz programas ts3 discord mg">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.7</span>
+                            <span class="accordion-title">Hablar OOC</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No está permitido dentro del servidor hablar por el chat de voz de forma OOC, es decir, no podremos hablar dentro del juego con nuestros personajes de temas que no tienen nada que ver con la historia y progresión de nuestro personaje al cual estamos interpretando.</p>
+                        <p class="accordion-body-text">Tampoco está permitido utilizar programas de voz (p.ej.: TS3, Discord, etc...) paralelos al servidor para hablar con otros jugadores de lo que está sucediendo en el juego (MG).</p>
+                    </div>
+                </div>
+
+                <!-- 4.8 -->
+                <div class="accordion-item" data-search="4.8 llamadas a servicios públicos y/o comercios entorpecer rol molestar bromas">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.8</span>
+                            <span class="accordion-title">Llamadas a servicios públicos y/o comercios</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No podrás realizar llamadas a los servicios públicos y/o locales comerciales con la finalidad de entorpecer el rol, molestar y/o hacer bromas de forma injustificada.</p>
+                    </div>
+                </div>
+
+                <!-- 4.9 -->
+                <div class="accordion-item" data-search="4.9 mal uso del /do pensamientos sentimientos mentir favor tuyo">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.9</span>
+                            <span class="accordion-title">Mal uso del /do</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No podrás expresar pensamientos y/o sentimientos, mentir o utilizarlo a favor tuyo.</p>
+                    </div>
+                </div>
+
+                <!-- 4.10 -->
+                <div class="accordion-item" data-search="4.10 metagaming mg información fuera del juego streams transmisiones vivo">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.10</span>
+                            <span class="accordion-title">MetaGaming (MG)</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No se permite el MetaGaming (MG), es decir, el uso de información obtenida fuera del juego y que tu personaje no debería de conocer, así como el uso de información de transmisiones en vivo o streams de otros jugadores del servidor.</p>
+                    </div>
+                </div>
+
+                <!-- 4.11 -->
+                <div class="accordion-item" data-search="4.11 moduladores de voz autorización expresa administración">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.11</span>
+                            <span class="accordion-title">Moduladores de voz</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No se permite el uso de moduladores de voz salvo autorización expresa de la Administración.</p>
+                    </div>
+                </div>
+
+                <!-- 4.12 -->
+                <div class="accordion-item" data-search="4.12 powergaming pg actos vida real imposibles">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.12</span>
+                            <span class="accordion-title">PowerGaming (PG)</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">El concepto es aplicado a la hora de querer realizar actos que en la vida real serían imposibles bajo cualquier circunstancia.</p>
+                    </div>
+                </div>
+
+                <!-- 4.13 -->
+                <div class="accordion-item" data-search="4.13 roles sensibles acoso discriminación torturas consentimiento">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.13</span>
+                            <span class="accordion-title">Roles sensibles</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No se permiten los roles de acoso, acoso sexual, discriminación por cualquier tipo por razón de raza, orientación y condición sexual, religion, ... o cualquier otra conducta similar.</p>
+                        <p class="accordion-body-text">No se permite llevar a cabo roles relacionados con torturas sin el consentimiento de todos los jugadores implicados.</p>
+                    </div>
+                </div>
+
+                <!-- 4.14 -->
+                <div class="accordion-item" data-search="4.14 publicidad spam servidores servicios discord">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.14</span>
+                            <span class="accordion-title">Publicidad / Spam</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Queda prohibida la publicidad de otros servidores y/o servicios dentro del servidor o en Discord.</p>
+                    </div>
+                </div>
+
+                <!-- 4.15 -->
+                <div class="accordion-item" data-search="4.15 uso de mods carpetas trampas ventaja injusta miras externas aim citizen">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.15</span>
+                            <span class="accordion-title">Uso de Mods, Carpetas y/o Trampas</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Está prohibido el uso de programas/archivos externos que den una ventaja injusta en el juego (p.ej.: miras externas, mods visuales, programas que mejoran el aim, ...), así como modificaciones de la carpeta Citizen.</p>
+                    </div>
+                </div>
+
+                <!-- 4.16 -->
+                <div class="accordion-item" data-search="4.16 valoración de vida personaje riesgo secuestro ck criminal policial">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.16</span>
+                            <span class="accordion-title">Valoración de vida</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Deberás valorar la vida de tu personaje en todo momento y, por tanto, queda prohibido realizar cualquier tipo de acción u omisión que ponga en riesgo el desarrollo de la historia de tu personaje de forma innecesaria (p. ej.: si estás como rehén en una situación con arma de fuego, deberás atender las exigencias de tus secuestradores).</p>
+                        <p class="accordion-body-text">La nula valoración de vida podrá conllevar un CK. La otra persona involucrada estará en todo su derecho de solicitar el CK pertinente debido a la nula valoración de vida.</p>
+                        <p class="accordion-body-text">Esta normativa aplica tanto al ámbito criminal como al policial.</p>
+                    </div>
+                </div>
+
+                <!-- 4.17 -->
+                <div class="accordion-item" data-search="4.17 vehicle deathmatch vdm dm vehículo interior">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.17</span>
+                            <span class="accordion-title">Vehicle DeathMatch - VDM</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Vehicle Death Match es un DM realizado con un vehículo o desde el interior del mismo.</p>
+                    </div>
+                </div>
+
+                <!-- 4.18 -->
+                <div class="accordion-item" data-search="4.18 uso de resoluciones citizens cuantv nve reshade nativa 16:9 16:10">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">4.18</span>
+                            <span class="accordion-title">Uso de resoluciones y/o citizens</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Está prohibido el uso de Citizens a excepción de mods visuales tales como QuantV, NVE y ReShade. Por otro lado, no se permiten resoluciones diferentes, ni escalados distintos. Siempre debe ser la nativa o la 16:9 o 16:10.</p>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- PESTAÑA 2: NORMATIVA DE ACTOS DELICTIVOS (5.0 a 5.1.17) -->
+            <section class="normativa-section-pane animate-fade-up delay-1" id="pane-delictivos">
+
+                <!-- 5.0 NORMATIVA DE ACTOS DELICTIVOS (Estático) -->
+                <div class="section-header-static searchable-section" data-search="5.0 normativa de actos delictivos">
+                    <span>5.0</span> NORMATIVA DE ACTOS DELICTIVOS
+                </div>
+
+                <!-- 5.1 ASPECTOS GENERALES (Estático excepción como un .0) -->
+                <div class="section-header-static searchable-section" data-search="5.1 aspectos generales">
+                    <span>5.1</span> ASPECTOS GENERALES
+                </div>
+
+                <!-- 5.1.1 -->
+                <div class="accordion-item" data-search="5.1.1 accesorios no permitidos en roles agresivos ilegales protección disparos armas fuego blancas mosquete cuchillo caza vehículos robados">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.1</span>
+                            <span class="accordion-title">Accesorios no permitidos en roles agresivos/ilegales</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No se permite el uso de accesorios que ofrezcan protección contra disparos o cualquier tipo de ataque con armas de fuego o armas blancas.</p>
+                        <p class="accordion-body-text">No se permite el uso de mosquete/cuchillo de caza en cualquier actividad ilícita, quedando su uso reservado para la actividad de caza de manera exclusiva.</p>
+                        <p class="accordion-body-text">Queda totalmente prohibido el uso de vehículos robados que no sean para actos ilícitos.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.2 -->
+                <div class="accordion-item" data-search="5.1.2 armamento equipo policial in tiroteos retirar armas balas balas sustraer">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.2</span>
+                            <span class="accordion-title">Armamento/equipo policial en tiroteos</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Está totalmente prohibido retirar armamento policial (armas, balas, equipo en general...) durante los tiroteos con la intención de utilizarlo en el mismo o sustraerlo.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.3 -->
+                <div class="accordion-item" data-search="5.1.3 bloqueos pinchar ruedas en persecuciones antelación choque">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.3</span>
+                            <span class="accordion-title">Bloqueos/pinchar ruedas en persecuciones</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No está permitido ir a un bloqueo o pinchar ruedas inmediatamente después de iniciar la persecución, dando un rol de persecución justo para todas las partes implicadas.</p>
+                        <p class="accordion-body-text">Los bloqueos deben realizarse con suficiente tiempo y antelación para permitir que la policía pueda detener el vehículo. No se permite provocar un choque entre el vehículo de bloqueo y el coche de la policía.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.4 -->
+                <div class="accordion-item" data-search="5.1.4 dm a personas en vehículos con armas de fuego disparar matar secuestro negociación">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.4</span>
+                            <span class="accordion-title">DM a personas en vehículos con armas de fuego</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No está permitido disparar o matar desde un vehículo o a alguien que esté en un vehículo.</p>
+                        <p class="accordion-body-text">Debes permitir que la persona se baje y generar una situación de rol, como una negociación, secuestro, huida a pie o defensa.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.5 -->
+                <div class="accordion-item" data-search="5.1.5 faltas a la idp de bandas u organizaciones criminales placas denuncias departamento de justicia">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.5</span>
+                            <span class="accordion-title">Faltas a la IDP de bandas u organizaciones criminales</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Las bandas u organizaciones criminales no deben utilizar el número de placas, realizar denuncias ni contactar al Departamento de Justicia para resolver conflictos de forma legal. Estas herramientas están destinadas a civiles.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.6 -->
+                <div class="accordion-item" data-search="5.1.6 farmeo constante repetido robo 20 minutos siguiente">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.6</span>
+                            <span class="accordion-title">Farmeo</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No se permite el farmeo constante y repetido. Si realizas un robo, deberás esperar un mínimo de 20 minutos hasta poder realizar el siguiente.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.7 -->
+                <div class="accordion-item" data-search="5.1.7 periodo de gracia en reinicios actos delictivos 20 minutos antes después">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.7</span>
+                            <span class="accordion-title">Periodo de gracia en reinicios</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Está prohibido realizar actos delictivos en los 20 minutos anteriores a un reinicio programado o comunicado por la Administración.</p>
+                        <p class="accordion-body-text">Tampoco se podrán realizar actos delictivos durante los 20 minutos posteriores a un reinicio, ya sea programado o no.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.8 -->
+                <div class="accordion-item" data-search="5.1.8 persecuciones caminos delimitados badulaque accidente ruedas pinchadas agua nado pk">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.8</span>
+                            <span class="accordion-title">Persecuciones</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Deben realizarse siempre por caminos delimitados y marcados en el mapa.</p>
+                        <p class="accordion-body-text">Una persecución no puede enlazarse con un robo a un establecimiento (por ejemplo, un badulaque); la persecución debe finalizar antes.</p>
+                        <p class="accordion-body-text">La persecución debe terminar si tu personaje sufre un grave accidente y no continuar hasta que el coche quede totalmente inutilizado.</p>
+                        <p class="accordion-body-text">Debes detener el vehículo inmediatamente si la mitad de sus ruedas están pinchadas.</p>
+                        <p class="accordion-body-text">No está permitido:</p>
+                        <p class="accordion-body-text">- Lanzarse al agua con un vehículo.</p>
+                        <p class="accordion-body-text">- Huir a nado y recorrer largas distancias aprovechando las mecánicas del juego.</p>
+                        <p class="accordion-body-text">- Provocar PK a otro jugador a puños, con una navaja, cuchillo o similar dentro del agua.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.9 -->
+                <div class="accordion-item" data-search="5.1.9 /mando lspd lssd solicitar spam robo 10 minutos 30 minutos policía menú interacción ropa peluquerías tiendas cajeros bancos">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.9</span>
+                            <span class="accordion-title">/MANDO LSPD o LSSD</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Un miembro del grupo o banda podrá solicitar el /mando y no se deberá spamear este comando.</p>
+                        <p class="accordion-body-text">Una vez aceptado el robo, debe ejecutarse dentro de los siguientes 10 minutos; de lo contrario, la prioridad y posibilidad de realizar el robo quedarán anuladas.</p>
+                        <p class="accordion-body-text">Si, tras confirmar la disponibilidad de la policía, el robo se inicia dentro del plazo de 10 minutos y pasan 30 minutos sin que la policía aparezca, los atracadores podrán abandonar el establecimiento enviando el correspondiente /entorno.</p>
+                        <p class="accordion-body-text">Está prohibido realizar cualquier tipo de rol agresivo contra jugadores que estén usando un menú que requiere interacción, como en tiendas de ropa, peluquerías, tiendas de tatuajes, gasolineras, cajeros o bancos.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.10 -->
+                <div class="accordion-item" data-search="5.1.10 rehenes necesario secuestrar otros jugadores">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.10</span>
+                            <span class="accordion-title">Rehenes</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No es necesario secuestrar a otros jugadores para usarlos como rehenes.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.11 -->
+                <div class="accordion-item" data-search="5.1.11 robo a jugadores rol previo facciones legales comercios herramientas objetos trabajo coches personales">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.11</span>
+                            <span class="accordion-title">Robo a jugadores</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No se puede robar a otros jugadores sin un rol previo que lo justifique.</p>
+                        <p class="accordion-body-text">Está prohibido robar a jugadores que estén desempeñando roles en facciones legales y/o comercios (como policías, emergencias, taxistas, trabajadores, etc.), así como sus herramientas, objetos y material de trabajo.</p>
+                        <p class="accordion-body-text">Aclaración: Queda totalmente prohibido el robo de coches personales a otros jugadores, sin rol previo del momento.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.12 -->
+                <div class="accordion-item" data-search="5.1.12 incorporación retorno a roles activos acceder servidor intervenir zona pk agresivo">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.12</span>
+                            <span class="accordion-title">Incorporación y/o retorno a roles activos</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No está permitido acceder al servidor para intervenir en un rol ya iniciado.</p>
+                        <p class="accordion-body-text">No está permitido volver a la zona donde se ha producido un rol agresivo en el que hemos acabado PK hasta que dicho rol haya finalizado.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.13 -->
+                <div class="accordion-item" data-search="5.1.13 secuestros rol previo dinero armas desproporcionadas rescate negociaciones tiempo máximo 20 minutos">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.13</span>
+                            <span class="accordion-title">Secuestros</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Los secuestros solo están permitidos si hay un rol previo que lo justifique.</p>
+                        <p class="accordion-body-text">No se puede solicitar dinero, armas u otros objetos desproporcionados como rescate o en negociaciones.</p>
+                        <p class="accordion-body-text">El tiempo máximo permitido para un secuestro es de 20 minutos, a menos que el jugador secuestrado acepte prolongarlo.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.14 -->
+                <div class="accordion-item" data-search="5.1.14 suplantación hacerse pasar banda mafia policía sanitario sin serlo">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.14</span>
+                            <span class="accordion-title">Suplantación</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No está permitido hacerse pasar por miembro de otra banda, mafia, policía, sanitario, etc., sin serlo.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.15 -->
+                <div class="accordion-item" data-search="5.1.15 uso de vehículos in robos rápidos apropiados furgonetas camionetas escapes bloqueos disparar ruedas vehículos modificados matrícula falsa boosting">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.15</span>
+                            <span class="accordion-title">Uso de vehículos en robos</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Los robos deben realizarse con vehículos rápidos y apropiados para la situación. No se permiten vehículos pesados como furgonetas y camionetas para escapadas de robos. Estos vehículos solo se pueden usar para bloqueos.</p>
+                        <p class="accordion-body-text">Si se detecta el uso de vehículos inapropiados durante un robo, la policía está autorizada a disparar a las ruedas para inhabilitar el vehículo. No está permitido el uso de vehículos modificados y matrícula falsa en robos pequeños.</p>
+                        <p class="accordion-body-text">Aclaración: Los vehículos obtenidos de boosting siguen siendo vehículos robados y deben tratarse como tal (no tuneo o reparación en mecánicos comerciales).</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.16 -->
+                <div class="accordion-item" data-search="5.1.16 uso de bindeos en roles agresivos cargar descargar cuerpos correr subir bajar vehículos tirarse al suelo instantánea desbalanceando">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.16</span>
+                            <span class="accordion-title">Uso de "bindeos" en roles agresivos</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Está prohibido utilizar "bindeos" para realizar acciones como, entre otras, cargar y descargar cuerpos mientras se corre o se sube/baja de vehículos, o tirarse al suelo para esconderse de manera instantánea durante un rol agresivo.</p>
+                        <p class="accordion-body-text">Estas acciones automáticas ofrecen una ventaja injusta y no reflejan una interpretación adecuada del contexto, desbalanceando el juego y afectando negativamente la experiencia de los demás jugadores.</p>
+                    </div>
+                </div>
+
+                <!-- 5.1.17 -->
+                <div class="accordion-item" data-search="5.1.17 matrículas en vehículos personales rolear retirada ocultación matrícula falsa impedir dificultar identificación">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.1.17</span>
+                            <span class="accordion-title">Matrículas en vehículos personales</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">No está permitido rolear la retirada u ocultación de la matrícula de un vehículo. Para ello existe el objeto de matrícula falsa, que deberá utilizarse siempre que se quiera impedir o dificultar la identificación del vehículo.</p>
+                    </div>
+                </div>
+
+                <!-- 5.2 ACTOS DELICTIVOS (Estático) -->
+                <div class="section-header-static searchable-section" data-search="5.2 actos delictivos">
+                    <span>5.2</span> ACTOS DELICTIVOS
+                </div>
+
+                <!-- 5.2.1 ACTOS DELICTIVOS PARA CIVILES -->
+                <div class="accordion-item" data-search="5.2.1 actos delictivos para civiles venta plantación marihuana robos express desguace vehículos tumbas vip importación robos pequeños badulaque licoreria farmacia casas peluquería floristería">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.2.1</span>
+                            <span class="accordion-title">Actos delictivos para civiles</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text" style="margin-bottom: 15px;"><strong>Todo civil, de acuerdo a su interpretación de personaje, podrá realizar los siguientes actos delictivos:</strong></p>
+                        
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; font-family: 'Inter', sans-serif; font-size: 0.85rem; color: #cbd5e1; text-align: left;">
+                                <thead>
+                                    <tr style="background: rgba(30, 25, 45, 0.9); border-bottom: 1px solid rgba(139, 92, 246, 0.3); color: #ffffff; font-family: 'Lexend', sans-serif;">
+                                        <th style="padding: 12px 14px;">Tipo de acto delictivo</th>
+                                        <th style="padding: 12px 14px; text-align: center;">Núm. civiles</th>
+                                        <th style="padding: 12px 14px; text-align: center;">Armas permitidas</th>
+                                        <th style="padding: 12px 14px; text-align: center;">Núm. policías</th>
+                                        <th style="padding: 12px 14px;">Observaciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                        <td style="padding: 12px 14px; font-weight: 500; color: #fff;">Venta y plantación de sustancias estupefacientes (mariguana)</td>
+                                        <td style="padding: 12px 14px; text-align: center;">Máx. 3</td>
+                                        <td style="padding: 12px 14px; text-align: center;">Libre</td>
+                                        <td style="padding: 12px 14px; text-align: center;">Libre</td>
+                                        <td style="padding: 12px 14px;">La plantación y la venta de la misma es libre.</td>
+                                    </tr>
+                                    <!-- Robos express group -->
+                                    <tr style="background: rgba(139, 92, 246, 0.15); border-bottom: 1px solid rgba(139, 92, 246, 0.2);">
+                                        <td colspan="5" style="padding: 8px 14px; font-family: 'Lexend', sans-serif; font-weight: 700; color: #ec4899; text-align: center; letter-spacing: 0.5px;">Robos express</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                        <td style="padding: 10px 14px;">
+                                            • Desguace de vehículos<br>
+                                            • Robo a tumbas<br>
+                                            • Robo de vehículo VIP de Importación
+                                        </td>
+                                        <td style="padding: 10px 14px; text-align: center; vertical-align: middle;">Máx. 2</td>
+                                        <td style="padding: 10px 14px; text-align: center; vertical-align: middle;">Máx. Arma blanca</td>
+                                        <td style="padding: 10px 14px; text-align: center; vertical-align: middle;">Máx. 4</td>
+                                        <td style="padding: 10px 14px; vertical-align: middle;">No se permite realizar bloqueos ni el uso de armas de fuego.</td>
+                                    </tr>
+                                    <!-- Robos pequeños group -->
+                                    <tr style="background: rgba(139, 92, 246, 0.15); border-bottom: 1px solid rgba(139, 92, 246, 0.2);">
+                                        <td colspan="5" style="padding: 8px 14px; font-family: 'Lexend', sans-serif; font-weight: 700; color: #ec4899; text-align: center; letter-spacing: 0.5px;">Robos pequeños</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 10px 14px;">
+                                            • Badulaque, licorería o negocio<br>
+                                            • Robo a farmacia<br>
+                                            • Robo a casas<br>
+                                            • Robo a peluquería<br>
+                                            • Robo a floristería
+                                        </td>
+                                        <td style="padding: 10px 14px; text-align: center; vertical-align: middle;">Máx. 2</td>
+                                        <td style="padding: 10px 14px; text-align: center; vertical-align: middle;">Máx. Arma blanca</td>
+                                        <td style="padding: 10px 14px; text-align: center; vertical-align: middle;">Máx. 4</td>
+                                        <td style="padding: 10px 14px; vertical-align: middle;">El único rehén será el propio tendero. No se permite realizar bloqueos ni el uso de armas de fuego.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5.2.2 ACTOS DELICTIVOS PARA BANDAS -->
+                <div class="accordion-item" data-search="5.2.2 actos delictivos para bandas recoleccion elaboracion venta estupefacientes metanfetamina cocaina proyecto de banda pdb farmacia floristería atm banda lvl 1 ammunation joyeria pawnshop banda lvl 2 asalto furgon blindado fleeca almacenes merryweather yate banda lvl 3 galeria dearta">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">5.2.2</span>
+                            <span class="accordion-title">Actos delictivos para bandas</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text" style="margin-bottom: 15px;"><strong>Además de los actos delictivos para los civiles, se incluirán los siguientes:</strong></p>
+                        
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; font-family: 'Inter', sans-serif; font-size: 0.82rem; color: #cbd5e1; text-align: left;">
+                                <thead>
+                                    <tr style="background: rgba(30, 25, 45, 0.9); border-bottom: 1px solid rgba(139, 92, 246, 0.3); color: #ffffff; font-family: 'Lexend', sans-serif;">
+                                        <th style="padding: 12px 10px;">Tipo</th>
+                                        <th style="padding: 12px 10px; text-align: center;">Núm. atracadores</th>
+                                        <th style="padding: 12px 10px; text-align: center;">Arma requerida</th>
+                                        <th style="padding: 12px 10px; text-align: center;">Núm. policías</th>
+                                        <th style="padding: 12px 10px; text-align: center;">/PID MANDO</th>
+                                        <th style="padding: 12px 10px; text-align: center;">Rehenes y negociación</th>
+                                        <th style="padding: 12px 10px;">Observaciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                        <td style="padding: 10px; font-weight: 500; color: #fff;">Recolección, elaboración y venta de sustancias estupefacientes (metanfetamina y cocaína)</td>
+                                        <td style="padding: 10px; text-align: center;">Libre</td>
+                                        <td style="padding: 10px; text-align: center;">Libre</td>
+                                        <td style="padding: 10px; text-align: center;">Libre</td>
+                                        <td style="padding: 10px; text-align: center;">No</td>
+                                        <td style="padding: 10px; text-align: center;">No</td>
+                                        <td style="padding: 10px;">La recolección, embolsado o fabricación de la droga, así como la venta de la misma podrá ser libre.</td>
+                                    </tr>
+
+                                    <!-- PROYECTO DE BANDA (PDB) -->
+                                    <tr style="background: rgba(139, 92, 246, 0.15); border-bottom: 1px solid rgba(139, 92, 246, 0.2);">
+                                        <td colspan="7" style="padding: 8px 10px; font-family: 'Lexend', sans-serif; font-weight: 700; color: #ec4899; text-align: center; letter-spacing: 0.5px;">PROYECTO DE BANDA (PDB)</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                        <td style="padding: 10px;">
+                                            • Farmacia<br>
+                                            • Floristería<br>
+                                            • ATM
+                                        </td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Máx. 2</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Arma blanca</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Máx. 4</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">No</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">No</td>
+                                        <td style="padding: 10px; vertical-align: middle;">No se permite realizar bloqueos ni cambios de vehículos.<br>El único rehén será el propio NPC del robo.<br>El entorno se deberá de enviar una vez llegar a la zona.</td>
+                                    </tr>
+
+                                    <!-- BANDA (LVL 1) -->
+                                    <tr style="background: rgba(139, 92, 246, 0.15); border-bottom: 1px solid rgba(139, 92, 246, 0.2);">
+                                        <td colspan="7" style="padding: 8px 10px; font-family: 'Lexend', sans-serif; font-weight: 700; color: #ec4899; text-align: center; letter-spacing: 0.5px;">BANDA (LVL 1)</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                        <td style="padding: 10px;">
+                                            • Robo a Ammunation<br>
+                                            • Robo a Joyería<br>
+                                            • Pawnshop
+                                        </td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Mín. 2<br>Máx. 4</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Arma corta de fuego</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Máx. 6</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Sí</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Sí</td>
+                                        <td style="padding: 10px; vertical-align: middle;">No se permite la presencia de tiradores.<br>En la persecución solo se permite realizar bloqueos para huir de la policía.</td>
+                                    </tr>
+
+                                    <!-- BANDA (LVL 2) -->
+                                    <tr style="background: rgba(139, 92, 246, 0.15); border-bottom: 1px solid rgba(139, 92, 246, 0.2);">
+                                        <td colspan="7" style="padding: 8px 10px; font-family: 'Lexend', sans-serif; font-weight: 700; color: #ec4899; text-align: center; letter-spacing: 0.5px;">BANDA (LVL 2)</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                        <td style="padding: 10px;">Asalto a furgón blindado</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Mín. 2<br>Máx. 4</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Arma corta de fuego</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Máx. 6</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">No</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">No</td>
+                                        <td style="padding: 10px; vertical-align: middle;">No se permite la presencia de tiradores.<br>En la persecución solo se permite realizar bloqueos para huir de la policía.</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                        <td style="padding: 10px;">Robo a Fleeca</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Mín. 4<br>Máx. 6</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Arma automática</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Máx. 8</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Sí</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Sí</td>
+                                        <td style="padding: 10px; vertical-align: middle;">No se permite la presencia de tiradores.</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                        <td style="padding: 10px;">Robo a Almacenes Merryweather</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Mín. 6<br>Máx. 8</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Arma automática</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Máx. 10</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Sí</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">No</td>
+                                        <td style="padding: 10px; vertical-align: middle;">No se permite la presencia de tiradores.</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                        <td style="padding: 10px;">Asalto al yate</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Máx. 8</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Arma corta de fuego</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Máx. 10</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Sí</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">No</td>
+                                        <td style="padding: 10px; vertical-align: middle;">Se debe dejar subir al yate a la policía.</td>
+                                    </tr>
+
+                                    <!-- BANDA (LVL 3) -->
+                                    <tr style="background: rgba(139, 92, 246, 0.15); border-bottom: 1px solid rgba(139, 92, 246, 0.2);">
+                                        <td colspan="7" style="padding: 8px 10px; font-family: 'Lexend', sans-serif; font-weight: 700; color: #ec4899; text-align: center; letter-spacing: 0.5px;">BANDA (LVL 3)</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 10px;">Robo a galería dearta</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Máx. 8</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Arma automática</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Máx. 10</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Sí</td>
+                                        <td style="padding: 10px; text-align: center; vertical-align: middle;">Sí</td>
+                                        <td style="padding: 10px; vertical-align: middle;">No se permite la presencia de tiradores.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Nota inferior -->
+                        <div style="margin-top: 15px; padding: 12px 16px; background: rgba(139, 92, 246, 0.08); border-left: 3px solid #ec4899; border-radius: 6px;">
+                            <p class="accordion-body-text" style="margin: 0; font-size: 0.85rem;"><strong>NOTA:</strong> Al finalizar la negociación, con tal de respetar la IDP, el último rehén saldrá con los atracadores y se soltará al subir estos al vehículo.</p>
+                            <p class="accordion-body-text" style="margin: 5px 0 0 0; font-size: 0.75rem; color: #94a3b8; text-align: right;">Última actualización: <strong>30/07/2026</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- PESTAÑA 3: NORMATIVA CREADORES DE CONTENIDO (6.0 a 6.4) -->
+            <section class="normativa-section-pane animate-fade-up delay-1" id="pane-creadores">
+
+                <!-- 6.0 NORMATIVA PARA CREADORES DE CONTENIDO (Estático) -->
+                <div class="section-header-static searchable-section" data-search="6.0 normativa para creadores de contenido streaming directo">
+                    <span>6.0</span> NORMATIVA PARA CREADORES DE CONTENIDO
+                </div>
+
+                <!-- Intro note -->
+                <div class="accordion-item" style="pointer-events: none; background: rgba(17, 18, 20, 0.4); border-style: dashed;">
+                    <div class="accordion-header" style="cursor: default;">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number" style="color: #ec4899;"><i class="fa-solid fa-video"></i></span>
+                            <span class="accordion-title" style="font-size: 0.85rem; color: #94a3b8; font-weight: 500; text-transform: none;">Solo las personas con el rol de creador de contenido aceptado por la Administración podrán transmitir en directo en plataformas de streaming:</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6.1 -->
+                <div class="accordion-item" data-search="6.1 requisitos previos solicitud creador de contenido sanción activa perfil discord visible streams accesibles 15 días">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">6.1</span>
+                            <span class="accordion-title">Requisitos previos para la solicitud de creador de contenido</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">- No podrás tener ninguna sanción activa dentro del servidor.</p>
+                        <p class="accordion-body-text">- Deberás de configurar el perfil de Discord para que la plataforma de stream sea visible en todo momento.</p>
+                        <p class="accordion-body-text">- La plataforma de streaming deberá estar configurada de tal manera para que los directos sean accesibles en todo momento y conservarlos durante un mínimo de 15 días.</p>
+                    </div>
+                </div>
+
+                <!-- 6.2 -->
+                <div class="accordion-item" data-search="6.2 clickssense content creator título del directo clicsenserp logo servidor superior derecha visible no ocultar chat comportamiento saludable tóxico moderadores">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">6.2</span>
+                            <span class="accordion-title">Nyx Community Content Creator</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">- El título del directo de la transmisión deberá incluir "Nyx Community".</p>
+                        <p class="accordion-body-text">- El logo del servidor, ubicado en la parte superior derecha, deberá de ser y estar visible en todo momento, no pudiendo ser ocultado por otros elementos (webcam, imágenes, etc..).</p>
+                        <p class="accordion-body-text">- El titular del canal deberá de asegurar, él mismo o mediante sus moderadores, que haya un comportamiento saludable, evitando y poniendo remedio a conductas y comportamientos tóxicos (faltas de respeto hacia otros jugadores, STAFF o el servidor, desprestigiar o sacar de contexto roles ajenos, MG a través de comentarios del chat, ...)</p>
+                    </div>
+                </div>
+
+                <!-- 6.3 -->
+                <div class="accordion-item" data-search="6.3 conductas y comportamiento prohibidos falta respeto jugadores staff servidor eliminar directo acceso conversaciones privadas reportes baja actividad 15 días mostrar discord información facción">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">6.3</span>
+                            <span class="accordion-title">Conductas y comportamiento prohibidos</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">- Cualquier tipo de falta de respeto hacia jugadores, STAFF o servidor en general.</p>
+                        <p class="accordion-body-text">- Eliminar un directo o evitar el acceso a él de cualquier forma, no permitiendo revisar el contenido en caso necesario.</p>
+                        <p class="accordion-body-text">- Transmitir en vivo conversaciones privadas relacionadas con reportes o con miembros del STAFF.</p>
+                        <p class="accordion-body-text">- No transmitir contenido del servidor o tener baja actividad durante 15 días.</p>
+                        <p class="accordion-body-text">- Mostrar el contenido del Discord u otra información que tenga que ver con la facción a la cual pudieras pertenecer (facción legal, comercios, ilegal, ...)</p>
+                    </div>
+                </div>
+
+                <!-- 6.4 -->
+                <div class="accordion-item" data-search="6.4 retirada del permiso de content creator staff incumplimiento normas anterior actitud rol no apto">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">6.4</span>
+                            <span class="accordion-title">Retirada del permiso de Content Creator</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">Tras la valoración previa por parte del STAFF, el permiso de creador de contenido podrá ser retirado por los siguientes motivos:</p>
+                        <p class="accordion-body-text">- El incumplimiento de las normas dentro del servidor y/o las descritas en el punto anterior.</p>
+                        <p class="accordion-body-text">- Mostrar una actitud, personaje o realizar un rol en general no apto para el servidor.</p>
+                        <p style="margin-top: 15px; font-size: 0.75rem; color: #94a3b8; text-align: right;">Última actualización: <strong>30/07/2026</strong></p>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- PESTAÑA 4: NORMATIVA PLAYMAKERS (7.0 a 7.6) -->
+            <section class="normativa-section-pane animate-fade-up delay-1" id="pane-playmakers">
+
+                <!-- 7.0 NORMATIVA PLAYMAKERS - PM (Estático) -->
+                <div class="section-header-static searchable-section" data-search="7.0 normativa playmakers pm">
+                    <span>7.0</span> NORMATIVA PLAYMAKERS - PM
+                </div>
+
+                <!-- 7.1 -->
+                <div class="accordion-item" data-search="7.1 rol de playmaker figurantes administración papel relevante">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">7.1</span>
+                            <span class="accordion-title">Rol de Playmaker</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">- El rol de playmaker consiste en participar en roles impulsados y solicitados por la Administración como figurantes. En algunas ocasiones se podrá otorgar un papel más relevante o no a los playmakers, pero en ningún caso el rol desarrollado por un PM será independiente de las indicaciones de la Administración.</p>
+                    </div>
+                </div>
+
+                <!-- 7.2 -->
+                <div class="accordion-item" data-search="7.2 segundo slot pm rol solicitado autorizado administración">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">7.2</span>
+                            <span class="accordion-title">Segundo slot</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">- No se podrá utilizar el segundo slot de PM si no es para un rol solicitado y autorizado por la Administración.</p>
+                    </div>
+                </div>
+
+                <!-- 7.2.1 -->
+                <div class="accordion-item" data-search="7.2.1 slot generado doble rol utilizar independientemente">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">7.2.1</span>
+                            <span class="accordion-title">Slot generado</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">- El slot generado de PM no es para tener un doble rol y utilizarlo libremente para hacer roles de forma totalmente independiente.</p>
+                    </div>
+                </div>
+
+                <!-- 7.3 -->
+                <div class="accordion-item" data-search="7.3 roles generados pm jugadores concretos solicitud necesidad facción organización criminal legal">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">7.3</span>
+                            <span class="accordion-title">Roles generados</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">- Los roles generados por los PM irán destinados a jugadores concretos, ya sea por solicitud de estos o por necesidad del servidor.</p>
+                        <p class="accordion-body-text">- En ningún caso los PM podrán actuar como facción, organización criminal, organización legal o similares.</p>
+                    </div>
+                </div>
+
+                <!-- 7.4 -->
+                <div class="accordion-item" data-search="7.4 prioridad de rol pm civil pausado">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">7.4</span>
+                            <span class="accordion-title">Prioridad de rol</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">- El rol de PM es un rol al que se le debe dar prioridad frente a aquellas personas que tienen un rol civil y algo más pausado.</p>
+                    </div>
+                </div>
+
+                <!-- 7.4.1 -->
+                <div class="accordion-item" data-search="7.4.1 facciones del servidor legales ilegales prioridad pm responder atender activo">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">7.4.1</span>
+                            <span class="accordion-title">Facciones del servidor</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">- Aquellos jugadores que pertenezcan a las facciones del servidor (legales o ilegales) no tendrán prioridad ni podrán acceder como PM, dado que deben responder y atender su rol principal, ya activo por sí y necesario en el servidor.</p>
+                    </div>
+                </div>
+
+                <!-- 7.5 -->
+                <div class="accordion-item" data-search="7.5 roles pactados pm relacionados abstenerse participar">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">7.5</span>
+                            <span class="accordion-title">Roles pactados</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">- Los PM que puedan estar relacionados o tener algo que ver con el rol pactado deberán abstenerse de participar.</p>
+                    </div>
+                </div>
+
+                <!-- 7.6 -->
+                <div class="accordion-item" data-search="7.6 roles policiales grupo playmakers policía ticket aprobados encargados">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <div class="accordion-title-wrapper">
+                            <span class="accordion-number">7.6</span>
+                            <span class="accordion-title">Roles policiales</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down accordion-icon"></i>
+                    </div>
+                    <div class="accordion-content">
+                        <p class="accordion-body-text">- El grupo de playmakers no realizará roles dirigidos a la policía, salvo que hayan sido solicitados mediante ticket y posteriormente aprobados por sus encargados.</p>
+                        <p style="margin-top: 15px; font-size: 0.75rem; color: #94a3b8; text-align: right;">Última actualización: <strong>30/07/2026</strong></p>
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Scripts de interactividad para Pestañas, Acordeón, Buscador Global y Desplazamiento -->
+    <script>
+    // Lógica para cambiar entre Pestañas (Tabs)
+    function switchNormativaTab(tabId, btnElement, runFilter = true) {
+        const buttons = document.querySelectorAll('.normativa-tab-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+
+        const panes = document.querySelectorAll('.normativa-section-pane');
+        panes.forEach(pane => pane.classList.remove('active'));
+
+        btnElement.classList.add('active');
+        const targetPane = document.getElementById('pane-' + tabId);
+        if (targetPane) {
+            targetPane.classList.add('active');
+        }
+
+        if (runFilter) {
+            filterNormativa();
+        }
+    }
+
+    // Lógica del Acordeón con animación suave
+    function toggleAccordion(headerElement) {
+        const parentItem = headerElement.parentElement;
+        const isActive = parentItem.classList.contains('active');
+
+        const activePane = document.querySelector('.normativa-section-pane.active');
+        if (activePane) {
+            const allItemsInPane = activePane.querySelectorAll('.accordion-item');
+            allItemsInPane.forEach(item => {
+                if (item !== parentItem) {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        if (isActive) {
+            parentItem.classList.remove('active');
+        } else {
+            parentItem.classList.add('active');
+        }
+    }
+
+    // Lógica del Filtro de Búsqueda Global (Busca en TODAS las pestañas y hace transición al resultado)
+    function filterNormativa() {
+        const input = document.getElementById('normativaSearchInput').value.toLowerCase().trim();
+        const panes = document.querySelectorAll('.normativa-section-pane');
+
+        if (input === '') {
+            panes.forEach(pane => {
+                pane.querySelectorAll('.accordion-item, .searchable-section').forEach(el => el.style.display = '');
+            });
+            return;
+        }
+
+        let firstMatchPane = null;
+        let firstMatchItem = null;
+
+        panes.forEach(pane => {
+            const items = pane.querySelectorAll('.accordion-item');
+            const staticHeaders = pane.querySelectorAll('.searchable-section');
+
+            items.forEach(item => {
+                const searchData = item.getAttribute('data-search') || '';
+                const title = item.querySelector('.accordion-title') ? item.querySelector('.accordion-title').textContent.toLowerCase() : '';
+                const content = item.querySelector('.accordion-content') ? item.querySelector('.accordion-content').textContent.toLowerCase() : '';
+
+                if (title.includes(input) || content.includes(input) || searchData.includes(input)) {
+                    item.style.display = 'block';
+                    if (!firstMatchItem) {
+                        firstMatchItem = item;
+                        firstMatchPane = pane;
+                    }
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            staticHeaders.forEach(header => {
+                const searchData = header.getAttribute('data-search') || '';
+                const text = header.textContent.toLowerCase();
+                if (text.includes(input) || searchData.includes(input)) {
+                    header.style.display = 'flex';
+                } else {
+                    header.style.display = 'none';
+                }
+            });
+        });
+
+        // Si se encuentra una coincidencia en otra pestaña, cambiar automáticamente y hacer scroll suave al punto
+        if (firstMatchPane && firstMatchItem) {
+            const activePane = document.querySelector('.normativa-section-pane.active');
+            if (activePane !== firstMatchPane) {
+                const paneId = firstMatchPane.id.replace('pane-', '');
+                const correspondingBtn = document.querySelector(`.normativa-tab-btn[onclick*="'${paneId}'"]`);
+                if (correspondingBtn) {
+                    switchNormativaTab(paneId, correspondingBtn, false);
+                }
+            }
+
+            // Desplegar automáticamente el acordeón y transicionar hacia él
+            firstMatchItem.classList.add('active');
+            firstMatchItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    // Cargar datos de sesión de Discord en el sidebar
+    async function loadDiscordSessionData() {
+        const storedUser = localStorage.getItem('discord_user');
+        const avatarContainer = document.getElementById('userAvatarContainer');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const userHandleDisplay = document.getElementById('userHandleDisplay');
+
+        if (!storedUser) {
+            if (userNameDisplay) userNameDisplay.textContent = "Usuario";
+            if (userHandleDisplay) userHandleDisplay.textContent = "@invitado";
+            return;
+        }
+
+        try {
+            const discordUser = JSON.parse(storedUser);
+            if (userNameDisplay) userNameDisplay.textContent = discordUser.displayName || discordUser.username || "Usuario";
+            if (userHandleDisplay) userHandleDisplay.textContent = `@${discordUser.username || "discord"}`;
+            if (avatarContainer && discordUser.avatarUrl) {
+                avatarContainer.innerHTML = `<img src="${discordUser.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+            }
+        } catch (e) {
+            console.error("Error al cargar sesión en sidebar:", e);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDiscordSessionData();
+    });
+
+    // Control del menú lateral colapsable
+    const toggleBtn = document.getElementById('sidebarToggleBtn');
+    const revealBtn = document.getElementById('sidebarRevealBtn');
+    const sidebar = document.getElementById('sidebar');
+
+    if (toggleBtn && revealBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => sidebar.classList.add('collapsed'));
+        revealBtn.addEventListener('click', () => sidebar.classList.remove('collapsed'));
+    }
+    </script>
+
+    <script src="/guards.js"></script>
+    <!-- Menú lateral común: logo, lupa y buscador de páginas por categorías -->
+    <script src="src/components/hx-sidebar.js"></script>
+</body>
+</html>

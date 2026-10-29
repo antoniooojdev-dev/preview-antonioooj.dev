@@ -1,0 +1,144 @@
+---
+import "@/styles/global.css";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import SiteLoader from "@/components/SiteLoader.astro";
+import logoMask from "@/assets/logo-mask.png";
+import { site, socials } from "@/data/site";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  noindex?: boolean;
+  /** false = sin la pantalla de carga (páginas que traen su propia entrada, como /pruebas) */
+  intro?: boolean;
+  /** false = pie sin el logo de fondo */
+  fondoPie?: boolean;
+}
+
+const {
+  title,
+  description = site.description,
+  image = "/logo.png",
+  noindex = false,
+  intro = true,
+  fondoPie = true,
+} = Astro.props;
+
+const fullTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.role}`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url);
+const ogImage = new URL(image, Astro.site ?? site.url);
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  name: site.name,
+  description: site.description,
+  url: site.url,
+  email: site.email,
+  image: ogImage.href,
+  areaServed: "ES",
+  founder: { "@type": "Person", name: site.fullName, jobTitle: site.role },
+  sameAs: socials.map((s) => s.href),
+};
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="theme-color" content="#0a0a0a" />
+
+    <!-- Open Graph / redes sociales -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary" />
+
+    <!-- fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    <!-- aplica el tema guardado antes de pintar (evita parpadeo) -->
+    <script is:inline>
+      // llegada desde otra página con la cortina de la entrada (src/scripts/cortina-idioma.ts):
+      // la página arranca tapada y la cortina se levanta cuando está lista
+      try {
+        if (sessionStorage.getItem("aj-cortina")) {
+          sessionStorage.removeItem("aj-cortina");
+          document.documentElement.classList.add("llega-cortina");
+        }
+      } catch {}
+      try {
+        const t = localStorage.getItem("theme");
+        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      } catch {}
+      // idioma: si no es español, se oculta la página hasta que src/scripts/i18n.ts la traduce
+      // (como mucho 1,5 s), para que no se vea el español un instante
+      (function () {
+        var l = null;
+        try { l = localStorage.getItem("aj-lang"); } catch (e) {}
+        if (!l) l = (navigator.language || "es").slice(0, 2);
+        if (l === "en" || l === "pt") {
+          document.documentElement.lang = l;
+          document.documentElement.classList.add("i18n-wait");
+          setTimeout(function () { document.documentElement.classList.remove("i18n-wait"); }, 1500);
+        }
+      })();
+    </script>
+    {
+      intro && (
+        <script is:inline>
+          // pantalla de carga solo en la primera visita de la sesión (y no si ya llega con cortina)
+          try {
+            if (!sessionStorage.getItem("aj-intro") && !document.documentElement.classList.contains("llega-cortina"))
+              document.documentElement.classList.add("is-loading");
+          } catch {
+            document.documentElement.classList.add("is-loading");
+          }
+        </script>
+      )
+    }
+  </head>
+
+  <body>
+    <div class="cortina-idioma cortina-llegada is-dentro is-cargando" aria-hidden="true" style={`--logo:url("${logoMask.src}")`}>
+      <div class="cortina-idioma__logo"></div>
+      <div class="cortina-idioma__barra"><i></i></div>
+    </div>
+    {intro && <SiteLoader />}
+    <a class="skip-link" href="#main">Saltar al contenido</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer fondo={fondoPie} />
+
+    <script>
+      import "@/scripts/i18n";
+      import "@/scripts/theme";
+      import "@/scripts/reveal";
+    </script>
+  </body>
+</html>

@@ -1,0 +1,795 @@
+---
+// Ejemplo de «Bots de Discord»: un canal de Discord simulado con un bot que responde a
+// comandos slash (/ayuda, /ticket, /nivel, /sorteo, /verificar, /reglas) con embeds y
+// botones, autocompletado al escribir «/» y automoderación de enlaces e insultos.
+const comandos = [
+  { c: "/ayuda", d: "Lista de comandos del bot" },
+  { c: "/ticket", d: "Abre un ticket de soporte privado" },
+  { c: "/nivel", d: "Muestra tu nivel y experiencia" },
+  { c: "/sorteo", d: "Crea un sorteo con botón para participar" },
+  { c: "/verificar", d: "Verifícate para acceder al servidor" },
+  { c: "/reglas", d: "Muestra las normas del servidor" },
+];
+---
+
+<div class="dd" data-demo-discord data-comandos={JSON.stringify(comandos)}>
+  <aside class="dd__servers" aria-hidden="true">
+    <span class="is-on">N</span><span>🎮</span><span>🎵</span><span class="dd__add">+</span>
+  </aside>
+
+  <aside class="dd__channels">
+    <strong class="dd__guild">AntonioooJ Dev</strong>
+    <span class="dd__cat mono">información</span>
+    <span># reglas</span>
+    <span># anuncios</span>
+    <span class="dd__cat mono">comunidad</span>
+    <span class="is-on"># general</span>
+    <span># soporte</span>
+    <span class="dd__ticket-ch" hidden># ticket-0001</span>
+    <div class="dd__me">
+      <span class="dd__ava">T</span>
+      <div><strong>Tú</strong><span class="dd__roles mono">sin verificar</span></div>
+    </div>
+  </aside>
+
+  <div class="dd__chat">
+    <header class="dd__top"><b>#</b> general <span class="mono">· prueba a escribir /</span></header>
+
+    <div class="dd__msgs" aria-live="polite">
+      <div class="dd__msg">
+        <span class="dd__ava dd__ava--bot">🤖</span>
+        <div>
+          <p class="dd__who"><strong>AntonioooJ Dev</strong> <span class="dd__tag">BOT</span> <span class="dd__time mono">hoy</span></p>
+          <p>¡Hola! Soy el bot del servidor. Escribe <code>/ayuda</code> para ver lo que puedo hacer 👋</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dd__suggest" hidden role="listbox" aria-label="Comandos"></div>
+
+    <form class="dd__input">
+      <input type="text" placeholder="Enviar mensaje a #general" autocomplete="off" aria-label="Mensaje" maxlength="200" />
+      <button type="submit" aria-label="Enviar">➤</button>
+    </form>
+    <div class="dd__quick">
+      {comandos.map((c) => <button type="button" class="mono" data-cmd={c.c}>{c.c}</button>)}
+      <button type="button" class="mono dd__spam" data-texto="entra en discord.gg/regalo-nitro-gratis">🔗 enlace sospechoso</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  interface Comando {
+    c: string;
+    d: string;
+  }
+
+  interface Embed {
+    color: string;
+    titulo: string;
+    texto?: string;
+    campos?: [string, string][];
+    pie?: string;
+    botones?: { t: string; accion: string; estilo?: "ok" | "rojo" | "gris" }[];
+    barra?: number;
+  }
+
+  const PROHIBIDO = /(discord\.gg\/|nitro.?gratis|tonto|idiota|imb[eé]cil)/i;
+  const hora = () => new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+
+  document.querySelectorAll<HTMLElement>("[data-demo-discord]").forEach((demo) => {
+    const comandos = JSON.parse(demo.dataset.comandos!) as Comando[];
+    const $ = <T extends Element>(s: string) => demo.querySelector<T>(s)!;
+    const msgs = $<HTMLElement>(".dd__msgs");
+    const input = $<HTMLInputElement>(".dd__input input");
+    const sugerencias = $<HTMLElement>(".dd__suggest");
+    let xp = 340;
+    let participantes = 12;
+    let verificado = false;
+    let tickets = 0;
+
+    const bajar = () => (msgs.scrollTop = msgs.scrollHeight);
+
+    function mensaje(quien: "yo" | "bot" | "sistema", contenido: string | Node, embed?: Embed): HTMLElement {
+      const m = document.createElement("div");
+      m.className = `dd__msg dd__msg--${quien}`;
+      const ava = document.createElement("span");
+      ava.className = `dd__ava${quien === "yo" ? "" : " dd__ava--bot"}`;
+      ava.textContent = quien === "yo" ? "T" : quien === "bot" ? "🤖" : "🛡";
+      const cuerpo = document.createElement("div");
+      const who = document.createElement("p");
+      who.className = "dd__who";
+      const nombre = document.createElement("strong");
+      nombre.textContent = quien === "yo" ? "Tú" : quien === "bot" ? "AntonioooJ Dev" : "AutoMod";
+      who.append(nombre, " ");
+      if (quien !== "yo") {
+        const tag = document.createElement("span");
+        tag.className = "dd__tag";
+        tag.textContent = "BOT";
+        who.append(tag, " ");
+      }
+      const t = document.createElement("span");
+      t.className = "dd__time mono";
+      t.textContent = `hoy a las ${hora()}`;
+      who.append(t);
+      cuerpo.append(who);
+      if (contenido) {
+        const p = document.createElement("p");
+        p.append(contenido);
+        cuerpo.append(p);
+      }
+      if (embed) cuerpo.append(crearEmbed(embed));
+      m.append(ava, cuerpo);
+      msgs.append(m);
+      while (msgs.children.length > 30) msgs.firstElementChild!.remove();
+      bajar();
+      return m;
+    }
+
+    function crearEmbed(e: Embed): HTMLElement {
+      const box = document.createElement("div");
+      box.className = "dd__embed";
+      box.style.setProperty("--ec", e.color);
+      const tit = document.createElement("strong");
+      tit.textContent = e.titulo;
+      box.append(tit);
+      if (e.texto) {
+        const p = document.createElement("p");
+        p.textContent = e.texto;
+        box.append(p);
+      }
+      if (e.barra !== undefined) {
+        const b = document.createElement("span");
+        b.className = "dd__xp";
+        b.style.setProperty("--p", `${e.barra}%`);
+        box.append(b);
+      }
+      if (e.campos) {
+        const dl = document.createElement("dl");
+        for (const [k, v] of e.campos) {
+          const d = document.createElement("div");
+          const dt = document.createElement("dt");
+          dt.textContent = k;
+          const dd = document.createElement("dd");
+          dd.textContent = v;
+          d.append(dt, dd);
+          dl.append(d);
+        }
+        box.append(dl);
+      }
+      if (e.pie) {
+        const pie = document.createElement("small");
+        pie.textContent = e.pie;
+        box.append(pie);
+      }
+      if (e.botones) {
+        const fila = document.createElement("div");
+        fila.className = "dd__btns";
+        for (const b of e.botones) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = `dd__btn dd__btn--${b.estilo ?? "ok"}`;
+          btn.textContent = b.t;
+          btn.dataset.accion = b.accion;
+          fila.append(btn);
+        }
+        box.append(fila);
+      }
+      return box;
+    }
+
+    function escribiendo(): Promise<void> {
+      const t = document.createElement("div");
+      t.className = "dd__typing mono";
+      t.textContent = "AntonioooJ Dev está escribiendo…";
+      msgs.append(t);
+      bajar();
+      return new Promise((r) =>
+        setTimeout(() => {
+          t.remove();
+          r();
+        }, 550),
+      );
+    }
+
+    async function responder(cmd: string) {
+      await escribiendo();
+      switch (cmd) {
+        case "/ayuda":
+          mensaje("bot", "", {
+            color: "#5865f2",
+            titulo: "📖 Comandos de AntonioooJ Dev",
+            campos: comandos.map((c) => [c.c, c.d] as [string, string]),
+            pie: "Los comandos respetan los permisos de cada rol",
+          });
+          break;
+        case "/ticket": {
+          tickets++;
+          const n = String(tickets).padStart(4, "0");
+          const ch = $<HTMLElement>(".dd__ticket-ch");
+          ch.hidden = false;
+          ch.textContent = `# ticket-${n}`;
+          mensaje("bot", "", {
+            color: "#22c55e",
+            titulo: `🎫 Ticket #${n} creado`,
+            texto: "Se ha abierto un canal privado solo para ti y el staff. Cuéntanos qué necesitas.",
+            campos: [["Categoría", "Soporte general"], ["Prioridad", "Normal"]],
+            botones: [
+              { t: "🔒 Cerrar ticket", accion: "cerrar", estilo: "rojo" },
+              { t: "🙋 Avisar al staff", accion: "staff", estilo: "gris" },
+            ],
+          });
+          break;
+        }
+        case "/nivel": {
+          xp += Math.floor(20 + Math.random() * 40);
+          const nivel = Math.floor(xp / 500) + 1;
+          const resto = xp % 500;
+          mensaje("bot", "", {
+            color: "#f59e0b",
+            titulo: `⭐ Nivel ${nivel}`,
+            texto: `${resto} / 500 XP para el siguiente nivel`,
+            barra: (resto / 500) * 100,
+            campos: [["Ranking", `#${Math.max(1, 48 - nivel * 3)} de 1.204`], ["Mensajes", String(Math.floor(xp / 7))]],
+          });
+          break;
+        }
+        case "/sorteo":
+          mensaje("bot", "", {
+            color: "#ec4899",
+            titulo: "🎉 SORTEO · Rol VIP 1 mes",
+            texto: "Pulsa el botón para participar. Termina en 24 h.",
+            campos: [["Participantes", String(participantes)], ["Ganadores", "1"]],
+            botones: [{ t: "🎉 Participar", accion: "participar" }],
+          });
+          break;
+        case "/verificar":
+          if (verificado) {
+            mensaje("bot", "Ya estás verificado ✅");
+            break;
+          }
+          mensaje("bot", "", {
+            color: "#3b82f6",
+            titulo: "🔐 Verificación",
+            texto: "Confirma que has leído las normas para desbloquear el resto de canales.",
+            botones: [{ t: "✅ He leído las normas", accion: "verificar" }],
+          });
+          break;
+        case "/reglas":
+          mensaje("bot", "", {
+            color: "#64748b",
+            titulo: "📜 Normas del servidor",
+            campos: [
+              ["1.", "Respeto a todos los miembros"],
+              ["2.", "Nada de spam ni enlaces a otros servidores"],
+              ["3.", "Usa cada canal para su tema"],
+            ],
+            pie: "La automoderación aplica estas normas 24/7",
+          });
+          break;
+        default:
+          mensaje("bot", `No conozco el comando ${cmd}. Prueba /ayuda`);
+      }
+    }
+
+    async function enviar(texto: string) {
+      texto = texto.trim().slice(0, 200);
+      if (!texto) return;
+      const m = mensaje("yo", texto);
+      sugerencias.hidden = true;
+      if (PROHIBIDO.test(texto)) {
+        // Automoderación: borra el mensaje y avisa
+        setTimeout(() => {
+          m.classList.add("is-deleted");
+          setTimeout(() => m.remove(), 400);
+          mensaje("sistema", "", {
+            color: "#ef4444",
+            titulo: "🛡 Mensaje eliminado por AutoMod",
+            texto: "Motivo: enlace de invitación o lenguaje no permitido. Aviso 1/3.",
+            pie: "Al tercer aviso: silencio de 10 minutos",
+          });
+        }, 500);
+        return;
+      }
+      xp += 15;
+      if (texto.startsWith("/")) return responder(texto.split(/\s+/)[0].toLowerCase());
+      if (/hola|buenas/i.test(texto)) {
+        await escribiendo();
+        mensaje("bot", "¡Hola! 👋 Si necesitas ayuda, abre un /ticket");
+      }
+    }
+
+    // Botones de los embeds
+    msgs.addEventListener("click", (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-accion]");
+      if (!b || b.disabled) return;
+      switch (b.dataset.accion) {
+        case "participar": {
+          participantes++;
+          b.disabled = true;
+          b.textContent = "✓ Participando";
+          const dd = b.closest(".dd__embed")!.querySelector("dd");
+          if (dd) dd.textContent = String(participantes);
+          break;
+        }
+        case "cerrar":
+          b.closest(".dd__btns")!.querySelectorAll("button").forEach((x) => (x.disabled = true));
+          $<HTMLElement>(".dd__ticket-ch").hidden = true;
+          mensaje("bot", "🔒 Ticket cerrado. Transcripción guardada en #logs-tickets.");
+          break;
+        case "staff":
+          b.disabled = true;
+          mensaje("bot", "🙋 Se ha avisado al equipo de soporte. Te responderán en breve.");
+          break;
+        case "verificar":
+          verificado = true;
+          b.disabled = true;
+          b.textContent = "✓ Verificado";
+          $(".dd__roles").textContent = "✓ verificado · miembro";
+          $<HTMLElement>(".dd__me").classList.add("is-verified");
+          mensaje("bot", "✅ ¡Verificado! Te he dado el rol Miembro y ya ves todos los canales.");
+          break;
+      }
+    });
+
+    // Autocompletado de comandos
+    function sugerir() {
+      const v = input.value;
+      if (!v.startsWith("/") || v.includes(" ")) {
+        sugerencias.hidden = true;
+        return;
+      }
+      const lista = comandos.filter((c) => c.c.startsWith(v.toLowerCase()));
+      sugerencias.replaceChildren(
+        ...lista.map((c) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.setAttribute("role", "option");
+          const s = document.createElement("strong");
+          s.textContent = c.c;
+          const d = document.createElement("span");
+          d.textContent = c.d;
+          b.append(s, d);
+          b.addEventListener("click", () => {
+            input.value = "";
+            enviar(c.c);
+            input.focus();
+          });
+          return b;
+        }),
+      );
+      sugerencias.hidden = !lista.length;
+    }
+
+    input.addEventListener("input", sugerir);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Tab" && !sugerencias.hidden) {
+        e.preventDefault();
+        const primero = sugerencias.querySelector("strong");
+        if (primero) input.value = primero.textContent ?? "";
+        sugerir();
+      } else if (e.key === "Escape") {
+        sugerencias.hidden = true;
+      }
+    });
+
+    $<HTMLFormElement>(".dd__input").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const t = input.value;
+      input.value = "";
+      enviar(t);
+    });
+
+    demo.querySelectorAll<HTMLButtonElement>(".dd__quick button").forEach((b) =>
+      b.addEventListener("click", () => enviar(b.dataset.cmd ?? b.dataset.texto ?? "")),
+    );
+  });
+</script>
+
+<style>
+  .dd {
+    display: grid;
+    grid-template-columns: 56px 13rem minmax(0, 1fr);
+    height: 520px;
+    background: #313338;
+    color: #dbdee1;
+    font-size: var(--fs-sm);
+  }
+
+  .dd__servers {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    background: #1e1f22;
+  }
+
+  .dd__servers span {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #313338;
+    font-weight: 700;
+  }
+
+  .dd__servers .is-on {
+    border-radius: 14px;
+    background: #5865f2;
+    color: #fff;
+  }
+
+  .dd__add {
+    color: #23a55a;
+  }
+
+  .dd__channels {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 8px 0;
+    background: #2b2d31;
+    color: #949ba4;
+    font-size: var(--fs-sm);
+  }
+
+  .dd__guild {
+    padding: 0 8px 10px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #1f2023;
+    color: #f2f3f5;
+  }
+
+  .dd__cat {
+    padding: 10px 8px 4px;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .dd__channels > span:not(.dd__cat) {
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .dd__channels .is-on {
+    background: #404249;
+    color: #f2f3f5;
+  }
+
+  .dd__ticket-ch {
+    color: #23a55a;
+    animation: dd-in 0.3s ease;
+  }
+
+  .dd__ticket-ch[hidden] {
+    display: none;
+  }
+
+  .dd__me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: auto -8px 0;
+    padding: 8px;
+    background: #232428;
+  }
+
+  .dd__me > div {
+    display: grid;
+    font-size: var(--fs-xs);
+  }
+
+  .dd__me strong {
+    color: #f2f3f5;
+  }
+
+  .dd__roles {
+    font-size: 0.625rem;
+  }
+
+  .dd__me.is-verified .dd__roles {
+    color: #23a55a;
+  }
+
+  .dd__chat {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    min-width: 0;
+  }
+
+  .dd__top {
+    padding: 12px 16px;
+    border-bottom: 1px solid #26272b;
+    color: #f2f3f5;
+    font-weight: 600;
+  }
+
+  .dd__top b {
+    color: #80848e;
+  }
+
+  .dd__top .mono {
+    font-weight: 400;
+    font-size: 0.6875rem;
+    color: #80848e;
+  }
+
+  .dd__msgs {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 14px 16px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .dd__msgs :global(.dd__msg) {
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    gap: 12px;
+    animation: dd-in 0.25s ease;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+
+  .dd__msgs :global(.dd__msg.is-deleted) {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+
+  .dd__msgs :global(.dd__msg p) {
+    overflow-wrap: anywhere;
+  }
+
+  .dd :global(.dd__ava) {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #f0b232;
+    color: #111;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .dd__me .dd__ava {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dd :global(.dd__ava--bot) {
+    background: #5865f2;
+    color: #fff;
+  }
+
+  .dd :global(.dd__who) {
+    margin-bottom: 2px;
+  }
+
+  .dd :global(.dd__who strong) {
+    color: #f2f3f5;
+  }
+
+  .dd :global(.dd__tag) {
+    padding: 0 4px;
+    border-radius: 3px;
+    background: #5865f2;
+    color: #fff;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    vertical-align: 1px;
+  }
+
+  .dd :global(.dd__time) {
+    font-size: 0.625rem;
+    color: #80848e;
+  }
+
+  .dd code {
+    padding: 0 4px;
+    border-radius: 3px;
+    background: #2b2d31;
+    font-size: 0.8125rem;
+  }
+
+  .dd__msgs :global(.dd__typing) {
+    font-size: 0.6875rem;
+    color: #80848e;
+    animation: dd-blink 1s ease-in-out infinite;
+  }
+
+  /* embeds */
+  .dd :global(.dd__embed) {
+    display: grid;
+    gap: 6px;
+    max-width: 26rem;
+    margin-top: 4px;
+    padding: 10px 14px;
+    border-radius: 4px;
+    border-left: 4px solid var(--ec);
+    background: #2b2d31;
+  }
+
+  .dd :global(.dd__embed > strong) {
+    color: #f2f3f5;
+  }
+
+  .dd :global(.dd__embed p) {
+    font-size: var(--fs-xs);
+  }
+
+  .dd :global(.dd__embed dl) {
+    display: grid;
+    gap: 4px;
+    font-size: var(--fs-xs);
+  }
+
+  .dd :global(.dd__embed dl div) {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: 8px;
+  }
+
+  .dd :global(.dd__embed dt) {
+    color: #f2f3f5;
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+
+  .dd :global(.dd__embed dd) {
+    margin: 0;
+  }
+
+  .dd :global(.dd__embed small) {
+    font-size: 0.625rem;
+    color: #80848e;
+  }
+
+  .dd :global(.dd__xp) {
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--ec) var(--p), #1e1f22 var(--p));
+  }
+
+  .dd :global(.dd__btns) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .dd :global(.dd__btn) {
+    padding: 6px 12px;
+    border-radius: 4px;
+    color: #fff;
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    transition: filter 0.15s ease;
+  }
+
+  .dd :global(.dd__btn:hover:not(:disabled)) {
+    filter: brightness(1.15);
+  }
+
+  .dd :global(.dd__btn:disabled) {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .dd :global(.dd__btn--ok) { background: #248046; }
+  .dd :global(.dd__btn--rojo) { background: #da373c; }
+  .dd :global(.dd__btn--gris) { background: #4e5058; }
+
+  /* autocompletado */
+  .dd__suggest {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 94px;
+    display: grid;
+    padding: 6px;
+    border-radius: 8px;
+    background: #2b2d31;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.4);
+    z-index: 2;
+  }
+
+  .dd__suggest[hidden] {
+    display: none;
+  }
+
+  .dd__suggest :global(button) {
+    display: flex;
+    gap: 12px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    text-align: left;
+    font-size: var(--fs-xs);
+    color: #b5bac1;
+  }
+
+  .dd__suggest :global(button:hover),
+  .dd__suggest :global(button:focus-visible) {
+    background: #35373c;
+    color: #fff;
+  }
+
+  .dd__suggest :global(strong) {
+    color: #f2f3f5;
+    font-family: var(--font-mono);
+  }
+
+  .dd__input {
+    display: flex;
+    margin: 0 16px;
+    border-radius: 8px;
+    background: #383a40;
+  }
+
+  .dd__input input {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 14px;
+    background: transparent;
+    border: 0;
+    color: #dbdee1;
+    font-size: var(--fs-sm);
+  }
+
+  .dd__input input:focus-visible {
+    outline: none;
+  }
+
+  .dd__input button {
+    padding: 0 14px;
+    color: #b5bac1;
+  }
+
+  .dd__quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 16px 14px;
+  }
+
+  .dd__quick button {
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #2b2d31;
+    color: #b5bac1;
+    font-size: 0.6875rem;
+  }
+
+  .dd__quick button:hover {
+    background: #5865f2;
+    color: #fff;
+  }
+
+  .dd__quick .dd__spam:hover {
+    background: #da373c;
+  }
+
+  @keyframes dd-in {
+    from { opacity: 0; transform: translateY(6px); }
+  }
+
+  @keyframes dd-blink {
+    50% { opacity: 0.4; }
+  }
+
+  @media (max-width: 52rem) {
+    .dd {
+      grid-template-columns: 1fr;
+      height: 560px;
+    }
+
+    .dd__servers,
+    .dd__channels {
+      display: none;
+    }
+  }
+</style>

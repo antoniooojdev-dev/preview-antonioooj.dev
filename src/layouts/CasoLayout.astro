@@ -1,0 +1,202 @@
+---
+// Plantilla de los casos de ejemplo (/servicios/web/<id>, /servicios/app/<id>):
+// una página propia, como si fuera la web del cliente (sin la cabecera del portfolio),
+// con iconos de Font Awesome (copia local) y una pastilla flotante para volver.
+import type { Caso } from "@/data/casos";
+
+interface Props {
+  caso: Caso;
+  /** Familias de Google Fonts, p. ej. "Fraunces:opsz,wght@9..144,400..800" */
+  fuentes: string[];
+}
+
+const { caso, fuentes } = Astro.props;
+const volver = `/servicios/${caso.servicio}#casos`;
+const urlFuentes = `https://fonts.googleapis.com/css2?${fuentes.map((f) => `family=${f}`).join("&")}&display=swap`;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{caso.nombre} · ejemplo de AntonioooJ</title>
+    <meta name="description" content={caso.resumen} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={urlFuentes} />
+    <link rel="stylesheet" href="/fa/css/fontawesome.min.css" />
+    <link rel="stylesheet" href="/fa/css/solid.min.css" />
+  </head>
+  <body>
+    <slot />
+
+    <!-- pastilla flotante: deja claro que es un ejemplo y permite volver -->
+    <aside class="caso-pill" aria-label="Ejemplo">
+      <a href={volver} class="caso-pill__volver"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Volver</a>
+      <span class="caso-pill__txt">Ejemplo ficticio hecho por <strong>AntonioooJ</strong></span>
+      <a href={`/contacto?tipo=${caso.servicio === "web" ? "Web%20online" : "Aplicaci%C3%B3n%20web"}`} class="caso-pill__cta">Quiero una así</a>
+    </aside>
+
+    <style is:global>
+      /* acepta la transición entre páginas del portfolio (si no, el navegador avisa de un error) */
+      @view-transition {
+        navigation: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        -webkit-text-size-adjust: 100%;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      img,
+      svg {
+        display: block;
+        max-width: 100%;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+        color: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      p,
+      ul,
+      ol,
+      figure,
+      blockquote,
+      dl,
+      dd {
+        margin: 0;
+      }
+
+      ul[role="list"],
+      ol[role="list"] {
+        list-style: none;
+        padding: 0;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      /* pastilla del portfolio */
+      .caso-pill {
+        position: fixed;
+        left: 50%;
+        bottom: 16px;
+        z-index: 9000;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        max-width: calc(100vw - 24px);
+        padding: 6px;
+        border: 1px solid rgb(255 255 255 / 0.12);
+        border-radius: 999px;
+        background: rgb(12 12 12 / 0.88);
+        backdrop-filter: blur(10px);
+        color: #f2f2f2;
+        font: 500 13px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif;
+        box-shadow: 0 14px 40px rgb(0 0 0 / 0.35);
+        translate: -50% 0;
+        animation: caso-pill-in 0.6s 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      .caso-pill a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: background 0.2s;
+      }
+
+      .caso-pill__volver:hover {
+        background: rgb(255 255 255 / 0.1);
+      }
+
+      .caso-pill__txt {
+        padding-inline: 4px;
+        color: #a3a3a3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .caso-pill__txt strong {
+        color: #f2f2f2;
+      }
+
+      .caso-pill__cta {
+        background: #f2f2f2;
+        color: #0a0a0a;
+        font-weight: 700;
+      }
+
+      .caso-pill__cta:hover {
+        background: #fff;
+      }
+
+      @media (max-width: 34rem) {
+        .caso-pill__txt {
+          display: none;
+        }
+      }
+
+      @keyframes caso-pill-in {
+        from {
+          opacity: 0;
+          translate: -50% 30px;
+        }
+      }
+    </style>
+  </body>
+</html>

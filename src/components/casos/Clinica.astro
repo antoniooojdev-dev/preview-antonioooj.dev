@@ -1,0 +1,3635 @@
+---
+// Caso «Clínica Alba» (fisioterapia, marca ficticia): tratamientos con ficha lateral,
+// test «¿qué tratamiento necesito?» con mapa del cuerpo, cita online en 4 pasos con
+// calendario, equipo filtrable, comprobador de mutuas, tarifas con bonos y FAQ.
+
+const tratamientos = [
+  { id: "deportiva", t: "Fisioterapia deportiva", ico: "person-running", min: 50, p: 45, d: "Lesiones musculares, esguinces y sobrecargas. Volver a entrenar cuanto antes y sin recaídas.", inc: ["Valoración funcional", "Terapia manual", "Ejercicio terapéutico", "Plan para casa"] },
+  { id: "espalda", t: "Dolor de espalda y cuello", ico: "user-injured", min: 50, p: 42, d: "Cervicalgias, lumbalgias y ciáticas. Tratamos la causa, no solo el dolor.", inc: ["Valoración postural", "Terapia manual", "Punción seca si hace falta", "Ejercicios de control"] },
+  { id: "puncion", t: "Punción seca", ico: "syringe", min: 30, p: 35, d: "Para puntos gatillo y contracturas que no se van con masaje.", inc: ["Localización del punto gatillo", "Punción ecoguiada", "Estiramiento posterior"] },
+  { id: "pelvico", t: "Suelo pélvico", ico: "person-pregnant", min: 60, p: 55, d: "Embarazo, posparto, incontinencia y dolor pélvico. En una sala privada y con fisioterapeuta especialista.", inc: ["Valoración con ecografía", "Biofeedback", "Hipopresivos", "Seguimiento"] },
+  { id: "osteopatia", t: "Osteopatía", ico: "hands", min: 50, p: 50, d: "Enfoque global del cuerpo para dolores recurrentes, cefaleas y problemas de mandíbula.", inc: ["Valoración global", "Técnicas estructurales", "Técnicas viscerales y craneales"] },
+  { id: "pilates", t: "Pilates terapéutico", ico: "people-group", min: 55, p: 18, d: "Grupos reducidos (máx. 5) guiados por fisioterapeutas para fortalecer y prevenir.", inc: ["Clase en grupo reducido", "Máquinas Reformer", "Adaptado a tu lesión"] },
+];
+
+const equipo = [
+  { n: "Laura Sanz", e: "Fisioterapia deportiva", c: "28/4512", idiomas: "ES · EN", ini: "LS", tono: "#0f766e", tags: ["deportiva", "puncion"] },
+  { n: "Pablo Ortega", e: "Espalda y punción seca", c: "28/3987", idiomas: "ES · FR", ini: "PO", tono: "#0e7490", tags: ["espalda", "puncion"] },
+  { n: "Marta Gil", e: "Suelo pélvico", c: "28/5120", idiomas: "ES", ini: "MG", tono: "#7c3aed", tags: ["pelvico"] },
+  { n: "Andrés Vidal", e: "Osteopatía", c: "28/2876", idiomas: "ES · EN · IT", ini: "AV", tono: "#b45309", tags: ["osteopatia", "espalda"] },
+  { n: "Nuria Ferrer", e: "Pilates terapéutico", c: "28/6034", idiomas: "ES · EN", ini: "NF", tono: "#be185d", tags: ["pilates", "pelvico"] },
+];
+
+const mutuas = ["Sanitas", "Adeslas", "DKV", "Asisa", "Mapfre", "Cigna", "AXA", "Allianz", "Caser", "Generali", "Fiatc", "IMQ"];
+
+const faqs = [
+  { q: "¿Necesito informe médico?", a: "No. En la primera sesión hacemos una valoración completa. Si tienes pruebas (resonancias, informes), tráelas." },
+  { q: "¿Cuántas sesiones voy a necesitar?", a: "Depende de la lesión. Tras la primera valoración te damos una estimación y un plan por escrito." },
+  { q: "¿Qué ropa llevo?", a: "Ropa cómoda. Si te tratamos piernas, mejor pantalón corto; tenemos toallas y vestuario." },
+  { q: "¿Puedo cancelar una cita?", a: "Sí, sin coste hasta 24 h antes desde el enlace de tu email de confirmación." },
+];
+---
+
+<div class="cl" data-cl>
+  <!-- aviso superior -->
+  <div class="cl-aviso">
+    <div class="cl-wrap cl-aviso__in">
+      <span><i class="fa-solid fa-heart-pulse"></i> Primera valoración completa en 50 minutos, uno a uno</span>
+      <span class="cl-aviso__dcha"><i class="fa-solid fa-location-dot"></i> Chamberí, Madrid · <i class="fa-solid fa-clock"></i> L–V 8:00–21:00</span>
+    </div>
+  </div>
+
+  <header class="cl-head" data-cl-head>
+    <div class="cl-wrap cl-head__in">
+      <a href="#inicio" class="cl-logo">
+        <span class="cl-logo__ico" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="22" height="22"><path d="M16 3c4 4 6 8 6 12a6 6 0 0 1-12 0c0-4 2-8 6-12Z" fill="currentColor" opacity=".55"></path><path d="M16 29V13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"></path><path d="M16 20c-3-1-5-3-6-6M16 17c2.5-.6 4.4-2.2 5.4-4.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"></path></svg>
+        </span>
+        <span><strong>Clínica Alba</strong><small>Fisioterapia</small></span>
+      </a>
+      <nav class="cl-nav" aria-label="Secciones">
+        <a href="#tratamientos">Tratamientos</a>
+        <a href="#test">¿Qué necesito?</a>
+        <a href="#equipo">Equipo</a>
+        <a href="#tarifas">Tarifas</a>
+        <a href="#faq">Dudas</a>
+      </nav>
+      <a href="tel:910000000" class="cl-tel"><i class="fa-solid fa-phone"></i> 910 000 000</a>
+      <!-- aparece en cuanto hay al menos una cita guardada -->
+      <button type="button" class="cl-miscitas-btn" data-cl-miscitas-btn hidden>
+        <i class="fa-solid fa-calendar-days"></i> <span>Tus citas</span> <em data-cl-miscitas-n></em>
+      </button>
+      <a href="#cita" class="cl-btn">Pedir cita</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- portada -->
+    <section class="cl-hero" id="inicio">
+      <span class="cl-hero__blob cl-hero__blob--a" aria-hidden="true"></span>
+      <span class="cl-hero__blob cl-hero__blob--b" aria-hidden="true"></span>
+      <div class="cl-wrap cl-hero__in">
+        <div class="cl-hero__txt">
+          <span class="cl-pill">
+            <span class="cl-pill__caras" aria-hidden="true">
+              {equipo.slice(0, 3).map((p) => <i style={`--t:${p.tono}`}>{p.ini}</i>)}
+            </span>
+            <span><i class="fa-solid fa-star"></i> 4,9 en Google · 680 opiniones</span>
+          </span>
+          <h1>Vuelve a moverte <span>sin dolor.</span></h1>
+          <p>Fisioterapeutas colegiados, sesiones de 50 minutos uno a uno y un plan claro desde el primer día. En pleno barrio de Chamberí.</p>
+          <div class="cl-buscador">
+            <span>¿Qué te duele?</span>
+            <div class="cl-zonas">
+              {["Espalda", "Cuello", "Rodilla", "Hombro", "Tobillo"].map((z) => (
+                <a href="#test" data-zona-rapida={z.toLowerCase()}>{z}</a>
+              ))}
+            </div>
+          </div>
+          <div class="cl-hero__ctas">
+            <a href="#cita" class="cl-btn cl-btn--grande">Reservar mi cita <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="#test" class="cl-btn cl-btn--suave">Hacer el test (1 min)</a>
+          </div>
+          <dl class="cl-cifras">
+            <div><dt>+12.000</dt><dd>pacientes atendidos</dd></div>
+            <div><dt>98 %</dt><dd>nos recomiendan</dd></div>
+            <div><dt>15 años</dt><dd>en Chamberí</dd></div>
+          </dl>
+        </div>
+        <div class="cl-hero__panel">
+          <div class="cl-cuerpo-deco" aria-hidden="true">
+            <span class="cl-cuerpo-deco__rejilla"></span>
+            <i class="fa-solid fa-person-walking"></i>
+            <span class="cl-onda" style="--d:0s"></span>
+            <span class="cl-onda" style="--d:1s"></span>
+            <span class="cl-onda" style="--d:2s"></span>
+            <span class="cl-flota cl-flota--a"><i class="fa-solid fa-user-doctor"></i> Sesión 1 a 1</span>
+            <span class="cl-flota cl-flota--b"><i class="fa-solid fa-chart-line"></i> Plan por escrito</span>
+          </div>
+          <div class="cl-tarjeta cl-tarjeta--hueco">
+            <span class="cl-tarjeta__ico"><i class="fa-solid fa-calendar-check"></i></span>
+            <div>
+              <small><i class="cl-punto"></i> Próximo hueco libre</small>
+              <strong data-cl-hueco>Hoy · 17:30</strong>
+            </div>
+            <a href="#cita" aria-label="Reservar ese hueco"><i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <ul role="list" class="cl-sellos">
+            <li><i class="fa-solid fa-id-card"></i> Colegiados</li>
+            <li><i class="fa-solid fa-shield-heart"></i> 12 mutuas</li>
+            <li><i class="fa-solid fa-clock"></i> L–S 8:00–21:00</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- tratamientos -->
+    <section class="cl-sec" id="tratamientos">
+      <div class="cl-wrap">
+        <div class="cl-sec__head">
+          <span class="cl-kicker">Tratamientos</span>
+          <h2>Un tratamiento para cada lesión</h2>
+          <p>Pulsa cualquiera para ver qué incluye, cuánto dura y cuánto cuesta.</p>
+        </div>
+        <ul role="list" class="cl-trats">
+          {
+            tratamientos.map((t, i) => (
+              <li>
+                <button type="button" class="cl-trat" data-trat={t.id}>
+                  <span class="cl-trat__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                  <span class="cl-trat__ico">
+                    <i class={`fa-solid fa-${t.ico}`} />
+                  </span>
+                  <strong>{t.t}</strong>
+                  <p>{t.d}</p>
+                  <span class="cl-trat__pie">
+                    <span>
+                      <i class="fa-solid fa-clock" /> {t.min} min
+                    </span>
+                    <span class="cl-trat__ver">
+                      Ver detalles <i class="fa-solid fa-arrow-right" />
+                    </span>
+                    <span class="cl-trat__precio">{t.p} €</span>
+                  </span>
+                </button>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <!-- ficha lateral -->
+      <dialog class="cl-ficha" data-cl-ficha aria-labelledby="cl-ficha-t">
+        <button type="button" class="cl-ficha__x" data-cl-ficha-x aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+        <div class="cl-ficha__cab">
+          <span class="cl-trat__ico" data-cl-ficha-ico></span>
+          <span class="cl-ficha__kicker">Tratamiento</span>
+          <h3 id="cl-ficha-t" data-cl-ficha-t></h3>
+        </div>
+        <p data-cl-ficha-d></p>
+        <dl class="cl-ficha__datos">
+          <div><dt>Duración</dt><dd data-cl-ficha-min></dd></div>
+          <div><dt>Precio</dt><dd data-cl-ficha-p></dd></div>
+        </dl>
+        <h4>Qué incluye</h4>
+        <ul role="list" class="cl-ficha__inc" data-cl-ficha-inc></ul>
+        <button type="button" class="cl-btn cl-btn--grande" data-cl-ficha-cita>Pedir cita para esto</button>
+      </dialog>
+    </section>
+
+    <!-- test -->
+    <section class="cl-sec cl-test-sec" id="test">
+      <div class="cl-wrap cl-test">
+        <div class="cl-test__intro">
+          <span class="cl-kicker">Test rápido</span>
+          <h2>¿Qué tratamiento necesito?</h2>
+          <p>Cuatro preguntas y te decimos por dónde empezar. Orientativo: en la primera sesión lo valoramos en persona.</p>
+          <div class="cl-progreso"><i data-cl-test-barra></i></div>
+          <span class="cl-test__n" data-cl-test-n>Pregunta 1 de 4</span>
+        </div>
+
+        <div class="cl-test__caja" data-cl-test>
+          <!-- 1: zona en el cuerpo -->
+          <div class="cl-preg" data-preg="1">
+            <h3>¿Dónde te duele?</h3>
+            <div class="cl-mapa">
+              <svg viewBox="0 0 200 400" class="cl-silueta" aria-label="Mapa del cuerpo">
+                <g class="cl-silueta__base">
+                  <circle cx="100" cy="42" r="26"></circle>
+                  <rect x="62" y="74" width="76" height="120" rx="30"></rect>
+                  <rect x="30" y="82" width="26" height="120" rx="13" transform="rotate(8 43 82)"></rect>
+                  <rect x="144" y="82" width="26" height="120" rx="13" transform="rotate(-8 157 82)"></rect>
+                  <rect x="68" y="186" width="30" height="180" rx="15"></rect>
+                  <rect x="102" y="186" width="30" height="180" rx="15"></rect>
+                </g>
+                <g class="cl-zonasvg">
+                  <ellipse data-zona="cuello" cx="100" cy="76" rx="18" ry="10"><title>Cuello</title></ellipse>
+                  <circle data-zona="hombro" cx="64" cy="92" r="14"><title>Hombro</title></circle>
+                  <circle data-zona="hombro" cx="136" cy="92" r="14"><title>Hombro</title></circle>
+                  <rect data-zona="espalda" x="76" y="100" width="48" height="44" rx="12"><title>Espalda</title></rect>
+                  <rect data-zona="lumbar" x="76" y="150" width="48" height="34" rx="12"><title>Zona lumbar</title></rect>
+                  <circle data-zona="muneca" cx="40" cy="198" r="11"><title>Muñeca</title></circle>
+                  <circle data-zona="muneca" cx="160" cy="198" r="11"><title>Muñeca</title></circle>
+                  <circle data-zona="rodilla" cx="83" cy="275" r="14"><title>Rodilla</title></circle>
+                  <circle data-zona="rodilla" cx="117" cy="275" r="14"><title>Rodilla</title></circle>
+                  <circle data-zona="tobillo" cx="83" cy="352" r="12"><title>Tobillo</title></circle>
+                  <circle data-zona="tobillo" cx="117" cy="352" r="12"><title>Tobillo</title></circle>
+                </g>
+              </svg>
+              <div class="cl-mapa__lista">
+                <p>Pulsa en el cuerpo o elige:</p>
+                <div class="cl-opciones" data-opciones="zona">
+                  {[["cuello", "Cuello"], ["hombro", "Hombro"], ["espalda", "Espalda alta"], ["lumbar", "Zona lumbar"], ["muneca", "Muñeca"], ["rodilla", "Rodilla"], ["tobillo", "Tobillo"], ["pelvis", "Suelo pélvico"]].map(([v, t]) => (
+                    <button type="button" data-v={v}>{t}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 2 -->
+          <div class="cl-preg" data-preg="2" hidden>
+            <h3>¿Cómo es el dolor?</h3>
+            <div class="cl-opciones cl-opciones--grandes" data-opciones="tipo">
+              <button type="button" data-v="agudo"><i class="fa-solid fa-bolt"></i> Agudo, desde un golpe o gesto</button>
+              <button type="button" data-v="cronico"><i class="fa-solid fa-hourglass-half"></i> Constante, va y viene</button>
+              <button type="button" data-v="rigidez"><i class="fa-solid fa-link"></i> Rigidez, me cuesta moverme</button>
+              <button type="button" data-v="irradiado"><i class="fa-solid fa-wave-square"></i> Se extiende por el brazo o la pierna</button>
+            </div>
+          </div>
+          <!-- 3 -->
+          <div class="cl-preg" data-preg="3" hidden>
+            <h3>¿Desde cuándo?</h3>
+            <div class="cl-opciones cl-opciones--grandes" data-opciones="tiempo">
+              <button type="button" data-v="dias"><i class="fa-solid fa-calendar-day"></i> Unos días</button>
+              <button type="button" data-v="semanas"><i class="fa-solid fa-calendar-week"></i> Varias semanas</button>
+              <button type="button" data-v="meses"><i class="fa-solid fa-calendar"></i> Más de 3 meses</button>
+            </div>
+          </div>
+          <!-- 4 -->
+          <div class="cl-preg" data-preg="4" hidden>
+            <h3>¿Haces deporte?</h3>
+            <div class="cl-opciones cl-opciones--grandes" data-opciones="deporte">
+              <button type="button" data-v="mucho"><i class="fa-solid fa-person-running"></i> Sí, 3 o más días por semana</button>
+              <button type="button" data-v="algo"><i class="fa-solid fa-person-walking"></i> De vez en cuando</button>
+              <button type="button" data-v="nada"><i class="fa-solid fa-couch"></i> Casi nada</button>
+            </div>
+          </div>
+          <!-- resultado -->
+          <div class="cl-preg cl-resultado" data-preg="fin" hidden>
+            <span class="cl-resultado__badge"><i class="fa-solid fa-wand-magic-sparkles"></i> Te recomendamos</span>
+            <h3 data-cl-res-t></h3>
+            <p data-cl-res-d></p>
+            <ul role="list" class="cl-resultado__extra" data-cl-res-extra></ul>
+            <div class="cl-test__nav">
+              <button type="button" class="cl-btn cl-btn--suave" data-cl-test-reset><i class="fa-solid fa-rotate-left"></i> Repetir</button>
+              <button type="button" class="cl-btn" data-cl-res-cita>Pedir cita con esto</button>
+            </div>
+          </div>
+          <div class="cl-test__nav" data-cl-test-nav>
+            <button type="button" class="cl-btn cl-btn--suave" data-cl-test-atras disabled><i class="fa-solid fa-arrow-left"></i> Atrás</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- cita online -->
+    <section class="cl-sec" id="cita">
+      <div class="cl-wrap">
+        <div class="cl-sec__head">
+          <span class="cl-kicker">Cita online</span>
+          <h2>Reserva en menos de un minuto</h2>
+        </div>
+        <div class="cl-cita" data-cl-cita>
+          <div class="cl-cita__main">
+            <ol role="list" class="cl-pasos" data-cl-pasos>
+              <li class="is-on">Tratamiento</li>
+              <li>Profesional</li>
+              <li>Día y hora</li>
+              <li>Tus datos</li>
+            </ol>
+
+            <div class="cl-cpaso" data-cpaso="1">
+              <div class="cl-elige">
+                {
+                  tratamientos.map((t) => (
+                    <button type="button" class="cl-elige__op" data-v={t.id}>
+                      <i class={`fa-solid fa-${t.ico}`} />
+                      <span>
+                        <strong>{t.t}</strong>
+                        <small>
+                          {t.min} min · {t.p} €
+                        </small>
+                      </span>
+                    </button>
+                  ))
+                }
+              </div>
+            </div>
+
+            <div class="cl-cpaso" data-cpaso="2" hidden>
+              <div class="cl-elige" data-cl-profes></div>
+            </div>
+
+            <div class="cl-cpaso" data-cpaso="3" hidden>
+              <div class="cl-cal">
+                <div class="cl-cal__cab">
+                  <button type="button" data-cl-mes="-1" aria-label="Mes anterior"><i class="fa-solid fa-chevron-left"></i></button>
+                  <strong data-cl-mes-t></strong>
+                  <button type="button" data-cl-mes="1" aria-label="Mes siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+                <div class="cl-cal__sem"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+                <div class="cl-cal__dias" data-cl-dias></div>
+              </div>
+              <div class="cl-horas" data-cl-horas><p class="cl-muted">Elige un día para ver las horas libres.</p></div>
+            </div>
+
+            <form class="cl-cpaso" data-cpaso="4" hidden novalidate>
+              <div class="cl-campos">
+                <label>Nombre y apellidos<input name="nombre" autocomplete="name" /></label>
+                <label>Teléfono<input name="tel" type="tel" autocomplete="tel" /></label>
+                <label class="cl-ancho">Email<input name="email" type="email" autocomplete="email" /></label>
+                <label class="cl-ancho">¿Vienes por mutua?
+                  <select name="mutua"><option value="">No, privado</option>{mutuas.map((m) => <option>{m}</option>)}</select>
+                </label>
+                <label class="cl-ancho">Cuéntanos brevemente qué te pasa<textarea name="motivo" rows="3"></textarea></label>
+                <label class="cl-ancho cl-check"><input type="checkbox" name="primera" checked /> Es mi primera visita</label>
+              </div>
+              <p class="cl-error" data-cl-error></p>
+              <button type="submit" class="cl-btn cl-btn--grande">Confirmar cita</button>
+            </form>
+
+            <div class="cl-cpaso cl-hecho" data-cpaso="ok" hidden>
+              <span class="cl-hecho__ico"><i class="fa-solid fa-calendar-check"></i></span>
+              <h3>Cita confirmada</h3>
+              <p data-cl-hecho></p>
+              <span class="cl-hecho__codigo" data-cl-hecho-codigo></span>
+              <div class="cl-hecho__btns">
+                <button type="button" class="cl-btn" data-cl-ver-citas><i class="fa-solid fa-calendar-days"></i> Ver tus citas</button>
+                <button type="button" class="cl-btn cl-btn--suave" data-cl-otra>Pedir otra cita</button>
+              </div>
+            </div>
+
+            <button type="button" class="cl-volver" data-cl-volver hidden><i class="fa-solid fa-arrow-left"></i> Volver al paso anterior</button>
+          </div>
+
+          <!-- resumen fijo -->
+          <aside class="cl-resumen">
+            <h3>Tu cita</h3>
+            <dl>
+              <div><dt><i class="fa-solid fa-notes-medical"></i> Tratamiento</dt><dd data-r="trat">—</dd></div>
+              <div><dt><i class="fa-solid fa-user-doctor"></i> Profesional</dt><dd data-r="profe">—</dd></div>
+              <div><dt><i class="fa-solid fa-calendar"></i> Día</dt><dd data-r="dia">—</dd></div>
+              <div><dt><i class="fa-solid fa-clock"></i> Hora</dt><dd data-r="hora">—</dd></div>
+            </dl>
+            <div class="cl-resumen__total"><span>Total</span><strong data-r="precio">—</strong></div>
+            <p class="cl-muted"><i class="fa-solid fa-circle-info"></i> Pagas en la clínica. Cancelación gratis hasta 24 h antes.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- equipo -->
+    <section class="cl-sec cl-equipo-sec" id="equipo">
+      <div class="cl-wrap">
+        <div class="cl-sec__head cl-sec__head--fila">
+          <div>
+            <span class="cl-kicker">Equipo</span>
+            <h2>Fisioterapeutas, no masajistas</h2>
+          </div>
+          <div class="cl-filtro" data-cl-filtro-equipo>
+            <button type="button" data-f="todos" aria-pressed="true">Todos</button>
+            <button type="button" data-f="deportiva" aria-pressed="false">Deporte</button>
+            <button type="button" data-f="espalda" aria-pressed="false">Espalda</button>
+            <button type="button" data-f="pelvico" aria-pressed="false">Suelo pélvico</button>
+            <button type="button" data-f="pilates" aria-pressed="false">Pilates</button>
+          </div>
+        </div>
+        <ul role="list" class="cl-equipo">
+          {
+            equipo.map((p) => (
+              <li class="cl-profe" data-tags={p.tags.join(" ")} style={`--t:${p.tono}`}>
+                <span class="cl-profe__foto">{p.ini}</span>
+                <strong>{p.n}</strong>
+                <span>{p.e}</span>
+                <small>
+                  <i class="fa-solid fa-id-card" /> Col. {p.c} · <i class="fa-solid fa-language" /> {p.idiomas}
+                </small>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+
+    <!-- mutuas y tarifas -->
+    <section class="cl-sec" id="tarifas">
+      <div class="cl-wrap cl-tarifas">
+        <div class="cl-mutuas">
+          <span class="cl-kicker">Mutuas</span>
+          <h2>¿Trabajáis con mi seguro?</h2>
+          <label class="cl-busca">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" placeholder="Escribe tu mutua…" list="cl-mutuas-lista" data-cl-mutua />
+            <datalist id="cl-mutuas-lista">{mutuas.map((m) => <option value={m} />)}</datalist>
+          </label>
+          <p class="cl-mutua-res" data-cl-mutua-res aria-live="polite">Escribe el nombre para comprobarlo.</p>
+          <ul role="list" class="cl-logos">{mutuas.map((m) => <li>{m}</li>)}</ul>
+        </div>
+
+        <div class="cl-precios">
+          <div class="cl-precios__cab">
+            <h3>Tarifas</h3>
+            <div class="cl-filtro" data-cl-bono>
+              <button type="button" data-b="1" aria-pressed="true">Sesión</button>
+              <button type="button" data-b="5" aria-pressed="false">Bono 5</button>
+              <button type="button" data-b="10" aria-pressed="false">Bono 10</button>
+            </div>
+          </div>
+          <ul role="list" class="cl-precios__lista">
+            {
+              tratamientos.map((t) => (
+                <li data-precio={t.p}>
+                  <span>
+                    <i class={`fa-solid fa-${t.ico}`} /> {t.t}
+                  </span>
+                  <span class="cl-precio">
+                    <s />
+                    <strong>{t.p} €</strong>
+                  </span>
+                </li>
+              ))
+            }
+          </ul>
+          <p class="cl-ahorro" data-cl-ahorro></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- faq -->
+    <section class="cl-sec cl-faq-sec" id="faq">
+      <div class="cl-wrap cl-faq">
+        <div>
+          <span class="cl-kicker">Dudas</span>
+          <h2>Preguntas frecuentes</h2>
+          <p class="cl-muted">¿No encuentras la tuya? Escríbenos por WhatsApp y te respondemos en el día.</p>
+        </div>
+        <div class="cl-faq__lista">
+          {
+            faqs.map((f, i) => (
+              <details open={i === 0} class:list={[{ "is-abierto": i === 0 }]}>
+                <summary>
+                  <span class="cl-faq__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                  <span class="cl-faq__q">{f.q}</span>
+                  <span class="cl-faq__mas" />
+                </summary>
+                <p>{f.a}</p>
+              </details>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="cl-pie">
+    <!-- llamada final -->
+    <div class="cl-wrap">
+      <div class="cl-pie__cta">
+        <div>
+          <h2>¿Te duele algo? Te vemos esta misma semana.</h2>
+          <p>Reserva online en un minuto o llámanos y te buscamos hueco.</p>
+        </div>
+        <div class="cl-pie__cta-btns">
+          <a href="#cita" class="cl-btn cl-btn--blanco">Pedir cita <i class="fa-solid fa-arrow-right"></i></a>
+          <a href="tel:910000000" class="cl-btn cl-btn--cristal"><i class="fa-solid fa-phone"></i> 910 000 000</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="cl-wrap cl-pie__in">
+      <div class="cl-pie__marca">
+        <a href="#inicio" class="cl-logo">
+          <span class="cl-logo__ico" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="22" height="22"><path d="M16 3c4 4 6 8 6 12a6 6 0 0 1-12 0c0-4 2-8 6-12Z" fill="currentColor" opacity=".55"></path><path d="M16 29V13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"></path><path d="M16 20c-3-1-5-3-6-6M16 17c2.5-.6 4.4-2.2 5.4-4.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"></path></svg>
+          </span>
+          <span><strong>Clínica Alba</strong><small>Fisioterapia</small></span>
+        </a>
+        <p>Fisioterapia uno a uno con un plan claro desde la primera sesión. Fisioterapeutas colegiados en el corazón de Chamberí.</p>
+        <div class="cl-pie__redes">
+          <a href="#inicio" aria-label="Instagram"><i class="fa-solid fa-camera"></i></a>
+          <a href="#inicio" aria-label="WhatsApp"><i class="fa-solid fa-comment-dots"></i></a>
+          <a href="#inicio" aria-label="Opiniones en Google"><i class="fa-solid fa-star"></i></a>
+        </div>
+      </div>
+
+      <nav class="cl-pie__col" aria-label="Clínica">
+        <strong>Clínica</strong>
+        <a href="#tratamientos">Tratamientos</a>
+        <a href="#test">¿Qué necesito?</a>
+        <a href="#equipo">Equipo</a>
+        <a href="#tarifas">Tarifas y mutuas</a>
+        <a href="#faq">Preguntas frecuentes</a>
+      </nav>
+
+      <div class="cl-pie__col">
+        <strong>Horario</strong>
+        <ul role="list" class="cl-pie__horario">
+          <li><span>Lunes a viernes</span><span>8:00–21:00</span></li>
+          <li><span>Sábados</span><span>9:00–14:00</span></li>
+          <li><span>Domingos</span><span class="is-cerrado">Cerrado</span></li>
+        </ul>
+      </div>
+
+      <div class="cl-pie__col">
+        <strong>Contacto</strong>
+        <span class="cl-pie__dato"><i class="fa-solid fa-location-dot"></i> C/ Fuencarral 120, 28010 Madrid</span>
+        <a class="cl-pie__dato" href="tel:910000000"><i class="fa-solid fa-phone"></i> 910 000 000</a>
+        <a class="cl-pie__dato" href="#inicio"><i class="fa-solid fa-envelope"></i> hola@clinicaalba.example</a>
+        <span class="cl-pie__dato"><i class="fa-solid fa-train-subway"></i> Metro Quevedo (L2) · 3 min</span>
+      </div>
+    </div>
+
+    <div class="cl-wrap cl-pie__base">
+      <span>© {new Date().getFullYear()} Clínica Alba · Centro sanitario autorizado</span>
+      <span class="cl-pie__legal">
+        <a href="#inicio">Aviso legal</a>
+        <a href="#inicio">Privacidad</a>
+        <a href="#inicio">Cookies</a>
+      </span>
+    </div>
+  </footer>
+
+  <!-- tus citas: se guardan en este navegador al confirmar una -->
+  <dialog class="cl-ficha cl-miscitas" data-cl-miscitas aria-labelledby="cl-miscitas-t">
+    <button type="button" class="cl-ficha__x" data-cl-miscitas-x aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    <div class="cl-ficha__cab">
+      <span class="cl-trat__ico"><i class="fa-solid fa-calendar-days"></i></span>
+      <span class="cl-ficha__kicker">Área del paciente</span>
+      <h3 id="cl-miscitas-t">Tus citas</h3>
+    </div>
+    <p class="cl-miscitas__intro" data-cl-miscitas-intro></p>
+    <ul role="list" class="cl-miscitas__lista" data-cl-miscitas-lista></ul>
+    <a href="#cita" class="cl-btn cl-btn--grande" data-cl-miscitas-nueva><i class="fa-solid fa-plus"></i> Pedir otra cita</a>
+  </dialog>
+
+  <a href="#cita" class="cl-wa" aria-label="Escríbenos"><i class="fa-solid fa-comment-medical"></i></a>
+
+  <script type="application/json" data-cl-datos set:html={JSON.stringify({ tratamientos, equipo, mutuas })} />
+</div>
+
+<script>
+  interface Trat {
+    id: string;
+    t: string;
+    ico: string;
+    min: number;
+    p: number;
+    d: string;
+    inc: string[];
+  }
+  interface Profe {
+    n: string;
+    e: string;
+    ini: string;
+    tono: string;
+    tags: string[];
+  }
+
+  const raiz = document.querySelector<HTMLElement>("[data-cl]")!;
+  const $ = <T extends Element = HTMLElement>(s: string, el: ParentNode = raiz) => el.querySelector<T>(s)!;
+  const $$ = <T extends Element = HTMLElement>(s: string, el: ParentNode = raiz) => [...el.querySelectorAll<T>(s)];
+  const datos = JSON.parse($("[data-cl-datos]").textContent!) as { tratamientos: Trat[]; equipo: Profe[]; mutuas: string[] };
+  const trat = (id: string) => datos.tratamientos.find((t) => t.id === id)!;
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, clase = "", texto = "") {
+    const e = document.createElement(tag);
+    if (clase) e.className = clase;
+    if (texto) e.textContent = texto;
+    return e;
+  }
+  const ico = (n: string) => Object.assign(document.createElement("i"), { className: `fa-solid fa-${n}` });
+
+  addEventListener("scroll", () => $("[data-cl-head]").classList.toggle("is-baja", scrollY > 20), { passive: true });
+
+  // próximo hueco (dentro del horario, a la media hora siguiente + 1 h)
+  (() => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() < 30 ? 30 : 60, 0, 0);
+    d.setHours(d.getHours() + 1);
+    if (d.getHours() >= 20 || d.getDay() === 0) {
+      d.setDate(d.getDate() + (d.getDay() === 6 ? 2 : 1));
+      d.setHours(9, 30);
+    } else if (d.getHours() < 8) d.setHours(9, 30);
+    const hoy = d.toDateString() === new Date().toDateString();
+    $("[data-cl-hueco]").textContent = `${hoy ? "Hoy" : d.toLocaleDateString("es-ES", { weekday: "long" })} · ${d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`;
+  })();
+
+  // ── paneles laterales: al cerrar salen deslizándose (lo pinta .is-cierra) antes de quitarlos ─────
+  const sinMovimiento = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function cerrar(d: HTMLDialogElement) {
+    if (!d.open || d.classList.contains("is-cierra")) return;
+    if (sinMovimiento()) return d.close();
+    d.classList.add("is-cierra");
+    setTimeout(() => {
+      d.classList.remove("is-cierra");
+      d.close();
+    }, 300);
+  }
+  function panel(d: HTMLDialogElement) {
+    d.addEventListener("cancel", (e) => {
+      e.preventDefault();
+      cerrar(d);
+    });
+    d.addEventListener("click", (e) => e.target === d && cerrar(d));
+  }
+
+  // ── ficha de tratamiento ─────
+  const ficha = $<HTMLDialogElement>("[data-cl-ficha]");
+  panel(ficha);
+  let fichaId = "";
+  $$<HTMLButtonElement>("[data-trat]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const t = trat(b.dataset.trat!);
+      fichaId = t.id;
+      $("[data-cl-ficha-ico]", ficha).replaceChildren(ico(t.ico));
+      $("[data-cl-ficha-t]", ficha).textContent = t.t;
+      $("[data-cl-ficha-d]", ficha).textContent = t.d;
+      $("[data-cl-ficha-min]", ficha).textContent = `${t.min} minutos`;
+      $("[data-cl-ficha-p]", ficha).textContent = `${t.p} €`;
+      $("[data-cl-ficha-inc]", ficha).replaceChildren(
+        ...t.inc.map((x) => {
+          const li = el("li");
+          li.append(ico("circle-check"), ` ${x}`);
+          return li;
+        }),
+      );
+      ficha.showModal();
+    }),
+  );
+  $("[data-cl-ficha-x]", ficha).addEventListener("click", () => cerrar(ficha));
+  $("[data-cl-ficha-cita]", ficha).addEventListener("click", () => {
+    cerrar(ficha);
+    elegirTratamiento(fichaId);
+    $("#cita").scrollIntoView({ behavior: "smooth" });
+  });
+
+  // ── test ─────
+  const resp: Record<string, string> = {};
+  let preg = 1;
+  const test = $("[data-cl-test]");
+  function mostrarPreg(p: number | "fin") {
+    $$("[data-preg]", test).forEach((x) => (x.hidden = x.dataset.preg !== String(p)));
+    const n = p === "fin" ? 4 : p;
+    $("[data-cl-test-barra]").style.width = `${(p === "fin" ? 4 : p - 1) * 25}%`;
+    $("[data-cl-test-n]").textContent = p === "fin" ? "¡Listo!" : `Pregunta ${n} de 4`;
+    $("[data-cl-test-nav]").hidden = p === "fin";
+    $<HTMLButtonElement>("[data-cl-test-atras]").disabled = p === 1;
+  }
+  function responder(clave: string, v: string) {
+    resp[clave] = v;
+    $$(`[data-opciones="${clave}"] button`, test).forEach((b) => b.classList.toggle("is-sel", b.dataset.v === v));
+    if (clave === "zona") $$("[data-zona]", test).forEach((z) => z.classList.toggle("is-sel", z.getAttribute("data-zona") === v));
+    setTimeout(() => {
+      if (preg < 4) mostrarPreg(++preg);
+      else resultado();
+    }, 280);
+  }
+  $$<HTMLElement>("[data-opciones]", test).forEach((g) =>
+    $$<HTMLButtonElement>("button", g).forEach((b) => b.addEventListener("click", () => responder(g.dataset.opciones!, b.dataset.v!))),
+  );
+  $$<SVGElement>("[data-zona]", test).forEach((z) => z.addEventListener("click", () => responder("zona", z.getAttribute("data-zona")!)));
+  $("[data-cl-test-atras]").addEventListener("click", () => preg > 1 && mostrarPreg(--preg));
+
+  function resultado() {
+    const z = resp.zona;
+    let id = "espalda";
+    if (z === "pelvis") id = "pelvico";
+    else if (["rodilla", "tobillo", "hombro", "muneca"].includes(z)) id = resp.deporte === "nada" && resp.tipo === "rigidez" ? "osteopatia" : "deportiva";
+    else if (resp.tipo === "irradiado" || resp.tiempo === "meses") id = resp.tipo === "rigidez" ? "osteopatia" : "espalda";
+    else if (resp.tipo === "rigidez") id = "osteopatia";
+    const t = trat(id);
+    $("[data-cl-res-t]").textContent = t.t;
+    $("[data-cl-res-d]").textContent = t.d;
+    const extra: string[] = [];
+    if (resp.tiempo === "meses") extra.push("Al ser un dolor de larga duración, combinaremos tratamiento con pilates terapéutico.");
+    if (resp.tipo === "agudo") extra.push("Si fue un golpe fuerte, trae cualquier prueba que te hayan hecho.");
+    if (resp.deporte === "mucho") extra.push("Incluimos un plan para volver a entrenar sin recaídas.");
+    if (resp.tipo === "irradiado") extra.push("El dolor que se extiende puede venir de un nervio: lo valoraremos con detalle.");
+    $("[data-cl-res-extra]").replaceChildren(
+      ...extra.map((x) => {
+        const li = el("li");
+        li.append(ico("lightbulb"), ` ${x}`);
+        return li;
+      }),
+    );
+    $("[data-cl-res-cita]").dataset.id = id;
+    mostrarPreg("fin");
+  }
+  $("[data-cl-test-reset]").addEventListener("click", () => {
+    Object.keys(resp).forEach((k) => delete resp[k]);
+    $$(".is-sel", test).forEach((x) => x.classList.remove("is-sel"));
+    preg = 1;
+    mostrarPreg(1);
+  });
+  $("[data-cl-res-cita]").addEventListener("click", (e) => {
+    elegirTratamiento((e.currentTarget as HTMLElement).dataset.id!);
+    $("#cita").scrollIntoView({ behavior: "smooth" });
+  });
+  // accesos rápidos de la portada: marcan la zona en el test
+  $$<HTMLAnchorElement>("[data-zona-rapida]").forEach((a) =>
+    a.addEventListener("click", () => {
+      const mapa: Record<string, string> = { espalda: "espalda", cuello: "cuello", rodilla: "rodilla", hombro: "hombro", tobillo: "tobillo" };
+      preg = 1;
+      responder("zona", mapa[a.dataset.zonaRapida!]);
+    }),
+  );
+  mostrarPreg(1);
+
+  // ── cita online ─────
+  const cita = { trat: "", profe: "", dia: null as Date | null, hora: "" };
+  const caja = $("[data-cl-cita]");
+  let paso = 1;
+  const fechaLarga = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" });
+
+  function irPaso(p: number | "ok") {
+    paso = p === "ok" ? 5 : p;
+    $$("[data-cpaso]", caja).forEach((x) => (x.hidden = x.dataset.cpaso !== String(p)));
+    $$("[data-cl-pasos] li", caja).forEach((li, i) => {
+      li.classList.toggle("is-on", i < paso);
+      li.classList.toggle("is-hecho", i < paso - 1);
+    });
+    $("[data-cl-volver]", caja).hidden = p === 1 || p === "ok";
+  }
+
+  function resumen() {
+    const t = cita.trat ? trat(cita.trat) : null;
+    $('[data-r="trat"]', caja).textContent = t ? t.t : "—";
+    $('[data-r="profe"]', caja).textContent = cita.profe || "—";
+    $('[data-r="dia"]', caja).textContent = cita.dia ? fechaLarga.format(cita.dia) : "—";
+    $('[data-r="hora"]', caja).textContent = cita.hora || "—";
+    $('[data-r="precio"]', caja).textContent = t ? `${t.p} €` : "—";
+  }
+
+  function elegirTratamiento(id: string) {
+    cita.trat = id;
+    cita.profe = "";
+    $$('[data-cpaso="1"] .cl-elige__op', caja).forEach((b) => b.classList.toggle("is-sel", b.dataset.v === id));
+    // profesionales que hacen ese tratamiento
+    const lista = $("[data-cl-profes]", caja);
+    const aptos = datos.equipo.filter((p) => p.tags.includes(id));
+    lista.replaceChildren(
+      ...[{ n: "Cualquiera disponible", e: "El primer hueco libre", ini: "", tono: "#0f766e", tags: [] }, ...aptos].map((p) => {
+        const b = el("button", "cl-elige__op");
+        b.type = "button";
+        const foto = el("span", "cl-mini", p.ini);
+        foto.style.background = p.tono;
+        if (!p.ini) foto.replaceChildren(ico("shuffle"));
+        const txt = el("span");
+        txt.append(el("strong", "", p.n), el("small", "", p.e));
+        b.append(foto, txt);
+        b.addEventListener("click", () => {
+          cita.profe = p.n;
+          resumen();
+          irPaso(3);
+        });
+        return b;
+      }),
+    );
+    resumen();
+    irPaso(2);
+  }
+  $$<HTMLButtonElement>('[data-cpaso="1"] .cl-elige__op', caja).forEach((b) => b.addEventListener("click", () => elegirTratamiento(b.dataset.v!)));
+
+  // calendario del mes
+  const mes = new Date();
+  mes.setDate(1);
+  const nombreMes = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" });
+  function pintarMes() {
+    $("[data-cl-mes-t]", caja).textContent = nombreMes.format(mes);
+    const dias = $("[data-cl-dias]", caja);
+    dias.replaceChildren();
+    const hueco = (mes.getDay() + 6) % 7;
+    for (let i = 0; i < hueco; i++) dias.append(el("span"));
+    const total = new Date(mes.getFullYear(), mes.getMonth() + 1, 0).getDate();
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    for (let d = 1; d <= total; d++) {
+      const f = new Date(mes.getFullYear(), mes.getMonth(), d);
+      const b = el("button", "cl-dia", String(d));
+      b.type = "button";
+      b.disabled = f < hoy || f.getDay() === 0;
+      if (cita.dia && f.toDateString() === cita.dia.toDateString()) b.classList.add("is-sel");
+      if (f.toDateString() === hoy.toDateString()) b.classList.add("is-hoy");
+      b.addEventListener("click", () => {
+        cita.dia = f;
+        cita.hora = "";
+        pintarMes();
+        pintarHoras();
+        resumen();
+      });
+      dias.append(b);
+    }
+  }
+  $$<HTMLButtonElement>("[data-cl-mes]", caja).forEach((b) =>
+    b.addEventListener("click", () => {
+      const nuevo = new Date(mes.getFullYear(), mes.getMonth() + Number(b.dataset.clMes), 1);
+      const min = new Date();
+      min.setDate(1);
+      min.setHours(0, 0, 0, 0);
+      if (nuevo >= min) {
+        mes.setTime(nuevo.getTime());
+        pintarMes();
+      }
+    }),
+  );
+  function pintarHoras() {
+    const caj = $("[data-cl-horas]", caja);
+    const f = cita.dia!;
+    const fin = f.getDay() === 6 ? 14 : 21;
+    const ini = f.getDay() === 6 ? 9 : 8;
+    caj.replaceChildren(el("p", "cl-horas__t", `Horas libres el ${fechaLarga.format(f)}`));
+    const grid = el("div", "cl-horas__grid");
+    for (let h = ini; h < fin; h += 0.75) {
+      const hh = `${String(Math.floor(h)).padStart(2, "0")}:${String(Math.round((h % 1) * 60)).padStart(2, "0")}`;
+      const b = el("button", "cl-hora", hh);
+      b.type = "button";
+      const semilla = Math.sin(f.getDate() * 97 + h * 13 + cita.trat.length) * 1e4;
+      b.disabled = semilla - Math.floor(semilla) < 0.35 || (f.toDateString() === new Date().toDateString() && h <= new Date().getHours() + 1);
+      b.addEventListener("click", () => {
+        cita.hora = hh;
+        resumen();
+        irPaso(4);
+      });
+      grid.append(b);
+    }
+    caj.append(grid);
+  }
+  pintarMes();
+
+  const form = $<HTMLFormElement>('form[data-cpaso="4"]', caja);
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const err = $("[data-cl-error]", caja);
+    if (String(fd.get("nombre")).trim().length < 3) return (err.textContent = "Escribe tu nombre y apellidos.");
+    if (!/^[0-9 +]{9,}$/.test(String(fd.get("tel")))) return (err.textContent = "Revisa el teléfono.");
+    if (!/^\S+@\S+\.\S+$/.test(String(fd.get("email")))) return (err.textContent = "Revisa el email.");
+    err.textContent = "";
+    const t = trat(cita.trat);
+    const d = cita.dia!;
+    const nueva: CitaGuardada = {
+      id: "CA-" + Math.random().toString(36).slice(2, 7).toUpperCase(),
+      trat: cita.trat,
+      profe: cita.profe === "Cualquiera disponible" ? "Primer fisio libre" : cita.profe,
+      dia: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
+      hora: cita.hora,
+    };
+    misCitas.push(nueva);
+    guardarCitas();
+    pintarMisCitas(true);
+    $("[data-cl-hecho]", caja).textContent = `${t.t} con ${cita.profe === "Cualquiera disponible" ? "el primer fisio libre" : cita.profe}, el ${fechaLarga.format(d)} a las ${cita.hora}. Te hemos enviado un email con la dirección y cómo prepararte.`;
+    $("[data-cl-hecho-codigo]", caja).textContent = `Código de cita · ${nueva.id}`;
+    irPaso("ok");
+  });
+  $("[data-cl-otra]", caja).addEventListener("click", () => {
+    Object.assign(cita, { trat: "", profe: "", dia: null, hora: "" });
+    form.reset();
+    $$(".is-sel", caja).forEach((x) => x.classList.remove("is-sel"));
+    $("[data-cl-horas]", caja).replaceChildren(el("p", "cl-muted", "Elige un día para ver las horas libres."));
+    pintarMes();
+    resumen();
+    irPaso(1);
+  });
+  $("[data-cl-volver]", caja).addEventListener("click", () => paso > 1 && irPaso(paso - 1));
+
+  // ── tus citas: se guardan en este navegador; si no hay almacenamiento, duran lo que la visita ─────
+  interface CitaGuardada {
+    id: string;
+    trat: string;
+    profe: string;
+    /** AAAA-MM-DD */
+    dia: string;
+    hora: string;
+  }
+  const CLAVE = "clinica-alba:citas";
+  let misCitas: CitaGuardada[] = [];
+  try {
+    misCitas = JSON.parse(localStorage.getItem(CLAVE) || "[]");
+    if (!Array.isArray(misCitas)) misCitas = [];
+    misCitas = misCitas.filter((c) => c && datos.tratamientos.some((t) => t.id === c.trat) && /^\d{4}-\d{2}-\d{2}$/.test(c.dia) && /^\d{2}:\d{2}$/.test(c.hora));
+  } catch {
+    misCitas = [];
+  }
+  function guardarCitas() {
+    try {
+      localStorage.setItem(CLAVE, JSON.stringify(misCitas));
+    } catch {
+      /* sin almacenamiento: se quedan en memoria */
+    }
+  }
+  const cuando = (c: CitaGuardada) => {
+    const [y, m, d] = c.dia.split("-").map(Number);
+    const [hh, mm] = c.hora.split(":").map(Number);
+    return new Date(y, m - 1, d, hh, mm);
+  };
+
+  const misPanel = $<HTMLDialogElement>("[data-cl-miscitas]");
+  panel(misPanel);
+  const misBtn = $<HTMLButtonElement>("[data-cl-miscitas-btn]");
+  const mesCorto = new Intl.DateTimeFormat("es-ES", { month: "short" });
+  const diaCorto = new Intl.DateTimeFormat("es-ES", { weekday: "short" });
+
+  function pintarMisCitas(nueva = false) {
+    const ahora = new Date();
+    const orden = [...misCitas].sort((a, b) => cuando(a).getTime() - cuando(b).getTime());
+    const proximas = orden.filter((c) => cuando(c) >= ahora);
+    const pasadas = orden.filter((c) => cuando(c) < ahora).reverse();
+
+    misBtn.hidden = !misCitas.length;
+    $("[data-cl-miscitas-n]").textContent = String(proximas.length);
+    $("[data-cl-miscitas-n]").hidden = !proximas.length;
+    if (nueva) {
+      misBtn.classList.remove("is-nuevo");
+      void misBtn.offsetWidth;
+      misBtn.classList.add("is-nuevo");
+    }
+
+    $("[data-cl-miscitas-intro]", misPanel).textContent = proximas.length
+      ? `Tienes ${proximas.length} ${proximas.length === 1 ? "cita próxima" : "citas próximas"}. Puedes cancelar gratis hasta 24 h antes.`
+      : "No tienes citas próximas. ¿Te buscamos un hueco?";
+
+    $("[data-cl-miscitas-lista]", misPanel).replaceChildren(
+      ...[...proximas, ...pasadas].map((c, i) => {
+        const f = cuando(c);
+        const t = trat(c.trat);
+        const pasada = f < ahora;
+        const hoy = f.toDateString() === ahora.toDateString();
+        const li = el("li", `cl-micita${pasada ? " is-pasada" : ""}`);
+        li.style.setProperty("--i", String(i));
+
+        const fecha = el("div", "cl-micita__fecha");
+        fecha.append(el("small", "", diaCorto.format(f).replace(".", "")), el("strong", "", String(f.getDate())), el("small", "", mesCorto.format(f).replace(".", "")));
+
+        const info = el("div", "cl-micita__info");
+        const estado = el("span", `cl-micita__estado${pasada ? "" : hoy ? " is-hoy" : " is-prox"}`, pasada ? "Realizada" : hoy ? "Hoy" : "Próxima");
+        const linea = (icono: string, txt: string) => {
+          const s = el("span", "cl-micita__dato");
+          s.append(ico(icono), ` ${txt}`);
+          return s;
+        };
+        info.append(estado, el("strong", "", t.t), linea("clock", `${c.hora} · ${t.min} min`), linea("user-doctor", c.profe), linea("hashtag", c.id));
+
+        const lado = el("div", "cl-micita__lado");
+        lado.append(el("strong", "cl-micita__precio", `${t.p} €`));
+        if (!pasada) {
+          const b = el("button", "cl-micita__cancelar", "Cancelar");
+          b.type = "button";
+          // primer clic pide confirmación en el propio botón; el segundo la cancela
+          let espera = 0;
+          b.addEventListener("click", () => {
+            if (!b.classList.contains("is-confirma")) {
+              b.classList.add("is-confirma");
+              b.textContent = "¿Seguro?";
+              espera = window.setTimeout(() => {
+                b.classList.remove("is-confirma");
+                b.textContent = "Cancelar";
+              }, 3000);
+              return;
+            }
+            clearTimeout(espera);
+            const quitar = () => {
+              misCitas = misCitas.filter((x) => x.id !== c.id);
+              guardarCitas();
+              pintarMisCitas();
+            };
+            if (sinMovimiento()) return quitar();
+            li.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateX(40px)" }], { duration: 280, easing: "ease-in" }).onfinish = quitar;
+          });
+          lado.append(b);
+        }
+        li.append(fecha, info, lado);
+        return li;
+      }),
+    );
+  }
+
+  function abrirMisCitas() {
+    pintarMisCitas();
+    misPanel.showModal();
+  }
+  misBtn.addEventListener("click", abrirMisCitas);
+  $("[data-cl-ver-citas]", caja).addEventListener("click", abrirMisCitas);
+  $("[data-cl-miscitas-x]", misPanel).addEventListener("click", () => cerrar(misPanel));
+  $("[data-cl-miscitas-nueva]", misPanel).addEventListener("click", () => {
+    cerrar(misPanel);
+    if (paso === 5) $("[data-cl-otra]", caja).click();
+  });
+  pintarMisCitas();
+
+  // ── equipo filtrable ─────
+  $$<HTMLButtonElement>("[data-cl-filtro-equipo] button").forEach((b) =>
+    b.addEventListener("click", () => {
+      $$("[data-cl-filtro-equipo] button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      const f = b.dataset.f!;
+      $$(".cl-profe").forEach((p) => p.classList.toggle("is-fuera", f !== "todos" && !p.dataset.tags!.split(" ").includes(f)));
+    }),
+  );
+
+  // ── mutuas ─────
+  const normal = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  $<HTMLInputElement>("[data-cl-mutua]").addEventListener("input", (e) => {
+    const v = normal((e.target as HTMLInputElement).value);
+    const out = $("[data-cl-mutua-res]");
+    if (!v) {
+      out.className = "cl-mutua-res";
+      out.textContent = "Escribe el nombre para comprobarlo.";
+      return;
+    }
+    const m = datos.mutuas.find((x) => normal(x).startsWith(v));
+    out.className = `cl-mutua-res ${m ? "is-si" : "is-no"}`;
+    out.replaceChildren(
+      ico(m ? "circle-check" : "circle-info"),
+      m ? ` Sí, trabajamos con ${m}: solo trae tu tarjeta y la autorización.` : " No tenemos concierto con esa mutua, pero te damos factura para que pidas el reembolso.",
+    );
+  });
+
+  // ── tarifas con bonos ─────
+  const DTO: Record<string, number> = { "1": 0, "5": 0.1, "10": 0.18 };
+  function pintarPrecios(b: string) {
+    const n = Number(b);
+    let ahorro = 0;
+    $$<HTMLElement>(".cl-precios__lista li").forEach((li) => {
+      const p = Number(li.dataset.precio);
+      const total = p * n * (1 - DTO[b]);
+      ahorro = Math.max(ahorro, p * n - total);
+      li.querySelector("s")!.textContent = n > 1 ? `${p * n} €` : "";
+      li.querySelector("strong")!.textContent = `${Math.round(total)} €`;
+    });
+    $("[data-cl-ahorro]").textContent = n > 1 ? `Con el bono de ${n} ahorras un ${DTO[b] * 100}% (hasta ${Math.round(ahorro)} €). Válido 6 meses.` : "Paga sesión a sesión, sin permanencia.";
+  }
+  $$<HTMLButtonElement>("[data-cl-bono] button").forEach((b) =>
+    b.addEventListener("click", () => {
+      $$("[data-cl-bono] button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      pintarPrecios(b.dataset.b!);
+    }),
+  );
+  pintarPrecios("1");
+
+  // ── FAQ: cada respuesta se despliega y se recoge animando la altura ─────
+  $$<HTMLDetailsElement>(".cl-faq__lista details").forEach((d) => {
+    const sum = d.querySelector("summary")!;
+    const resp = d.querySelector("p")!;
+    let anim: Animation | null = null;
+    sum.addEventListener("click", (e) => {
+      e.preventDefault();
+      const abrir = !d.classList.contains("is-abierto");
+      d.classList.toggle("is-abierto", abrir);
+      if (sinMovimiento()) return (d.open = abrir);
+      const ini = d.offsetHeight;
+      anim?.cancel();
+      d.open = true;
+      const fin = abrir ? d.offsetHeight : sum.offsetHeight + (d.offsetHeight - d.clientHeight);
+      d.style.overflow = "hidden";
+      anim = d.animate({ height: [`${ini}px`, `${fin}px`] }, { duration: 420, easing: "cubic-bezier(0.22, 1, 0.36, 1)" });
+      resp.animate(abrir ? { opacity: [0, 1], transform: ["translateY(-6px)", "none"] } : { opacity: [1, 0] }, { duration: abrir ? 420 : 220, easing: "ease-out" });
+      anim.onfinish = () => {
+        anim = null;
+        d.open = abrir;
+        d.style.overflow = "";
+      };
+    });
+  });
+
+  // aparición
+  const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && (e.target.classList.add("is-visto"), io.unobserve(e.target))), { threshold: 0.12 });
+  $$(".cl-sec").forEach((s) => io.observe(s));
+</script>
+
+<style is:global>
+  .cl {
+    --c: #0f766e;
+    --c2: #14b8a6;
+    --claro: #ecf7f5;
+    --tinta: #0f2a27;
+    --gris: #557370;
+    --linea: #d6e9e5;
+    --r: 20px;
+    background: #fff;
+    color: var(--tinta);
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    line-height: 1.55;
+  }
+
+  .cl h1,
+  .cl h2,
+  .cl h3 {
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  .cl-wrap {
+    width: min(100% - 2.5rem, 74rem);
+    margin-inline: auto;
+  }
+
+  .cl-muted {
+    color: var(--gris);
+    font-size: 0.9rem;
+  }
+
+  /* barra de desplazamiento: pista menta y tirador verde azulado.
+     Chrome ignora ::-webkit-scrollbar si hay scrollbar-color, por eso Firefox va aparte */
+  @supports not selector(::-webkit-scrollbar) {
+    html:has(.cl) {
+      scrollbar-width: thin;
+      scrollbar-color: #0f766e #ecf7f5;
+    }
+
+    .cl * {
+      scrollbar-width: thin;
+      scrollbar-color: #a7d5cd transparent;
+    }
+  }
+
+  html:has(.cl)::-webkit-scrollbar {
+    width: 14px;
+  }
+
+  html:has(.cl)::-webkit-scrollbar-track {
+    background: #ecf7f5;
+    box-shadow: inset 1px 0 0 #d6e9e5;
+  }
+
+  html:has(.cl)::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #14b8a6, #0f766e) padding-box;
+  }
+
+  html:has(.cl)::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #2dd4bf, #0d9488) padding-box;
+  }
+
+  html:has(.cl)::-webkit-scrollbar-thumb:active {
+    background: #0f2a27 padding-box;
+  }
+
+  .cl ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .cl ::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: #a7d5cd padding-box;
+  }
+
+  .cl ::-webkit-scrollbar-thumb:hover {
+    background: var(--c) padding-box;
+  }
+
+  .cl ::selection {
+    background: #99f6e4;
+    color: var(--tinta);
+  }
+
+  .cl-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.9rem;
+    padding: 0.3rem 0.8rem 0.3rem 0.65rem;
+    border: 1px solid color-mix(in srgb, var(--c2) 30%, transparent);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--c);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .cl-kicker::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--c2);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c2) 25%, transparent);
+  }
+
+  .cl-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border: 0;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--c2), var(--c) 60%);
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.25) inset;
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s,
+      background 0.2s,
+      color 0.2s;
+  }
+
+  .cl-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.25) inset,
+      0 14px 28px -12px var(--c);
+  }
+
+  .cl-btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+
+  .cl-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .cl-btn--grande {
+    padding: 1rem 1.6rem;
+  }
+
+  .cl-btn--suave {
+    background: var(--claro);
+    color: var(--c);
+    box-shadow: none;
+  }
+
+  .cl-btn--suave:hover:not(:disabled) {
+    background: #d9f1ec;
+    box-shadow: none;
+  }
+
+  .cl-btn--blanco {
+    background: #fff;
+    color: var(--c);
+  }
+
+  .cl-btn--cristal {
+    border: 1px solid rgb(255 255 255 / 0.3);
+    background: rgb(255 255 255 / 0.12);
+    box-shadow: none;
+  }
+
+  .cl-btn--cristal:hover:not(:disabled) {
+    background: rgb(255 255 255 / 0.2);
+    box-shadow: none;
+  }
+
+  /* aviso superior */
+  .cl-aviso {
+    background: var(--tinta);
+    color: #a7c7c2;
+    font-size: 0.8rem;
+  }
+
+  .cl-aviso__in {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.3rem 1.5rem;
+    padding-block: 0.5rem;
+  }
+
+  .cl-aviso i {
+    color: #5eead4;
+  }
+
+  .cl-aviso__in > span:first-child {
+    color: #e6fffa;
+    font-weight: 600;
+  }
+
+  /* cabecera */
+  .cl-head {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 1px solid transparent;
+    background: rgb(255 255 255 / 0.82);
+    backdrop-filter: blur(14px) saturate(1.4);
+    transition:
+      box-shadow 0.3s,
+      border-color 0.3s;
+  }
+
+  .cl-head.is-baja {
+    border-color: var(--linea);
+    box-shadow: 0 10px 30px -22px rgb(15 42 39 / 0.45);
+  }
+
+  .cl-head__in {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    height: 4.6rem;
+  }
+
+  .cl-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+  }
+
+  .cl-logo__ico {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 12px;
+    background: linear-gradient(145deg, var(--c2), var(--c));
+    color: #fff;
+  }
+
+  .cl-logo strong {
+    display: block;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+
+  .cl-logo small {
+    color: var(--gris);
+    font-size: 0.75rem;
+  }
+
+  .cl-nav {
+    display: flex;
+    gap: 1.4rem;
+    margin-left: auto;
+  }
+
+  .cl-nav a {
+    position: relative;
+    padding-block: 0.4rem;
+    color: var(--gris);
+    font-weight: 600;
+    font-size: 0.92rem;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .cl-nav a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--c2);
+    transform: scaleX(0);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cl-nav a:hover {
+    color: var(--c);
+  }
+
+  .cl-nav a:hover::after {
+    transform: scaleX(1);
+  }
+
+  .cl-tel {
+    color: var(--tinta);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
+
+  .cl-tel i {
+    color: var(--c);
+  }
+
+  /* botón «Tus citas» */
+  .cl-miscitas-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6rem 0.95rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 14px;
+    background: #fff;
+    color: var(--tinta);
+    font-size: 0.88rem;
+    font-weight: 700;
+    transition:
+      border-color 0.2s,
+      color 0.2s,
+      transform 0.2s;
+  }
+
+  .cl-miscitas-btn i {
+    color: var(--c);
+  }
+
+  .cl-miscitas-btn:hover {
+    border-color: var(--c);
+    color: var(--c);
+    transform: translateY(-1px);
+  }
+
+  .cl-miscitas-btn[hidden] {
+    display: none;
+  }
+
+  .cl-miscitas-btn em {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.3rem;
+    height: 1.3rem;
+    padding-inline: 0.3rem;
+    border-radius: 999px;
+    background: var(--c);
+    color: #fff;
+    font-size: 0.7rem;
+    font-style: normal;
+  }
+
+  .cl-miscitas-btn em[hidden] {
+    display: none;
+  }
+
+  .cl-miscitas-btn.is-nuevo {
+    animation: cl-llama 0.9s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+
+  /* portada */
+  .cl-hero {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(50% 60% at 90% 10%, #c9efe7, transparent 70%),
+      radial-gradient(40% 50% at 0% 100%, #e0f2fe, transparent 70%),
+      var(--claro);
+  }
+
+  /* rejilla de puntos muy suave de fondo */
+  .cl-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(color-mix(in srgb, var(--c) 18%, transparent) 1px, transparent 1.5px);
+    background-size: 22px 22px;
+    mask-image: linear-gradient(110deg, transparent 30%, #000 75%);
+    pointer-events: none;
+  }
+
+  .cl-hero__blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.55;
+    pointer-events: none;
+    animation: cl-deriva 14s ease-in-out infinite alternate;
+  }
+
+  .cl-hero__blob--a {
+    top: -8rem;
+    right: 18%;
+    width: 22rem;
+    height: 22rem;
+    background: #5eead4;
+  }
+
+  .cl-hero__blob--b {
+    bottom: -10rem;
+    left: -6rem;
+    width: 26rem;
+    height: 26rem;
+    background: #bae6fd;
+    animation-delay: -6s;
+  }
+
+  .cl-hero__in {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 3.5rem;
+    align-items: center;
+    padding-block: 4.5rem 5.5rem;
+  }
+
+  .cl-hero__txt > * {
+    animation: cl-sube 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .cl-hero__txt > :nth-child(2) {
+    animation-delay: 0.08s;
+  }
+
+  .cl-hero__txt > :nth-child(3) {
+    animation-delay: 0.16s;
+  }
+
+  .cl-hero__txt > :nth-child(n + 4) {
+    animation-delay: 0.24s;
+  }
+
+  .cl-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.35rem 0.9rem 0.35rem 0.35rem;
+    border-radius: 999px;
+    background: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 8px 22px -12px rgb(15 42 39 / 0.35);
+  }
+
+  .cl-pill > span:last-child i {
+    color: #f59e0b;
+  }
+
+  .cl-pill__caras {
+    display: flex;
+  }
+
+  .cl-pill__caras i {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-left: -0.45rem;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--t);
+    color: #fff;
+    font-size: 0.6rem;
+    font-style: normal;
+    font-weight: 800;
+  }
+
+  .cl-pill__caras i:first-child {
+    margin-left: 0;
+  }
+
+  .cl-hero h1 {
+    margin-top: 1.3rem;
+    font-size: clamp(2.7rem, 1.5rem + 4.2vw, 4.9rem);
+    font-weight: 800;
+    letter-spacing: -0.045em;
+  }
+
+  .cl-cifras {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 2.2rem;
+    margin-top: 2.4rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid color-mix(in srgb, var(--c) 16%, transparent);
+  }
+
+  .cl-cifras dt {
+    color: var(--tinta);
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  .cl-cifras dd {
+    color: var(--gris);
+    font-size: 0.85rem;
+  }
+
+  .cl-hero h1 span {
+    background: linear-gradient(90deg, var(--c), var(--c2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .cl-hero__in > div > p {
+    max-width: 34rem;
+    margin-top: 1.2rem;
+    color: var(--gris);
+    font-size: 1.1rem;
+  }
+
+  .cl-buscador {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1rem;
+    margin-top: 1.8rem;
+  }
+
+  .cl-buscador > span {
+    font-weight: 700;
+  }
+
+  .cl-zonas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .cl-zonas a {
+    padding: 0.4rem 0.8rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 999px;
+    background: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .cl-zonas a:hover {
+    border-color: var(--c);
+    color: var(--c);
+  }
+
+  .cl-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 2rem;
+  }
+
+  .cl-hero__panel {
+    position: relative;
+    display: grid;
+    gap: 1rem;
+    animation: cl-sube 0.9s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .cl-tarjeta {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: calc(100% - 2.5rem);
+    margin: -3.2rem auto 0;
+    padding: 1rem 1.2rem;
+    border: 1px solid rgb(255 255 255 / 0.7);
+    border-radius: var(--r);
+    background: rgb(255 255 255 / 0.92);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 24px 50px -24px rgb(15 42 39 / 0.5);
+    animation: cl-flota 5s ease-in-out infinite;
+  }
+
+  .cl-punto {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 0.2rem;
+    border-radius: 50%;
+    background: #22c55e;
+    vertical-align: 1px;
+    animation: cl-ping 1.8s infinite;
+  }
+
+  .cl-tarjeta__ico {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 14px;
+    background: var(--claro);
+    color: var(--c);
+    font-size: 1.2rem;
+  }
+
+  .cl-tarjeta small {
+    display: block;
+    color: var(--gris);
+  }
+
+  .cl-tarjeta strong {
+    font-size: 1.15rem;
+    text-transform: capitalize;
+  }
+
+  .cl-tarjeta a {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    margin-left: auto;
+    border-radius: 50%;
+    background: var(--c);
+    color: #fff;
+    transition: transform 0.25s;
+  }
+
+  .cl-tarjeta a:hover {
+    transform: translateX(3px) scale(1.06);
+  }
+
+  .cl-cuerpo-deco {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1.15;
+    border-radius: 32px;
+    background:
+      radial-gradient(70% 60% at 30% 20%, rgb(255 255 255 / 0.25), transparent 60%),
+      linear-gradient(160deg, #2dd4bf, var(--c) 70%, #115e59);
+    color: #fff;
+    overflow: hidden;
+    box-shadow: 0 40px 80px -40px rgb(15 118 110 / 0.8);
+  }
+
+  .cl-cuerpo-deco__rejilla {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.08) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: radial-gradient(circle at 50% 50%, #000, transparent 75%);
+  }
+
+  .cl-cuerpo-deco > i {
+    position: relative;
+    z-index: 1;
+    font-size: 6.5rem;
+    filter: drop-shadow(0 18px 24px rgb(0 0 0 / 0.25));
+  }
+
+  .cl-flota {
+    position: absolute;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 0.85rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.95);
+    color: var(--tinta);
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: 0 14px 30px -14px rgb(0 0 0 / 0.4);
+    animation: cl-flota 6s ease-in-out infinite;
+  }
+
+  .cl-flota i {
+    color: var(--c);
+  }
+
+  .cl-flota--a {
+    top: 12%;
+    left: 7%;
+  }
+
+  .cl-flota--b {
+    top: 30%;
+    right: 6%;
+    animation-delay: -3s;
+  }
+
+  .cl-onda {
+    position: absolute;
+    width: 9rem;
+    aspect-ratio: 1;
+    border: 2px solid rgb(255 255 255 / 0.5);
+    border-radius: 50%;
+    animation: cl-onda 3s var(--d) ease-out infinite;
+  }
+
+  .cl-sellos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .cl-sellos li {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.7rem;
+    border: 1px solid rgb(255 255 255 / 0.8);
+    border-radius: 14px;
+    background: rgb(255 255 255 / 0.7);
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .cl-sellos i {
+    color: var(--c);
+  }
+
+  /* secciones */
+  .cl-sec {
+    padding-block: 5.5rem;
+  }
+
+  .cl-sec > .cl-wrap {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cl-sec.is-visto > .cl-wrap {
+    opacity: 1;
+    transform: none;
+  }
+
+  .cl-sec h2 {
+    font-size: clamp(2rem, 1.3rem + 2.2vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+
+  .cl-sec__head {
+    max-width: 40rem;
+    margin-bottom: 2.4rem;
+  }
+
+  .cl-sec__head p {
+    margin-top: 0.6rem;
+    color: var(--gris);
+  }
+
+  .cl-sec__head--fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: none;
+  }
+
+  /* tratamientos */
+  .cl-trats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .cl-trat {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 0.65rem;
+    height: 100%;
+    padding: 1.6rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 24px;
+    background: linear-gradient(180deg, #fff, #fbfefd);
+    text-align: left;
+    overflow: hidden;
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.3s,
+      box-shadow 0.35s;
+  }
+
+  /* brillo de color que sube desde abajo al pasar el ratón */
+  .cl-trat::before {
+    content: "";
+    position: absolute;
+    inset: auto -20% -60% -20%;
+    height: 80%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--c2) 18%, transparent), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+
+  .cl-trat:hover {
+    transform: translateY(-6px);
+    border-color: var(--c2);
+    box-shadow: 0 28px 50px -30px var(--c);
+  }
+
+  .cl-trat:hover::before {
+    opacity: 1;
+  }
+
+  .cl-trat__n {
+    position: absolute;
+    top: 1.3rem;
+    right: 1.4rem;
+    color: color-mix(in srgb, var(--c) 22%, transparent);
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    transition: color 0.3s;
+  }
+
+  .cl-trat:hover .cl-trat__n {
+    color: var(--c2);
+  }
+
+  .cl-trat__ico {
+    display: grid;
+    place-items: center;
+    width: 3.3rem;
+    height: 3.3rem;
+    border-radius: 16px;
+    background: var(--claro);
+    color: var(--c);
+    font-size: 1.3rem;
+    transition:
+      transform 0.4s cubic-bezier(0.3, 1.6, 0.5, 1),
+      background 0.3s,
+      color 0.3s,
+      box-shadow 0.3s;
+  }
+
+  .cl-trat:hover .cl-trat__ico {
+    background: linear-gradient(145deg, var(--c2), var(--c));
+    color: #fff;
+    transform: rotate(-8deg) scale(1.05);
+    box-shadow: 0 12px 22px -10px var(--c);
+  }
+
+  .cl-trat strong {
+    font-size: 1.15rem;
+  }
+
+  .cl-trat p {
+    color: var(--gris);
+    font-size: 0.9rem;
+  }
+
+  .cl-trat__pie {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 0.9rem;
+    border-top: 1px dashed var(--linea);
+    font-weight: 700;
+  }
+
+  .cl-trat__pie > span:first-child {
+    color: var(--gris);
+    font-size: 0.88rem;
+  }
+
+  .cl-trat__precio {
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: var(--claro);
+    color: var(--c);
+    transition: opacity 0.25s;
+  }
+
+  /* «Ver detalles» sustituye al precio al pasar el ratón */
+  .cl-trat__ver {
+    position: absolute;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--c);
+    font-size: 0.88rem;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition:
+      opacity 0.25s,
+      transform 0.3s;
+  }
+
+  .cl-trat:hover .cl-trat__ver {
+    opacity: 1;
+    transform: none;
+  }
+
+  .cl-trat:hover .cl-trat__precio {
+    opacity: 0;
+  }
+
+  /* paneles laterales (ficha de tratamiento y «Tus citas») */
+  .cl-ficha {
+    width: min(30rem, 100vw);
+    height: 100dvh;
+    max-height: none;
+    margin: 0 0 0 auto;
+    padding: 0 2rem 2.2rem;
+    border: 0;
+    background: #fff;
+    color: var(--tinta);
+    box-shadow: -30px 0 80px -30px rgb(15 42 39 / 0.5);
+    overflow-y: auto;
+  }
+
+  .cl-ficha[open] {
+    display: grid;
+    align-content: start;
+    gap: 1.1rem;
+    animation: cl-entra-dcha 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cl-ficha[open].is-cierra {
+    animation: cl-sale-dcha 0.3s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+    pointer-events: none;
+  }
+
+  .cl-ficha::backdrop {
+    background: rgb(15 42 39 / 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .cl-ficha[open]::backdrop {
+    animation: cl-fondo-entra 0.4s ease-out;
+  }
+
+  .cl-ficha.is-cierra::backdrop {
+    animation: cl-fondo-sale 0.3s ease-in forwards;
+  }
+
+  .cl-ficha__x {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border: 0;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.9);
+    color: var(--tinta);
+    box-shadow: 0 6px 16px -8px rgb(15 42 39 / 0.4);
+    transition: transform 0.3s;
+  }
+
+  .cl-ficha__x:hover {
+    transform: rotate(90deg);
+  }
+
+  /* cabecera con degradado que ocupa todo el ancho del panel */
+  .cl-ficha__cab {
+    display: grid;
+    justify-items: start;
+    gap: 0.5rem;
+    margin-inline: -2rem;
+    padding: 2.6rem 2rem 1.6rem;
+    background:
+      radial-gradient(80% 90% at 100% 0%, rgb(94 234 212 / 0.35), transparent 60%),
+      var(--claro);
+  }
+
+  .cl-ficha__cab .cl-trat__ico {
+    margin-bottom: 0.4rem;
+    background: linear-gradient(145deg, var(--c2), var(--c));
+    color: #fff;
+    box-shadow: 0 12px 24px -12px var(--c);
+  }
+
+  .cl-ficha__kicker {
+    color: var(--c);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .cl-ficha h3 {
+    font-size: 1.9rem;
+    font-weight: 800;
+  }
+
+  .cl-ficha h4 {
+    font-size: 0.78rem;
+    color: var(--gris);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .cl-ficha p {
+    color: var(--gris);
+  }
+
+  .cl-ficha[open] > :not(.cl-ficha__x, .cl-ficha__cab) {
+    animation: cl-sube 0.45s 0.12s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .cl-ficha__datos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  .cl-ficha__datos div {
+    padding: 0.95rem 1rem;
+    border: 1px solid var(--linea);
+    border-radius: 16px;
+    background: #fff;
+  }
+
+  .cl-ficha__datos dt {
+    color: var(--gris);
+    font-size: 0.78rem;
+  }
+
+  .cl-ficha__datos dd {
+    color: var(--c);
+    font-size: 1.3rem;
+    font-weight: 800;
+  }
+
+  .cl-ficha__inc {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .cl-ficha__inc li {
+    padding: 0.7rem 0.9rem;
+    border-radius: 12px;
+    background: #f6fbfa;
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+
+  .cl-ficha__inc i {
+    color: var(--c2);
+  }
+
+  /* tus citas */
+  .cl-miscitas__intro {
+    font-size: 0.92rem;
+  }
+
+  .cl-miscitas__lista {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .cl-micita {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.9rem;
+    align-items: start;
+    padding: 0.9rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 18px;
+    background: #fff;
+    animation: cl-sube 0.4s calc(var(--i) * 60ms + 0.1s) both;
+  }
+
+  .cl-micita.is-pasada {
+    background: #f8fbfa;
+    opacity: 0.7;
+  }
+
+  .cl-micita__fecha {
+    display: grid;
+    justify-items: center;
+    width: 3.6rem;
+    padding: 0.5rem 0.3rem;
+    border-radius: 14px;
+    background: linear-gradient(160deg, var(--c2), var(--c));
+    color: #fff;
+    line-height: 1.1;
+    text-transform: capitalize;
+  }
+
+  .cl-micita.is-pasada .cl-micita__fecha {
+    background: #a7c7c2;
+  }
+
+  .cl-micita__fecha small {
+    font-size: 0.68rem;
+    font-weight: 700;
+    opacity: 0.85;
+  }
+
+  .cl-micita__fecha strong {
+    font-size: 1.5rem;
+    font-weight: 800;
+  }
+
+  .cl-micita__info {
+    display: grid;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .cl-micita__info > strong {
+    font-size: 0.98rem;
+  }
+
+  .cl-micita__estado {
+    justify-self: start;
+    margin-bottom: 0.15rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: #eef2f1;
+    color: var(--gris);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .cl-micita__estado.is-prox {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .cl-micita__estado.is-hoy {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .cl-micita__dato {
+    color: var(--gris);
+    font-size: 0.8rem;
+  }
+
+  .cl-micita__dato i {
+    width: 1rem;
+    color: var(--c2);
+  }
+
+  .cl-micita__lado {
+    display: grid;
+    justify-items: end;
+    gap: 0.5rem;
+  }
+
+  .cl-micita__precio {
+    color: var(--c);
+    font-size: 1.05rem;
+  }
+
+  .cl-micita__cancelar {
+    padding: 0.35rem 0.7rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--gris);
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+    transition:
+      border-color 0.2s,
+      background 0.2s,
+      color 0.2s;
+  }
+
+  .cl-micita__cancelar:hover {
+    border-color: #fca5a5;
+    color: #b91c1c;
+  }
+
+  .cl-micita__cancelar.is-confirma {
+    border-color: #b91c1c;
+    background: #b91c1c;
+    color: #fff;
+  }
+
+  /* test */
+  .cl-test-sec {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(40% 60% at 0% 0%, rgb(20 184 166 / 0.28), transparent 70%),
+      radial-gradient(40% 60% at 100% 100%, rgb(14 116 144 / 0.35), transparent 70%),
+      var(--tinta);
+    color: #fff;
+  }
+
+  .cl-test-sec h2 {
+    color: #fff;
+  }
+
+  .cl-test {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .cl-test__intro p {
+    margin-top: 0.8rem;
+    color: #a7c7c2;
+  }
+
+  .cl-test-sec .cl-kicker {
+    border-color: rgb(94 234 212 / 0.3);
+    background: rgb(255 255 255 / 0.06);
+    color: #5eead4;
+  }
+
+  .cl-progreso {
+    height: 8px;
+    margin-top: 2rem;
+    border-radius: 99px;
+    background: rgb(255 255 255 / 0.12);
+    overflow: hidden;
+  }
+
+  .cl-progreso i {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--c2), #5eead4);
+    transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cl-test__n {
+    display: block;
+    margin-top: 0.6rem;
+    color: #a7c7c2;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .cl-test__caja {
+    padding: 2.2rem;
+    border-radius: 28px;
+    background: #fff;
+    color: var(--tinta);
+    box-shadow:
+      0 0 0 6px rgb(255 255 255 / 0.06),
+      0 40px 80px -40px rgb(0 0 0 / 0.6);
+  }
+
+  .cl-preg {
+    display: grid;
+    gap: 1.2rem;
+    animation: cl-sube 0.4s both;
+  }
+
+  .cl-preg[hidden] {
+    display: none;
+  }
+
+  .cl-preg h3 {
+    font-size: 1.5rem;
+  }
+
+  .cl-mapa {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .cl-silueta__base > * {
+    fill: #e7f2f0;
+  }
+
+  .cl-zonasvg > * {
+    fill: color-mix(in srgb, var(--c2) 22%, transparent);
+    stroke: var(--c2);
+    stroke-width: 1.5;
+    cursor: pointer;
+    transition: fill 0.2s;
+  }
+
+  .cl-zonasvg > *:hover {
+    fill: color-mix(in srgb, var(--c2) 50%, transparent);
+  }
+
+  .cl-zonasvg > .is-sel {
+    fill: var(--c);
+  }
+
+  .cl-mapa__lista p {
+    margin-bottom: 0.6rem;
+    color: var(--gris);
+    font-size: 0.9rem;
+  }
+
+  .cl-opciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .cl-opciones button {
+    padding: 0.55rem 0.9rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 12px;
+    background: #fff;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .cl-opciones button:hover {
+    border-color: var(--c2);
+    background: #f6fbfa;
+    transform: translateY(-1px);
+  }
+
+  .cl-opciones button.is-sel {
+    border-color: var(--c);
+    background: var(--c);
+    color: #fff;
+  }
+
+  .cl-opciones--grandes {
+    display: grid;
+  }
+
+  .cl-opciones--grandes button {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 1rem 1.2rem;
+    text-align: left;
+  }
+
+  .cl-opciones--grandes i {
+    width: 1.4rem;
+    color: var(--c);
+  }
+
+  .cl-opciones--grandes button.is-sel i {
+    color: #fff;
+  }
+
+  .cl-test__nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-top: 1.2rem;
+  }
+
+  .cl-test__nav[hidden] {
+    display: none;
+  }
+
+  .cl-resultado__badge {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+
+  .cl-resultado h3 {
+    font-size: 2rem;
+    color: var(--c);
+  }
+
+  .cl-resultado__extra {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .cl-resultado__extra li {
+    padding: 0.7rem 0.9rem;
+    border-radius: 12px;
+    background: var(--claro);
+    font-size: 0.9rem;
+  }
+
+  .cl-resultado__extra i {
+    color: #d97706;
+  }
+
+  /* cita */
+  .cl-cita {
+    display: grid;
+    grid-template-columns: 1fr 20rem;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .cl-cita__main {
+    padding: 2rem;
+    border: 1px solid var(--linea);
+    border-radius: 28px;
+    background: #fff;
+    box-shadow: 0 30px 60px -45px rgb(15 42 39 / 0.5);
+  }
+
+  .cl-pasos {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1.8rem;
+    counter-reset: paso;
+  }
+
+  .cl-pasos li {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-top: 1rem;
+    color: var(--gris);
+    font-size: 0.8rem;
+    font-weight: 700;
+    counter-increment: paso;
+  }
+
+  /* número del paso; se convierte en ✓ al completarlo */
+  .cl-pasos li::after {
+    content: counter(paso);
+    display: grid;
+    flex-shrink: 0;
+    order: -1;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: var(--claro);
+    color: var(--gris);
+    font-size: 0.75rem;
+    transition:
+      background 0.3s,
+      color 0.3s;
+  }
+
+  .cl-pasos li::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 5px;
+    border-radius: 99px;
+    background: var(--linea);
+    transition: background 0.4s;
+  }
+
+  .cl-pasos li.is-on {
+    color: var(--tinta);
+  }
+
+  .cl-pasos li.is-on::before {
+    background: linear-gradient(90deg, var(--c2), var(--c));
+  }
+
+  .cl-pasos li.is-on::after {
+    background: var(--c);
+    color: #fff;
+  }
+
+  .cl-pasos li.is-hecho::after {
+    content: "✓";
+  }
+
+  .cl-cpaso {
+    animation: cl-sube 0.35s both;
+  }
+
+  .cl-cpaso[hidden] {
+    display: none;
+  }
+
+  .cl-elige {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .cl-elige__op {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.9rem 1rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 14px;
+    background: #fff;
+    text-align: left;
+    transition: all 0.2s;
+  }
+
+  .cl-elige__op > i {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 10px;
+    background: var(--claro);
+    color: var(--c);
+  }
+
+  .cl-elige__op strong {
+    display: block;
+    font-size: 0.95rem;
+  }
+
+  .cl-elige__op small {
+    color: var(--gris);
+  }
+
+  .cl-elige__op:hover,
+  .cl-elige__op.is-sel {
+    border-color: var(--c);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 15%, transparent);
+  }
+
+  .cl-elige .cl-mini {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.85rem;
+  }
+
+  .cl-cal {
+    max-width: 22rem;
+  }
+
+  .cl-cal__cab {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+    text-transform: capitalize;
+  }
+
+  .cl-cal__cab button {
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 0;
+    border-radius: 50%;
+    background: var(--claro);
+  }
+
+  .cl-cal__sem,
+  .cl-cal__dias {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+    text-align: center;
+  }
+
+  .cl-cal__sem {
+    color: var(--gris);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .cl-cal__dias .cl-dia {
+    aspect-ratio: 1;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    font-weight: 600;
+  }
+
+  .cl-cal__dias .cl-dia:hover:not(:disabled) {
+    background: var(--claro);
+  }
+
+  .cl-cal__dias .cl-dia:disabled {
+    color: #b9cbc8;
+    cursor: not-allowed;
+  }
+
+  .cl-cal__dias .cl-dia.is-hoy {
+    box-shadow: inset 0 0 0 1.5px var(--c2);
+  }
+
+  .cl-cal__dias .cl-dia.is-sel {
+    background: var(--c);
+    color: #fff;
+  }
+
+  .cl-horas {
+    margin-top: 1.4rem;
+  }
+
+  .cl-horas .cl-horas__t {
+    margin-bottom: 0.6rem;
+    font-weight: 700;
+  }
+
+  .cl-horas .cl-horas__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4.6rem, 1fr));
+    gap: 0.4rem;
+  }
+
+  .cl-horas .cl-hora {
+    padding: 0.5rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 10px;
+    background: #fff;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cl-horas .cl-hora:hover:not(:disabled) {
+    border-color: var(--c);
+    color: var(--c);
+  }
+
+  .cl-horas .cl-hora:disabled {
+    opacity: 0.35;
+    text-decoration: line-through;
+    cursor: not-allowed;
+  }
+
+  .cl-campos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .cl-campos label {
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .cl-ancho {
+    grid-column: 1 / -1;
+  }
+
+  .cl-campos :is(input, select, textarea) {
+    padding: 0.75rem 0.9rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 12px;
+    font-weight: 400;
+    outline: none;
+  }
+
+  .cl-campos :is(input, select, textarea):focus {
+    border-color: var(--c);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 15%, transparent);
+  }
+
+  .cl-check {
+    display: flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500 !important;
+  }
+
+  .cl-check input {
+    accent-color: var(--c);
+  }
+
+  .cl-error {
+    min-height: 1.2em;
+    margin-bottom: 0.6rem;
+    color: #b91c1c;
+    font-size: 0.85rem;
+  }
+
+  .cl-hecho {
+    display: grid;
+    justify-items: center;
+    gap: 0.8rem;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .cl-hecho__ico {
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+    background: var(--c);
+    color: #fff;
+    font-size: 1.8rem;
+    animation: cl-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+
+  .cl-hecho h3 {
+    font-size: 1.8rem;
+  }
+
+  .cl-hecho p {
+    max-width: 30rem;
+    color: var(--gris);
+  }
+
+  .cl-hecho__codigo {
+    padding: 0.4rem 0.9rem;
+    border: 1.5px dashed color-mix(in srgb, var(--c) 40%, transparent);
+    border-radius: 10px;
+    background: var(--claro);
+    color: var(--c);
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+
+  .cl-hecho__btns {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+  }
+
+  .cl-volver {
+    margin-top: 1rem;
+    border: 0;
+    background: none;
+    color: var(--gris);
+    font-weight: 600;
+  }
+
+  .cl-volver[hidden] {
+    display: none;
+  }
+
+  .cl-resumen {
+    position: sticky;
+    top: 6rem;
+    display: grid;
+    gap: 1rem;
+    padding: 1.6rem;
+    border: 1px solid color-mix(in srgb, var(--c2) 25%, transparent);
+    border-radius: 28px;
+    background:
+      radial-gradient(90% 50% at 100% 0%, rgb(94 234 212 / 0.3), transparent 65%),
+      var(--claro);
+  }
+
+  .cl-resumen h3 {
+    font-size: 1.3rem;
+  }
+
+  .cl-resumen dl {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .cl-resumen dt {
+    color: var(--gris);
+    font-size: 0.8rem;
+  }
+
+  .cl-resumen dt i {
+    width: 1.1rem;
+    color: var(--c);
+  }
+
+  .cl-resumen dd {
+    font-weight: 700;
+  }
+
+  .cl-resumen dd::first-letter {
+    text-transform: uppercase;
+  }
+
+  .cl-resumen__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1.5px dashed var(--linea);
+  }
+
+  .cl-resumen__total strong {
+    font-size: 1.6rem;
+    color: var(--c);
+  }
+
+  /* equipo */
+  .cl-equipo-sec {
+    background: var(--claro);
+  }
+
+  .cl-filtro {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    padding: 0.3rem;
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .cl-filtro button {
+    padding: 0.45rem 0.85rem;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--gris);
+    transition: all 0.2s;
+  }
+
+  .cl-filtro button[aria-pressed="true"] {
+    background: var(--c);
+    color: #fff;
+  }
+
+  .cl-equipo {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .cl-profe {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 0.3rem;
+    padding: 1.7rem 1rem 1.4rem;
+    border: 1px solid #fff;
+    border-radius: 24px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--t) 9%, #fff), #fff 45%);
+    text-align: center;
+    overflow: hidden;
+    transition:
+      opacity 0.4s,
+      transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      filter 0.4s,
+      box-shadow 0.4s;
+  }
+
+  .cl-profe:hover:not(.is-fuera) {
+    transform: translateY(-5px);
+    box-shadow: 0 26px 44px -30px var(--t);
+  }
+
+  .cl-profe.is-fuera {
+    opacity: 0.25;
+    transform: scale(0.94);
+    filter: grayscale(1);
+  }
+
+  .cl-profe__foto {
+    display: grid;
+    place-items: center;
+    width: 5rem;
+    height: 5rem;
+    margin-bottom: 0.6rem;
+    border-radius: 50%;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--t) 60%, #fff), var(--t));
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 800;
+    box-shadow:
+      0 0 0 4px #fff,
+      0 0 0 6px color-mix(in srgb, var(--t) 30%, transparent),
+      0 16px 26px -12px var(--t);
+    transition: transform 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+
+  .cl-profe:hover .cl-profe__foto {
+    transform: scale(1.06) rotate(-4deg);
+  }
+
+  .cl-profe > span {
+    color: var(--c);
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .cl-profe small {
+    color: var(--gris);
+    font-size: 0.72rem;
+  }
+
+  /* mutuas y tarifas */
+  .cl-tarifas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+
+  .cl-busca {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.4rem;
+    padding: 0 1rem;
+    border: 1.5px solid var(--linea);
+    border-radius: 14px;
+    color: var(--gris);
+  }
+
+  .cl-busca:focus-within {
+    border-color: var(--c);
+  }
+
+  .cl-busca input {
+    flex: 1;
+    padding: 0.9rem 0;
+    border: 0;
+    outline: none;
+  }
+
+  .cl-mutua-res {
+    margin-top: 0.8rem;
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    background: #f4f8f7;
+    color: var(--gris);
+    font-size: 0.9rem;
+  }
+
+  .cl-mutua-res.is-si {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .cl-mutua-res.is-no {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .cl-logos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 1.4rem;
+  }
+
+  .cl-logos li {
+    padding: 0.35rem 0.7rem;
+    border-radius: 8px;
+    background: #f4f8f7;
+    color: var(--gris);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .cl-precios {
+    padding: 2rem;
+    border-radius: 28px;
+    background:
+      radial-gradient(70% 50% at 100% 0%, rgb(20 184 166 / 0.3), transparent 70%),
+      var(--tinta);
+    color: #fff;
+    box-shadow: 0 40px 70px -45px rgb(15 42 39 / 0.9);
+  }
+
+  .cl-precios__lista li {
+    transition: padding 0.25s;
+  }
+
+  .cl-precios__lista li:hover {
+    padding-inline: 0.4rem;
+  }
+
+  .cl-precios__cab {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .cl-precios__cab h3 {
+    font-size: 1.6rem;
+  }
+
+  .cl-precios .cl-filtro {
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  .cl-precios .cl-filtro button {
+    color: #a7c7c2;
+  }
+
+  .cl-precios .cl-filtro button[aria-pressed="true"] {
+    background: var(--c2);
+    color: var(--tinta);
+  }
+
+  .cl-precios__lista li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid rgb(255 255 255 / 0.1);
+  }
+
+  .cl-precios__lista i {
+    width: 1.3rem;
+    color: #5eead4;
+  }
+
+  .cl-precio {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .cl-precio s {
+    color: #7fa8a2;
+    font-size: 0.85rem;
+  }
+
+  .cl-precio strong {
+    font-size: 1.1rem;
+  }
+
+  .cl-ahorro {
+    margin-top: 1rem;
+    color: #5eead4;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  /* faq */
+  .cl-faq-sec {
+    background: var(--claro);
+  }
+
+  .cl-faq {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 3rem;
+  }
+
+  .cl-faq__lista {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .cl-faq__lista details {
+    border: 1.5px solid transparent;
+    border-radius: 18px;
+    background: #fff;
+    transition:
+      border-color 0.3s,
+      box-shadow 0.3s;
+  }
+
+  .cl-faq__lista details:hover {
+    border-color: var(--linea);
+  }
+
+  .cl-faq__lista details.is-abierto {
+    border-color: color-mix(in srgb, var(--c2) 45%, transparent);
+    box-shadow: 0 20px 40px -30px var(--c);
+  }
+
+  .cl-faq__lista summary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.15rem 1.3rem;
+    font-weight: 700;
+    list-style: none;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .cl-faq__lista details.is-abierto summary,
+  .cl-faq__lista summary:hover {
+    color: var(--c);
+  }
+
+  .cl-faq__lista summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .cl-faq__n {
+    flex-shrink: 0;
+    color: color-mix(in srgb, var(--c) 35%, transparent);
+    font-size: 0.85rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.3s;
+  }
+
+  .cl-faq__lista details.is-abierto .cl-faq__n {
+    color: var(--c2);
+  }
+
+  .cl-faq__q {
+    flex: 1;
+  }
+
+  .cl-faq__mas {
+    position: relative;
+    flex-shrink: 0;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background: var(--claro);
+    transition:
+      background 0.3s,
+      transform 0.45s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+
+  .cl-faq__mas::before,
+  .cl-faq__mas::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 10px;
+    height: 2px;
+    margin: -1px 0 0 -5px;
+    border-radius: 2px;
+    background: var(--c);
+    transition:
+      transform 0.35s,
+      background 0.3s;
+  }
+
+  .cl-faq__mas::after {
+    transform: rotate(90deg);
+  }
+
+  .cl-faq__lista details.is-abierto .cl-faq__mas {
+    background: var(--c);
+    transform: rotate(180deg);
+  }
+
+  .cl-faq__lista details.is-abierto .cl-faq__mas::before,
+  .cl-faq__lista details.is-abierto .cl-faq__mas::after {
+    background: #fff;
+  }
+
+  .cl-faq__lista details.is-abierto .cl-faq__mas::after {
+    transform: rotate(0);
+  }
+
+  .cl-faq__lista details p {
+    padding: 0 1.3rem 1.25rem 3.3rem;
+    color: var(--gris);
+  }
+
+  /* pie */
+  .cl-pie {
+    position: relative;
+    padding-block: 0 6.5rem;
+    background:
+      radial-gradient(50% 40% at 100% 0%, rgb(20 184 166 / 0.18), transparent 70%),
+      var(--tinta);
+    color: #a7c7c2;
+  }
+
+  /* la llamada final queda a caballo entre la última sección y el pie */
+  .cl-pie__cta {
+    position: relative;
+    top: -3.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: -1rem;
+    padding: 2.2rem 2.4rem;
+    border-radius: 28px;
+    background:
+      radial-gradient(60% 120% at 100% 0%, rgb(255 255 255 / 0.22), transparent 60%),
+      linear-gradient(135deg, var(--c2), var(--c) 55%, #115e59);
+    color: #fff;
+    overflow: hidden;
+    box-shadow: 0 40px 70px -40px rgb(15 118 110 / 0.9);
+  }
+
+  .cl-pie__cta h2 {
+    max-width: 30rem;
+    font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.1rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+  }
+
+  .cl-pie__cta p {
+    margin-top: 0.4rem;
+    color: #ccfbf1;
+  }
+
+  .cl-pie__cta-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .cl-pie__in {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1.3fr;
+    gap: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .cl-pie strong {
+    color: #fff;
+  }
+
+  .cl-pie__marca {
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+  }
+
+  .cl-pie__marca .cl-logo small {
+    color: #7fa8a2;
+  }
+
+  .cl-pie__marca p {
+    max-width: 19rem;
+    font-size: 0.9rem;
+  }
+
+  .cl-pie__redes {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .cl-pie__redes a {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid rgb(255 255 255 / 0.12);
+    border-radius: 12px;
+    color: #e6fffa;
+    transition:
+      background 0.25s,
+      border-color 0.25s,
+      transform 0.25s;
+  }
+
+  .cl-pie__redes a:hover {
+    border-color: var(--c2);
+    background: var(--c);
+    transform: translateY(-2px);
+  }
+
+  .cl-pie__col {
+    display: grid;
+    align-content: start;
+    gap: 0.65rem;
+    font-size: 0.9rem;
+  }
+
+  .cl-pie__col > strong {
+    margin-bottom: 0.3rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .cl-pie__col a {
+    justify-self: start;
+    text-decoration: none;
+    transition:
+      color 0.2s,
+      transform 0.2s;
+  }
+
+  .cl-pie__col a:hover {
+    color: #5eead4;
+    transform: translateX(3px);
+  }
+
+  .cl-pie__horario {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .cl-pie__horario li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px dashed rgb(255 255 255 / 0.1);
+  }
+
+  .cl-pie__horario li span:last-child {
+    color: #e6fffa;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cl-pie__horario .is-cerrado {
+    color: #7fa8a2 !important;
+  }
+
+  .cl-pie__dato i {
+    width: 1.2rem;
+    color: #5eead4;
+  }
+
+  .cl-pie__base {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.6rem 1.5rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid rgb(255 255 255 / 0.08);
+    color: #7fa8a2;
+    font-size: 0.8rem;
+  }
+
+  .cl-pie__legal {
+    display: flex;
+    gap: 1.2rem;
+  }
+
+  .cl-pie__legal a {
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .cl-pie__legal a:hover {
+    color: #fff;
+  }
+
+  .cl-wa {
+    position: fixed;
+    right: 1.2rem;
+    bottom: 5rem;
+    z-index: 40;
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: var(--c);
+    color: #fff;
+    font-size: 1.3rem;
+    box-shadow: 0 14px 30px -10px var(--c);
+    animation: cl-flota 4s ease-in-out infinite;
+  }
+
+  @keyframes cl-flota {
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+
+  @keyframes cl-onda {
+    from {
+      transform: scale(0.6);
+      opacity: 1;
+    }
+    to {
+      transform: scale(2.4);
+      opacity: 0;
+    }
+  }
+
+  @keyframes cl-sube {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+
+  @keyframes cl-pop {
+    from {
+      transform: scale(0.3);
+    }
+  }
+
+  @keyframes cl-entra-dcha {
+    from {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes cl-sale-dcha {
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes cl-fondo-entra {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes cl-fondo-sale {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes cl-deriva {
+    to {
+      transform: translate(3rem, 2rem) scale(1.15);
+    }
+  }
+
+  @keyframes cl-ping {
+    0% {
+      box-shadow: 0 0 0 0 rgb(34 197 94 / 0.6);
+    }
+    80%,
+    100% {
+      box-shadow: 0 0 0 7px transparent;
+    }
+  }
+
+  @keyframes cl-llama {
+    0% {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.12);
+      box-shadow: 0 0 0 8px color-mix(in srgb, var(--c2) 25%, transparent);
+    }
+    100% {
+      transform: none;
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+
+  @media (max-width: 64rem) {
+    .cl-nav,
+    .cl-tel {
+      display: none;
+    }
+
+    .cl-head__in > .cl-btn {
+      margin-left: auto;
+    }
+
+    .cl-hero__in,
+    .cl-test,
+    .cl-cita,
+    .cl-tarifas,
+    .cl-faq {
+      grid-template-columns: 1fr;
+    }
+
+    .cl-trats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cl-equipo {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .cl-resumen {
+      position: static;
+    }
+
+    .cl-pie__in {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .cl-aviso__dcha {
+      display: none;
+    }
+
+    .cl-miscitas-btn {
+      margin-left: auto;
+    }
+
+    .cl-miscitas-btn:not([hidden]) + .cl-btn {
+      margin-left: 0;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .cl-trats,
+    .cl-elige,
+    .cl-campos,
+    .cl-pie__in {
+      grid-template-columns: 1fr;
+    }
+
+    .cl-miscitas-btn span {
+      display: none;
+    }
+
+    .cl-head__in {
+      gap: 0.8rem;
+    }
+
+    .cl-pie__cta {
+      padding: 1.6rem;
+    }
+
+    .cl-micita {
+      grid-template-columns: auto 1fr;
+    }
+
+    .cl-micita__lado {
+      grid-column: 1 / -1;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+    }
+
+    .cl-ficha {
+      padding-inline: 1.3rem;
+    }
+
+    .cl-ficha__cab {
+      margin-inline: -1.3rem;
+      padding-inline: 1.3rem;
+    }
+
+    .cl-flota--b {
+      display: none;
+    }
+
+    .cl-equipo {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cl-mapa {
+      grid-template-columns: 6.5rem 1fr;
+    }
+
+    .cl-pasos li {
+      font-size: 0;
+    }
+
+    .cl-test__caja,
+    .cl-cita__main {
+      padding: 1.3rem;
+    }
+  }
+</style>

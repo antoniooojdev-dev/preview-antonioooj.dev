@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta name="robots" content="noindex">
+    <meta charset="UTF-8">
+    <title>my_fuel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../fa/css/fontawesome.min.css">
+    <link rel="stylesheet" href="../fa/css/solid.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../scene-common.css">
+    <link rel="stylesheet" href="scene.css">
+</head>
+<body>
+    <div id="scene"></div>
+    <!-- Aviso de arriba -->
+    <div id="prompt" class="hidden">
+        <span class="prompt-icon"><i id="prompt-icon" class="fa-solid fa-gas-pump"></i></span>
+        <span class="prompt-text">
+            <span id="prompt-press">Pulsa <span id="prompt-key" class="prompt-key">E</span> para</span>
+            <span id="prompt-verb">coger</span> <b id="prompt-label">la manguera</b>
+        </span>
+    </div>
+
+    <div id="notifs"></div>
+    <div id="toasts"></div>
+
+    <!-- Menú del surtidor -->
+    <aside id="menu" class="hidden">
+        <header class="head">
+            <span class="head-icon"><i class="fa-solid fa-gas-pump"></i></span>
+            <div class="head-text">
+                <h1>Surtidor</h1>
+                <p>Gasolina sin plomo · <b id="price-l">$2,00</b>/L</p>
+            </div>
+            <button id="close" class="icon-btn" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+        </header>
+
+        <!-- Depósito -->
+        <section class="tank">
+            <div class="tank-top">
+                <span class="label">Depósito</span>
+                <span class="tank-val"><b id="tank-now">0.0</b> / <span id="tank-cap">0</span> L</span>
+            </div>
+            <div class="tank-bar">
+                <div id="tank-fill" class="tank-fill"></div>
+                <div id="tank-add" class="tank-add"></div>
+            </div>
+            <div class="tank-legend">
+                <span><i class="dot now"></i>Ahora <b id="pct-now">0%</b></span>
+                <span><i class="dot add"></i>Después <b id="pct-after">0%</b></span>
+            </div>
+        </section>
+
+        <!-- Litros -->
+        <section>
+            <span class="label">Litros a repostar</span>
+            <div class="stepper">
+                <button class="step" data-step="-1"><i class="fa-solid fa-minus"></i></button>
+                <div class="value">
+                    <input id="liters" type="text" inputmode="decimal" maxlength="5" value="0">
+                    <span>L</span>
+                </div>
+                <button class="step" data-step="1"><i class="fa-solid fa-plus"></i></button>
+            </div>
+            <div class="quick">
+                <button class="chip" data-l="10">10 L</button>
+                <button class="chip" data-l="20">20 L</button>
+                <button class="chip" data-l="30">30 L</button>
+                <button class="chip full" data-l="full"><i class="fa-solid fa-gas-pump"></i> Lleno</button>
+            </div>
+        </section>
+
+        <!-- Pago -->
+        <section>
+            <span class="label">Forma de pago</span>
+            <div class="pay">
+                <button class="pay-opt active" data-m="money">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                    <span><b>Efectivo</b><small id="cash">$0</small></span>
+                    <i class="fa-solid fa-check tick"></i>
+                </button>
+                <button class="pay-opt" data-m="bank">
+                    <i class="fa-solid fa-credit-card"></i>
+                    <span><b>Tarjeta</b><small id="bank">$0</small></span>
+                    <i class="fa-solid fa-check tick"></i>
+                </button>
+            </div>
+        </section>
+
+        <footer class="foot">
+            <div class="total">
+                <span>Total</span>
+                <b id="total">$0</b>
+            </div>
+            <button id="confirm" class="primary" disabled><i class="fa-solid fa-check"></i> Confirmar pago</button>
+            <button id="unplug" class="ghost"><i class="fa-solid fa-plug"></i> Quitar manguera</button>
+        </footer>
+    </aside>
+
+    <!-- Repostando -->
+    <div id="filling" class="hidden">
+        <span class="fill-icon"><i class="fa-solid fa-gas-pump"></i></span>
+        <div class="fill-body">
+            <div class="fill-top">
+                <span>Repostando</span>
+                <span class="fill-l"><b id="fill-now">0.0</b> / <span id="fill-target">0.0</span> L</span>
+            </div>
+            <div class="fill-bar"><div id="fill-bar"></div></div>
+            <div class="fill-bottom">
+                <span id="fill-cost">$0,00</span>
+                <span><kbd>X</kbd> detener</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="../bridge.js"></script>
+    <script src="script.js"></script>
+    <script src="../scene-common.js"></script>
+    <script src="scene.js"></script>
+</body>
+</html>

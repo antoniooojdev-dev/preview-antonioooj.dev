@@ -1,0 +1,1367 @@
+---
+// «Ahora mismo» de «Sobre mí»: panel a todo el ancho, tipo perfil de Discord.
+//  - Banner grande con tu modo y la ilustración animada (src/data/escenas.ts).
+//  - Perfil: tu avatar y estado de Discord en vivo (api/presencia.py) y el botón de acción.
+//  - Paneles: la canción que suena en tu Spotify (api/spotify.py), tu hora local y
+//    horario, carga de trabajo y huecos libres, en qué estás centrado y lo que haces
+//    en Discord.
+// Los datos llegan de /api/estado; sin API el panel no se muestra. Si entras con tu
+// cuenta de admin, aparece el editor para cambiarlo todo.
+import { site } from "@/data/site";
+import { escena } from "@/data/escenas";
+import "@/styles/escenas.css";
+
+const h = site.horario;
+---
+
+<article
+  class="pc"
+  data-state="cargando"
+  data-modo="disponible"
+  data-api={site.chatApi}
+  data-respuesta={site.responseTime}
+  data-horario={JSON.stringify(h)}
+  aria-label="Ahora mismo"
+>
+  <header class="pc__banner">
+    <div class="pc__top-bar">
+      <span class="pc__live mono"><i aria-hidden="true"></i> en directo</span>
+      <span class="pc__updated mono"></span>
+    </div>
+
+    <div class="pc__hero">
+      <span class="pc__kicker mono">Ahora mismo</span>
+      <div class="pc__mode">
+        <span class="pc__mode-emoji" aria-hidden="true"></span>
+        <strong class="pc__mode-name"></strong>
+      </div>
+      <p class="pc__msg"></p>
+      <span class="pc__since mono"></span>
+
+      <!-- Spotify en el banner: solo mientras suena algo -->
+      <a class="pc__np" target="_blank" rel="noopener noreferrer" hidden>
+        <span class="pc__np-cover"><img alt="" width="52" height="52" referrerpolicy="no-referrer" /></span>
+        <span class="pc__np-text">
+          <span class="pc__np-kind mono">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm5.5 17.3a.75.75 0 0 1-1 .25c-2.85-1.74-6.45-2.14-10.68-1.17a.75.75 0 1 1-.33-1.46c4.63-1.06 8.6-.6 11.77 1.34.35.22.46.68.24 1.04Zm1.47-3.27a.94.94 0 0 1-1.29.31c-3.26-2-8.23-2.59-12.09-1.42a.94.94 0 1 1-.54-1.8c4.4-1.33 9.88-.68 13.6 1.62.44.27.58.85.31 1.29Zm.13-3.4C15.2 8.3 8.78 8.09 5.06 9.2a1.13 1.13 0 1 1-.65-2.16c4.27-1.3 11.37-1.04 15.85 1.62a1.13 1.13 0 0 1-1.16 1.95Z"/></svg>
+            Spotify
+            <span class="pc__np-eq" aria-hidden="true"><i></i><i></i><i></i></span>
+          </span>
+          <strong class="pc__np-title"></strong>
+          <span class="pc__np-artist"></span>
+        </span>
+        <span class="pc__np-bar" aria-hidden="true"><span></span></span>
+      </a>
+    </div>
+
+    <div class="pc__scene" set:html={escena("disponible")} />
+  </header>
+
+  <div class="pc__body">
+    <!-- perfil -->
+    <aside class="pc__profile">
+      <div class="pc__top">
+        <span class="pc__avatar">
+          <img src="/logo.png" alt="" width="128" height="128" referrerpolicy="no-referrer" />
+          <span class="pc__dot" aria-hidden="true"></span>
+        </span>
+      </div>
+
+      <div class="pc__id">
+        <h3 class="pc__name">{site.fullName}</h3>
+        <span class="pc__user mono">{site.role}</span>
+      </div>
+
+      <span class="pc__discord mono" hidden></span>
+      <p class="pc__custom" hidden></p>
+
+      <a class="btn btn-primary pc__cta" href="/chat">
+        <span class="pc__cta-txt">Cuéntame tu proyecto</span> <span class="arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="pc__reply mono">respondo en {site.responseTime}</p>
+    </aside>
+
+    <!-- paneles -->
+    <div class="pc__widgets">
+      <section class="pc__w pc__w--spotify" aria-label="Escuchando en Spotify" hidden>
+        <span class="pc__sp-bg" aria-hidden="true"></span>
+        <a class="pc__sp" target="_blank" rel="noopener noreferrer">
+          <span class="pc__sp-cover">
+            <img alt="" width="160" height="160" referrerpolicy="no-referrer" />
+            <span class="pc__sp-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </span>
+          <span class="pc__sp-info">
+            <span class="pc__sp-kind mono">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm5.5 17.3a.75.75 0 0 1-1 .25c-2.85-1.74-6.45-2.14-10.68-1.17a.75.75 0 1 1-.33-1.46c4.63-1.06 8.6-.6 11.77 1.34.35.22.46.68.24 1.04Zm1.47-3.27a.94.94 0 0 1-1.29.31c-3.26-2-8.23-2.59-12.09-1.42a.94.94 0 1 1-.54-1.8c4.4-1.33 9.88-.68 13.6 1.62.44.27.58.85.31 1.29Zm.13-3.4C15.2 8.3 8.78 8.09 5.06 9.2a1.13 1.13 0 1 1-.65-2.16c4.27-1.3 11.37-1.04 15.85 1.62a1.13 1.13 0 0 1-1.16 1.95Z"/></svg>
+              <span class="pc__sp-estado"></span>
+            </span>
+            <strong class="pc__sp-title"></strong>
+            <span class="pc__sp-artist"></span>
+            <span class="pc__sp-album mono"></span>
+            <span class="pc__song pc__sp-bar"><span></span><span class="pc__song-bar"><span></span></span><span></span></span>
+          </span>
+        </a>
+      </section>
+
+      <section class="pc__w pc__w--reloj" aria-label="Hora local">
+        <span class="pc__kicker mono">Mi hora · {h.ciudad}</span>
+        <div class="pc__clock mono">
+          <strong class="pc__time">--:--</strong><span class="pc__sec">:--</span>
+        </div>
+        <p class="pc__horario"><i aria-hidden="true"></i><span></span></p>
+        <span class="pc__tuhora mono"></span>
+      </section>
+
+      <section class="pc__w pc__w--carga" aria-label="Carga de trabajo">
+        <span class="pc__kicker mono">Carga de trabajo</span>
+        <div class="pc__stats">
+          <div><strong class="pc__activos">0</strong><span>proyectos en marcha</span></div>
+          <div class="pc__stat-entregados" hidden><strong class="pc__entregados">0</strong><span>entregados</span></div>
+        </div>
+        <p class="pc__plazas" hidden><span class="pc__plazas-dots" aria-hidden="true"></span><span class="pc__plazas-txt"></span></p>
+      </section>
+
+      <section class="pc__w pc__w--foco" aria-label="En foco" hidden>
+        <span class="pc__kicker mono">En foco</span>
+        <p class="pc__foco"></p>
+      </section>
+
+      <section class="pc__w pc__w--acts" aria-label="En Discord" hidden>
+        <span class="pc__kicker mono">En Discord</span>
+        <ul role="list" class="pc__acts"></ul>
+      </section>
+    </div>
+  </div>
+
+  <!-- Solo para el admin -->
+  <div class="pc__admin" hidden>
+    <button type="button" class="pc__edit mono" aria-expanded="false">✎ cambiar mi estado</button>
+    <p class="pc__hint mono" hidden></p>
+    <form class="pc__editor" hidden>
+      <fieldset class="pc__group">
+        <legend class="mono">modo</legend>
+        <div class="pc__tiles" role="radiogroup" aria-label="Modo"></div>
+      </fieldset>
+      <label class="pc__field">
+        <span class="mono">mensaje <em>(opcional)</em></span>
+        <input name="mensaje" type="text" maxlength="120" autocomplete="off" />
+        <span class="pc__count mono" data-max="120"></span>
+      </label>
+
+      <div class="pc__row">
+        <label class="pc__field">
+          <span class="mono">huecos libres este mes</span>
+          <select name="plazas">
+            <option value="-1">no mostrar</option>
+            {[0, 1, 2, 3, 4, 5].map((n) => <option value={n}>{n}</option>)}
+          </select>
+        </label>
+        <label class="pc__field">
+          <span class="mono">en foco <em>(opcional · en qué estás centrado)</em></span>
+          <input name="enfoque" type="text" maxlength="80" autocomplete="off" placeholder="p. ej. Lanzando la tienda online de un cliente" />
+          <span class="pc__count mono" data-max="80"></span>
+        </label>
+      </div>
+
+      <div class="pc__sp-admin mono">
+        <span class="pc__sp-admin-txt"></span>
+        <a class="pc__sp-connect" href="/api/spotify/conectar" hidden>conectar Spotify</a>
+        <button type="button" class="pc__sp-disconnect" hidden>desconectar</button>
+      </div>
+
+      <div class="pc__actions">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <button type="button" class="btn btn-ghost pc__cancel">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</article>
+
+<script>
+  import "@/scripts/ahora-mismo";
+</script>
+
+<style is:global>
+  /* ── colores de cada modo (--mc) y de tu estado de Discord (--st) ── */
+  /* la web es monocroma: todos los modos usan el color del texto; el modo se distingue
+     por su nombre y su ilustración */
+  .pc, .pc [data-modo] { --mc: var(--fg); }
+
+  .pc { --st: #80848e; --sp: #1db954; }
+  .pc[data-discord="online"] { --st: #23a55a; }
+  .pc[data-discord="idle"] { --st: #f0b232; }
+  .pc[data-discord="dnd"] { --st: #f23f43; }
+
+  /* ── tarjeta ── */
+  .pc {
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+    margin-bottom: var(--space-8);
+    background: var(--bg-elev);
+    border: var(--rule) solid var(--fg);
+  }
+
+  .pc[data-state="off"] {
+    display: none;
+  }
+
+  .pc [hidden] {
+    display: none !important;
+  }
+
+  .pc__kicker {
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── banner ── */
+  .pc__banner {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: center;
+    min-height: 300px;
+    padding: var(--space-7) var(--space-6) 84px;
+    overflow: hidden;
+    /* gris plano, con un corte limpio hacia el cuerpo */
+    background: var(--bg-code);
+    border-bottom: 1px solid var(--fg);
+    transition: background 0.6s ease;
+  }
+
+  .pc__top-bar {
+    position: absolute;
+    top: var(--space-4);
+    left: var(--space-5);
+    right: var(--space-5);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .pc__live,
+  .pc__updated {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.6rem;
+    background: var(--fg);
+    font-size: 0.6875rem;
+    color: var(--bg);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .pc__updated:empty {
+    display: none;
+  }
+
+  .pc__live i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #f23f43;
+  }
+
+  .pc__hero {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+  }
+
+  .pc__mode {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .pc__mode-emoji {
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    background: var(--bg-elev);
+    border: var(--rule) solid var(--fg);
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .pc__mode-name {
+    font-size: var(--fs-xl);
+    font-stretch: 120%;
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    font-weight: 800;
+    color: var(--fg);
+    text-wrap: balance;
+  }
+
+  .pc__msg {
+    max-width: 34rem;
+    color: var(--fg-muted);
+    font-size: var(--fs-md);
+    overflow-wrap: anywhere;
+  }
+
+  .pc__since {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0;
+    font-size: 0.6875rem;
+    color: var(--fg-muted);
+  }
+
+  .pc__since:empty {
+    display: none;
+  }
+
+  .pc__scene {
+    position: relative;
+    align-self: stretch;
+    min-height: 190px;
+  }
+
+  .pc__scene .sc {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* tarjetita de Spotify en el banner */
+  .pc__np {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: center;
+    width: min(100%, 22rem);
+    margin-top: var(--space-2);
+    padding: 0.55rem 0.9rem 0.7rem 0.55rem;
+    overflow: hidden;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--sp) 40%, var(--border));
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--sp) 14%, transparent), transparent 70%),
+      color-mix(in srgb, var(--bg) 72%, transparent);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 16px 40px -24px color-mix(in srgb, var(--sp) 70%, transparent);
+    color: inherit;
+    text-decoration: none;
+    transition:
+      transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.3s ease;
+  }
+
+  .pc__np:hover {
+    transform: translateY(-2px);
+    border-color: var(--sp);
+  }
+
+  .pc__np-cover {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-code);
+    box-shadow: 0 8px 18px -8px rgb(0 0 0 / 0.6);
+  }
+
+  .pc__np-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pc__np-text {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .pc__np-kind {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--sp);
+  }
+
+  .pc__np-kind svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .pc__np-eq {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 10px;
+    margin-left: 0.15rem;
+  }
+
+  .pc__np-eq i {
+    width: 2px;
+    height: 100%;
+    border-radius: 1px;
+    background: var(--sp);
+    transform-origin: bottom;
+    transform: scaleY(0.5);
+  }
+
+  .pc__np-title,
+  .pc__np-artist {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pc__np-title {
+    font-size: var(--fs-sm);
+  }
+
+  .pc__np-artist {
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+  }
+
+  .pc__np-bar {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 3px;
+    background: color-mix(in srgb, var(--fg) 10%, transparent);
+  }
+
+  .pc__np-bar span {
+    display: block;
+    height: 100%;
+    width: var(--p, 0%);
+    background: var(--sp);
+    transition: width 1s linear;
+  }
+
+  /* ── cuerpo ── */
+  .pc__body {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(15rem, 19rem) minmax(0, 1fr);
+    gap: var(--space-6);
+    padding: 0 var(--space-6) var(--space-6);
+  }
+
+  /* perfil */
+  .pc__profile {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+  }
+
+  .pc__top {
+    margin-top: -72px;
+    z-index: 1;
+  }
+
+  .pc__avatar {
+    position: relative;
+    display: block;
+    width: 128px;
+    height: 128px;
+    border-radius: 50%;
+    background: var(--bg-elev);
+    border: 7px solid var(--bg-elev);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--st) 70%, transparent);
+    transition: box-shadow 0.5s ease;
+  }
+
+  .pc__avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--bg-code);
+  }
+
+  .pc__dot {
+    position: absolute;
+    right: 2px;
+    bottom: 4px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--st);
+    border: 6px solid var(--bg-elev);
+    transition: background 0.5s ease;
+  }
+
+  .pc__dot::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+  }
+
+  .pc__id {
+    display: grid;
+    gap: 2px;
+  }
+
+  .pc__name {
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .pc__user {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .pc__discord {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--st) 40%, var(--border));
+    background: color-mix(in srgb, var(--st) 10%, var(--bg));
+    font-size: 0.6875rem;
+    color: var(--fg-muted);
+  }
+
+  .pc__discord b {
+    color: color-mix(in srgb, var(--st) 70%, var(--fg));
+    font-weight: 600;
+  }
+
+  .pc__discord svg {
+    width: 13px;
+    height: 13px;
+    color: #5865f2;
+    flex-shrink: 0;
+  }
+
+  /* estado personalizado de Discord, como bocadillo */
+  .pc__custom {
+    justify-self: start;
+    max-width: 100%;
+    padding: 0.55rem 0.85rem;
+    border-radius: 4px 14px 14px 14px;
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    font-size: var(--fs-sm);
+    overflow-wrap: anywhere;
+  }
+
+  .pc__custom img {
+    width: 1.1em;
+    height: 1.1em;
+    vertical-align: -0.2em;
+    margin-right: 0.3em;
+  }
+
+  .pc__cta {
+    justify-content: center;
+    margin-top: var(--space-2);
+  }
+
+  .pc__reply {
+    margin-top: calc(var(--space-2) * -1);
+    text-align: center;
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  /* ── paneles ── */
+  .pc__widgets {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    padding-top: var(--space-5);
+  }
+
+  .pc__w {
+    position: relative;
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg);
+    border: 1px solid var(--fg);
+  }
+
+  .pc__w--spotify,
+  .pc__w--foco,
+  .pc__w--acts {
+    grid-column: 1 / -1;
+  }
+
+  .pc__w-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+
+  /* spotify */
+  .pc__w--spotify {
+    overflow: hidden;
+    padding: var(--space-4);
+    border-color: color-mix(in srgb, var(--sp) 30%, var(--border));
+    background: var(--bg);
+  }
+
+  .pc__w--spotify:hover {
+    border-color: color-mix(in srgb, var(--sp) 55%, var(--border));
+  }
+
+  /* portada difuminada de fondo */
+  .pc__sp-bg {
+    position: absolute;
+    inset: -40%;
+    background-image: var(--cover, none);
+    background-size: cover;
+    background-position: center;
+    filter: blur(50px) saturate(1.5);
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .pc__w--spotify:not([data-sonando]) .pc__sp-bg {
+    opacity: 0.12;
+    filter: blur(50px) grayscale(0.6);
+  }
+
+  .pc__sp {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: center;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .pc__sp-cover {
+    position: relative;
+    width: 128px;
+    height: 128px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg-code);
+    box-shadow: 0 18px 40px -16px rgb(0 0 0 / 0.7);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pc__sp:hover .pc__sp-cover {
+    transform: scale(1.04) rotate(-2deg);
+  }
+
+  .pc__sp-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pc__sp-eq {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 18px;
+    padding: 4px 5px;
+    border-radius: 6px;
+    background: rgb(0 0 0 / 0.6);
+    backdrop-filter: blur(4px);
+  }
+
+  .pc__w--spotify:not([data-sonando]) .pc__sp-eq {
+    display: none;
+  }
+
+  .pc__sp-eq i {
+    width: 3px;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--sp);
+    transform-origin: bottom;
+    transform: scaleY(0.5);
+  }
+
+  .pc__sp-info {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .pc__sp-kind {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: var(--space-1);
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  .pc__w--spotify[data-sonando] .pc__sp-kind {
+    color: color-mix(in srgb, var(--sp) 75%, var(--fg));
+  }
+
+  .pc__sp-kind svg {
+    width: 15px;
+    height: 15px;
+    color: var(--sp);
+    flex-shrink: 0;
+  }
+
+  .pc__sp-title {
+    font-size: var(--fs-lg);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .pc__sp-title,
+  .pc__sp-artist,
+  .pc__sp-album {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pc__sp:hover .pc__sp-title {
+    text-decoration: underline;
+    text-decoration-color: var(--sp);
+    text-underline-offset: 3px;
+  }
+
+  .pc__sp-artist {
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .pc__sp-album {
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  .pc__sp-bar {
+    max-width: 30rem;
+    margin-top: var(--space-2);
+  }
+
+  .pc__w--spotify:not([data-sonando]) .pc__sp-bar {
+    display: none;
+  }
+
+  /* admin: conectar Spotify */
+  .pc__sp-admin {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .pc__sp-admin a,
+  .pc__sp-admin button {
+    color: var(--sp);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .pc__sp-admin button {
+    color: var(--fg-muted);
+  }
+
+  /* reloj */
+  .pc__clock {
+    display: flex;
+    align-items: baseline;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pc__time {
+    font-size: clamp(2.2rem, 1.6rem + 2vw, 3rem);
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+  }
+
+  .pc__sec {
+    font-size: var(--fs-md);
+    color: var(--fg-subtle);
+  }
+
+  .pc__horario {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .pc__horario i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--fg-subtle);
+  }
+
+  .pc__horario.is-open i {
+    background: #22c55e;
+    box-shadow: 0 0 0 3px color-mix(in srgb, #22c55e 25%, transparent);
+  }
+
+  .pc__tuhora {
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  .pc__tuhora:empty {
+    display: none;
+  }
+
+  /* en foco */
+  .pc__foco {
+    position: relative;
+    padding-left: var(--space-4);
+    font-size: var(--fs-md);
+    font-weight: 500;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .pc__foco::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.2em;
+    bottom: 0.2em;
+    width: 3px;
+    border-radius: 3px;
+    background: var(--mc);
+  }
+
+  /* carga */
+  .pc__stats {
+    display: flex;
+    gap: var(--space-6);
+  }
+
+  .pc__stats > div {
+    display: grid;
+    gap: 2px;
+  }
+
+  .pc__stats strong {
+    font-size: var(--fs-xl);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pc__stats span {
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+  }
+
+  .pc__plazas {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--border);
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .pc__plazas-dots {
+    display: inline-flex;
+    gap: 4px;
+  }
+
+  .pc__plazas-dots i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-strong);
+  }
+
+  .pc__plazas-dots i.on {
+    background: #22c55e;
+    border-color: #22c55e;
+  }
+
+  /* actividades */
+  .pc__acts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: var(--space-2);
+  }
+
+  .pc__act {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--space-3);
+    border-radius: var(--radius);
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+  }
+
+  .pc__act-img {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg-elev);
+    font-size: 1.5rem;
+  }
+
+  .pc__act-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pc__act[data-tipo="escuchando"] .pc__act-img {
+    border-radius: 8px;
+    box-shadow: 0 6px 20px -8px rgb(0 0 0 / 0.6);
+  }
+
+  .pc__act-text {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .pc__act-kind {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    color: var(--fg-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .pc__act[data-tipo="escuchando"] .pc__act-kind {
+    color: #1db954;
+  }
+
+  .pc__act-text strong,
+  .pc__act-text > span:not(.pc__act-kind) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pc__act-text strong {
+    font-size: var(--fs-sm);
+  }
+
+  .pc__act-text > span:not(.pc__act-kind) {
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+  }
+
+  /* barra de la canción */
+  .pc__song {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-2);
+    align-items: center;
+    margin-top: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    color: var(--fg-subtle);
+  }
+
+  .pc__song-bar {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border-strong);
+    overflow: hidden;
+  }
+
+  .pc__song-bar span {
+    display: block;
+    height: 100%;
+    width: var(--p, 0%);
+    background: #1db954;
+    border-radius: inherit;
+    transition: width 1s linear;
+  }
+
+  /* ── editor (admin) ── */
+  .pc__admin {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0 var(--space-6) var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--border);
+  }
+
+  .pc__edit {
+    justify-self: start;
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    padding: 0.3rem 0;
+    transition: color var(--dur) var(--ease);
+  }
+
+  .pc__edit:hover,
+  .pc__edit[aria-expanded="true"] {
+    color: var(--fg);
+  }
+
+  .pc__hint {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .pc__editor {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .pc__group {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .pc__group legend,
+  .pc__field > span:first-child {
+    margin-bottom: var(--space-1);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+  }
+
+  .pc__tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+    gap: var(--space-2);
+  }
+
+  .pc__tile {
+    position: relative;
+    display: grid;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    transition:
+      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+
+  .pc__tile:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--mc) 50%, var(--border));
+  }
+
+  .pc__tile input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .pc__tile-scene {
+    position: relative;
+    height: 60px;
+    background:
+      radial-gradient(circle at 75% 40%, color-mix(in srgb, var(--mc) 40%, transparent), transparent 65%),
+      color-mix(in srgb, var(--mc) 10%, var(--bg-elev));
+  }
+
+  .pc__tile-scene .sc {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .pc__tile-name {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.6rem;
+    font-size: var(--fs-xs);
+    font-weight: 500;
+  }
+
+  .pc__tile:has(input:checked) {
+    border-color: var(--mc);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mc) 25%, transparent);
+  }
+
+  .pc__tile:has(input:focus-visible) {
+    outline: 2px solid var(--fg);
+    outline-offset: 2px;
+  }
+
+  .pc__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+
+  .pc__field {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .pc__field em {
+    color: var(--fg-subtle);
+    font-style: normal;
+  }
+
+  .pc__field input[type="text"],
+  .pc__field select {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-sm);
+    color: var(--fg);
+  }
+
+  .pc__field input[type="range"] {
+    width: 100%;
+    accent-color: var(--mc);
+  }
+
+  .pc__field input:focus-visible,
+  .pc__field select:focus-visible {
+    outline: none;
+    border-color: var(--fg);
+  }
+
+  .pc__count {
+    justify-self: end;
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  .pc__actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .pc__actions .btn {
+    padding: 0.55rem 1rem;
+  }
+
+  /* ── responsive ── */
+  @media (max-width: 60rem) {
+    .pc__body {
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+
+    .pc__profile {
+      grid-template-columns: auto 1fr;
+      column-gap: var(--space-4);
+      align-items: end;
+    }
+
+    .pc__profile > :not(.pc__top, .pc__id) {
+      grid-column: 1 / -1;
+    }
+
+    .pc__id {
+      padding-bottom: var(--space-2);
+    }
+  }
+
+  @media (max-width: 44rem) {
+    .pc__banner {
+      grid-template-columns: 1fr;
+      min-height: 0;
+      padding: 3.25rem var(--space-4) 76px;
+      gap: var(--space-4);
+    }
+
+    .pc__scene {
+      order: -1;
+      min-height: 130px;
+    }
+
+    .pc__body,
+    .pc__admin {
+      padding-inline: var(--space-4);
+    }
+
+    .pc__admin {
+      margin-inline: 0;
+    }
+
+    .pc__top {
+      margin-top: -60px;
+    }
+
+    .pc__avatar {
+      width: 104px;
+      height: 104px;
+    }
+
+    .pc__mode-emoji {
+      width: 3.2rem;
+      height: 3.2rem;
+      font-size: 1.6rem;
+    }
+
+    .pc__widgets,
+    .pc__row {
+      grid-template-columns: 1fr;
+    }
+
+    .pc__sp {
+      gap: var(--space-4);
+    }
+
+    .pc__sp-cover {
+      width: 88px;
+      height: 88px;
+    }
+
+    .pc__w {
+      padding: var(--space-4);
+    }
+  }
+
+  /* ── animaciones ── */
+  @media (prefers-reduced-motion: no-preference) {
+    .pc[data-state="cargando"] .pc__hero,
+    .pc[data-state="cargando"] .pc__body {
+      opacity: 0;
+    }
+
+    .pc.is-ready .pc__hero > *,
+    .pc.is-ready .pc__profile > *,
+    .pc.is-ready .pc__w {
+      animation: pc-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .pc.is-ready .pc__hero > :nth-child(2) { animation-delay: 0.06s; }
+    .pc.is-ready .pc__hero > :nth-child(3) { animation-delay: 0.12s; }
+    .pc.is-ready .pc__hero > :nth-child(4) { animation-delay: 0.18s; }
+    .pc.is-ready .pc__profile > :nth-child(2) { animation-delay: 0.08s; }
+    .pc.is-ready .pc__profile > :nth-child(3) { animation-delay: 0.12s; }
+    .pc.is-ready .pc__profile > :nth-child(4) { animation-delay: 0.16s; }
+    .pc.is-ready .pc__profile > :nth-child(5) { animation-delay: 0.2s; }
+    .pc.is-ready .pc__w:nth-child(1) { animation-delay: 0.15s; }
+    .pc.is-ready .pc__w:nth-child(2) { animation-delay: 0.22s; }
+    .pc.is-ready .pc__w:nth-child(3) { animation-delay: 0.29s; }
+    .pc.is-ready .pc__w:nth-child(4) { animation-delay: 0.36s; }
+    .pc.is-ready .pc__w:nth-child(5) { animation-delay: 0.43s; }
+    .pc.is-ready .pc__w:nth-child(6) { animation-delay: 0.5s; }
+
+    .pc__live i {
+      animation: pc-live 1.6s ease-in-out infinite;
+    }
+
+    .pc[data-discord="online"] .pc__dot::after,
+    .pc[data-discord="dnd"] .pc__dot::after {
+      animation: pc-ring 2.4s ease-out infinite;
+    }
+
+    .pc__horario.is-open i {
+      animation: pc-live 2s ease-in-out infinite;
+    }
+
+    /* Spotify: ecualizador y portada que gira un poco al sonar */
+    .pc__np-eq i,
+    .pc__w--spotify[data-sonando] .pc__sp-eq i {
+      animation: pc-eq 0.9s ease-in-out infinite alternate;
+    }
+
+    .pc__sp-eq i:nth-child(2),
+    .pc__np-eq i:nth-child(2) { animation-delay: -0.3s !important; }
+    .pc__sp-eq i:nth-child(3),
+    .pc__np-eq i:nth-child(3) { animation-delay: -0.6s !important; }
+
+    .pc__np:not([hidden]) {
+      animation: pc-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .pc__sp-eq i:nth-child(4) { animation-delay: -0.15s !important; }
+
+    .pc__w--spotify[data-sonando] .pc__sp-bg {
+      animation: pc-breathe 8s ease-in-out infinite;
+    }
+
+    .pc__w--spotify.is-changing .pc__sp-cover,
+    .pc__w--spotify.is-changing .pc__sp-info > * {
+      animation: pc-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    /* cambio de modo: la escena entra de nuevo */
+    .pc__scene.is-changing .sc {
+      animation: pc-scene 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .pc__hero.is-changing > * {
+      animation: pc-swap 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .pc__hero.is-changing .pc__mode-emoji,
+    .pc.is-ready .pc__mode-emoji {
+      animation: pc-pop 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+    }
+
+    .pc__act {
+      animation: pc-slide 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: calc(var(--i, 0) * 0.08s + 0.2s);
+    }
+
+    .pc__editor:not([hidden]) {
+      animation: pc-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* en los mosaicos del editor, quieto salvo al pasar el ratón */
+    .pc__tile .sc * {
+      animation-play-state: paused !important;
+    }
+
+    .pc__tile:hover .sc *,
+    .pc__tile:has(input:checked) .sc * {
+      animation-play-state: running !important;
+    }
+  }
+
+  @keyframes pc-rise { from { opacity: 0; transform: translateY(12px); } }
+  @keyframes pc-slide { from { opacity: 0; transform: translateX(-10px); } }
+  @keyframes pc-eq { 0% { transform: scaleY(0.25); } 100% { transform: scaleY(1); } }
+  @keyframes pc-breathe { 50% { transform: scale(1.15); opacity: 0.45; } }
+  @keyframes pc-swap { 0% { opacity: 0; transform: translateY(8px); } }
+  @keyframes pc-scene { 0% { opacity: 0; transform: translateX(30px) scale(0.92); } }
+  @keyframes pc-pop { 0% { transform: scale(0.3) rotate(-25deg); } 60% { transform: scale(1.18) rotate(8deg); } }
+  @keyframes pc-live { 50% { opacity: 0.25; } }
+  @keyframes pc-ring {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--st) 60%, transparent); }
+    70%, 100% { box-shadow: 0 0 0 12px transparent; }
+  }
+
+</style>

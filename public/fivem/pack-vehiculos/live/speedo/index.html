@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta name="robots" content="noindex">
+    <meta charset="UTF-8">
+    <title>my_speedo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../fa/css/fontawesome.min.css">
+    <link rel="stylesheet" href="../fa/css/solid.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../scene-common.css">
+    <link rel="stylesheet" href="scene.css">
+</head>
+<body>
+    <div id="scene"></div>
+    <div id="speedo" class="hidden">
+        <!-- Cinturón: aviso arriba de la tarjeta (se pliega al ponértelo) -->
+        <div id="belt-row" class="belt-row">
+          <div class="belt-clip">
+            <div id="belt" class="belt">
+                <span class="belt-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle class="b-head" cx="12" cy="4.2" r="2.4"/>
+                        <path class="b-body" d="M6.5 21v-7.2c0-3.3 2.4-5.6 5.5-5.6s5.5 2.3 5.5 5.6V21h-2.6v-5.4H9.1V21z"/>
+                        <path class="b-strap" d="M8.2 9.6 16.4 19.4"/>
+                        <rect class="b-buckle" x="14.6" y="16.9" width="3.6" height="3.6" rx="0.9" transform="rotate(40 16.4 18.7)"/>
+                    </svg>
+                </span>
+                <span id="belt-text" class="belt-text">Ponte el cinturón</span>
+                <kbd id="belt-key">B</kbd>
+            </div>
+          </div>
+        </div>
+
+        <div class="main">
+            <!-- Velocidad en texto -->
+            <div class="speed-wrap">
+                <span id="speed" class="speed">0</span>
+                <div class="speed-meta">
+                    <span id="unit" class="unit">km/h</span>
+                    <span id="state" class="state"></span>
+                </div>
+            </div>
+
+            <!-- Marcha -->
+            <div class="gear-wrap">
+                <div id="gear" class="gear">N</div>
+                <div id="gear-dots" class="gear-dots"></div>
+            </div>
+        </div>
+
+        <div class="speed-line"><div id="speed-fill"></div></div>
+
+        <!-- Gasolina + estado del motor -->
+        <div class="bottom">
+            <div id="fuel" class="pill fuel">
+                <i class="fa-solid fa-gas-pump"></i>
+                <div class="fuel-info">
+                    <span><b id="liters">0</b> <small id="fuel-unit">L</small></span>
+                    <div class="fuel-bar"><div id="fuel-fill"></div></div>
+                </div>
+            </div>
+            <div id="engine" class="pill engine good">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 4v2h3v2H7l-2 2v3H3v-3H1v8h2v-3h2v3h3l2 2h8v-4h2v3h3V9h-3v3h-2V8h-6V6h3V4H7z"/>
+                </svg>
+                <div class="engine-info">
+                    <span id="engine-label">Bien</span>
+                    <small id="engine-pct">100%</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../bridge.js"></script>
+    <script src="script.js"></script>
+    <script src="../scene-common.js"></script>
+    <script src="scene.js"></script>
+</body>
+</html>

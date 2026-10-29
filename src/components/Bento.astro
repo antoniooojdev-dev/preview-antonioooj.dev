@@ -1,0 +1,1119 @@
+---
+// Portada en «bento»: una rejilla de tarjetas con quién eres, tu estado en directo (con la
+// escena animada de cada modo y la carga de trabajo), tu hora junto a la de quien mira
+// (puede elegir su país), Spotify, los servicios, el pack de FiveM con
+// capturas reales y el contacto.
+// Las tarjetas en directo las rellena src/scripts/bento.ts con la misma API que «Ahora mismo».
+// Los textos fijos los traduce src/scripts/i18n.ts; los de [data-b] los traduce bento.ts.
+import Icono from "./servicios/Icono.astro";
+import { site } from "@/data/site";
+import { services, serviceDetails } from "@/data/services";
+import { escena } from "@/data/escenas";
+import "@/styles/escenas.css";
+
+const svc = Object.fromEntries(services.map((s) => [s.id, s]));
+const tarjetaServicio = (id: string) => ({ s: svc[id], d: serviceDetails[id] });
+const pequenos = ["web", "app", "fivem", "discord"].map(tarjetaServicio);
+const mant = tarjetaServicio("mantenimiento");
+
+// El titular entra palabra a palabra: cada palabra va en su propia «ventana»
+const frase = "Webs, apps, scripts de FiveM y bots de Discord.";
+const titular = frase.split(" ");
+const h = site.horario;
+---
+
+<section class="top" id="servicios">
+  <div class="container">
+    <div class="bento grid" data-bento data-api={site.chatApi} data-zona={h.zona} data-horario={JSON.stringify(h)}>
+      <!-- 1 · quién eres -->
+      <div class="tile t-intro" data-reveal>
+        <h1 aria-label={frase} data-i18n-words={frase}>
+          {titular.map((w, i) => (
+            <span class="w" aria-hidden="true"><span style={`--w:${i}`}>{w}</span></span>
+          ))}
+        </h1>
+        <p class="lead">
+          Lo diseño, lo programo y lo mantengo yo. Hablas siempre con quien escribe el código y el
+          precio queda cerrado por escrito antes de empezar.
+        </p>
+        <div class="ctas">
+          <a href="/contacto" class="btn btn-primary">Hablemos <span class="arrow" aria-hidden="true">→</span></a>
+          <a href="#proyectos" class="btn btn-ghost">Ver trabajos</a>
+        </div>
+      </div>
+
+      <!-- 2 · estado en directo, con la escena animada del modo -->
+      <a class="tile t-estado" href="/chat?nuevo" data-reveal style="--i:1" data-modo="disponible">
+        <div class="escena" data-b="escena" set:html={escena("disponible")} />
+        <div class="estado__txt">
+          <div class="estado__top">
+            <span class="tile__label">Ahora mismo</span>
+            <span class="vivo"><i class="live" aria-hidden="true"></i> <span>En directo</span></span>
+          </div>
+          <strong class="estado" data-b="modo">Disponible para nuevos proyectos</strong>
+          <p class="sub" data-b="texto">Tengo hueco para un proyecto nuevo. Es buen momento para contarme el tuyo.</p>
+          <p class="nota" data-b="nota" hidden></p>
+          <div class="estado__pie">
+            <span class="carga" data-b="carga"></span>
+          </div>
+        </div>
+      </a>
+
+      <!-- 3 · mi hora y la tuya (se puede elegir país) -->
+      <div class="tile t-hora is-link" data-reveal style="--i:2">
+        <button type="button" class="hora__abrir" data-tz-abrir aria-haspopup="dialog">
+          <span class="visually-hidden">Cambiar país</span>
+        </button>
+
+        <div class="relojes">
+          <div class="reloj-caja">
+            <span class="tile__label">Mi hora · España</span>
+            <strong class="reloj"><span data-b="hora">--:--</span><small data-b="seg">:--</small></strong>
+            <span class="dia-txt" data-b="dia-yo"></span>
+          </div>
+
+          <span class="dif" data-b="dif" aria-live="polite"></span>
+
+          <div class="reloj-caja reloj-caja--tu">
+            <span class="tile__label tu-label">
+              <span>Tu hora</span> · <span data-b="tu-pais">…</span>
+            </span>
+            <strong class="reloj"><span data-b="tu-hora">--:--</span></strong>
+            <span class="cambiar" aria-hidden="true">
+              <span>Cambiar país</span>
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+            </span>
+          </div>
+        </div>
+
+        <div
+          class="dia"
+          aria-hidden="true"
+          style={`--ini:${(h.inicio / 24) * 100}%; --fin:${(h.fin / 24) * 100}%`}
+        >
+          <span class="dia__hora" style="--x:0%">0</span>
+          <span class="dia__hora" style="--x:25%">6</span>
+          <span class="dia__hora" style="--x:50%">12</span>
+          <span class="dia__hora" style="--x:75%">18</span>
+          <span class="dia__pin dia__pin--yo" data-b="pin-yo"><b>ES</b></span>
+          <span class="dia__pin dia__pin--tu" data-b="pin-tu"><b data-b="pin-tu-cc">··</b></span>
+        </div>
+      </div>
+
+      <!-- 4 · Spotify -->
+      <a class="tile t-musica" data-b="sp" target="_blank" rel="noopener noreferrer" data-reveal style="--i:3">
+        <span class="cover">
+          <img data-b="sp-img" alt="" width="96" height="96" referrerpolicy="no-referrer" hidden />
+        </span>
+        <span class="tile__label">
+          <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span data-b="sp-estado">Spotify</span>
+        </span>
+        <strong data-b="sp-titulo">Trabajo con música</strong>
+        <span class="sub" data-b="sp-artista">Aquí sale lo que suena en mi Spotify.</span>
+      </a>
+
+      <!-- 5 · pack de FiveM con capturas reales -->
+      <a class="tile t-pack is-link" href="/servicios/fivem/pack-vehiculos" data-reveal style="--i:4">
+        <img
+          class="shot"
+          src="/fivem/pack-vehiculos/media/dealer-05-detalle.webp"
+          alt="Concesionario del pack de vehículos para FiveM"
+          loading="lazy"
+        />
+        <span class="tile__corner" aria-hidden="true">↗</span>
+        <span class="pack__txt">
+          <span class="tile__label">Nuevo · Script FiveM</span>
+          <strong>Pack de vehículos</strong>
+          <span class="sub">Concesionario con vendedor, gasolineras y velocímetro con cinturón.</span>
+        </span>
+      </a>
+
+      <!-- 6–9 · servicios -->
+      {
+        pequenos.map(({ s, d }, i) => (
+          <a class={`tile t-svc t-svc--${s.id}`} href={`/servicios/${s.id}`} data-reveal style={`--i:${i + 5}`}>
+            <span class="ico" style={`view-transition-name: svc-ico-${s.id}`}>
+              <Icono nombre={d?.icono ?? "help"} size={22} />
+            </span>
+            <span class="tile__corner" aria-hidden="true">↗</span>
+            <strong class="svc__t" style={`view-transition-name: svc-title-${s.id}`}>{s.title}</strong>
+            <span class="sub">{s.description}</span>
+          </a>
+        ))
+      }
+
+      <!-- 10 · mantenimiento -->
+      <a class="tile t-mant" href={`/servicios/${mant.s.id}`} data-reveal style="--i:9">
+        <span class="ico" style={`view-transition-name: svc-ico-${mant.s.id}`}>
+          <Icono nombre={mant.d?.icono ?? "help"} size={22} />
+        </span>
+        <span class="tile__corner" aria-hidden="true">↗</span>
+        <strong class="svc__t" style={`view-transition-name: svc-title-${mant.s.id}`}>{mant.s.title}</strong>
+      </a>
+
+      <!-- 11 · contacto -->
+      <a class="tile tile--neg t-contacto" href="/contacto" data-reveal style="--i:10">
+        <span class="tile__corner" aria-hidden="true">↗</span>
+        <span class="tile__label">Contacto</span>
+        <strong>¿Tienes alguna idea en mente? Hablemos</strong>
+        <span class="sub">{site.email}</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- selector de país de «Mi hora» -->
+  <dialog class="tz" data-tz aria-labelledby="tz-titulo">
+    <div class="tz__head">
+      <div>
+        <h2 id="tz-titulo">Elige tu país</h2>
+        <p>Así ves la diferencia entre tu hora y la mía.</p>
+      </div>
+      <button type="button" class="tz__cerrar" data-tz-cerrar aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+      </button>
+    </div>
+    <div class="tz__buscar">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      <input type="search" data-tz-q placeholder="Buscar país o ciudad…" autocomplete="off" aria-label="Buscar país o ciudad…" />
+    </div>
+    <button type="button" class="tz__auto" data-tz-auto>
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>
+      <span>Usar el de mi dispositivo</span>
+    </button>
+    <ul class="tz__lista" role="listbox" data-tz-lista data-b="tz-lista" aria-labelledby="tz-titulo"></ul>
+  </dialog>
+</section>
+
+<script>
+  import "@/scripts/bento";
+</script>
+
+<style>
+  .top {
+    padding-block: var(--space-5) var(--space-6);
+  }
+
+  /* escritorio, 4 columnas:
+     intro  intro  estado   estado
+     intro  intro  hora     hora
+     pack   pack   web      app
+     pack   pack   fivem    discord
+     musica mant   contacto contacto */
+  .grid {
+    grid-template-areas:
+      "intro intro estado estado"
+      "intro intro hora hora"
+      "pack pack web app"
+      "pack pack fivem discord"
+      "musica mant contacto contacto";
+  }
+
+  .t-intro { grid-area: intro; }
+  .t-estado { grid-area: estado; }
+  .t-hora { grid-area: hora; }
+  .t-musica { grid-area: musica; }
+  .t-pack { grid-area: pack; }
+  .t-svc--web { grid-area: web; }
+  .t-svc--app { grid-area: app; }
+  .t-svc--fivem { grid-area: fivem; }
+  .t-svc--discord { grid-area: discord; }
+  .t-mant { grid-area: mant; }
+  .t-contacto { grid-area: contacto; }
+
+  .sub {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+  }
+
+  /* ── intro ── */
+  .t-intro {
+    justify-content: space-between;
+    gap: var(--space-5);
+    padding: clamp(1.5rem, 1rem + 2vw, 2.75rem);
+  }
+
+  h1 {
+    max-width: 16ch;
+    font-size: clamp(2.2rem, 1.3rem + 3.2vw, 4.4rem);
+    font-weight: 750;
+    font-stretch: 108%;
+    letter-spacing: -0.045em;
+    line-height: 1.02;
+  }
+
+  /* cada palabra sube desde detrás de su ventana */
+  h1 :global(.w) {
+    display: inline-block;
+    overflow: hidden;
+    padding-bottom: 0.08em;
+    margin-bottom: -0.08em;
+    vertical-align: top;
+  }
+
+  h1 :global(.w > span) {
+    display: inline-block;
+    margin-right: 0.24em;
+  }
+
+  .lead {
+    max-width: 34rem;
+    color: var(--fg-muted);
+    font-size: var(--fs-md);
+    line-height: 1.5;
+  }
+
+  .ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .ctas .btn {
+    border-radius: 999px;
+    border-width: 1px;
+  }
+
+  /* ── estado ── */
+  .t-estado {
+    --mc: var(--fg);
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+    color: inherit;
+  }
+
+  .escena {
+    position: relative;
+    order: 2;
+    flex: 1 1 46%;
+    min-height: 14rem;
+    background:
+      radial-gradient(circle at 60% 55%, color-mix(in srgb, var(--fg) 7%, transparent), transparent 65%),
+      var(--bg-code);
+    border-left: 1px solid var(--border);
+  }
+
+  .escena :global(.sc) {
+    position: absolute;
+    inset: 8% 6%;
+    width: 88%;
+    height: 84%;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .t-estado:hover .escena :global(.sc) {
+    transform: scale(1.06) rotate(-1.5deg);
+  }
+
+  .escena[data-cambio] :global(.sc) {
+    animation: escena-in 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes escena-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.9);
+    }
+  }
+
+  .estado__txt {
+    flex: 1 1 54%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    min-width: 0;
+  }
+
+  .estado__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .vivo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: var(--bg-code);
+    font-size: 0.6875rem;
+    font-weight: 600;
+  }
+
+  .live {
+    position: relative;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--modo, #22c55e);
+  }
+
+  .live::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: inherit;
+    animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes ping {
+    75%,
+    100% {
+      transform: scale(3);
+      opacity: 0;
+    }
+  }
+
+  .t-estado[data-modo="programando"] { --modo: #60a5fa; }
+  .t-estado[data-modo="ocupado"] { --modo: #f23f43; }
+  .t-estado[data-modo="reunion"] { --modo: #a78bfa; }
+  .t-estado[data-modo="descanso"] { --modo: #f0b232; }
+  .t-estado[data-modo="fuera"],
+  .t-estado[data-modo="vacaciones"] { --modo: #80848e; }
+
+  .estado {
+    margin-top: var(--space-2);
+    font-size: clamp(1.8rem, 1.2rem + 1.8vw, 2.8rem);
+    font-weight: 750;
+    letter-spacing: -0.045em;
+    line-height: 0.95;
+    text-wrap: balance;
+  }
+
+  .t-estado .sub {
+    max-width: 34ch;
+    font-size: var(--fs-md);
+    line-height: 1.4;
+  }
+
+  /* el mensaje que escribas a mano, como una nota pegada */
+  .nota {
+    align-self: start;
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px 12px 12px 12px;
+    background: var(--bg-code);
+    font-size: var(--fs-sm);
+    overflow-wrap: anywhere;
+  }
+
+  .nota[hidden] {
+    display: none;
+  }
+
+  .estado__pie {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border);
+  }
+
+  .carga {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+  }
+
+  .estado__pie:has(.carga:empty) {
+    display: none;
+  }
+
+  /* ── hora ── */
+  .t-hora {
+    gap: var(--space-4);
+    cursor: pointer;
+  }
+
+  /* botón invisible que cubre la tarjeta: toda ella abre el selector de país */
+  .hora__abrir {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    cursor: pointer;
+  }
+
+  .hora__abrir:focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: -4px;
+  }
+
+  .relojes {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .reloj-caja {
+    display: grid;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .reloj-caja--tu {
+    justify-items: end;
+    text-align: right;
+  }
+
+  .tu-label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+  }
+
+  .reloj {
+    display: flex;
+    align-items: baseline;
+    font-size: clamp(2.4rem, 1.6rem + 2.4vw, 3.6rem);
+    font-weight: 750;
+    font-stretch: 112%;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .reloj small {
+    margin-left: 0.1em;
+    font-size: 0.4em;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--fg-subtle);
+  }
+
+  .reloj-caja--tu .reloj {
+    color: var(--fg-muted);
+  }
+
+  .dia-txt {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  .dia-txt:empty {
+    display: none;
+  }
+
+  /* la diferencia, en una píldora entre los dos relojes */
+  .dif {
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    background: var(--fg);
+    color: var(--bg-elev);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .dif[data-cambio] {
+    animation: dif-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes dif-in {
+    from {
+      opacity: 0;
+      transform: scale(0.7);
+    }
+  }
+
+  .cambiar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.65rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--fg-muted);
+    transition:
+      background 0.25s ease,
+      color 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .t-hora:hover .cambiar {
+    background: var(--fg);
+    border-color: var(--fg);
+    color: var(--bg-elev);
+  }
+
+  /* las 24 h del día (más oscuro: mi horario), con un marcador para cada uno */
+  .dia {
+    position: relative;
+    height: 8px;
+    margin-block: 1.6rem 1.2rem;
+    border-radius: 999px;
+    background: linear-gradient(
+      90deg,
+      var(--bg-code) 0 var(--ini),
+      color-mix(in srgb, var(--fg) 18%, var(--bg-code)) var(--ini) var(--fin),
+      var(--bg-code) var(--fin)
+    );
+  }
+
+  .dia__hora {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: var(--x);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    color: var(--fg-subtle);
+  }
+
+  .dia__pin {
+    position: absolute;
+    top: 50%;
+    left: var(--x, 50%);
+    width: 16px;
+    height: 16px;
+    translate: -50% -50%;
+    border-radius: 50%;
+    border: 3px solid var(--bg-elev);
+    transition: left 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .dia__pin b {
+    position: absolute;
+    bottom: calc(100% + 5px);
+    left: 50%;
+    translate: -50% 0;
+    padding: 0.05rem 0.35rem;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .dia__pin--yo {
+    z-index: 1;
+    background: var(--fg);
+  }
+
+  .dia__pin--yo b {
+    background: var(--fg);
+    color: var(--bg-elev);
+  }
+
+  .dia__pin--tu {
+    background: var(--fg-subtle);
+  }
+
+  .dia__pin--tu b {
+    top: calc(100% + 5px);
+    bottom: auto;
+    background: var(--bg-code);
+    color: var(--fg-muted);
+  }
+
+  .t-hora[data-misma] .dia__pin--tu {
+    opacity: 0;
+  }
+
+  /* ── selector de país ── */
+  .tz {
+    width: min(100% - 2rem, 30rem);
+    max-height: min(80vh, 40rem);
+    margin: auto;
+    padding: 0;
+    color: var(--fg);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: 0 40px 90px -30px rgb(0 0 0 / 0.5);
+    overflow: hidden;
+  }
+
+  .tz[open] {
+    display: flex;
+    flex-direction: column;
+    animation: tz-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .tz::backdrop {
+    background: rgb(0 0 0 / 0.45);
+    backdrop-filter: blur(6px);
+  }
+
+  .tz[open]::backdrop {
+    animation: tz-fade 0.3s ease;
+  }
+
+  @keyframes tz-in {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.96);
+    }
+  }
+
+  @keyframes tz-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .tz__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-5) var(--space-3);
+  }
+
+  .tz__head h2 {
+    font-size: var(--fs-lg);
+    font-weight: 750;
+    letter-spacing: -0.03em;
+  }
+
+  .tz__head p {
+    margin-top: 0.2rem;
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .tz__cerrar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .tz__cerrar:hover {
+    border-color: var(--fg);
+  }
+
+  .tz__buscar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0 var(--space-5);
+    padding: 0 0.9rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    background: var(--bg);
+    color: var(--fg-subtle);
+  }
+
+  .tz__buscar:focus-within {
+    border-color: var(--fg);
+  }
+
+  .tz__buscar input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.75rem 0;
+    border: 0;
+    background: none;
+    color: var(--fg);
+    font-size: var(--fs-base);
+    outline: none;
+  }
+
+  .tz__auto {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    align-self: start;
+    margin: var(--space-3) var(--space-5) var(--space-2);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--fg-muted);
+    cursor: pointer;
+  }
+
+  .tz__auto:hover {
+    color: var(--fg);
+  }
+
+  .tz__lista {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 var(--space-3) var(--space-3);
+  }
+
+  .tz__lista :global(button) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border-radius: 12px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .tz__lista :global(button:hover),
+  .tz__lista :global(button:focus-visible) {
+    background: var(--bg-code);
+    outline: none;
+  }
+
+  .tz__lista :global(button[aria-selected="true"]) {
+    background: var(--fg);
+    color: var(--bg-elev);
+  }
+
+  .tz__lista :global(.cc) {
+    display: grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 1.5rem;
+    border-radius: 6px;
+    background: var(--bg-code);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--fg-muted);
+  }
+
+  .tz__lista :global(button[aria-selected="true"] .cc) {
+    background: color-mix(in srgb, var(--bg-elev) 20%, transparent);
+    color: inherit;
+  }
+
+  .tz__lista :global(.nombre) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  .tz__lista :global(.nombre small) {
+    margin-left: 0.4rem;
+    font-weight: 400;
+    color: var(--fg-subtle);
+  }
+
+  .tz__lista :global(button[aria-selected="true"] .nombre small) {
+    color: inherit;
+    opacity: 0.7;
+  }
+
+  .tz__lista :global(.h) {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tz__lista :global(.vacio) {
+    padding: var(--space-5);
+    text-align: center;
+    color: var(--fg-subtle);
+  }
+
+  /* ── música ── */
+  .t-musica {
+    color: inherit;
+  }
+
+  .cover {
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    margin-bottom: auto;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--bg-code);
+    box-shadow: 0 12px 30px -14px rgb(0 0 0 / 0.5);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .t-musica:hover .cover {
+    transform: rotate(-6deg) scale(1.06);
+  }
+
+  .cover::before {
+    content: "♪";
+    font-size: 1.8rem;
+    color: var(--fg-subtle);
+  }
+
+  .cover:has(img:not([hidden]))::before {
+    display: none;
+  }
+
+  .cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .eq {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 10px;
+  }
+
+  .eq i {
+    width: 2px;
+    height: 100%;
+    border-radius: 1px;
+    background: currentColor;
+    transform-origin: bottom;
+    transform: scaleY(0.35);
+  }
+
+  .t-musica[data-sonando] .eq i {
+    animation: eq 0.9s ease-in-out infinite alternate;
+  }
+
+  .t-musica[data-sonando] .eq i:nth-child(2) { animation-delay: -0.3s; }
+  .t-musica[data-sonando] .eq i:nth-child(3) { animation-delay: -0.6s; }
+
+  @keyframes eq {
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  .t-musica strong {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: var(--fs-md);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .t-musica .sub {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ── pack de FiveM ── */
+  .t-pack {
+    justify-content: flex-end;
+    min-height: 24rem;
+    padding: 0;
+    color: #fff;
+    background: #000;
+    border-color: transparent;
+  }
+
+  .shot {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .t-pack:hover .shot {
+    transform: scale(1.05);
+  }
+
+  .t-pack .tile__corner {
+    border-color: rgb(255 255 255 / 0.5);
+    background: rgb(0 0 0 / 0.35);
+  }
+
+  .t-pack:hover .tile__corner {
+    background: #fff;
+    color: #000;
+  }
+
+  .pack__txt {
+    position: relative;
+    display: grid;
+    gap: 0.35rem;
+    padding: var(--space-7) var(--space-5) var(--space-5);
+    background: linear-gradient(transparent, rgb(0 0 0 / 0.85));
+  }
+
+  .pack__txt .tile__label,
+  .pack__txt .sub {
+    color: rgb(255 255 255 / 0.78);
+  }
+
+  .pack__txt strong {
+    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.4rem);
+    font-weight: 750;
+    letter-spacing: -0.035em;
+    line-height: 1;
+  }
+
+  /* ── servicios ── */
+  .ico {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 12px;
+    background: var(--bg-code);
+    transition:
+      background 0.3s ease,
+      color 0.3s ease,
+      transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  a.tile:hover .ico {
+    background: var(--fg);
+    color: var(--bg-elev);
+    transform: rotate(-8deg) scale(1.08);
+  }
+
+  .svc__t {
+    margin-top: auto;
+    width: fit-content;
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+
+  .t-svc .sub {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── contacto ── */
+  .t-contacto {
+    justify-content: flex-end;
+  }
+
+  .t-contacto strong {
+    max-width: 18ch;
+    font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.6rem);
+    font-weight: 750;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  /* ── entrada ──
+     Las tarjetas usan la animación común de global.css (.tile[data-reveal]); aquí van los
+     detalles de dentro: el titular sube palabra a palabra y el resto de la intro llega después. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js .t-intro .w > span) {
+      transform: translateY(105%);
+      transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+      transition-delay: calc(0.25s + var(--w) * 0.06s);
+    }
+
+    :global(.js .t-intro.is-visible .w > span) {
+      transform: none;
+    }
+
+    :global(.js .t-intro .lead),
+    :global(.js .t-intro .ctas) {
+      opacity: 0;
+      transform: translateY(14px);
+      transition:
+        opacity 0.7s ease,
+        transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    :global(.js .t-intro .lead) { transition-delay: 0.75s; }
+    :global(.js .t-intro .ctas) { transition-delay: 0.9s; }
+
+    :global(.js .t-intro.is-visible .lead),
+    :global(.js .t-intro.is-visible .ctas) {
+      opacity: 1;
+      transform: none;
+    }
+
+    :global(.js .t-pack .shot) {
+      transform: scale(1.18);
+      transition: transform 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+    }
+
+    :global(.js .t-pack.is-visible .shot) {
+      transform: none;
+    }
+
+    :global(.js .t-pack.is-visible:hover .shot) {
+      transform: scale(1.05);
+      transition-delay: 0s;
+    }
+
+    /* los marcadores de la hora entran desde el principio del día */
+    :global(.js .t-hora:not(.is-visible) .dia__pin) {
+      left: 0 !important;
+    }
+  }
+
+  @media (max-width: 64rem) {
+    .grid {
+      grid-template-areas:
+        "intro intro"
+        "estado estado"
+        "hora hora"
+        "pack pack"
+        "web app"
+        "fivem discord"
+        "musica mant"
+        "contacto contacto";
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .grid {
+      grid-template-areas: none;
+    }
+
+    .grid > * {
+      grid-area: auto;
+    }
+
+    .t-estado {
+      flex-direction: column;
+    }
+
+    .escena {
+      order: 0;
+      flex-basis: auto;
+      min-height: 11rem;
+      border-left: 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .relojes {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .dif {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      justify-self: center;
+    }
+
+    .t-pack {
+      min-height: 20rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .live::after,
+    .t-musica[data-sonando] .eq i {
+      animation: none;
+    }
+  }
+</style>

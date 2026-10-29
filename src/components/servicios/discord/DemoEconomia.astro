@@ -1,0 +1,636 @@
+---
+// Demo «Niveles y economía»: monedas y XP. Botones de comandos rápidos (/daily,
+// /trabajar, /apostar, /tienda, /ranking, /perfil). Escribir en el chat da XP y al
+// subir de nivel sale una tarjeta con confeti. La tienda vende roles con monedas y el
+// ranking se recalcula con tu saldo. Cartera animada en el panel derecho.
+import Shell from "./Shell.astro";
+
+const canales = [
+  { cat: "información", items: [{ n: "anuncios" }, { n: "normas" }] },
+  { cat: "economía", items: [{ n: "economía", id: "economia", activo: true }, { n: "tienda" }, { n: "casino" }] },
+  { cat: "comunidad", items: [{ n: "general" }] },
+];
+const rapidos = [
+  { c: "daily", t: "🎁 /daily" },
+  { c: "trabajar", t: "💼 /trabajar" },
+  { c: "apostar", t: "🪙 /apostar 100" },
+  { c: "tienda", t: "🛒 /tienda" },
+  { c: "ranking", t: "🏆 /ranking" },
+  { c: "perfil", t: "⭐ /perfil" },
+];
+---
+
+<Shell demo="economia" canal="economía" tema="Gana monedas, sube de nivel y compra roles" canales={canales} conPanel>
+  <div class="dc-welcome">
+    <div class="dc-welcome__icon">🪙</div>
+    <h4>¡Bienvenido a #economía!</h4>
+    <p>Usa los comandos de abajo o escribe en el chat para ganar experiencia.</p>
+  </div>
+
+  <div slot="composer" class="dc__composer ec-composer">
+    <div class="ec-quick" role="group" aria-label="Comandos rápidos">
+      {rapidos.map((r) => <button type="button" data-cmd={r.c}>{r.t}</button>)}
+    </div>
+    <form class="dc__input" data-composer>
+      <span class="dc__input-plus" aria-hidden="true">+</span>
+      <input type="text" maxlength="200" autocomplete="off" placeholder="Escribe para ganar XP (+15-25 por mensaje)" aria-label="Mensaje" />
+      <span class="dc__input-tools" aria-hidden="true"><i>🎁</i><b>GIF</b><i>🗒️</i><i>😊</i></span>
+    </form>
+  </div>
+
+  <Fragment slot="panel">
+    <div class="ec-wallet">
+      <span class="dc__panel-title">tu cartera</span>
+      <div class="ec-coins"><span aria-hidden="true">🪙</span><b data-coins>1.250</b></div>
+      <div class="ec-level">
+        <div class="ec-level__top"><b data-nivel>Nivel 4</b><span data-xptxt>320 / 500 XP</span></div>
+        <div class="dc-bar" style="--ec:#f0b232"><i data-xpbar style="--p:64%"></i></div>
+      </div>
+      <div class="ec-mini">
+        <div><span>Racha diaria</span><b data-racha>🔥 3 días</b></div>
+        <div><span>Ranking</span><b data-rank>#6</b></div>
+      </div>
+      <span class="dc__panel-title">roles comprados</span>
+      <div class="dc-roles" data-roles><span class="ec-none">Ninguno todavía</span></div>
+      <span class="dc__panel-title">últimos movimientos</span>
+      <ol role="list" class="ec-moves" data-moves></ol>
+    </div>
+  </Fragment>
+</Shell>
+
+<script>
+  import { BOT, YO, el, mensaje, escribiendo, espera, toast, confeti, barra, type Autor } from "@/scripts/discord-demo";
+
+  const TIENDA = [
+    { id: "vip", t: "🌟 Rol VIP", precio: 1500, c: "#fee75c", d: "Nombre dorado y canal exclusivo" },
+    { id: "dj", t: "🎧 DJ", precio: 600, c: "#eb459e", d: "Controla la música del servidor" },
+    { id: "color", t: "🎨 Color neón", precio: 400, c: "#57f287", d: "Tu nombre en verde neón" },
+    { id: "ticket", t: "🎟️ Entrada sorteo", precio: 150, c: "#5865f2", d: "Participa en el sorteo semanal" },
+  ];
+  const TRABAJOS = ["mecánico 🔧", "repartidor 🛵", "programador 💻", "DJ 🎧", "pescador 🎣", "taxista 🚕"];
+  const RIVALES = [
+    { n: "Laura", c: 4820 },
+    { n: "Dani", c: 3910 },
+    { n: "Sergio", c: 2760 },
+    { n: "Marta", c: 2140 },
+    { n: "Pablo", c: 1680 },
+    { n: "Irene", c: 990 },
+  ];
+
+  const raiz = document.querySelector<HTMLElement>('[data-dc="economia"]');
+  if (raiz) iniciar(raiz);
+
+  function iniciar(dc: HTMLElement) {
+    const lista = dc.querySelector<HTMLElement>("[data-msgs]")!;
+    const form = dc.querySelector<HTMLFormElement>("[data-composer]")!;
+    const input = form.querySelector("input")!;
+    const $ = <T extends Element>(s: string) => dc.querySelector<T>(s)!;
+    let monedas = 1250;
+    let nivel = 4;
+    let xp = 320;
+    let racha = 3;
+    let dailyCobrado = false;
+    let trabajoListo = 0;
+    const comprados = new Set<string>();
+
+    const fmt = (n: number) => n.toLocaleString("es-ES");
+    const xpPara = (n: number) => 500 + (n - 4) * 150;
+
+    function animarNumero(b: HTMLElement, desde: number, hasta: number) {
+      const t0 = performance.now();
+      b.classList.remove("is-up", "is-down");
+      void b.offsetWidth;
+      b.classList.add(hasta >= desde ? "is-up" : "is-down");
+      const paso = (t: number) => {
+        const p = Math.min(1, (t - t0) / 800);
+        b.textContent = fmt(Math.round(desde + (hasta - desde) * (1 - (1 - p) ** 3)));
+        if (p < 1) requestAnimationFrame(paso);
+      };
+      requestAnimationFrame(paso);
+    }
+
+    function movimiento(texto: string, cantidad: number) {
+      const li = el("li", cantidad >= 0 ? "is-plus" : "is-minus");
+      li.append(el("span", "", texto), el("b", "", `${cantidad >= 0 ? "+" : "−"}${fmt(Math.abs(cantidad))}`));
+      $("[data-moves]").prepend(li);
+      while ($("[data-moves]").children.length > 6) $("[data-moves]").lastElementChild!.remove();
+    }
+
+    function sumar(cantidad: number, motivo: string) {
+      const antes = monedas;
+      monedas = Math.max(0, monedas + cantidad);
+      animarNumero($("[data-coins]"), antes, monedas);
+      movimiento(motivo, cantidad);
+      $("[data-rank]").textContent = `#${puesto()}`;
+    }
+
+    function puesto() {
+      return RIVALES.filter((r) => r.c > monedas).length + 1;
+    }
+
+    function pintarXP() {
+      const max = xpPara(nivel);
+      $("[data-nivel]").textContent = `Nivel ${nivel}`;
+      $("[data-xptxt]").textContent = `${xp} / ${max} XP`;
+      $<HTMLElement>("[data-xpbar]").style.setProperty("--p", `${(xp / max) * 100}%`);
+    }
+
+    async function ganarXP(cantidad: number) {
+      xp += cantidad;
+      const max = xpPara(nivel);
+      if (xp >= max) {
+        xp -= max;
+        nivel++;
+        pintarXP();
+        await espera(300);
+        subirNivel();
+      } else pintarXP();
+    }
+
+    function subirNivel() {
+      confeti(dc);
+      const premio = 100 * nivel;
+      const tarjeta = el("div", "ec-levelup");
+      tarjeta.append(el("span", "ec-levelup__old", String(nivel - 1)), el("span", "ec-levelup__arrow", "→"), el("span", "ec-levelup__new", String(nivel)));
+      const m = mensaje(lista, BOT, {
+        mencion: true,
+        embed: { color: "#f0b232", titulo: "🎉 ¡SUBIDA DE NIVEL!", extra: tarjeta, texto: `Recompensa: 🪙 ${fmt(premio)} monedas`, pie: "Sigue participando para subir más" },
+      });
+      m.querySelector(".dc-msg__head")!.after(el("span", "dc-mention", "@Tú"));
+      sumar(premio, `Subida a nivel ${nivel}`);
+      toast(dc, `⭐ ¡Nivel ${nivel}!`);
+    }
+
+    function usado(c: string) {
+      const u = el("div", "dc-used");
+      u.append("↱ ", el("b", "", "Tú"), " ha usado ", el("b", "", `/${c}`));
+      lista.append(u);
+    }
+
+    async function comando(c: string) {
+      usado(c === "apostar" ? "apostar 100" : c);
+      await escribiendo(lista, BOT, 500);
+      switch (c) {
+        case "daily": {
+          if (dailyCobrado) {
+            mensaje(lista, BOT, { embed: { color: "#f23f43", titulo: "⏳ Ya has cobrado hoy", texto: "Vuelve en 23 h 59 min para mantener tu racha 🔥" } });
+            break;
+          }
+          dailyCobrado = true;
+          racha++;
+          const cantidad = 200 + racha * 25;
+          $("[data-racha]").textContent = `🔥 ${racha} días`;
+          mensaje(lista, BOT, {
+            embed: {
+              color: "#23a55a",
+              titulo: "🎁 Recompensa diaria",
+              texto: `Has cobrado 🪙 ${fmt(cantidad)} monedas.`,
+              campos: [
+                { k: "Racha", v: `🔥 ${racha} días`, inline: true },
+                { k: "Bonus racha", v: `+${racha * 25}`, inline: true },
+                { k: "Saldo", v: `🪙 ${fmt(monedas + cantidad)}`, inline: true },
+              ],
+            },
+          });
+          sumar(cantidad, "Recompensa diaria");
+          ganarXP(40);
+          break;
+        }
+        case "trabajar": {
+          if (Date.now() < trabajoListo) {
+            mensaje(lista, BOT, { texto: `😮‍💨 Estás cansado. Podrás trabajar otra vez en ${Math.ceil((trabajoListo - Date.now()) / 1000)} s.` });
+            break;
+          }
+          trabajoListo = Date.now() + 8000;
+          const trabajo = TRABAJOS[Math.floor(Math.random() * TRABAJOS.length)];
+          const sueldo = 80 + Math.floor(Math.random() * 120);
+          mensaje(lista, BOT, { embed: { color: "#3498db", titulo: "💼 Trabajo terminado", texto: `Has trabajado de ${trabajo} y has ganado 🪙 ${sueldo}.` } });
+          sumar(sueldo, `Trabajo de ${trabajo.split(" ")[0]}`);
+          ganarXP(30);
+          enfriar("trabajar", 8);
+          break;
+        }
+        case "apostar": {
+          if (monedas < 100) {
+            mensaje(lista, BOT, { texto: "❌ No tienes monedas suficientes para apostar 100." });
+            break;
+          }
+          const moneda = el("div", "ec-flip", "🪙");
+          const m = mensaje(lista, BOT, { embed: { color: "#80848e", titulo: "🪙 Lanzando la moneda…", extra: moneda } });
+          await espera(1400);
+          const gana = Math.random() > 0.45;
+          moneda.classList.add("is-done");
+          moneda.textContent = gana ? "😎" : "💀";
+          const emb = m.querySelector<HTMLElement>(".dc-embed")!;
+          emb.style.setProperty("--ec", gana ? "#23a55a" : "#f23f43");
+          emb.querySelector(".dc-embed__title")!.textContent = gana ? "🎉 ¡Cara! Ganas 🪙 200" : "😢 Cruz… pierdes 🪙 100";
+          sumar(gana ? 100 : -100, gana ? "Apuesta ganada" : "Apuesta perdida");
+          break;
+        }
+        case "tienda":
+          tienda();
+          break;
+        case "ranking": {
+          const filas = [...RIVALES.map((r) => ({ n: r.n, c: r.c, yo: false })), { n: "Tú", c: monedas, yo: true }].sort((a, b) => b.c - a.c);
+          const max = filas[0].c;
+          const caja = el("ol", "ec-rank");
+          filas.forEach((f, i) => {
+            const li = el("li", f.yo ? "is-me" : "");
+            li.style.setProperty("--i", String(i));
+            li.style.setProperty("--p", `${(f.c / max) * 100}%`);
+            li.append(el("span", "ec-rank__pos", ["🥇", "🥈", "🥉"][i] ?? `#${i + 1}`), el("span", "ec-rank__n", f.n), el("span", "ec-rank__bar"), el("b", "", `🪙 ${fmt(f.c)}`));
+            caja.append(li);
+          });
+          mensaje(lista, BOT, { embed: { color: "#f0b232", titulo: "🏆 Ranking de AntonioooJ Dev", extra: caja, pie: "Se actualiza en tiempo real" } });
+          break;
+        }
+        case "perfil":
+          mensaje(lista, BOT, {
+            embed: {
+              color: "#5865f2",
+              titulo: `⭐ Perfil de Tú · Nivel ${nivel}`,
+              campos: [
+                { k: "Monedas", v: `🪙 ${fmt(monedas)}`, inline: true },
+                { k: "Ranking", v: `#${puesto()}`, inline: true },
+                { k: "Racha", v: `🔥 ${racha} días`, inline: true },
+                { k: "Roles", v: comprados.size ? [...comprados].map((id) => TIENDA.find((t) => t.id === id)!.t).join(", ") : "Ninguno" },
+              ],
+              extra: barra((xp / xpPara(nivel)) * 100, `${xp} / ${xpPara(nivel)} XP`),
+            },
+          });
+          break;
+      }
+    }
+
+    function tienda() {
+      const caja = el("div", "ec-shop");
+      for (const item of TIENDA) {
+        const fila = el("div", "ec-shop__item");
+        fila.style.setProperty("--rc", item.c);
+        const info = el("div");
+        info.append(el("b", "", item.t), el("span", "", item.d));
+        const b = el("button", "dc-btn dc-btn--green", comprados.has(item.id) ? "✓ Comprado" : `🪙 ${fmt(item.precio)}`);
+        b.type = "button";
+        b.disabled = comprados.has(item.id);
+        b.addEventListener("click", () => {
+          if (comprados.has(item.id)) return;
+          if (monedas < item.precio) {
+            b.classList.add("is-no");
+            setTimeout(() => b.classList.remove("is-no"), 500);
+            toast(dc, `❌ Te faltan 🪙 ${fmt(item.precio - monedas)}`);
+            return;
+          }
+          comprados.add(item.id);
+          sumar(-item.precio, `Compra: ${item.t}`);
+          b.textContent = "✓ Comprado";
+          b.disabled = true;
+          b.classList.add("is-done");
+          dc.querySelector(".ec-none")?.remove();
+          const r = el("span", "dc-role", item.t);
+          r.style.setProperty("--rc", item.c);
+          $("[data-roles]").append(r);
+          toast(dc, `🛍️ Has comprado ${item.t}`);
+          if (item.id === "vip") confeti(dc);
+        });
+        fila.append(info, b);
+        caja.append(fila);
+      }
+      mensaje(lista, BOT, { embed: { color: "#57f287", titulo: "🛒 Tienda del servidor", texto: `Tu saldo: 🪙 ${fmt(monedas)}`, extra: caja } });
+    }
+
+    function enfriar(c: string, seg: number) {
+      const b = dc.querySelector<HTMLButtonElement>(`[data-cmd="${c}"]`)!;
+      const txt = b.textContent;
+      b.disabled = true;
+      let s = seg;
+      b.textContent = `⏳ ${s} s`;
+      const t = setInterval(() => {
+        b.textContent = `⏳ ${--s} s`;
+        if (s > 0) return;
+        clearInterval(t);
+        b.disabled = false;
+        b.textContent = txt;
+      }, 1000);
+    }
+
+    dc.querySelectorAll<HTMLButtonElement>("[data-cmd]").forEach((b) => b.addEventListener("click", () => comando(b.dataset.cmd!)));
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const t = input.value.trim();
+      if (!t) return;
+      input.value = "";
+      if (t.startsWith("/")) {
+        const c = t.slice(1).split(" ")[0].toLowerCase();
+        if (["daily", "trabajar", "apostar", "tienda", "ranking", "perfil"].includes(c)) return comando(c);
+      }
+      mensaje(lista, YO, { texto: t });
+      const gana = 15 + Math.floor(Math.random() * 11);
+      ganarXP(gana);
+      const f = el("span", "ec-xpfloat", `+${gana} XP`);
+      dc.querySelector(".ec-composer")!.append(f);
+      setTimeout(() => f.remove(), 1100);
+    });
+
+    // Otro miembro para dar vida
+    const laura: Autor = { nombre: "Laura", color: "#eb459e" };
+    mensaje(lista, laura, { texto: "acabo de llegar al nivel 12 🎉" });
+    $("[data-rank]").textContent = `#${puesto()}`;
+    pintarXP();
+  }
+</script>
+
+<style is:global>
+  .ec-composer {
+    position: relative;
+  }
+
+  .ec-quick {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ec-quick button {
+    flex-shrink: 0;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #2b2d31;
+    border: 1px solid #3f4147;
+    color: #dbdee1;
+    font-size: 0.8125rem;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .ec-quick button:hover:not(:disabled) {
+    background: #5865f2;
+    border-color: #5865f2;
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  .ec-quick button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .ec-xpfloat {
+    position: absolute;
+    right: 20px;
+    bottom: 14px;
+    color: #f0b232;
+    font-weight: 700;
+    pointer-events: none;
+    animation: ec-float 1.1s ease forwards;
+  }
+
+  .ec-wallet {
+    display: grid;
+    gap: 6px;
+  }
+
+  .ec-coins {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 4px;
+    padding: 12px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgb(240 178 50 / 0.2), rgb(240 178 50 / 0.05));
+    border: 1px solid rgb(240 178 50 / 0.3);
+    font-size: 1.6rem;
+  }
+
+  .ec-coins b {
+    display: inline-block;
+    color: #fee75c;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ec-coins b.is-up {
+    animation: ec-up 0.8s ease;
+  }
+
+  .ec-coins b.is-down {
+    animation: ec-down 0.8s ease;
+  }
+
+  .ec-level {
+    display: grid;
+    gap: 6px;
+    margin: 4px;
+  }
+
+  .ec-level__top {
+    display: flex;
+    justify-content: space-between;
+    color: #949ba4;
+    font-size: 0.75rem;
+  }
+
+  .ec-level__top b {
+    color: #f2f3f5;
+    font-size: 0.875rem;
+  }
+
+  .ec-mini {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin: 0 4px;
+  }
+
+  .ec-mini div {
+    display: grid;
+    padding: 8px;
+    border-radius: 6px;
+    background: #1e1f22;
+    color: #949ba4;
+    font-size: 0.6875rem;
+  }
+
+  .ec-mini b {
+    color: #f2f3f5;
+    font-size: 0.875rem;
+  }
+
+  .ec-wallet .dc-roles {
+    margin: 0 4px;
+  }
+
+  .ec-none {
+    color: #80848e;
+    font-size: 0.75rem;
+  }
+
+  .ec-moves {
+    display: grid;
+    gap: 4px;
+    margin: 0 4px;
+  }
+
+  .ec-moves li {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: #1e1f22;
+    font-size: 0.75rem;
+    animation: am-log 0.4s ease;
+  }
+
+  .ec-moves li.is-plus b {
+    color: #57f287;
+  }
+
+  .ec-moves li.is-minus b {
+    color: #f23f43;
+  }
+
+  /* subida de nivel */
+  .ec-levelup {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    background: radial-gradient(circle, rgb(240 178 50 / 0.25), transparent 70%), #1e1f22;
+    font-size: 2.2rem;
+    font-weight: 800;
+  }
+
+  .ec-levelup__old {
+    color: #80848e;
+  }
+
+  .ec-levelup__arrow {
+    color: #f0b232;
+    animation: ec-arrow 1s ease-in-out infinite;
+  }
+
+  .ec-levelup__new {
+    color: #fee75c;
+    text-shadow: 0 0 20px rgb(254 231 92 / 0.6);
+    animation: dc-pop 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+  }
+
+  /* moneda */
+  .ec-flip {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    margin: 4px auto;
+    font-size: 2.6rem;
+    animation: ec-flip 0.35s linear infinite;
+  }
+
+  .ec-flip.is-done {
+    animation: dc-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* tienda */
+  .ec-shop {
+    display: grid;
+    gap: 6px;
+  }
+
+  .ec-shop__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: #1e1f22;
+    border-left: 3px solid var(--rc);
+  }
+
+  .ec-shop__item > div {
+    display: grid;
+    font-size: 0.8125rem;
+  }
+
+  .ec-shop__item b {
+    color: #f2f3f5;
+  }
+
+  .ec-shop__item span {
+    color: #949ba4;
+    font-size: 0.75rem;
+  }
+
+  .ec-shop .dc-btn.is-no {
+    background: #da373c;
+    animation: vf-shake 0.4s ease;
+  }
+
+  /* ranking */
+  .ec-rank {
+    display: grid;
+    gap: 4px;
+  }
+
+  .ec-rank li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 32px 70px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: #1e1f22;
+    font-size: 0.8125rem;
+    animation: dc-msg-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 60ms);
+  }
+
+  .ec-rank li.is-me {
+    background: rgb(88 101 242 / 0.2);
+    box-shadow: inset 2px 0 0 #5865f2;
+  }
+
+  .ec-rank__bar {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #f0b232 var(--p), #2b2d31 var(--p));
+  }
+
+  .ec-rank b {
+    color: #fee75c;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @keyframes ec-float {
+    to { opacity: 0; transform: translateY(-40px); }
+  }
+
+  @keyframes ec-up {
+    30% { color: #57f287; transform: scale(1.12); }
+  }
+
+  @keyframes ec-down {
+    30% { color: #f23f43; transform: scale(0.92); }
+  }
+
+  @keyframes ec-arrow {
+    50% { transform: translateX(6px); }
+  }
+
+  @keyframes ec-flip {
+    50% { transform: scaleX(0.1); }
+  }
+
+  @keyframes am-log {
+    from { opacity: 0; transform: translateX(16px); }
+  }
+
+  @keyframes vf-shake {
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+  }
+</style>

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Brasa &amp; Sal — Cocina a la brasa</title>
+    <meta name="description" content="Restaurante de cocina a la brasa con producto de temporada. Consulta la carta y reserva tu mesa online." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header class="header" data-header>
+      <div class="container header-inner">
+        <a href="#inicio" class="brand">Brasa <span>&amp;</span> Sal</a>
+        <nav class="nav" id="nav" aria-label="Principal">
+          <a href="#nosotros">Nosotros</a>
+          <a href="#carta">Carta</a>
+          <a href="#horario">Horario</a>
+          <a href="#reservas" class="btn btn-small">Reservar</a>
+        </nav>
+        <button class="menu-btn" type="button" aria-controls="nav" aria-expanded="false" aria-label="Abrir menú" data-menu-btn>
+          <span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <!-- HERO -->
+      <section class="hero" id="inicio">
+        <div class="container hero-inner">
+          <p class="status" data-open-status>Comprobando horario…</p>
+          <h1>Fuego lento,<br />producto de verdad.</h1>
+          <p class="lead">Carnes maduradas, pescado del día y verduras de la huerta cocinadas sobre brasa de encina.</p>
+          <div class="hero-ctas">
+            <a href="#reservas" class="btn">Reservar mesa</a>
+            <a href="#carta" class="btn btn-outline">Ver la carta</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- NOSOTROS -->
+      <section class="section" id="nosotros">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Nuestra historia</p>
+            <h2>Una parrilla, una familia y tres generaciones.</h2>
+          </div>
+          <div class="prose">
+            <p>Abrimos en 1998 con una idea sencilla: cocinar con fuego y con lo que da cada temporada. Hoy seguimos comprando cada mañana en la lonja y en los productores de la comarca.</p>
+            <ul class="stats">
+              <li><strong>25+</strong><span>años de brasa</span></li>
+              <li><strong>12</strong><span>productores locales</span></li>
+              <li><strong>60</strong><span>comensales</span></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- CARTA -->
+      <section class="section section-alt" id="carta">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">La carta</p>
+            <h2>Para compartir o no</h2>
+          </div>
+
+          <div class="menu-controls">
+            <div class="tabs" role="tablist" aria-label="Categorías" data-tabs></div>
+            <label class="allergen-filter">
+              <span>Sin</span>
+              <select data-allergen>
+                <option value="">— cualquier alérgeno —</option>
+              </select>
+            </label>
+          </div>
+
+          <ul class="menu-list" data-menu aria-live="polite"></ul>
+          <p class="menu-empty" data-menu-empty hidden>No hay platos en esta categoría sin ese alérgeno.</p>
+          <p class="menu-note">IVA incluido. Pregunta por las sugerencias del día y los platos fuera de carta.</p>
+        </div>
+      </section>
+
+      <!-- HORARIO -->
+      <section class="section" id="horario">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Horario y ubicación</p>
+            <h2>Te esperamos.</h2>
+            <p class="address">Calle de la Brasa, 12<br />28001 Madrid<br /><a href="tel:+34910000000">910 00 00 00</a></p>
+          </div>
+          <table class="hours" data-hours>
+            <caption class="visually-hidden">Horario de apertura</caption>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- RESERVAS -->
+      <section class="section section-dark" id="reservas">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Reservas</p>
+            <h2>Reserva tu mesa en un minuto.</h2>
+            <p>Para grupos de más de 8 personas llámanos directamente. Confirmamos todas las reservas por email.</p>
+          </div>
+
+          <form class="form" data-reserva-form novalidate>
+            <div class="row">
+              <label>Nombre<input name="nombre" autocomplete="name" required /></label>
+              <label>Teléfono<input name="telefono" type="tel" autocomplete="tel" required /></label>
+            </div>
+            <label>Email<input name="email" type="email" autocomplete="email" required /></label>
+            <div class="row row-3">
+              <label>Fecha<input name="fecha" type="date" required data-fecha /></label>
+              <label>Hora
+                <select name="hora" required data-hora>
+                  <option value="">Elige fecha</option>
+                </select>
+              </label>
+              <label>Personas
+                <select name="personas" required>
+                  <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
+                  <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                  <option value="7">7</option><option value="8">8</option>
+                </select>
+              </label>
+            </div>
+            <label>Comentarios (alergias, ocasión especial…)<textarea name="comentarios" rows="3"></textarea></label>
+            <input type="text" name="web" class="visually-hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            <button type="submit" class="btn">Confirmar reserva</button>
+            <p class="form-status" role="status" data-form-status></p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-inner">
+        <span>© <span data-year></span> Brasa &amp; Sal</span>
+        <span>Proyecto demo · desarrollado por AntonioooJ</span>
+      </div>
+    </footer>
+
+    <script src="js/carta.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

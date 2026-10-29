@@ -1,0 +1,593 @@
+---
+// Ejemplo de «Scripts FiveM»: una escena de juego con HUD (vida, chaleco, hambre, sed),
+// menú NUI de garaje (tecla E o botón), notificaciones, velocímetro al sacar un coche
+// y la línea del resmon. Es HTML/JS, como las interfaces que corren dentro de FiveM.
+const coches = [
+  { id: "sultan", nombre: "Karin Sultan RS", matricula: "AJD 214", gasolina: 82, estado: 96, emoji: "🏎️" },
+  { id: "bf400", nombre: "Nagasaki BF400", matricula: "MTO 007", gasolina: 45, estado: 71, emoji: "🏍️" },
+  { id: "granger", nombre: "Declasse Granger", matricula: "LSPD 12", gasolina: 100, estado: 100, emoji: "🚙" },
+];
+const necesidades = [
+  { id: "vida", icono: "❤", color: "#ef4444", valor: 100 },
+  { id: "chaleco", icono: "🛡", color: "#3b82f6", valor: 60 },
+  { id: "hambre", icono: "🍔", color: "#f59e0b", valor: 35 },
+  { id: "sed", icono: "💧", color: "#06b6d4", valor: 50 },
+];
+---
+
+<div class="df" data-demo-fivem data-coches={JSON.stringify(coches)} tabindex="0" aria-label="Demo de interfaz FiveM. Pulsa E para abrir el garaje.">
+  <div class="df__world" aria-hidden="true">
+    <span class="df__sun"></span>
+    <span class="df__city"></span>
+    <span class="df__road"></span>
+  </div>
+
+  <div class="df__resmon mono" aria-hidden="true">
+    <b>resmon</b> antonioooj_garage <span class="df__ms">0.00 ms</span> · antonioooj_hud <span>0.01 ms</span>
+  </div>
+
+  <div class="df__notify" aria-live="polite"></div>
+
+  <button type="button" class="df__prompt"><kbd>E</kbd> Abrir garaje</button>
+
+  <!-- menú NUI -->
+  <div class="df__nui" hidden role="dialog" aria-label="Garaje">
+    <div class="df__nui-head">
+      <div>
+        <span class="mono">garaje · Legion Square</span>
+        <strong>Tus vehículos</strong>
+      </div>
+      <button type="button" class="df__close" aria-label="Cerrar">✕</button>
+    </div>
+    <ul role="list" class="df__cars">
+      {
+        coches.map((c) => (
+          <li>
+            <span class="df__car-img" aria-hidden="true">{c.emoji}</span>
+            <div class="df__car-info">
+              <strong>{c.nombre}</strong>
+              <span class="mono">{c.matricula}</span>
+              <div class="df__meters">
+                <span>⛽ <i style={`--v:${c.gasolina}%`} /></span>
+                <span>🔧 <i style={`--v:${c.estado}%`} /></span>
+              </div>
+            </div>
+            <button type="button" class="df__take" data-car={c.id}>Sacar</button>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="df__hint mono"><kbd>ESC</kbd> cerrar · validado en servidor</p>
+  </div>
+
+  <!-- HUD -->
+  <div class="df__hud">
+    {
+      necesidades.map((n) => (
+        <span class="df__stat" data-stat={n.id} style={`--c:${n.color}; --v:${n.valor}`} title={n.id}>
+          <svg viewBox="0 0 36 36" aria-hidden="true">
+            <circle cx="18" cy="18" r="15.9" class="bg" />
+            <circle cx="18" cy="18" r="15.9" class="fg" />
+          </svg>
+          <b aria-hidden="true">{n.icono}</b>
+        </span>
+      ))
+    }
+    <div class="df__actions">
+      <button type="button" data-usar="hambre">🍔 Comer</button>
+      <button type="button" data-usar="sed">🥤 Beber</button>
+    </div>
+  </div>
+
+  <div class="df__speedo" hidden aria-hidden="true">
+    <b class="mono df__kmh">0</b><span class="mono">km/h</span>
+    <span class="df__car-name mono"></span>
+    <button type="button" class="df__park" aria-hidden="false">🅿 Guardar</button>
+  </div>
+</div>
+
+<script>
+  interface Coche {
+    id: string;
+    nombre: string;
+    matricula: string;
+    emoji: string;
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-demo-fivem]").forEach((demo) => {
+    const coches = JSON.parse(demo.dataset.coches!) as Coche[];
+    const $ = <T extends Element>(s: string) => demo.querySelector<T>(s)!;
+    const nui = $<HTMLElement>(".df__nui");
+    const speedo = $<HTMLElement>(".df__speedo");
+    let conduciendo: Coche | null = null;
+    let velT = 0;
+    let gastoT = 0;
+
+    const valores: Record<string, number> = {};
+    demo.querySelectorAll<HTMLElement>("[data-stat]").forEach((s) => (valores[s.dataset.stat!] = Number(s.style.getPropertyValue("--v"))));
+
+    function stat(id: string, v: number) {
+      valores[id] = Math.max(0, Math.min(100, v));
+      $<HTMLElement>(`[data-stat="${id}"]`).style.setProperty("--v", String(valores[id]));
+    }
+
+    function notificar(texto: string, tipo: "ok" | "info" | "error" = "info") {
+      const n = document.createElement("div");
+      n.className = `df__toast df__toast--${tipo}`;
+      n.textContent = texto;
+      $(".df__notify").append(n);
+      setTimeout(() => n.classList.add("is-out"), 2600);
+      setTimeout(() => n.remove(), 3000);
+    }
+
+    function abrir(si: boolean) {
+      if (si && conduciendo) return notificar("Guarda primero el vehículo que llevas", "error");
+      nui.hidden = !si;
+      $<HTMLElement>(".df__prompt").hidden = si || !!conduciendo;
+      if (si) nui.querySelector<HTMLButtonElement>(".df__take")!.focus();
+      else demo.focus();
+    }
+
+    function velocidad() {
+      clearInterval(velT);
+      let v = 0;
+      let objetivo = 80 + Math.random() * 60;
+      velT = window.setInterval(() => {
+        if (Math.abs(v - objetivo) < 3) objetivo = 40 + Math.random() * 120;
+        v += (objetivo - v) * 0.08;
+        $(".df__kmh").textContent = String(Math.round(v));
+        demo.style.setProperty("--vel", String(v / 160));
+      }, 100);
+    }
+
+    demo.querySelectorAll<HTMLButtonElement>(".df__take").forEach((b) =>
+      b.addEventListener("click", () => {
+        const c = coches.find((x) => x.id === b.dataset.car)!;
+        conduciendo = c;
+        abrir(false);
+        $<HTMLElement>(".df__prompt").hidden = true;
+        $(".df__car-name").textContent = `${c.emoji} ${c.matricula}`;
+        speedo.hidden = false;
+        demo.classList.add("is-driving");
+        notificar(`🚗 ${c.nombre} listo · llaves entregadas`, "ok");
+        velocidad();
+      }),
+    );
+
+    $(".df__park").addEventListener("click", () => {
+      if (!conduciendo) return;
+      notificar(`🅿 ${conduciendo.nombre} guardado en el garaje`, "info");
+      conduciendo = null;
+      clearInterval(velT);
+      speedo.hidden = true;
+      demo.classList.remove("is-driving");
+      demo.style.setProperty("--vel", "0");
+      $<HTMLElement>(".df__prompt").hidden = false;
+    });
+
+    $(".df__prompt").addEventListener("click", () => abrir(true));
+    $(".df__close").addEventListener("click", () => abrir(false));
+
+    demo.addEventListener("keydown", (e) => {
+      if ((e.target as HTMLElement).tagName === "INPUT") return;
+      if (e.key.toLowerCase() === "e" && nui.hidden) {
+        e.preventDefault();
+        abrir(true);
+      } else if (e.key === "Escape" && !nui.hidden) {
+        e.preventDefault();
+        abrir(false);
+      }
+    });
+
+    demo.querySelectorAll<HTMLButtonElement>("[data-usar]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const id = b.dataset.usar!;
+        stat(id, valores[id] + 35);
+        notificar(id === "hambre" ? "🍔 Te has comido una hamburguesa" : "🥤 Te has bebido un refresco", "ok");
+      }),
+    );
+
+    // Hambre y sed bajan poco a poco; si llegan a 0, baja la vida
+    gastoT = window.setInterval(() => {
+      if (document.hidden || !demo.isConnected) return;
+      stat("hambre", valores.hambre - 1);
+      stat("sed", valores.sed - 1.5);
+      if (valores.hambre === 0 || valores.sed === 0) {
+        stat("vida", valores.vida - 5);
+        if (valores.vida % 25 === 0) notificar("Tienes hambre o sed: ¡come algo!", "error");
+      } else if (valores.vida < 100) {
+        stat("vida", valores.vida + 1);
+      }
+    }, 1000);
+    window.addEventListener("pagehide", () => {
+      clearInterval(gastoT);
+      clearInterval(velT);
+    }, { once: true });
+  });
+</script>
+
+<style>
+  .df {
+    --vel: 0;
+    position: relative;
+    height: 480px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #1e1b4b 0%, #7c2d12 55%, #1c1917 56%, #0c0a09 100%);
+    color: #fff;
+    font-size: var(--fs-sm);
+    outline: none;
+  }
+
+  .df:focus-visible {
+    box-shadow: inset 0 0 0 2px #fbbf24;
+  }
+
+  /* mundo */
+  .df__world > span {
+    position: absolute;
+  }
+
+  .df__sun {
+    left: 50%;
+    top: 30%;
+    width: 140px;
+    height: 140px;
+    margin-left: -70px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fdba74, #f97316 60%, transparent 70%);
+    filter: blur(2px);
+    opacity: 0.8;
+  }
+
+  .df__city {
+    left: 0;
+    right: 0;
+    bottom: 44%;
+    height: 150px;
+    background: #120f1d;
+    /* skyline de edificios */
+    clip-path: polygon(0 70%, 4% 70%, 4% 20%, 9% 20%, 9% 55%, 12% 55%, 12% 35%, 16% 35%, 16% 62%, 22% 62%, 22% 8%, 25% 0, 28% 8%, 28% 50%, 34% 50%, 34% 72%, 60% 72%, 60% 30%, 66% 30%, 66% 58%, 70% 58%, 70% 15%, 78% 15%, 78% 48%, 84% 48%, 84% 28%, 90% 28%, 90% 66%, 100% 66%, 100% 100%, 0 100%);
+    opacity: 0.95;
+  }
+
+  .df__road {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 44%;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 60px, #facc15 60px 100px) center 55% / 100% 4px no-repeat,
+      linear-gradient(180deg, #292524, #0c0a09);
+  }
+
+  .df.is-driving .df__road {
+    animation: df-road calc(1.2s - var(--vel) * 0.9s) linear infinite;
+  }
+
+  @keyframes df-road {
+    to { background-position: -100px 55%, 0 0; }
+  }
+
+  /* resmon */
+  .df__resmon {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: rgb(0 0 0 / 0.6);
+    font-size: 0.625rem;
+    color: #a3e635;
+  }
+
+  .df__resmon b {
+    color: #fff;
+  }
+
+  /* notificaciones */
+  .df__notify {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: grid;
+    gap: 6px;
+    width: min(16rem, 70%);
+    z-index: 3;
+  }
+
+  .df__notify :global(.df__toast) {
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    background: rgb(15 15 20 / 0.85);
+    border-left: 3px solid #a78bfa;
+    backdrop-filter: blur(6px);
+    font-size: var(--fs-xs);
+    animation: df-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+
+  .df__notify :global(.df__toast--ok) { border-left-color: #22c55e; }
+  .df__notify :global(.df__toast--error) { border-left-color: #ef4444; }
+  .df__notify :global(.df__toast.is-out) { opacity: 0; transform: translateX(20px); }
+
+  @keyframes df-in {
+    from { opacity: 0; transform: translateX(30px); }
+  }
+
+  /* prompt */
+  .df__prompt {
+    position: absolute;
+    left: 50%;
+    bottom: 32%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 8px;
+    background: rgb(0 0 0 / 0.65);
+    color: #fff;
+    font-size: var(--fs-xs);
+    animation: df-float 2s ease-in-out infinite;
+  }
+
+  .df__prompt[hidden] {
+    display: none;
+  }
+
+  kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.5rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    background: #fbbf24;
+    color: #111;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.6875rem;
+  }
+
+  @keyframes df-float {
+    50% { transform: translate(-50%, -4px); }
+  }
+
+  /* NUI */
+  .df__nui {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    width: min(26rem, calc(100% - 2rem));
+    transform: translate(-50%, -50%);
+    padding: var(--space-4);
+    border-radius: 14px;
+    background: rgb(12 12 18 / 0.92);
+    border: 1px solid rgb(167 139 250 / 0.35);
+    box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.8);
+    backdrop-filter: blur(10px);
+    animation: df-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .df__nui[hidden] {
+    display: none;
+  }
+
+  @keyframes df-pop {
+    from { opacity: 0; transform: translate(-50%, -46%) scale(0.96); }
+  }
+
+  .df__nui-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: var(--space-3);
+  }
+
+  .df__nui-head > div {
+    display: grid;
+  }
+
+  .df__nui-head .mono {
+    font-size: 0.625rem;
+    color: #a78bfa;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .df__nui-head strong {
+    font-size: var(--fs-md);
+  }
+
+  .df__close {
+    color: #a1a1aa;
+  }
+
+  .df__cars {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .df__cars li {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--space-2) var(--space-3);
+    border-radius: 10px;
+    background: rgb(255 255 255 / 0.05);
+    border: 1px solid transparent;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .df__cars li:hover,
+  .df__cars li:focus-within {
+    border-color: rgb(167 139 250 / 0.5);
+    background: rgb(167 139 250 / 0.08);
+  }
+
+  .df__car-img {
+    font-size: 1.8rem;
+  }
+
+  .df__car-info {
+    display: grid;
+    gap: 0.15rem;
+    font-size: var(--fs-xs);
+  }
+
+  .df__car-info .mono {
+    font-size: 0.625rem;
+    color: #a1a1aa;
+  }
+
+  .df__meters {
+    display: flex;
+    gap: var(--space-3);
+    font-size: 0.625rem;
+  }
+
+  .df__meters span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .df__meters i {
+    display: inline-block;
+    width: 3.2rem;
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #a78bfa var(--v), rgb(255 255 255 / 0.15) var(--v));
+  }
+
+  .df__take {
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    background: #7c3aed;
+    color: #fff;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+  }
+
+  .df__take:hover {
+    background: #8b5cf6;
+  }
+
+  .df__hint {
+    margin-top: var(--space-3);
+    font-size: 0.625rem;
+    color: #71717a;
+  }
+
+  /* HUD */
+  .df__hud {
+    position: absolute;
+    left: 14px;
+    bottom: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    max-width: calc(100% - 28px);
+  }
+
+  .df__stat {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgb(0 0 0 / 0.55);
+  }
+
+  .df__stat svg {
+    position: absolute;
+    inset: 0;
+    transform: rotate(-90deg);
+  }
+
+  .df__stat circle {
+    fill: none;
+    stroke-width: 3;
+  }
+
+  .df__stat .bg {
+    stroke: rgb(255 255 255 / 0.12);
+  }
+
+  .df__stat .fg {
+    stroke: var(--c);
+    stroke-dasharray: 100;
+    stroke-dashoffset: calc(100 - var(--v));
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease;
+  }
+
+  .df__stat b {
+    font-size: 0.9rem;
+  }
+
+  .df__actions {
+    display: flex;
+    gap: 6px;
+    margin-left: 6px;
+  }
+
+  .df__actions button,
+  .df__park {
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    background: rgb(0 0 0 / 0.55);
+    color: #fff;
+    font-size: 0.6875rem;
+    border: 1px solid rgb(255 255 255 / 0.15);
+  }
+
+  .df__actions button:hover,
+  .df__park:hover {
+    border-color: #fbbf24;
+  }
+
+  /* velocímetro */
+  .df__speedo {
+    position: absolute;
+    right: 18px;
+    bottom: 16px;
+    display: grid;
+    justify-items: end;
+    gap: 0.1rem;
+    animation: df-in 0.4s ease;
+  }
+
+  .df__speedo[hidden] {
+    display: none;
+  }
+
+  .df__kmh {
+    font-size: 2.6rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 2px 12px rgb(0 0 0 / 0.6);
+  }
+
+  .df__speedo .mono {
+    font-size: 0.625rem;
+    color: #d4d4d8;
+  }
+
+  .df__park {
+    margin-top: 0.4rem;
+  }
+
+  @media (max-width: 40rem) {
+    .df {
+      height: 520px;
+    }
+
+    .df__speedo {
+      bottom: 90px;
+    }
+  }
+</style>

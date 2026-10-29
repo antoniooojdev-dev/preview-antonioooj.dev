@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postulación Staff | Nyx Community</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../src/assets/home.css">
+    <link rel="stylesheet" href="postulaciones.css">
+    <link rel="stylesheet" href="/src/assets/comun.css">
+</head>
+<body class="pf-minimal">
+
+    <div class="grid-background"></div>
+    <div class="pf-bg" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <div class="app-container">
+        <!-- Menú lateral (lo rellena guards.js; logo, lupa y buscador los pone hx-sidebar.js) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-logo-title">
+                    <img src="https://i.imgur.com/VPqGp7U.png" alt="Nyx Community Logo" class="sidebar-logo">
+                    <span class="server-main-title">Nyx Community</span>
+                </div>
+                <button type="button" class="sidebar-toggle-icon" id="sidebarToggleBtn" title="Colapsar menú"><i class="fa-solid fa-bars"></i></button>
+            </div>
+            <nav class="sidebar-nav"></nav>
+            <div class="sidebar-footer">
+                <div class="user-profile-mini">
+                    <div class="avatar-placeholder" id="userAvatarContainer"><span>?</span></div>
+                    <div class="user-info">
+                        <span class="username" id="userNameDisplay">Usuario</span>
+                        <span class="user-handle" id="userHandleDisplay">@tag</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <button type="button" class="sidebar-reveal-trigger" id="sidebarRevealBtn" title="Abrir menú"><i class="fa-solid fa-chevron-right"></i></button>
+
+        <main class="main-content">
+            <header class="top-action-bar">
+                <nav class="breadcrumb" aria-label="Ruta">
+                    <a href="postulaciones.html">Postulaciones</a><span class="pf-sep">›</span><span class="pf-here">Staff</span>
+                </nav>
+                <div class="top-buttons">
+                    <button type="button" class="top-btn highlight-btn" id="pfSupportBtn" aria-haspopup="true" aria-expanded="false" aria-controls="pfSupportMenu">
+                        <i class="fa-solid fa-circle-question"></i> Soporte <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Menú de Soporte (igual que en home1.html) -->
+            <div class="pf-support-menu" id="pfSupportMenu" role="menu">
+                <div class="pf-support-menu__section">
+                    <div class="pf-support-menu__title">Soporte</div>
+                    <a href="../tickets.html" role="menuitem"><i class="fa-solid fa-ticket"></i> Crear un ticket</a>
+                </div>
+                <div class="pf-support-menu__section">
+                    <div class="pf-support-menu__title">Apoyo</div>
+                    <a href="../sugerencias.html" role="menuitem"><i class="fa-solid fa-lightbulb"></i> Enviar una sugerencia</a>
+                    <a href="../feedback.html" role="menuitem"><i class="fa-solid fa-comment-dots"></i> Dar tu feedback</a>
+                    <a href="../perfil.html" role="menuitem"><i class="fa-solid fa-user"></i> Acceder al perfil</a>
+                    <a href="../index.html" role="menuitem"><i class="fa-solid fa-house-chimney"></i> Acceder al panel principal</a>
+                </div>
+                <div class="pf-support-menu__section">
+                    <div class="pf-support-menu__title">Información</div>
+                    <a href="../normativa.html" role="menuitem"><i class="fa-solid fa-book"></i> Normativa general</a>
+                    <a href="../pol-privacidad.html" role="menuitem"><i class="fa-solid fa-shield-halved"></i> Política de privacidad</a>
+                    <a href="../terminos.html" role="menuitem"><i class="fa-solid fa-file-contract"></i> Términos y condiciones</a>
+                </div>
+            </div>
+
+            <div class="pf-page">
+                <header class="pf-intro">
+                    <span class="pf-eyebrow">Equipo administrativo</span>
+                    <h1>Postulación al Staff</h1>
+                    <p>Si quieres formar parte del equipo que cuida Nyx Community, cuéntanos quién eres y demuéstranos cómo actuarías en situaciones reales.</p>
+                    <p class="pf-intro__meta">4 fases · mayores de 18 años · unos 10 minutos · se guarda solo · <a href="../normativa.html">Leer la normativa</a></p>
+                </header>
+
+                <div class="pf-card pf-card--form">
+                    <form class="pf-wizard" data-tipo="staff" data-max-abiertas="1" data-submit-text="Enviar formulario" data-etapa="Fase" novalidate>
+
+                        <!-- FASE 1 -->
+                        <section class="pf-step" data-title="Sobre ti">
+                            <h2 class="pf-step__title">Sobre ti</h2>
+                            <p class="pf-step__intro">Empecemos por lo básico. Tus datos de Discord se rellenan solos.</p>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-brands fa-discord"></i> Tu cuenta</h3>
+                                <div class="pf-row">
+                                    <div class="pf-field">
+                                        <label for="stDiscord">Usuario de Discord <span class="pf-req">*</span></label>
+                                        <input class="pf-input" id="stDiscord" name="discord" data-autofill="name" required maxlength="64" placeholder="Tu usuario de Discord">
+                                    </div>
+                                    <div class="pf-field">
+                                        <label for="stDiscordId">ID de Discord <span class="pf-req">*</span></label>
+                                        <input class="pf-input" id="stDiscordId" name="discordId" data-autofill="id" required inputmode="numeric" pattern="\d{17,20}" data-pattern-msg="El ID de Discord tiene entre 17 y 20 números." placeholder="Ej. 123456789012345678">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-id-card"></i> Datos personales</h3>
+                                <div class="pf-row">
+                                    <div class="pf-field" data-label="Edad">
+                                        <label for="stEdad">Edad <span class="pf-req">*</span></label>
+                                        <p class="pf-help">Mínimo 18 años para el staff.</p>
+                                        <input class="pf-input" id="stEdad" name="edad" type="number" inputmode="numeric" min="18" max="99" required placeholder="Ej. 21"
+                                               data-min-msg="Para postular al staff tienes que tener al menos 18 años.">
+                                    </div>
+                                    <div class="pf-field" data-label="Perfil de Steam">
+                                        <label for="stSteam">Perfil de Steam <span class="pf-req">*</span></label>
+                                        <p class="pf-help">En Steam: «Copiar URL de la página».</p>
+                                        <input class="pf-input" id="stSteam" name="steam" type="url" required pattern="https?://(www\.)?steamcommunity\.com/(id|profiles)/.+" data-pattern-msg="Tiene que ser tu perfil: https://steamcommunity.com/id/... o /profiles/..." placeholder="https://steamcommunity.com/id/...">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-regular fa-clock"></i> Disponibilidad</h3>
+                                <div class="pf-field" data-group data-required data-label="Horas a la semana para el staff">
+                                    <span class="pf-legend">¿Cuántas horas a la semana podrías dedicar al staff? <span class="pf-req">*</span></span>
+                                    <div class="pf-options">
+                                        <label class="pf-option"><input type="radio" name="horasSemana" value="Menos de 5 horas"><span><i class="fa-solid fa-hourglass-start"></i> Menos de 5 h<small>Algún rato suelto</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="horasSemana" value="Entre 5 y 10 horas"><span><i class="fa-solid fa-hourglass-half"></i> De 5 a 10 h<small>Un par de días por semana</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="horasSemana" value="Entre 10 y 20 horas"><span><i class="fa-solid fa-hourglass-end"></i> De 10 a 20 h<small>Casi todos los días</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="horasSemana" value="Más de 20 horas"><span><i class="fa-solid fa-fire"></i> Más de 20 h<small>Disponibilidad total</small></span></label>
+                                    </div>
+                                </div>
+
+                                <div class="pf-field" data-group data-required data-label="Franjas en las que suele conectarse">
+                                    <span class="pf-legend">¿En qué franjas sueles estar conectado? <span class="pf-req">*</span></span>
+                                    <p class="pf-help">Marca todas las que correspondan.</p>
+                                    <div class="pf-options">
+                                        <label class="pf-option"><input type="checkbox" name="franjas" value="Mañanas (8–14 h)"><span><i class="fa-solid fa-sun"></i> Mañanas<small>8–14 h</small></span></label>
+                                        <label class="pf-option"><input type="checkbox" name="franjas" value="Tardes (14–20 h)"><span><i class="fa-solid fa-cloud-sun"></i> Tardes<small>14–20 h</small></span></label>
+                                        <label class="pf-option"><input type="checkbox" name="franjas" value="Noches (20–00 h)"><span><i class="fa-solid fa-moon"></i> Noches<small>20–00 h</small></span></label>
+                                        <label class="pf-option"><input type="checkbox" name="franjas" value="Madrugadas (00–8 h)"><span><i class="fa-solid fa-star"></i> Madrugadas<small>00–8 h</small></span></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- FASE 2 -->
+                        <section class="pf-step" data-title="Requisitos">
+                            <h2 class="pf-step__title">Requisitos</h2>
+                            <p class="pf-step__intro">Unas preguntas rápidas sobre tu situación en el servidor.</p>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-people-group"></i> Facciones</h3>
+                                <div class="pf-field" data-group data-required data-label="¿Pertenece a alguna facción?">
+                                    <span class="pf-legend">¿Perteneces a alguna facción legal o ilegal, comercio u organización? <span class="pf-req">*</span></span>
+                                    <div class="pf-options">
+                                        <label class="pf-option"><input type="radio" name="enFaccion" value="No"><span><i class="fa-solid fa-user"></i> No, a ninguna</span></label>
+                                        <label class="pf-option"><input type="radio" name="enFaccion" value="Sí"><span><i class="fa-solid fa-people-group"></i> Sí</span></label>
+                                    </div>
+                                </div>
+
+                                <div class="pf-field" data-show-if="enFaccion:Sí">
+                                    <label for="stFaccion">¿A cuál perteneces y con qué rol? <span class="pf-req">*</span></label>
+                                    <input class="pf-input" id="stFaccion" name="faccion" required maxlength="200" placeholder="Ej. EMS, como paramédico">
+                                </div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-gavel"></i> Sanciones</h3>
+                                <div class="pf-field" data-group data-required data-label="¿Tiene sanciones activas?">
+                                    <span class="pf-legend">¿Tienes alguna sanción activa en el servidor? <span class="pf-req">*</span></span>
+                                    <div class="pf-options">
+                                        <label class="pf-option"><input type="radio" name="sancionActiva" value="No"><span><i class="fa-solid fa-shield"></i> No</span></label>
+                                        <label class="pf-option"><input type="radio" name="sancionActiva" value="Sí"><span><i class="fa-solid fa-gavel"></i> Sí</span></label>
+                                    </div>
+                                </div>
+
+                                <div class="pf-field" data-show-if="sancionActiva:Sí">
+                                    <label for="stSancion">¿Qué sanción y por qué motivo? <span class="pf-req">*</span></label>
+                                    <textarea class="pf-input" id="stSancion" name="detalleSancion" required minlength="20" maxlength="800"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-city"></i> Tu tiempo en Nyx Community</h3>
+                                <div class="pf-field" data-group data-required data-label="Tiempo jugando en Nyx Community">
+                                    <span class="pf-legend">¿Cuánto tiempo llevas jugando en Nyx Community? <span class="pf-req">*</span></span>
+                                    <div class="pf-options">
+                                        <label class="pf-option"><input type="radio" name="tiempoEnServidor" value="Acabo de llegar"><span><i class="fa-solid fa-seedling"></i> Acabo de llegar<small>Mis primeros días</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="tiempoEnServidor" value="Menos de 1 mes"><span><i class="fa-regular fa-calendar"></i> Menos de 1 mes<small>Aún conociendo la ciudad</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="tiempoEnServidor" value="Entre 1 y 3 meses"><span><i class="fa-regular fa-calendar-days"></i> De 1 a 3 meses<small>Ya me muevo bien</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="tiempoEnServidor" value="Entre 3 y 6 meses"><span><i class="fa-solid fa-calendar-check"></i> De 3 a 6 meses<small>Conozco a mucha gente</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="tiempoEnServidor" value="Más de 6 meses"><span><i class="fa-solid fa-crown"></i> Más de 6 meses<small>Veterano de la ciudad</small></span></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- FASE 3: situaciones tipo test (se pueden marcar varias opciones) -->
+                        <section class="pf-step" data-title="Situaciones">
+                            <h2 class="pf-step__title">¿Cómo actuarías?</h2>
+                            <p class="pf-step__intro">Cinco situaciones que pueden pasarte como staff. En cada una, marca todas las opciones que harías tú. Puede haber más de una correcta.</p>
+
+                            <!-- 1 -->
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-ticket"></i> Situación 1 · Ticket</h3>
+                                <div class="pf-field" data-group data-required data-label="Situación 1 · Jugador enfadado en un ticket">
+                                    <p class="pf-scenario">Un jugador abre un ticket muy enfadado y te falta al respeto porque cree que lo han sancionado injustamente. ¿Qué harías?</p>
+                                    <p class="pf-test-hint"><i class="fa-solid fa-list-check"></i> Puedes marcar varias</p>
+                                    <div class="pf-options is-test">
+                                        <label class="pf-option"><input type="checkbox" name="situacion1" value="A · Mantener la calma y pedirle con educación que explique lo ocurrido"><span><i>A</i> Mantener la calma y pedirle con educación que explique lo ocurrido.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion1" value="B · Revisar las pruebas antes de responderle"><span><i>B</i> Revisar las pruebas (clips, registros) antes de responderle.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion1" value="C · Sancionarle directamente por la falta de respeto"><span><i>C</i> Sancionarle directamente por la falta de respeto.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion1" value="D · Cerrar el ticket sin contestar"><span><i>D</i> Cerrar el ticket sin contestar.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion1" value="E · Pasárselo a un superior si la situación me supera"><span><i>E</i> Pasárselo a un superior si la situación me supera.</span></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2 -->
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-user-group"></i> Situación 2 · Imparcialidad</h3>
+                                <div class="pf-field" data-group data-required data-label="Situación 2 · Un amigo hace metagaming">
+                                    <p class="pf-scenario">Ves a un amigo tuyo haciendo metagaming en mitad de un rol. ¿Qué harías?</p>
+                                    <p class="pf-test-hint"><i class="fa-solid fa-list-check"></i> Puedes marcar varias</p>
+                                    <div class="pf-options is-test">
+                                        <label class="pf-option"><input type="checkbox" name="situacion2" value="A · Actuar igual que con cualquier otro jugador"><span><i>A</i> Actuar igual que con cualquier otro jugador y aplicar la normativa.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion2" value="B · Avisarle solo por privado, sin más"><span><i>B</i> Avisarle solo por privado para que no vuelva a pasar, sin más.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion2" value="C · Pedir a otro miembro del staff que lleve el caso"><span><i>C</i> Pedir a otro miembro del staff que lleve el caso para ser imparcial.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion2" value="D · Ignorarlo porque es mi amigo"><span><i>D</i> Ignorarlo porque es mi amigo.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion2" value="E · Recoger pruebas antes de actuar"><span><i>E</i> Recoger pruebas antes de actuar.</span></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3 -->
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-plug-circle-xmark"></i> Situación 3 · Desconexión</h3>
+                                <div class="pf-field" data-group data-required data-label="Situación 3 · Se desconecta para evitar una detención">
+                                    <p class="pf-scenario">En mitad de un tiroteo, un jugador se desconecta del servidor para evitar que lo detengan. ¿Qué harías?</p>
+                                    <p class="pf-test-hint"><i class="fa-solid fa-list-check"></i> Puedes marcar varias</p>
+                                    <div class="pf-options is-test">
+                                        <label class="pf-option"><input type="checkbox" name="situacion3" value="A · Revisar los registros de conexión y la hora exacta"><span><i>A</i> Revisar los registros de conexión y la hora exacta.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion3" value="B · Pedir clips a los implicados"><span><i>B</i> Pedir clips a los implicados.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion3" value="C · Banearlo permanentemente sin escucharle"><span><i>C</i> Banearlo permanentemente sin escucharle.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion3" value="D · Contactar con él para escuchar su versión"><span><i>D</i> Contactar con él para escuchar su versión.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion3" value="E · Aplicar la sanción de la normativa si se confirma"><span><i>E</i> Aplicar la sanción que marque la normativa si se confirma.</span></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4 -->
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-comments"></i> Situación 4 · Conflicto en un rol</h3>
+                                <div class="pf-field" data-group data-required data-label="Situación 4 · Dos jugadores discuten en un rol">
+                                    <p class="pf-scenario">Dos jugadores discuten en mitad de un rol y los dos te escriben a la vez pidiéndote que entres a solucionarlo. ¿Qué harías?</p>
+                                    <p class="pf-test-hint"><i class="fa-solid fa-list-check"></i> Puedes marcar varias</p>
+                                    <div class="pf-options is-test">
+                                        <label class="pf-option"><input type="checkbox" name="situacion4" value="A · Entrar en la escena e interrumpir el rol de todos"><span><i>A</i> Entrar en la escena e interrumpir el rol de todos.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion4" value="B · Pedir que sigan el rol y gestionarlo por ticket después"><span><i>B</i> Pedirles que sigan el rol y gestionar el reporte por ticket después.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion4" value="C · Escuchar a las dos partes por separado"><span><i>C</i> Escuchar a las dos partes por separado.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion4" value="D · Dar la razón al primero que me escribió"><span><i>D</i> Dar la razón al primero que me escribió.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion4" value="E · Revisar las pruebas antes de decidir"><span><i>E</i> Revisar las pruebas antes de decidir.</span></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 5 -->
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-hand-holding-heart"></i> Situación 5 · Jugador nuevo</h3>
+                                <div class="pf-field" data-group data-required data-label="Situación 5 · Un jugador nuevo pide ayuda">
+                                    <p class="pf-scenario">Un jugador nuevo no sabe cómo funciona el servidor y te pide ayuda mientras estás de servicio. ¿Qué harías?</p>
+                                    <p class="pf-test-hint"><i class="fa-solid fa-list-check"></i> Puedes marcar varias</p>
+                                    <div class="pf-options is-test">
+                                        <label class="pf-option"><input type="checkbox" name="situacion5" value="A · Explicarle lo básico con paciencia y pasarle la normativa"><span><i>A</i> Explicarle lo básico con paciencia y pasarle la normativa.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion5" value="B · Decirle que lo busque él solo"><span><i>B</i> Decirle que lo busque él solo.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion5" value="C · Indicarle cómo abrir un ticket para dudas concretas"><span><i>C</i> Indicarle cómo abrir un ticket si tiene dudas concretas.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion5" value="D · Darle ventajas en el juego para que empiece mejor"><span><i>D</i> Darle ventajas en el juego para que empiece mejor.</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="situacion5" value="E · Indicarle dónde preguntar sus dudas en el Discord"><span><i>E</i> Indicarle dónde preguntar sus dudas en el Discord.</span></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- FASE 4 -->
+                        <section class="pf-step" data-title="Revisión" data-review>
+                            <h2 class="pf-step__title">Revisa y envía</h2>
+                            <p class="pf-step__intro">Comprueba tus respuestas. Puedes volver a cualquier fase con «Editar».</p>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-list-check"></i> Tus respuestas</h3>
+                                <div class="pf-review"></div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-handshake"></i> Compromisos</h3>
+                                <div class="pf-field" data-label="Ha leído la normativa del servidor">
+                                    <label class="pf-check"><input type="checkbox" name="aceptaNormativa" value="Sí" required> <span>He leído y conozco la <a href="../normativa.html" target="_blank" rel="noopener">normativa del servidor</a>.</span></label>
+                                </div>
+                                <div class="pf-field" data-label="Actuará con imparcialidad">
+                                    <label class="pf-check"><input type="checkbox" name="aceptaImparcialidad" value="Sí" required> <span>Si me aceptan, actuaré con imparcialidad y respeto hacia todos los jugadores, sin excepciones.</span></label>
+                                </div>
+                                <div class="pf-field" data-label="Tiene los MD de Discord abiertos">
+                                    <label class="pf-check"><input type="checkbox" name="mdAbiertos" value="Sí" required> <span>Tengo los mensajes privados de Discord abiertos para recibir la respuesta.</span></label>
+                                </div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-circle-check"></i> Confirmación</h3>
+                                <div class="pf-field pf-confirm" data-label="Confirma que está de acuerdo con la información adjuntada">
+                                    <label class="pf-check">
+                                        <input type="checkbox" name="confirmaInformacion" value="Sí" required data-unlocks-submit>
+                                        <span>Confirmo que estoy de acuerdo con la información adjuntada.</span>
+                                    </label>
+                                    <p class="pf-confirm__hint"><i class="fa-solid fa-lock"></i>
+                                        <span class="is-off">Marca la casilla para desbloquear el botón de enviar.</span>
+                                        <span class="is-on">Listo: ya puedes enviar el formulario.</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+                    </form>
+                </div>
+
+                <!-- Tus postulaciones: debajo del formulario, sin tarjeta -->
+                <section class="pf-mine-section" aria-labelledby="pfMineTitle">
+                    <h2 id="pfMineTitle">Tus postulaciones</h2>
+                    <p>Cuando el staff responda te avisaremos por mensaje privado de Discord. Pulsa una para ver tus respuestas.</p>
+                    <div class="pf-mine" id="pfMine"><div class="pf-empty">Cargando...</div></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Usuario del pie del menú lateral y botones para ocultar / mostrar el menú
+        (function () {
+            let u = {};
+            try { u = JSON.parse(localStorage.getItem('discord_user') || '{}') || {}; } catch (e) {}
+            const nombre = document.getElementById('userNameDisplay');
+            const handle = document.getElementById('userHandleDisplay');
+            const avatar = document.getElementById('userAvatarContainer');
+            if (nombre) nombre.textContent = u.displayName || u.username || 'Usuario';
+            if (handle) handle.textContent = '@' + (u.username || 'discord');
+            if (avatar && u.avatarUrl) {
+                const img = document.createElement('img');
+                img.src = u.avatarUrl;
+                img.alt = 'Avatar';
+                img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+                avatar.replaceChildren(img);
+            }
+            const sidebar = document.getElementById('sidebar');
+            document.getElementById('sidebarToggleBtn').addEventListener('click', () => sidebar.classList.add('collapsed'));
+            document.getElementById('sidebarRevealBtn').addEventListener('click', () => sidebar.classList.remove('collapsed'));
+        })();
+    </script>
+    <script src="postulaciones.js"></script>
+    <script src="../guards.js"></script>
+    <!-- Menú lateral común: logo, lupa y buscador de páginas por categorías -->
+    <script src="../src/components/hx-sidebar.js"></script>
+</body>
+</html>

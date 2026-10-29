@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta name="robots" content="noindex">
+    <meta charset="UTF-8">
+    <title>my_dealership</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Mrs+Saint+Delafield&family=Caveat:wght@500;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../fa/css/fontawesome.min.css">
+    <link rel="stylesheet" href="../fa/css/solid.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../scene-common.css">
+    <link rel="stylesheet" href="scene.css">
+</head>
+<body>
+    <div id="scene"></div>
+    <!-- Aviso de arriba -->
+    <div id="prompt" class="hidden">
+        <span class="prompt-icon"><i class="fa-solid fa-comment-dots"></i></span>
+        <span class="prompt-text">Pulsa <span class="prompt-key">E</span> para hablar con <b id="prompt-label">Marcos</b></span>
+    </div>
+
+    <div id="notifs"></div>
+    <div id="toast-wrap"></div>
+
+    <!-- Conversación con el vendedor -->
+    <section id="chat" class="hidden">
+        <div class="chat-card">
+            <header class="chat-head">
+                <span class="avatar" id="npc-initial">M</span>
+                <div>
+                    <b id="npc-name">Marcos</b>
+                    <small id="npc-role">Asesor de ventas</small>
+                </div>
+                <span class="shop-tag" id="shop-name">Premium Deluxe Motorsport</span>
+            </header>
+            <div class="chat-body">
+                <p id="npc-text"></p>
+                <div id="advice" class="advice"></div>
+            </div>
+            <div id="options" class="options"></div>
+        </div>
+    </section>
+
+    <!-- Catálogo -->
+    <section id="catalog" class="hidden">
+        <aside class="panel left">
+            <header class="cat-head">
+                <span class="kicker" id="cat-shop">Premium Deluxe Motorsport</span>
+                <div class="cat-title">
+                    <h1>Catálogo</h1>
+                    <span id="count">0</span>
+                </div>
+            </header>
+
+            <label class="search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="search" type="text" placeholder="Buscar modelo o marca" spellcheck="false" autocomplete="off">
+            </label>
+
+            <div class="cat-nav hidden" id="cat-nav">
+                <button id="cat-back" title="Volver a categorías"><i class="fa-solid fa-arrow-left"></i></button>
+                <span class="cat-nav-text">
+                    <small>Categoría</small>
+                    <b id="cat-name">—</b>
+                </span>
+            </div>
+
+            <div class="sort hidden" id="sort-wrap">
+                <span>Ordenar</span>
+                <select id="sort">
+                    <option value="price-asc">Precio: menor a mayor</option>
+                    <option value="price-desc">Precio: mayor a menor</option>
+                    <option value="speed">Velocidad</option>
+                    <option value="accel">Aceleración</option>
+                    <option value="handling">Manejo</option>
+                    <option value="braking">Frenada</option>
+                    <option value="name">Nombre</option>
+                </select>
+            </div>
+
+            <div class="list" id="list"></div>
+        </aside>
+
+        <aside class="panel right hidden" id="detail">
+            <div class="d-top">
+                <span class="kicker" id="d-make">—</span>
+                <h2 id="d-name">—</h2>
+                <div class="d-meta">
+                    <span class="pill" id="d-cat">—</span>
+                    <span class="pill ghost"><i class="fa-solid fa-user"></i> <span id="d-seats">0</span> plazas</span>
+                </div>
+            </div>
+
+            <div class="d-price">
+                <small>Precio</small>
+                <b id="d-price">$0</b>
+            </div>
+
+            <div class="stats" id="stats"></div>
+
+            <div class="tip" id="d-tip">
+                <i class="fa-solid fa-quote-left"></i>
+                <p id="d-tip-text"></p>
+            </div>
+
+            <div class="block">
+                <span class="label">Color <b id="color-name"></b></span>
+                <div class="swatches" id="swatches"></div>
+            </div>
+
+            <button id="buy" class="primary">
+                <span class="buy-fill"></span>
+                <span id="buy-text">Comprar</span>
+            </button>
+            <button id="back" class="ghost-btn"><i class="fa-solid fa-comment-dots"></i> Hablar con <span id="back-name">Marcos</span></button>
+        </aside>
+
+        <div id="drag-zone"></div>
+
+        <div id="loading" class="hidden"><span class="spinner"></span> Trayendo el vehículo…</div>
+
+        <div class="hints">
+            <span><kbd>A</kbd><kbd>D</kbd> o arrastra para girar</span>
+            <span><kbd><i class="fa-solid fa-computer-mouse"></i></kbd> rueda para acercar</span>
+            <span><kbd>ESC</kbd> salir</span>
+        </div>
+    </section>
+
+    <!-- Contrato de compraventa -->
+    <section id="doc" class="hidden">
+        <div class="doc-shown hidden" id="doc-shown"><i class="fa-solid fa-hand-holding"></i> <span></span></div>
+        <div class="doc-scroll" id="doc-scroll">
+            <article class="paper" id="paper"></article>
+        </div>
+        <div class="doc-bar">
+            <div class="doc-pager hidden" id="doc-pager">
+                <button id="doc-prev"><i class="fa-solid fa-chevron-left"></i></button>
+                <span id="doc-page">1 / 1</span>
+                <button id="doc-next"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <button class="doc-btn" id="doc-show"><i class="fa-solid fa-hand-holding"></i> Enseñar al más cercano</button>
+            <button class="doc-btn ghost" id="doc-close"><kbd>ESC</kbd> Guardar</button>
+        </div>
+    </section>
+
+    <script src="../bridge.js"></script>
+    <script src="script.js"></script>
+    <script src="../scene-common.js"></script>
+    <script src="scene.js"></script>
+</body>
+</html>

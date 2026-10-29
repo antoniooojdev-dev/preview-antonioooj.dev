@@ -1,0 +1,23 @@
+// Datos de ejemplo. En producción vendrían de una API o de un CRM inmobiliario.
+window.AGENCIA = {
+  nombre: "Habita Inmobiliaria",
+  email: "info@habita.test",
+  telefono: "+34 910 000 000",
+};
+
+window.PROPIEDADES = [
+  { id: 101, op: "venta", tipo: "piso", titulo: "Piso luminoso junto al Retiro", ciudad: "Madrid", barrio: "Retiro", precio: 465000, m2: 98, hab: 3, banos: 2, planta: 4, extras: ["ascensor", "terraza"], publicado: "2026-09-28", desc: "Exterior a dos calles, reformado en 2023. Cocina abierta, suelos de roble y carpintería con rotura de puente térmico." },
+  { id: 102, op: "venta", tipo: "atico", titulo: "Ático con terraza de 40 m²", ciudad: "Madrid", barrio: "Chamberí", precio: 720000, m2: 110, hab: 3, banos: 2, planta: 7, extras: ["ascensor", "terraza", "garaje"], publicado: "2026-10-01", desc: "Vistas despejadas, terraza en L y plaza de garaje incluida. Edificio con conserje." },
+  { id: 103, op: "alquiler", tipo: "estudio", titulo: "Estudio reformado en Malasaña", ciudad: "Madrid", barrio: "Malasaña", precio: 950, m2: 38, hab: 1, banos: 1, planta: 2, extras: ["mascotas"], publicado: "2026-10-03", desc: "Amueblado y equipado. Ideal para una persona. Gastos de comunidad incluidos." },
+  { id: 104, op: "alquiler", tipo: "piso", titulo: "Piso familiar con piscina", ciudad: "Madrid", barrio: "Las Tablas", precio: 1650, m2: 105, hab: 3, banos: 2, planta: 1, extras: ["ascensor", "garaje", "piscina", "terraza"], publicado: "2026-09-20", desc: "Urbanización cerrada con zonas verdes, piscina y pádel. Cerca de colegios y metro." },
+  { id: 201, op: "venta", tipo: "piso", titulo: "Piso modernista en el Eixample", ciudad: "Barcelona", barrio: "Eixample", precio: 545000, m2: 112, hab: 4, banos: 2, planta: 3, extras: ["ascensor"], publicado: "2026-09-15", desc: "Techos altos con molduras, suelos hidráulicos originales y balcones a la calle." },
+  { id: 202, op: "alquiler", tipo: "atico", titulo: "Ático con vistas al mar", ciudad: "Barcelona", barrio: "Poblenou", precio: 2100, m2: 85, hab: 2, banos: 2, planta: 8, extras: ["ascensor", "terraza", "mascotas"], publicado: "2026-10-04", desc: "Terraza de 25 m² con vistas al mar, a cinco minutos de la playa del Bogatell." },
+  { id: 203, op: "venta", tipo: "estudio", titulo: "Estudio para inversión en Gràcia", ciudad: "Barcelona", barrio: "Gràcia", precio: 189000, m2: 34, hab: 1, banos: 1, planta: 1, extras: [], publicado: "2026-08-30", desc: "Alquilado actualmente con buena rentabilidad. Ideal para inversores." },
+  { id: 301, op: "venta", tipo: "casa", titulo: "Casa con jardín en Godella", ciudad: "Valencia", barrio: "Godella", precio: 398000, m2: 180, hab: 4, banos: 3, planta: 0, extras: ["garaje", "piscina", "terraza", "mascotas"], publicado: "2026-09-25", desc: "Parcela de 450 m² con piscina, barbacoa y garaje para dos coches. A 15 minutos del centro." },
+  { id: 302, op: "alquiler", tipo: "piso", titulo: "Piso junto a la Ciudad de las Artes", ciudad: "Valencia", barrio: "Quatre Carreres", precio: 1150, m2: 90, hab: 3, banos: 2, planta: 5, extras: ["ascensor", "piscina", "garaje"], publicado: "2026-10-02", desc: "Finca con piscina comunitaria y parking. Totalmente amueblado." },
+  { id: 303, op: "venta", tipo: "piso", titulo: "Piso para reformar en Russafa", ciudad: "Valencia", barrio: "Russafa", precio: 210000, m2: 85, hab: 3, banos: 1, planta: 2, extras: [], publicado: "2026-09-10", desc: "Gran potencial en el barrio más demandado. Estructura en buen estado." },
+  { id: 401, op: "venta", tipo: "casa", titulo: "Casa andaluza en Triana", ciudad: "Sevilla", barrio: "Triana", precio: 335000, m2: 140, hab: 4, banos: 2, planta: 0, extras: ["terraza", "mascotas"], publicado: "2026-09-18", desc: "Patio interior con azulejos originales y azotea transitable." },
+  { id: 402, op: "alquiler", tipo: "piso", titulo: "Piso céntrico junto a la Alameda", ciudad: "Sevilla", barrio: "Alameda", precio: 890, m2: 72, hab: 2, banos: 1, planta: 3, extras: ["ascensor"], publicado: "2026-10-05", desc: "Reformado, con aire acondicionado por conductos. Muy luminoso." },
+  { id: 501, op: "venta", tipo: "atico", titulo: "Ático dúplex en Abando", ciudad: "Bilbao", barrio: "Abando", precio: 610000, m2: 125, hab: 3, banos: 2, planta: 6, extras: ["ascensor", "terraza", "garaje"], publicado: "2026-09-22", desc: "Dúplex con terraza y vistas a la ría. Calidades de lujo." },
+  { id: 502, op: "alquiler", tipo: "estudio", titulo: "Loft en Bilbao La Vieja", ciudad: "Bilbao", barrio: "Bilbao La Vieja", precio: 780, m2: 45, hab: 1, banos: 1, planta: 1, extras: ["mascotas"], publicado: "2026-09-29", desc: "Loft industrial con techos de 4 metros y mucho carácter." },
+];

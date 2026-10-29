@@ -1,0 +1,760 @@
+@import "./reset.css";
+@import "./tokens.css";
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-h) + var(--space-4));
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  font-stretch: 100%;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* mientras se traduce la página (ver BaseLayout y scripts/i18n.ts) */
+html.i18n-wait body {
+  opacity: 0;
+}
+
+::selection {
+  background: var(--signal);
+  color: var(--signal-ink);
+}
+
+/* titulares de cartel: Archivo ensanchado y apretado */
+.display {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 0.92;
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+code,
+kbd,
+pre,
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* ── layout ───────────────────────────────── */
+
+.container {
+  width: min(100% - 2 * var(--gutter), var(--container));
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: var(--space-8);
+}
+
+/* Cabecera de sección: etiqueta en píldora, título y texto a la derecha */
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-4) var(--space-7);
+  margin-bottom: var(--space-5);
+}
+
+.section-head .eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: var(--space-3);
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+
+.section-head h2 {
+  font-size: clamp(1.9rem, 1.4rem + 1.8vw, 3rem);
+  font-weight: 750;
+  font-stretch: 108%;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.section-head p {
+  max-width: 28rem;
+  color: var(--fg-muted);
+  line-height: 1.5;
+}
+
+/* ── bento: rejilla de tarjetas ───────────── */
+
+.bento {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(11rem, auto);
+  gap: var(--space-3);
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-5);
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tile);
+  overflow: hidden;
+  transition:
+    border-color 0.25s ease,
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+a.tile:hover,
+.tile.is-link:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-3px);
+}
+
+/* tarjeta en negativo (negra en claro, blanca en oscuro) */
+.tile--neg {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg);
+  --fg-muted: color-mix(in srgb, var(--bg) 65%, var(--fg));
+  --fg-subtle: color-mix(in srgb, var(--bg) 45%, var(--fg));
+}
+
+.tile__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--fg-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tile__corner {
+  position: absolute;
+  top: var(--space-5);
+  right: var(--space-5);
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  font-size: var(--fs-sm);
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+a.tile:hover .tile__corner,
+.tile.is-link:hover .tile__corner {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg-elev);
+  transform: rotate(-45deg);
+}
+
+.tile--neg .tile__corner {
+  border-color: color-mix(in srgb, var(--bg) 35%, transparent);
+}
+
+a.tile--neg:hover .tile__corner {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+@media (max-width: 64rem) {
+  .bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 36rem) {
+  .bento {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+  }
+
+  .bento > * {
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+}
+
+/* ── botones ──────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.85rem 1.35rem;
+  border-radius: var(--radius-sm);
+  border: var(--rule) solid var(--fg);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 650;
+  white-space: nowrap;
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+
+.btn-primary:hover {
+  background: transparent;
+  border-color: var(--fg);
+  color: var(--fg);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--fg);
+  border-color: var(--border-strong);
+}
+
+.btn-ghost:hover {
+  border-color: var(--fg);
+}
+
+.btn .arrow {
+  transition: transform var(--dur) var(--ease);
+}
+
+.btn:hover .arrow {
+  transform: translateX(3px);
+}
+
+/* ── piezas comunes ───────────────────────── */
+
+.tag {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+}
+
+.card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition:
+    border-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.card:hover {
+  border-color: var(--border-strong);
+}
+
+.link {
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--dur) var(--ease);
+}
+
+.link:hover {
+  text-decoration-color: var(--fg);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 60%, transparent);
+  animation: pulse 2s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  70% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* el logo es negro sobre blanco: se adapta al tema sin necesitar dos archivos */
+.logo-img {
+  mix-blend-mode: multiply;
+}
+
+:root[data-theme="dark"] .logo-img {
+  filter: invert(1);
+  mix-blend-mode: screen;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .logo-img {
+    filter: invert(1);
+    mix-blend-mode: screen;
+  }
+}
+
+/* sobre una banda siempre oscura (.ink, p. ej. la cabecera) el logo va siempre en blanco */
+.ink .logo-img {
+  filter: invert(1);
+  mix-blend-mode: screen;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: -100px;
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  background: var(--fg);
+  color: var(--bg);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+}
+
+.skip-link:focus {
+  top: var(--space-4);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── filtros con píldora deslizante (scripts/pildora.ts) ── */
+.pildora {
+  position: relative;
+  isolation: isolate;
+}
+
+.pildora__marca {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  border-radius: var(--pildora-radio, 999px);
+  background: var(--pildora-bg, var(--bg-elev));
+  box-shadow: var(--pildora-sombra, 0 2px 8px -3px rgb(0 0 0 / 0.3));
+  pointer-events: none;
+  transition:
+    transform 0.45s cubic-bezier(0.3, 1.25, 0.5, 1),
+    width 0.45s cubic-bezier(0.3, 1.25, 0.5, 1),
+    height 0.3s ease;
+}
+
+.pildora__marca.sin-anim {
+  transition: none;
+}
+
+/* el botón activo ya no pinta su fondo: lo pone la píldora */
+.pildora > button {
+  position: relative;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+@keyframes pildora-salto {
+  40% {
+    scale: 1.08 0.9;
+  }
+}
+
+.pildora__marca.is-salto {
+  animation: pildora-salto 0.45s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pildora__marca {
+    transition-duration: 0.01s;
+  }
+
+  .pildora__marca.is-salto {
+    animation: none;
+  }
+}
+
+/* ── transiciones entre páginas (View Transitions) ─
+   En navegadores compatibles, al ir de la portada a /servicios/<id> el icono y el
+   título del servicio viajan hasta su sitio (view-transition-name svc-ico-<id> y
+   svc-title-<id>) y el resto de la página entra con un fundido. Sin soporte, no
+   pasa nada y cada página usa su propia animación de entrada. */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: vt-out 0.3s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+::view-transition-new(root) {
+  animation: vt-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+::view-transition-group(*) {
+  animation-duration: 0.55s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
+/* ── cambio de tema (scripts/theme.ts) ─
+   El tema nuevo entra como un círculo que crece desde el botón; la página vieja se queda
+   quieta debajo. Mientras dura, nada más tiene nombre propio (la cabecera y los iconos de
+   servicio dejarían «agujeros» con el tema viejo). */
+.tema-cambio,
+.tema-cambio * {
+  view-transition-name: none !important;
+}
+
+.tema-cambio {
+  view-transition-name: root !important;
+}
+
+.tema-cambio::view-transition-old(root) {
+  animation: none;
+}
+
+.tema-cambio::view-transition-new(root) {
+  animation: tema-circulo 0.75s cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+
+@keyframes tema-circulo {
+  from {
+    clip-path: circle(0 at var(--tema-x, 50%) var(--tema-y, 0));
+  }
+  to {
+    clip-path: circle(var(--tema-r, 150vmax) at var(--tema-x, 50%) var(--tema-y, 0));
+  }
+}
+
+/* ── cortina del cambio de idioma (scripts/cortina-idioma.ts) ─
+   La misma pantalla que la entrada de la portada: fondo negro, logo y una línea que se llena.
+   Entra con un fundido, la línea se llena mientras cambia el idioma por debajo y al salir el
+   logo crece y se desvanece. Durante el fundido de salida ya deja pasar los clics. */
+.cortina-idioma {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  background: radial-gradient(ellipse at center, #141414 0%, #0a0a0a 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.cortina-idioma.is-dentro {
+  opacity: 1;
+}
+
+/* la que tapa la página al llegar desde otra con cortina (BaseLayout): ya está puesta y con
+   la línea llena, y solo se ve si la página llegó así (html.llega-cortina) */
+.cortina-llegada {
+  display: none;
+}
+
+:root.llega-cortina .cortina-llegada {
+  display: flex;
+}
+
+:root.llega-cortina .cortina-llegada .cortina-idioma__barra i {
+  transition: none;
+}
+
+.cortina-idioma.is-fuera {
+  opacity: 0;
+  pointer-events: none;
+  transition-duration: 0.7s;
+}
+
+.cortina-idioma__logo {
+  width: min(240px, 60vw);
+  aspect-ratio: 895 / 879;
+  background: #f2f2f2;
+  -webkit-mask: var(--logo) center / contain no-repeat;
+  mask: var(--logo) center / contain no-repeat;
+  transform: scale(0.92);
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cortina-idioma.is-dentro .cortina-idioma__logo {
+  transform: none;
+}
+
+.cortina-idioma.is-fuera .cortina-idioma__logo {
+  transform: scale(1.15);
+}
+
+.cortina-idioma__barra {
+  width: 200px;
+  height: 2px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: #262626;
+}
+
+.cortina-idioma__barra i {
+  display: block;
+  height: 100%;
+  background: #f2f2f2;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.75s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.cortina-idioma.is-cargando .cortina-idioma__barra i {
+  transform: scaleX(1);
+}
+
+/* sin View Transitions: fundido de colores */
+.tema-fundido,
+.tema-fundido *,
+.tema-fundido *::before,
+.tema-fundido *::after {
+  transition:
+    background-color 0.5s ease,
+    color 0.5s ease,
+    border-color 0.5s ease,
+    fill 0.5s ease,
+    stroke 0.5s ease !important;
+}
+
+/* ── animación de entrada (scripts/reveal.ts) ─ */
+
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 600ms var(--ease),
+    transform 600ms var(--ease);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+
+.js [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* las tarjetas entran con más presencia: suben, crecen y se enfocan, una detrás de otra */
+@media (prefers-reduced-motion: no-preference) {
+  .js .tile[data-reveal] {
+    opacity: 0;
+    transform: translateY(36px) scale(0.94);
+    filter: blur(10px);
+    transition:
+      opacity 0.8s ease,
+      transform 1s cubic-bezier(0.16, 1, 0.3, 1),
+      filter 0.8s ease,
+      border-color 0.25s ease;
+    transition-delay: calc(var(--i, 0) * 85ms);
+  }
+
+  .js .tile[data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  /* una vez dentro, el hover vuelve a ser inmediato */
+  .js a.tile[data-reveal].is-visible:hover,
+  .js .tile.is-link[data-reveal].is-visible:hover {
+    transform: translateY(-4px);
+    transition-delay: 0s;
+  }
+}
+
+/* ── barra de desplazamiento ────────────────
+   La de la página: una píldora fina que flota sobre un carril apenas marcado, y engorda
+   al pasar el ratón (el borde transparente se estrecha, así que crece sin mover nada).
+   La de las cajas con scroll (chat, código, listas) es aún más fina.
+   Firefox va aparte: Chrome ignora ::-webkit-scrollbar si se pone scrollbar-color. */
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--fg) 40%, transparent) transparent;
+  }
+
+  * {
+    scrollbar-width: thin;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+/* carril: una línea de pelo en el centro, para que se intuya el recorrido */
+::-webkit-scrollbar-track {
+  background: linear-gradient(
+      to right,
+      transparent calc(50% - 0.5px),
+      color-mix(in srgb, var(--fg) 8%, transparent) calc(50% - 0.5px) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    )
+    no-repeat;
+}
+
+::-webkit-scrollbar-track:horizontal {
+  background: linear-gradient(
+      to bottom,
+      transparent calc(50% - 0.5px),
+      color-mix(in srgb, var(--fg) 8%, transparent) calc(50% - 0.5px) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    )
+    no-repeat;
+}
+
+::-webkit-scrollbar-thumb {
+  min-height: 48px;
+  border: 4.5px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--fg) 32%, transparent) padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  border-width: 3px;
+  background: color-mix(in srgb, var(--fg) 60%, transparent) padding-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  border-width: 3px;
+  background: var(--fg) padding-box;
+}
+
+::-webkit-scrollbar-corner,
+::-webkit-scrollbar-button {
+  display: none;
+  background: transparent;
+}
+
+/* cajas con scroll dentro de la página */
+body *::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+body *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body *::-webkit-scrollbar-thumb {
+  min-height: 32px;
+  border-width: 3px;
+}
+
+body *::-webkit-scrollbar-thumb:hover,
+body *::-webkit-scrollbar-thumb:active {
+  border-width: 2px;
+}
+
+/* ── páginas de texto (legal, etc.) ───────── */
+
+.prose {
+  max-width: 44rem;
+  color: var(--fg-muted);
+}
+
+.prose h1 {
+  font-size: var(--fs-xl);
+  color: var(--fg);
+  letter-spacing: -0.03em;
+  margin-bottom: var(--space-6);
+}
+
+.prose h2 {
+  font-size: var(--fs-lg);
+  color: var(--fg);
+  margin-top: var(--space-7);
+  margin-bottom: var(--space-3);
+}
+
+.prose p,
+.prose ul {
+  margin-bottom: var(--space-4);
+}
+
+.prose ul {
+  padding-left: var(--space-5);
+}
+
+.prose li + li {
+  margin-top: var(--space-2);
+}
+
+.prose a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.prose strong {
+  color: var(--fg);
+}

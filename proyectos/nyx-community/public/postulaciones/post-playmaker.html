@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postulación Playmaker | Nyx Community</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../src/assets/home.css">
+    <link rel="stylesheet" href="postulaciones.css">
+    <link rel="stylesheet" href="/src/assets/comun.css">
+</head>
+<body class="pf-minimal">
+
+    <div class="grid-background"></div>
+    <div class="pf-bg" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <div class="app-container">
+        <!-- Menú lateral (lo rellena guards.js; logo, lupa y buscador los pone hx-sidebar.js) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-logo-title">
+                    <img src="https://i.imgur.com/VPqGp7U.png" alt="Nyx Community Logo" class="sidebar-logo">
+                    <span class="server-main-title">Nyx Community</span>
+                </div>
+                <button type="button" class="sidebar-toggle-icon" id="sidebarToggleBtn" title="Colapsar menú"><i class="fa-solid fa-bars"></i></button>
+            </div>
+            <nav class="sidebar-nav"></nav>
+            <div class="sidebar-footer">
+                <div class="user-profile-mini">
+                    <div class="avatar-placeholder" id="userAvatarContainer"><span>?</span></div>
+                    <div class="user-info">
+                        <span class="username" id="userNameDisplay">Usuario</span>
+                        <span class="user-handle" id="userHandleDisplay">@tag</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <button type="button" class="sidebar-reveal-trigger" id="sidebarRevealBtn" title="Abrir menú"><i class="fa-solid fa-chevron-right"></i></button>
+
+        <main class="main-content">
+            <header class="top-action-bar">
+                <nav class="breadcrumb" aria-label="Ruta">
+                    <a href="postulaciones.html">Postulaciones</a><span class="pf-sep">›</span><span class="pf-here">Playmaker</span>
+                </nav>
+                <div class="top-buttons">
+                    <button type="button" class="top-btn highlight-btn" id="pfSupportBtn" aria-haspopup="true" aria-expanded="false" aria-controls="pfSupportMenu">
+                        <i class="fa-solid fa-circle-question"></i> Soporte <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Menú de Soporte (igual que en home1.html) -->
+            <div class="pf-support-menu" id="pfSupportMenu" role="menu">
+                <div class="pf-support-menu__section">
+                    <div class="pf-support-menu__title">Soporte</div>
+                    <a href="../tickets.html" role="menuitem"><i class="fa-solid fa-ticket"></i> Crear un ticket</a>
+                </div>
+                <div class="pf-support-menu__section">
+                    <div class="pf-support-menu__title">Apoyo</div>
+                    <a href="../sugerencias.html" role="menuitem"><i class="fa-solid fa-lightbulb"></i> Enviar una sugerencia</a>
+                    <a href="../feedback.html" role="menuitem"><i class="fa-solid fa-comment-dots"></i> Dar tu feedback</a>
+                    <a href="../perfil.html" role="menuitem"><i class="fa-solid fa-user"></i> Acceder al perfil</a>
+                    <a href="../index.html" role="menuitem"><i class="fa-solid fa-house-chimney"></i> Acceder al panel principal</a>
+                </div>
+                <div class="pf-support-menu__section">
+                    <div class="pf-support-menu__title">Información</div>
+                    <a href="../normativa.html" role="menuitem"><i class="fa-solid fa-book"></i> Normativa general</a>
+                    <a href="../pol-privacidad.html" role="menuitem"><i class="fa-solid fa-shield-halved"></i> Política de privacidad</a>
+                    <a href="../terminos.html" role="menuitem"><i class="fa-solid fa-file-contract"></i> Términos y condiciones</a>
+                </div>
+            </div>
+
+            <div class="pf-page">
+                <header class="pf-intro">
+                    <span class="pf-eyebrow">Programa Playmaker</span>
+                    <h1>Postulación a Playmaker</h1>
+                    <p>Participa como figurante en los roles que impulsa la Administración y ayuda a dar vida a la ciudad.</p>
+                    <p class="pf-intro__meta">4 partes · unos 10 minutos · se guarda solo · <a href="../normativas/n-playmakers.html">Leer la normativa</a></p>
+                </header>
+
+                <div class="pf-card pf-card--form">
+                    <form class="pf-wizard" data-tipo="playmaker" data-max-abiertas="0" data-espera-horas="12" data-etapa="Fase" novalidate>
+
+                        <!-- PARTE 1 -->
+                        <section class="pf-step" data-title="Sobre ti">
+                            <h2 class="pf-step__title">Sobre ti</h2>
+                            <p class="pf-step__intro">Empecemos por lo básico. Tus datos de Discord se rellenan solos.</p>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-brands fa-discord"></i> Tu cuenta</h3>
+                                <div class="pf-row">
+                                    <div class="pf-field">
+                                        <label for="pmDiscord">Usuario de Discord <span class="pf-req">*</span></label>
+                                        <input class="pf-input" id="pmDiscord" name="discord" data-autofill="name" required maxlength="64" placeholder="Tu usuario de Discord">
+                                    </div>
+                                    <div class="pf-field">
+                                        <label for="pmDiscordId">ID de Discord <span class="pf-req">*</span></label>
+                                        <input class="pf-input" id="pmDiscordId" name="discordId" data-autofill="id" required inputmode="numeric" pattern="\d{17,20}" data-pattern-msg="El ID de Discord tiene entre 17 y 20 números." placeholder="Ej. 123456789012345678">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-id-card"></i> Datos personales</h3>
+                                <div class="pf-row">
+                                    <div class="pf-field">
+                                        <label for="pmEdad">Edad <span class="pf-req">*</span></label>
+                                        <input class="pf-input" id="pmEdad" name="edad" type="number" inputmode="numeric" min="14" max="99" required placeholder="Ej. 21">
+                                    </div>
+                                    <div class="pf-field">
+                                        <label for="pmSteam">Perfil de Steam <span class="pf-req">*</span></label>
+                                        <input class="pf-input" id="pmSteam" name="steam" type="url" required pattern="https?://(www\.)?steamcommunity\.com/(id|profiles)/.+" data-pattern-msg="Tiene que ser tu perfil: https://steamcommunity.com/id/... o /profiles/..." placeholder="https://steamcommunity.com/id/...">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-regular fa-clock"></i> Disponibilidad</h3>
+                                <div class="pf-field" data-group data-required data-label="Horas a la semana para roles de Playmaker">
+                                    <span class="pf-legend">¿Cuántas horas a la semana podrías dedicar a roles de Playmaker? <span class="pf-req">*</span></span>
+                                    <div class="pf-options">
+                                        <label class="pf-option"><input type="radio" name="horasSemana" value="Menos de 5 horas"><span><i class="fa-solid fa-hourglass-start"></i> Menos de 5 h<small>Algún rato suelto</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="horasSemana" value="Entre 5 y 10 horas"><span><i class="fa-solid fa-hourglass-half"></i> De 5 a 10 h<small>Un par de días por semana</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="horasSemana" value="Entre 10 y 20 horas"><span><i class="fa-solid fa-hourglass-end"></i> De 10 a 20 h<small>Casi todos los días</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="horasSemana" value="Más de 20 horas"><span><i class="fa-solid fa-fire"></i> Más de 20 h<small>Disponibilidad total</small></span></label>
+                                    </div>
+                                </div>
+
+                                <div class="pf-field" data-group data-required data-label="Franjas en las que suele conectarse">
+                                    <span class="pf-legend">¿En qué franjas sueles estar conectado? <span class="pf-req">*</span></span>
+                                    <p class="pf-help">Marca todas las que correspondan.</p>
+                                    <div class="pf-options">
+                                        <label class="pf-option"><input type="checkbox" name="franjas" value="Mañanas (8–14 h)"><span><i class="fa-solid fa-sun"></i> Mañanas<small>8–14 h</small></span></label>
+                                        <label class="pf-option"><input type="checkbox" name="franjas" value="Tardes (14–20 h)"><span><i class="fa-solid fa-cloud-sun"></i> Tardes<small>14–20 h</small></span></label>
+                                        <label class="pf-option"><input type="checkbox" name="franjas" value="Noches (20–00 h)"><span><i class="fa-solid fa-moon"></i> Noches<small>20–00 h</small></span></label>
+                                        <label class="pf-option"><input type="checkbox" name="franjas" value="Madrugadas (00–8 h)"><span><i class="fa-solid fa-star"></i> Madrugadas<small>00–8 h</small></span></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- PARTE 2 -->
+                        <section class="pf-step" data-title="Requisitos">
+                            <h2 class="pf-step__title">Requisitos</h2>
+                            <p class="pf-step__intro">Comprobamos que cumples lo que pide la normativa de Playmakers.</p>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-people-group"></i> Facciones</h3>
+                                <div class="pf-field" data-group data-required data-label="¿Pertenece a alguna facción?">
+                                    <span class="pf-legend">¿Perteneces a alguna facción legal o ilegal, comercio u organización? <span class="pf-req">*</span></span>
+                                    <div class="pf-options">
+                                        <label class="pf-option"><input type="radio" name="enFaccion" value="No"><span><i class="fa-solid fa-user"></i> No, a ninguna</span></label>
+                                        <label class="pf-option"><input type="radio" name="enFaccion" value="Sí"><span><i class="fa-solid fa-people-group"></i> Sí</span></label>
+                                    </div>
+                                </div>
+
+                                <div class="pf-note is-warn" data-show-if="enFaccion:Sí">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    <span>La <a href="../normativas/n-playmakers.html" target="_blank" rel="noopener" style="color:#fde68a;">normativa de Playmakers</a> indica que <b>los miembros de facciones legales o ilegales no pueden acceder como Playmaker</b>, porque deben atender su rol principal. Puedes enviarla igualmente; el staff valorará tu caso.</span>
+                                </div>
+
+                                <div class="pf-field" data-show-if="enFaccion:Sí">
+                                    <label for="pmFaccion">¿A cuál perteneces y con qué rol? <span class="pf-req">*</span></label>
+                                    <input class="pf-input" id="pmFaccion" name="faccion" required maxlength="200" placeholder="Ej. EMS, como paramédico">
+                                </div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-gavel"></i> Sanciones</h3>
+                                <div class="pf-field" data-group data-required data-label="¿Tiene sanciones activas?">
+                                    <span class="pf-legend">¿Tienes alguna sanción activa en el servidor? <span class="pf-req">*</span></span>
+                                    <div class="pf-options">
+                                        <label class="pf-option"><input type="radio" name="sancionActiva" value="No"><span><i class="fa-solid fa-shield"></i> No</span></label>
+                                        <label class="pf-option"><input type="radio" name="sancionActiva" value="Sí"><span><i class="fa-solid fa-gavel"></i> Sí</span></label>
+                                    </div>
+                                </div>
+
+                                <div class="pf-field" data-show-if="sancionActiva:Sí">
+                                    <label for="pmSancion">¿Qué sanción y por qué motivo? <span class="pf-req">*</span></label>
+                                    <textarea class="pf-input" id="pmSancion" name="detalleSancion" required minlength="20" maxlength="800"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-city"></i> Tu tiempo en Nyx Community</h3>
+                                <div class="pf-field" data-group data-required data-label="Tiempo jugando en Nyx Community">
+                                    <span class="pf-legend">¿Cuánto tiempo llevas jugando en Nyx Community? <span class="pf-req">*</span></span>
+                                    <div class="pf-options">
+                                        <label class="pf-option"><input type="radio" name="tiempoEnServidor" value="Acabo de llegar"><span><i class="fa-solid fa-seedling"></i> Acabo de llegar<small>Mis primeros días</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="tiempoEnServidor" value="Menos de 1 mes"><span><i class="fa-regular fa-calendar"></i> Menos de 1 mes<small>Aún conociendo la ciudad</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="tiempoEnServidor" value="Entre 1 y 3 meses"><span><i class="fa-regular fa-calendar-days"></i> De 1 a 3 meses<small>Ya me muevo bien</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="tiempoEnServidor" value="Entre 3 y 6 meses"><span><i class="fa-solid fa-calendar-check"></i> De 3 a 6 meses<small>Conozco a mucha gente</small></span></label>
+                                        <label class="pf-option"><input type="radio" name="tiempoEnServidor" value="Más de 6 meses"><span><i class="fa-solid fa-crown"></i> Más de 6 meses<small>Veterano de la ciudad</small></span></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- PARTE 3 -->
+                        <section class="pf-step" data-title="Tu rol">
+                            <h2 class="pf-step__title">Tu forma de rolear</h2>
+                            <p class="pf-step__intro">Queremos ver qué escenas sabes crear y cómo reaccionas cuando el rol no sale como esperabas.</p>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-masks-theater"></i> Personajes</h3>
+                                <div class="pf-field" data-group data-required data-label="Personajes que puede interpretar">
+                                    <span class="pf-legend">¿Qué tipo de personajes te ves capaz de interpretar? <span class="pf-req">*</span></span>
+                                    <p class="pf-help">Marca todos los que te sientas cómodo llevando.</p>
+                                    <div class="pf-options is-wide">
+                                        <label class="pf-option"><input type="checkbox" name="personajes" value="Civiles y testigos"><span><i class="fa-solid fa-person"></i> Civiles y testigos</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="personajes" value="Delincuentes ocasionales"><span><i class="fa-solid fa-mask"></i> Delincuentes ocasionales</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="personajes" value="Víctimas y rehenes"><span><i class="fa-solid fa-user-injured"></i> Víctimas y rehenes</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="personajes" value="Empresarios y comerciantes"><span><i class="fa-solid fa-briefcase"></i> Empresarios y comerciantes</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="personajes" value="Personajes extranjeros"><span><i class="fa-solid fa-earth-europe"></i> Personajes extranjeros</span></label>
+                                        <label class="pf-option"><input type="checkbox" name="personajes" value="Personajes de avanzada edad"><span><i class="fa-solid fa-person-cane"></i> Personajes de avanzada edad</span></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-book-open"></i> Experiencia</h3>
+                                <div class="pf-field">
+                                    <label for="pmExp">Cuéntanos tu experiencia en el rol <span class="pf-req">*</span></label>
+                                    <p class="pf-help">Servidores en los que has jugado, personajes que has llevado y qué se te da mejor.</p>
+                                    <textarea class="pf-input" id="pmExp" name="experienciaRol" required minlength="80" maxlength="1500"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-clapperboard"></i> Escenas</h3>
+                                <div class="pf-field">
+                                    <label for="pmPropuesta">Propón un rol que podrías llevar como Playmaker <span class="pf-req">*</span></label>
+                                    <p class="pf-help">A quién iría dirigido, qué pasaría y cómo podría terminar.</p>
+                                    <textarea class="pf-input" id="pmPropuesta" name="propuestaRol" required minlength="120" maxlength="2000"></textarea>
+                                </div>
+
+                                <div class="pf-field">
+                                    <label for="pmSituacion">En mitad de un rol pactado, un jugador hace algo inesperado y la escena se sale del guion. ¿Qué haces? <span class="pf-req">*</span></label>
+                                    <textarea class="pf-input" id="pmSituacion" name="situacionGuion" required minlength="60" maxlength="1500"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-heart"></i> Motivación</h3>
+                                <div class="pf-field">
+                                    <label for="pmMotivo">¿Por qué quieres ser Playmaker? <span class="pf-req">*</span></label>
+                                    <textarea class="pf-input" id="pmMotivo" name="motivacion" required minlength="100" maxlength="2000"></textarea>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- PARTE 4 -->
+                        <section class="pf-step" data-title="Revisión" data-review>
+                            <h2 class="pf-step__title">Revisa y envía</h2>
+                            <p class="pf-step__intro">Comprueba tus respuestas. Puedes volver a cualquier parte con «Editar».</p>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-list-check"></i> Tus respuestas</h3>
+                                <div class="pf-review"></div>
+                            </div>
+
+                            <div class="pf-block">
+                                <h3 class="pf-block__title"><i class="fa-solid fa-handshake"></i> Compromisos</h3>
+                                <div class="pf-field" data-label="Ha leído la normativa de Playmakers">
+                                    <label class="pf-check"><input type="checkbox" name="aceptaNormativa" value="Sí" required> <span>He leído la <a href="../normativas/n-playmakers.html" target="_blank" rel="noopener" style="color:#d8b4fe;">normativa de Playmakers</a>.</span></label>
+                                </div>
+                                <div class="pf-field" data-label="Acepta actuar bajo las indicaciones de la Administración">
+                                    <label class="pf-check"><input type="checkbox" name="aceptaIndicaciones" value="Sí" required> <span>Entiendo que como Playmaker actuaré siempre según las indicaciones de la Administración y nunca como facción u organización.</span></label>
+                                </div>
+                                <div class="pf-field" data-label="Usará el segundo personaje solo en roles autorizados">
+                                    <label class="pf-check"><input type="checkbox" name="aceptaSlot" value="Sí" required> <span>Usaré el personaje de Playmaker solo para los roles que la Administración haya autorizado.</span></label>
+                                </div>
+                                <div class="pf-field" data-label="Tiene los MD de Discord abiertos">
+                                    <label class="pf-check"><input type="checkbox" name="mdAbiertos" value="Sí" required> <span>Tengo los mensajes privados de Discord abiertos para recibir la respuesta.</span></label>
+                                </div>
+                            </div>
+                        </section>
+                    </form>
+                </div>
+
+                <!-- Tus postulaciones: debajo del formulario, sin tarjeta -->
+                <section class="pf-mine-section" aria-labelledby="pfMineTitle">
+                    <h2 id="pfMineTitle">Tus postulaciones</h2>
+                    <p>Cuando el staff responda te avisaremos por mensaje privado de Discord.</p>
+                    <div class="pf-mine" id="pfMine"><div class="pf-empty">Cargando...</div></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Usuario del pie del menú lateral y botones para ocultar / mostrar el menú
+        (function () {
+            let u = {};
+            try { u = JSON.parse(localStorage.getItem('discord_user') || '{}') || {}; } catch (e) {}
+            const nombre = document.getElementById('userNameDisplay');
+            const handle = document.getElementById('userHandleDisplay');
+            const avatar = document.getElementById('userAvatarContainer');
+            if (nombre) nombre.textContent = u.displayName || u.username || 'Usuario';
+            if (handle) handle.textContent = '@' + (u.username || 'discord');
+            if (avatar && u.avatarUrl) {
+                const img = document.createElement('img');
+                img.src = u.avatarUrl;
+                img.alt = 'Avatar';
+                img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+                avatar.replaceChildren(img);
+            }
+            const sidebar = document.getElementById('sidebar');
+            document.getElementById('sidebarToggleBtn').addEventListener('click', () => sidebar.classList.add('collapsed'));
+            document.getElementById('sidebarRevealBtn').addEventListener('click', () => sidebar.classList.remove('collapsed'));
+        })();
+    </script>
+    <script src="postulaciones.js"></script>
+    <script src="../guards.js"></script>
+    <!-- Menú lateral común: logo, lupa y buscador de páginas por categorías -->
+    <script src="../src/components/hx-sidebar.js"></script>
+</body>
+</html>

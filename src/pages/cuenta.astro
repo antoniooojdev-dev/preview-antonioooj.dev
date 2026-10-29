@@ -1,0 +1,959 @@
+---
+// Mi cuenta: perfil arriba, un resumen en cifras y dos pestañas:
+// - Proyectos: los vinculados a la cuenta (/api/cuenta/proyectos), con su línea de novedades.
+// - Chats: los tickets de la cuenta (/api/chat/tickets; al admin, los de todos con /api/admin/tickets).
+// La pestaña abierta va en el hash (#proyectos / #chats) para poder enlazarla.
+import BaseLayout from "@/layouts/BaseLayout.astro";
+// Sin pantalla de carga: la página entra deslizando desde la derecha
+import "@/styles/deslizar.css";
+---
+
+<BaseLayout title="Mi cuenta" description="Tu cuenta, tus proyectos y tus chats." noindex intro={false}>
+  <section class="page">
+    <div class="container cuenta" data-state="ok">
+      <p class="cuenta__error" data-show="error" role="alert">
+        No se puede cargar tu cuenta ahora mismo. Prueba en un rato.
+      </p>
+
+      <div class="cuenta__app" data-show="ok">
+        <!-- perfil -->
+        <header class="perfil card">
+          <span class="perfil__avatar"></span>
+          <div class="perfil__info">
+            <span class="eyebrow mono">~/cuenta</span>
+            <h1 class="perfil__nombre"></h1>
+            <p class="perfil__meta">
+              <span class="mono perfil__usuario"></span>
+              <span class="perfil__proveedor"></span>
+            </p>
+          </div>
+          <div class="perfil__acciones">
+            <a class="btn btn-primary" href="/chat">Abrir el chat <span class="arrow" aria-hidden="true">→</span></a>
+            <a class="btn btn-ghost perfil__admin" href="/admin" hidden>Panel de admin</a>
+            <button type="button" class="btn btn-ghost perfil__salir">Cerrar sesión</button>
+          </div>
+        </header>
+
+        <!-- resumen -->
+        <div class="resumen">
+          <div class="resumen__item"><strong data-n="proyectos">0</strong><span>proyectos</span></div>
+          <div class="resumen__item"><strong data-n="marcha">0</strong><span>en marcha</span></div>
+          <div class="resumen__item"><strong data-n="abiertos">0</strong><span>chats abiertos</span></div>
+          <div class="resumen__item" data-aviso><strong data-n="sinleer">0</strong><span>mensajes sin leer</span></div>
+        </div>
+
+        <!-- pestañas -->
+        <div class="tabs" role="tablist" aria-label="Secciones de tu cuenta">
+          <button type="button" role="tab" id="tab-proyectos" aria-controls="panel-proyectos" aria-selected="true" data-tab="proyectos">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>
+            Proyectos <span class="tabs__n" data-n="proyectos">0</span>
+          </button>
+          <button type="button" role="tab" id="tab-chats" aria-controls="panel-chats" aria-selected="false" data-tab="chats" tabindex="-1">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"></path></svg>
+            Chats <span class="tabs__n" data-n="chats">0</span>
+          </button>
+        </div>
+
+        <!-- proyectos -->
+        <section class="panel" id="panel-proyectos" role="tabpanel" aria-labelledby="tab-proyectos" data-panel="proyectos">
+          <header class="panel__head">
+            <div>
+              <h2>Tus proyectos</h2>
+              <p class="muted">Cómo va cada uno y sus últimas novedades. En el chat también puedes escribir <code>/estado-proyecto</code>.</p>
+            </div>
+            <div class="filtro" role="group" aria-label="Qué proyectos ver" data-filtro="proyectos">
+              <button type="button" data-f="todos" aria-pressed="true">Todos</button>
+              <button type="button" data-f="marcha" aria-pressed="false">En marcha</button>
+              <button type="button" data-f="entregados" aria-pressed="false">Entregados</button>
+            </div>
+          </header>
+          <ul role="list" class="proyectos__lista"></ul>
+          <div class="vacio card" data-vacio="proyectos">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>
+            <strong data-vacio-titulo>Todavía no tienes proyectos</strong>
+            <p data-vacio-texto>Cuando empecemos a trabajar en el tuyo aparecerá aquí con su estado y sus novedades.</p>
+            <a class="btn btn-ghost" href="/contacto">Cuéntame tu idea</a>
+          </div>
+        </section>
+
+        <!-- chats -->
+        <section class="panel" id="panel-chats" role="tabpanel" aria-labelledby="tab-chats" data-panel="chats" hidden>
+          <header class="panel__head">
+            <div>
+              <h2 data-chats-titulo>Tus chats</h2>
+              <p class="muted" data-chats-sub>Cada conversación es un ticket. Pulsa uno para abrirlo.</p>
+            </div>
+            <div class="panel__acciones">
+              <div class="filtro" role="group" aria-label="Qué chats ver" data-filtro="chats">
+                <button type="button" data-f="todos" aria-pressed="true">Todos</button>
+                <button type="button" data-f="abiertos" aria-pressed="false">Abiertos</button>
+                <button type="button" data-f="cerrados" aria-pressed="false">Cerrados</button>
+              </div>
+              <a class="btn btn-primary btn-sm" href="/chat">+ Nuevo chat</a>
+            </div>
+          </header>
+          <ul role="list" class="chats__lista"></ul>
+          <div class="vacio card" data-vacio="chats">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"></path></svg>
+            <strong data-vacio-titulo>Aún no has abierto ningún chat</strong>
+            <p data-vacio-texto>Escríbeme por el chat y lo verás aquí, con su último mensaje.</p>
+            <a class="btn btn-ghost" href="/chat">Abrir el chat</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { API, avatarEl, cerrarSesion, copiaLocal, quienSoy, urlLogin, type Yo } from "@/scripts/sesion";
+  import { pildora } from "@/scripts/pildora";
+  import { animarAlVer, bloqueProyecto, haceCuanto, sinEmojis, type ProyectoPublico } from "@/scripts/proyectos-ui";
+
+  interface Proyecto extends ProyectoPublico {
+    eventos: { texto: string; creado: number }[];
+  }
+
+  interface Ticket {
+    id: number;
+    numero: string;
+    asunto: string | null;
+    abierto: number;
+    cerrado: number | null;
+    ultimo: { de: "cliente" | "admin" | "sistema"; texto: string; creado: number } | null;
+    sinLeer: number;
+    mensajes: number;
+    usuario?: { nombre: string; usuario: string; avatar: string | null };
+  }
+
+  type Tab = "proyectos" | "chats";
+
+  const raiz = document.querySelector<HTMLElement>(".cuenta")!;
+  const $ = <T extends Element = HTMLElement>(sel: string) => raiz.querySelector<T>(sel)!;
+  const $$ = <T extends Element = HTMLElement>(sel: string) => [...raiz.querySelectorAll<T>(sel)];
+
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, clase = "", texto = ""): HTMLElementTagNameMap[K] {
+    const e = document.createElement(tag);
+    if (clase) e.className = clase;
+    if (texto) e.textContent = texto;
+    return e;
+  }
+
+  /** Texto escrito por alguien (nombres, asuntos, mensajes, novedades): no se traduce. */
+  function crudo<T extends HTMLElement>(e: T): T {
+    e.dataset.noI18n = "";
+    return e;
+  }
+
+  const ponerN = (clave: string, n: number) => $$(`[data-n="${clave}"]`).forEach((x) => (x.textContent = String(n)));
+
+  let yo: Yo;
+  let proyectos: Proyecto[] = [];
+  let chats: Ticket[] = [];
+  const filtros: Record<Tab, string> = { proyectos: "todos", chats: "todos" };
+
+  // ── proyectos ─────
+  /** Misma tarjeta que en el chat, con la descripción y la línea de tiempo de novedades. */
+  function pintarProyecto(p: Proyecto, i: number): HTMLElement {
+    const card = el("article", "pj-card cuenta-proy");
+    card.dataset.estado = p.estado;
+    card.style.setProperty("--i", String(i));
+    const cuerpo = el("div", "pj-card__body");
+    cuerpo.append(bloqueProyecto(p, { novedad: false }));
+    if (p.descripcion) cuerpo.append(crudo(el("p", "pj-desc", p.descripcion)));
+
+    if (p.eventos.length) {
+      const hist = el("ol", "cuenta-tl");
+      hist.setAttribute("role", "list");
+      p.eventos.forEach((e, j) => {
+        const item = el("li");
+        item.style.setProperty("--i", String(j));
+        item.append(el("time", "mono", haceCuanto(e.creado)), crudo(el("span", "", e.texto)));
+        hist.append(item);
+      });
+      const det = el("details", "cuenta-det");
+      det.open = i === 0; // el más reciente, abierto
+      det.append(el("summary", "mono", `novedades (${p.eventos.length})`), hist);
+      cuerpo.append(det);
+    }
+    card.append(cuerpo);
+    animarAlVer(card);
+    const li = el("li");
+    li.append(card);
+    return li;
+  }
+
+  const enMarcha = (p: Proyecto) => p.estado !== "entregado" && p.estado !== "pausado";
+
+  function pintarProyectos() {
+    const f = filtros.proyectos;
+    const lista = proyectos.filter((p) => f === "todos" || (f === "marcha" ? enMarcha(p) : p.estado === "entregado"));
+    $(".proyectos__lista").replaceChildren(...lista.map((p, i) => pintarProyecto(p, i)));
+    vacio("proyectos", lista.length, proyectos.length, {
+      titulo: "Ningún proyecto con ese filtro",
+      texto: "Prueba con «Todos» para verlos todos.",
+    });
+  }
+
+  // ── chats ─────
+  function quienDice(t: Ticket): string {
+    if (!t.ultimo) return "";
+    if (t.ultimo.de === "sistema") return "Aviso: ";
+    const mio = (t.ultimo.de === "admin") === yo.admin;
+    return mio ? "Tú: " : yo.admin ? `${t.usuario?.nombre ?? "Cliente"}: ` : "Antonio: ";
+  }
+
+  function pintarChat(t: Ticket, i: number): HTMLElement {
+    const a = el("a", `chat${t.cerrado ? " is-cerrado" : ""}${t.sinLeer ? " is-nuevo" : ""}`);
+    a.href = `/chat?t=${t.id}`;
+    a.style.setProperty("--i", String(i));
+
+    // al admin le sirve más ver quién escribe; al cliente, el número del ticket
+    const cabeza =
+      yo.admin && t.usuario ? avatarEl(t.usuario.avatar, t.usuario.nombre, "chat__avatar") : el("span", "chat__num mono", `#${t.numero}`);
+
+    const cuerpo = el("span", "chat__cuerpo");
+    const arriba = el("span", "chat__arriba");
+    const asunto = el("strong", "chat__asunto", t.asunto || (yo.admin && t.usuario ? t.usuario.nombre : "Conversación"));
+    arriba.append(t.asunto || yo.admin ? crudo(asunto) : asunto);
+    if (yo.admin) arriba.append(el("span", "mono chat__tag", `#${t.numero}`));
+    arriba.append(el("span", `chat__estado${t.cerrado ? "" : " is-abierto"}`, t.cerrado ? "Cerrado" : "Abierto"));
+    const ultimo = el("span", "chat__ultimo");
+    if (t.ultimo?.de === "sistema") {
+      // avisos: icono de Font Awesome en vez del emoji del texto
+      const { icono, texto } = sinEmojis(t.ultimo.texto);
+      ultimo.append(...(icono ? [icono, " "] : []), texto);
+    } else if (t.ultimo) {
+      ultimo.append(el("b", "", quienDice(t)), crudo(el("span", "", t.ultimo.texto || "…")));
+    } else {
+      ultimo.textContent = "Sin mensajes todavía";
+    }
+    cuerpo.append(arriba, ultimo);
+
+    const lado = el("span", "chat__lado");
+    lado.append(el("time", "mono", haceCuanto(t.ultimo?.creado ?? t.abierto)));
+    if (t.sinLeer) lado.append(el("span", "chat__badge", String(t.sinLeer)));
+    else lado.append(el("span", "mono chat__total", `${t.mensajes} ${t.mensajes === 1 ? "mensaje" : "mensajes"}`));
+
+    a.append(cabeza, cuerpo, lado);
+    const li = el("li");
+    li.append(a);
+    return li;
+  }
+
+  function pintarChats() {
+    const f = filtros.chats;
+    const lista = chats.filter((t) => f === "todos" || (f === "abiertos" ? !t.cerrado : !!t.cerrado));
+    $(".chats__lista").replaceChildren(...lista.map((t, i) => pintarChat(t, i)));
+    vacio("chats", lista.length, chats.length, {
+      titulo: "Ningún chat con ese filtro",
+      texto: "Prueba con «Todos» para verlos todos.",
+    });
+  }
+
+  /** Muestra el aviso de vacío: distinto si no hay nada o si es el filtro el que lo deja vacío. */
+  function vacio(tab: Tab, visibles: number, total: number, conFiltro: { titulo: string; texto: string }) {
+    const caja = $(`[data-vacio="${tab}"]`);
+    caja.hidden = visibles > 0;
+    const titulo = caja.querySelector<HTMLElement>("[data-vacio-titulo]")!;
+    const texto = caja.querySelector<HTMLElement>("[data-vacio-texto]")!;
+    titulo.dataset.original ??= titulo.textContent ?? "";
+    texto.dataset.original ??= texto.textContent ?? "";
+    const filtrado = total > 0;
+    titulo.textContent = filtrado ? conFiltro.titulo : titulo.dataset.original;
+    texto.textContent = filtrado ? conFiltro.texto : texto.dataset.original;
+    caja.querySelector<HTMLElement>(".btn")!.hidden = filtrado;
+  }
+
+  // ── pestañas y filtros ─────
+  function irA(tab: Tab, foco = false) {
+    $$<HTMLButtonElement>("[data-tab]").forEach((b) => {
+      const activa = b.dataset.tab === tab;
+      b.setAttribute("aria-selected", String(activa));
+      b.tabIndex = activa ? 0 : -1;
+      if (activa && foco) b.focus();
+    });
+    $$("[data-panel]").forEach((p) => (p.hidden = p.dataset.panel !== tab));
+    history.replaceState(null, "", `#${tab}`);
+  }
+
+  $$<HTMLButtonElement>("[data-tab]").forEach((b) => {
+    b.addEventListener("click", () => irA(b.dataset.tab as Tab));
+    // flechas izquierda/derecha entre pestañas
+    b.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      e.preventDefault();
+      irA(b.dataset.tab === "proyectos" ? "chats" : "proyectos", true);
+    });
+  });
+
+  $$<HTMLElement>("[data-filtro]").forEach((grupo) => {
+    const tab = grupo.dataset.filtro as Tab;
+    // el fondo del filtro activo se desliza hasta el que pulses
+    const moverPildora = pildora(grupo, "button[aria-pressed='true']");
+    grupo.querySelectorAll<HTMLButtonElement>("button").forEach((b) =>
+      b.addEventListener("click", () => {
+        filtros[tab] = b.dataset.f!;
+        grupo.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        moverPildora();
+        tab === "proyectos" ? pintarProyectos() : pintarChats();
+      }),
+    );
+  });
+
+  // ── carga ─────
+  const PROVEEDORES: Record<string, string> = { google: "Google", github: "GitHub" };
+
+  async function cargarJson<T>(ruta: string): Promise<T | null> {
+    try {
+      const r = await fetch(`${API}${ruta}`, { credentials: "include", cache: "no-store" });
+      return r.ok ? await r.json() : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function pintarPerfil() {
+    $(".perfil__avatar").replaceWith(avatarEl(yo.avatar, yo.nombre, "perfil__avatar"));
+    crudo($(".perfil__nombre")).textContent = yo.nombre;
+    crudo($(".perfil__usuario")).textContent = `@${yo.usuario}`;
+    const prov = PROVEEDORES[yo.id.split("-")[0]] ?? "Discord";
+    $(".perfil__proveedor").textContent = `Conectado con ${prov}${yo.admin ? " · admin" : ""}`;
+    $<HTMLAnchorElement>(".perfil__admin").hidden = !yo.admin;
+    if (yo.admin) {
+      $("[data-chats-titulo]").textContent = "Chats de tus clientes";
+      $("[data-chats-sub]").textContent = "Todos los tickets abiertos por clientes. Pulsa uno para responder.";
+    }
+  }
+
+  async function iniciar() {
+    irA(location.hash === "#chats" ? "chats" : "proyectos");
+    // con la copia de la sesión de esta pestaña el perfil sale al instante; luego se confirma
+    const copia = copiaLocal();
+    if (copia) {
+      yo = copia;
+      pintarPerfil();
+    }
+    try {
+      const r = await quienSoy();
+      if (!r) return location.replace(urlLogin("/cuenta"));
+      yo = r;
+    } catch {
+      raiz.dataset.state = "error";
+      return;
+    }
+    pintarPerfil();
+
+    const [ps, ts] = await Promise.all([
+      cargarJson<Proyecto[]>("/api/cuenta/proyectos"),
+      cargarJson<Ticket[]>(yo.admin ? "/api/admin/tickets" : "/api/chat/tickets"),
+    ]);
+    proyectos = ps ?? [];
+    // los chats con algo sin leer primero; después, el de actividad más reciente
+    chats = (ts ?? []).sort(
+      (a, b) => Number(!!b.sinLeer) - Number(!!a.sinLeer) || (b.ultimo?.creado ?? b.abierto) - (a.ultimo?.creado ?? a.abierto),
+    );
+
+    ponerN("proyectos", proyectos.length);
+    ponerN("marcha", proyectos.filter(enMarcha).length);
+    ponerN("chats", chats.length);
+    ponerN("abiertos", chats.filter((t) => !t.cerrado).length);
+    const sinLeer = chats.reduce((s, t) => s + (t.sinLeer || 0), 0);
+    ponerN("sinleer", sinLeer);
+    $("[data-aviso]").classList.toggle("is-aviso", sinLeer > 0);
+
+    pintarProyectos();
+    pintarChats();
+  }
+
+  // al cambiar de idioma, las fechas («hace 2 horas») se rehacen en el nuevo
+  window.addEventListener("aj:idioma", () => {
+    if (!yo) return;
+    pintarProyectos();
+    pintarChats();
+  });
+
+  $<HTMLButtonElement>(".perfil__salir").addEventListener("click", async (e) => {
+    (e.currentTarget as HTMLButtonElement).disabled = true;
+    await cerrarSesion();
+    location.replace("/");
+  });
+
+  iniciar();
+</script>
+
+<style>
+  .page {
+    padding-block: var(--space-8) var(--section);
+  }
+
+  [data-show] {
+    display: none;
+  }
+
+  .cuenta[data-state="error"] [data-show="error"],
+  .cuenta[data-state="ok"] [data-show="ok"] {
+    display: grid;
+  }
+
+  .cuenta__error {
+    color: var(--error);
+  }
+
+  .muted {
+    color: var(--fg-muted);
+  }
+
+  .cuenta__app {
+    gap: var(--space-5);
+  }
+
+  .card:hover {
+    border-color: var(--border);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  /* ── perfil ── */
+  .perfil {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-5);
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2rem);
+    border-radius: 24px;
+  }
+
+  :global(.perfil__avatar) {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: clamp(4rem, 3rem + 3vw, 5.5rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: var(--fs-lg);
+    color: var(--fg-muted);
+  }
+
+  :global(.perfil__avatar img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .perfil__info {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+
+  .eyebrow {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .perfil__nombre {
+    font-size: var(--fs-xl);
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+  }
+
+  .perfil__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    font-size: var(--fs-sm);
+    color: var(--fg-subtle);
+  }
+
+  .perfil__proveedor {
+    padding: 0.15rem 0.6rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+  }
+
+  .perfil__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+
+  /* ── resumen ── */
+  .resumen {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .resumen__item {
+    display: grid;
+    gap: 0.15rem;
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--bg-elev);
+  }
+
+  .resumen__item strong {
+    font-size: var(--fs-xl);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .resumen__item span {
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .resumen__item.is-aviso {
+    border-color: var(--fg);
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .resumen__item.is-aviso span {
+    color: inherit;
+    opacity: 0.75;
+  }
+
+  /* ── pestañas ── */
+  .tabs {
+    display: flex;
+    gap: var(--space-1);
+    width: fit-content;
+    max-width: 100%;
+    padding: 5px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--bg-elev);
+  }
+
+  .tabs button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.65rem 1.1rem;
+    border-radius: 12px;
+    font-weight: 500;
+    color: var(--fg-muted);
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+
+  .tabs button:hover {
+    background: var(--bg-code);
+    color: var(--fg);
+  }
+
+  .tabs button[aria-selected="true"] {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .tabs__n {
+    min-width: 1.5rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, currentColor 15%, transparent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    line-height: 1.4rem;
+    text-align: center;
+  }
+
+  /* ── paneles ── */
+  .panel {
+    display: grid;
+    gap: var(--space-5);
+    min-width: 0;
+    animation: panel-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  .panel__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .panel__head h2 {
+    font-size: var(--fs-lg);
+    letter-spacing: -0.02em;
+    margin-bottom: var(--space-1);
+  }
+
+  .panel__head p {
+    max-width: 40rem;
+    font-size: var(--fs-sm);
+  }
+
+  .panel__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .btn-sm {
+    padding: 0.55rem 1rem;
+    font-size: var(--fs-sm);
+  }
+
+  /* la píldora que se desliza es la de scripts/pildora.ts: aquí solo su color */
+  .filtro {
+    --pildora-bg: var(--fg);
+    --pildora-sombra: 0 4px 14px -6px rgb(0 0 0 / 0.45);
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+
+  .filtro button {
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: var(--fs-sm);
+    font-weight: 600; /* igual en todos: si cambiara al activarse, cambiaría el ancho */
+    color: var(--fg-muted);
+    transition: color 0.3s var(--ease);
+  }
+
+  .filtro button:hover {
+    color: var(--fg);
+  }
+
+  .filtro button[aria-pressed="true"] {
+    color: var(--bg);
+  }
+
+  .vacio {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    padding: var(--space-7) var(--space-5);
+    text-align: center;
+    color: var(--fg-muted);
+    border-style: dashed;
+  }
+
+  .vacio svg {
+    color: var(--fg-subtle);
+  }
+
+  .vacio strong {
+    color: var(--fg);
+    font-size: var(--fs-md);
+  }
+
+  .vacio p {
+    max-width: 26rem;
+    font-size: var(--fs-sm);
+  }
+
+  /* ── proyectos ── */
+  .proyectos__lista {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  /* Tarjetas de proyecto: las de src/styles/proyectos.css, a todo el ancho */
+  :global(.pj-card.cuenta-proy) {
+    width: 100%;
+  }
+
+  :global(.cuenta-proy .pj-proj) {
+    border: 0;
+    padding: 0;
+    background: none;
+  }
+
+  :global(.cuenta-proy .pj-proj__name) {
+    font-size: var(--fs-md);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.cuenta-proy.pj-card.is-visible:not(.is-static)) {
+      animation-delay: calc(var(--i, 0) * 0.08s);
+    }
+  }
+
+  :global(.cuenta-det) {
+    border-top: 1px solid var(--border);
+    padding-top: var(--space-3);
+  }
+
+  :global(.cuenta-det summary) {
+    cursor: pointer;
+    width: fit-content;
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+    transition: color var(--dur) var(--ease);
+  }
+
+  :global(.cuenta-det summary:hover) {
+    color: var(--fg);
+  }
+
+  /* Línea de tiempo de novedades */
+  /* ol[role="list"]: el reset quita el padding de las listas con ese rol */
+  :global(ol.cuenta-tl[role="list"]) {
+    position: relative;
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+    padding-left: 1.1rem;
+  }
+
+  :global(.cuenta-tl::before) {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    width: 1px;
+    background: var(--border-strong);
+  }
+
+  :global(.cuenta-tl li) {
+    position: relative;
+    display: grid;
+    gap: 2px;
+    font-size: var(--fs-sm);
+  }
+
+  :global(.cuenta-tl li::before) {
+    content: "";
+    position: absolute;
+    left: calc(-1.1rem + 1px);
+    top: 0.3rem;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--bg-elev);
+    border: 1.5px solid var(--fg-subtle);
+  }
+
+  :global(.cuenta-tl li:first-child::before) {
+    background: var(--pj-c, var(--fg));
+    border-color: var(--pj-c, var(--fg));
+  }
+
+  :global(.cuenta-tl time) {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.cuenta-det[open] .cuenta-tl li) {
+      animation: cuenta-rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: calc(var(--i, 0) * 0.06s);
+    }
+  }
+
+  @keyframes cuenta-rise {
+    from {
+      opacity: 0;
+      transform: translateX(-6px);
+    }
+  }
+
+  /* ── chats (los crea el script: estilos globales dentro de .chats__lista) ── */
+  .chats__lista {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .chats__lista :global(.chat) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--bg-elev);
+    color: var(--fg);
+    text-decoration: none;
+    transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
+    animation: cuenta-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 0.04s);
+  }
+
+  .chats__lista :global(.chat:hover) {
+    border-color: var(--fg-muted);
+    transform: translateX(4px);
+  }
+
+  .chats__lista :global(.chat.is-cerrado) {
+    background: transparent;
+  }
+
+  .chats__lista :global(.chat.is-cerrado .chat__asunto),
+  .chats__lista :global(.chat.is-cerrado .chat__ultimo) {
+    color: var(--fg-muted);
+  }
+
+  .chats__lista :global(.chat__num) {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 14px;
+    background: var(--bg-code);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+  }
+
+  .chats__lista :global(.chat__avatar) {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--bg-code);
+    font-family: var(--font-mono);
+    color: var(--fg-muted);
+  }
+
+  .chats__lista :global(.chat__avatar img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .chats__lista :global(.chat__cuerpo) {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .chats__lista :global(.chat__arriba) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .chats__lista :global(.chat__asunto) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chats__lista :global(.chat__tag) {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .chats__lista :global(.chat__estado) {
+    flex-shrink: 0;
+    padding: 0.05rem 0.55rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  .chats__lista :global(.chat__estado.is-abierto) {
+    border-color: var(--fg);
+    color: var(--fg);
+  }
+
+  .chats__lista :global(.chat__ultimo) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .chats__lista :global(.chat__ultimo b) {
+    font-weight: 600;
+    color: var(--fg);
+  }
+
+  .chats__lista :global(.chat.is-nuevo .chat__ultimo) {
+    color: var(--fg);
+    font-weight: 500;
+  }
+
+  .chats__lista :global(.chat__lado) {
+    display: grid;
+    justify-items: end;
+    gap: 0.35rem;
+  }
+
+  .chats__lista :global(.chat__lado time),
+  .chats__lista :global(.chat__total) {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+    white-space: nowrap;
+  }
+
+  .chats__lista :global(.chat__badge) {
+    min-width: 1.4rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: var(--fg);
+    color: var(--bg);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    line-height: 1.4rem;
+    text-align: center;
+  }
+
+  @media (max-width: 56rem) {
+    .perfil {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .perfil__acciones {
+      grid-column: 1 / -1;
+      justify-content: flex-start;
+    }
+
+    .resumen {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .chats__lista :global(.chat) {
+      grid-template-columns: minmax(0, 1fr) auto;
+      padding: var(--space-4);
+    }
+
+    .chats__lista :global(.chat__num),
+    .chats__lista :global(.chat__avatar) {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .panel,
+    .chats__lista :global(.chat) {
+      animation: none;
+    }
+  }
+</style>

@@ -1,0 +1,68 @@
+---
+// Trabajos en bento: el primero más grande (2 × 2) y el resto alrededor.
+import SectionHead from "./SectionHead.astro";
+import ProjectCard from "./ProjectCard.astro";
+import { projects } from "@/data/projects";
+
+const featured = projects.filter((p) => p.featured);
+---
+
+<section id="proyectos" class="section">
+  <div class="container">
+    <SectionHead
+      label="Trabajos"
+      title="Lo último que he hecho"
+      text="Webs de negocio, scripts de FiveM y automatización de Discord. En cada uno cuento qué problema había y cómo lo resolví."
+    />
+
+    <div class="bento grid">
+      {featured.map((project, i) => <ProjectCard project={project} index={i} />)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* el primero ocupa 2 columnas y 2 filas, con el título más grande */
+  .grid > :global(:first-child) {
+    grid-column: span 2;
+    grid-row: span 2;
+    background: var(--fg);
+    border-color: var(--fg);
+    color: var(--bg);
+    --fg-muted: color-mix(in srgb, var(--bg) 65%, var(--fg));
+    --fg-subtle: color-mix(in srgb, var(--bg) 45%, var(--fg));
+    --bg-code: color-mix(in srgb, var(--bg) 14%, var(--fg));
+  }
+
+  /* con 5 proyectos la última fila tendría un hueco: el último ocupa dos columnas */
+  .grid > :global(:last-child:nth-child(3n + 2)) {
+    grid-column: span 2;
+  }
+
+  .grid > :global(:first-child h3) {
+    font-size: clamp(1.8rem, 1.2rem + 2.2vw, 3.2rem);
+  }
+
+  .grid > :global(:first-child .summary) {
+    font-size: var(--fs-md);
+  }
+
+  .grid > :global(:first-child .tile__corner) {
+    border-color: color-mix(in srgb, var(--bg) 35%, transparent);
+  }
+
+  .grid > :global(:first-child:hover .tile__corner) {
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  @media (max-width: 64rem) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

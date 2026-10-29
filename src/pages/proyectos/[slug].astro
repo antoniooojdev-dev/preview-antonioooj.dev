@@ -1,0 +1,258 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import ProjectCard from "@/components/ProjectCard.astro";
+import CodeBlock from "@/components/CodeBlock.astro";
+import { projects, type Project } from "@/data/projects";
+
+export const getStaticPaths = (() =>
+  projects.map((project) => ({ params: { slug: project.slug }, props: { project } }))) satisfies GetStaticPaths;
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const others = projects.filter((p) => p.slug !== project.slug).slice(0, 2);
+---
+
+<!-- sin la pantalla de carga general: la ficha tiene su propia entrada (src/scripts/proyecto.ts)
+     y, si se llega desde la portada, la cortina de la entrada (src/scripts/cortina-idioma.ts) -->
+<BaseLayout title={project.title} description={project.summary} intro={false}>
+  <article class="page" data-proyecto>
+    <div class="container">
+      <a href="/#proyectos" class="back mono" data-pr-cab>← cd ../proyectos</a>
+
+      <header class="head">
+        <span class="eyebrow mono" data-pr-cab>{project.type} · {project.year}</span>
+        <h1 data-pr-split>{project.title}</h1>
+        <p class="lead" data-pr-cab>{project.summary}</p>
+      </header>
+
+      <dl class="meta mono" data-pr-meta>
+        <div><dt>sector</dt><dd>{project.client}</dd></div>
+        <div><dt>año</dt><dd>{project.year}</dd></div>
+        <div><dt>tipo</dt><dd>{project.type}</dd></div>
+        <div>
+          <dt>stack</dt>
+          <dd>{project.stack.join(" · ")}</dd>
+        </div>
+      </dl>
+
+      <div class="body">
+        <section data-pr-sec>
+          <h2 class="mono">// el problema</h2>
+          <p>{project.problem}</p>
+        </section>
+
+        <section data-pr-sec>
+          <h2 class="mono">// la solución</h2>
+          <p>{project.solution}</p>
+        </section>
+
+        <section data-pr-sec>
+          <h2 class="mono">// lo más destacado</h2>
+          <ul role="list" class="results" data-pr-lista>
+            {project.highlights.map((r) => <li>{r}</li>)}
+          </ul>
+        </section>
+
+        {
+          project.snippet && (
+            <section data-pr-sec data-pr-codigo>
+              <h2 class="mono">// un vistazo al código</h2>
+              <CodeBlock code={project.snippet.code} lang={project.snippet.lang} filename={project.snippet.filename} />
+            </section>
+          )
+        }
+
+        {
+          (project.url || project.repo) && (
+            <div class="links">
+              {project.url && (
+                <a href={project.url} class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+                  Ver proyecto <span class="arrow" aria-hidden="true">↗</span>
+                </a>
+              )}
+              {project.repo && (
+                <a href={project.repo} class="btn btn-ghost" target="_blank" rel="noopener noreferrer">
+                  Código fuente
+                </a>
+              )}
+            </div>
+          )
+        }
+      </div>
+
+      <aside class="cta card" data-pr-cta>
+        <p>¿Necesitas algo parecido?</p>
+        <a href="/contacto" class="btn btn-primary">
+          Hablemos <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      </aside>
+
+      {
+        others.length > 0 && (
+          <section class="others" data-pr-otros>
+            <h2 class="mono">// más proyectos</h2>
+            <div class="grid">
+              {others.map((p, i) => (
+                <ProjectCard project={p} index={i} />
+              ))}
+            </div>
+          </section>
+        )
+      }
+    </div>
+  </article>
+</BaseLayout>
+
+<script>
+  import "@/scripts/proyecto";
+</script>
+
+<style>
+  .page {
+    padding-block: var(--space-7) var(--section);
+  }
+
+  .back {
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .back:hover {
+    color: var(--fg);
+  }
+
+  .head {
+    margin-block: var(--space-7) var(--space-6);
+    max-width: 48rem;
+  }
+
+  .eyebrow {
+    font-size: var(--fs-sm);
+    color: var(--fg-subtle);
+  }
+
+  h1 {
+    font-size: var(--fs-2xl);
+    letter-spacing: -0.045em;
+    margin-block: var(--space-3) var(--space-4);
+  }
+
+  /* las líneas del titular van enmascaradas al animarse (proyecto.ts): un poco de aire
+     abajo para que no corten la «g» o la «j» */
+  h1 > :global(div) {
+    padding-bottom: 0.12em;
+    margin-bottom: -0.12em;
+  }
+
+  .lead {
+    font-size: var(--fs-lg);
+    color: var(--fg-muted);
+  }
+
+  /* la línea de arriba se dibuja de izquierda a derecha al llegar (--linea, proyecto.ts) */
+  .meta {
+    --linea: 1;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: var(--space-5);
+    padding-block: var(--space-5);
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-xs);
+  }
+
+  .meta::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border-strong);
+    transform: scaleX(var(--linea));
+    transform-origin: left;
+  }
+
+  dt {
+    color: var(--fg-subtle);
+    margin-bottom: var(--space-1);
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  .body {
+    display: grid;
+    gap: var(--space-7);
+    max-width: 44rem;
+    margin-block: var(--space-8);
+  }
+
+  .body h2 {
+    width: fit-content;
+  }
+
+  .body h2,
+  .others h2 {
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--fg-subtle);
+    margin-bottom: var(--space-3);
+  }
+
+  .body p {
+    font-size: var(--fs-md);
+    color: var(--fg-muted);
+  }
+
+  .results {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .results li {
+    font-size: var(--fs-md);
+    font-weight: 500;
+  }
+
+  .results li::before {
+    content: "✓ ";
+    font-family: var(--font-mono);
+    color: var(--ok);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-6);
+  }
+
+  .cta p {
+    font-size: var(--fs-lg);
+    font-weight: 600;
+  }
+
+  .others {
+    margin-top: var(--space-9);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+    gap: var(--space-4);
+  }
+</style>

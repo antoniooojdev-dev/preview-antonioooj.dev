@@ -1,0 +1,869 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { site } from "@/data/site";
+
+const actualizada = "26 de octubre de 2026";
+
+// Atajos del buscador: rellenan la búsqueda con una palabra
+const atajos = ["formulario", "chat", "Discord", "cookies", "conservo", "derechos", "borrar", "opiniones"];
+
+// Índice (id → título); el orden es el de las secciones de abajo
+const indice = [
+  ["resumen", "Resumen rápido"],
+  ["responsable", "Responsable"],
+  ["datos", "Qué datos trato"],
+  ["finalidades", "Para qué los uso"],
+  ["base-legal", "Base legal"],
+  ["conservacion", "Cuánto tiempo los conservo"],
+  ["destinatarios", "Con quién se comparten"],
+  ["transferencias", "Transferencias fuera de la UE"],
+  ["derechos", "Tus derechos"],
+  ["seguridad", "Cómo los protejo"],
+  ["cookies", "Cookies y almacenamiento local"],
+  ["menores", "Menores de edad"],
+  ["decisiones", "Decisiones automatizadas"],
+  ["enlaces", "Enlaces a otras webs"],
+  ["cambios", "Cambios en esta política"],
+] as const;
+---
+
+<BaseLayout title="Política de privacidad" description="Qué datos trato, para qué, cuánto tiempo y cómo ejercer tus derechos." noindex>
+  <section class="page">
+    <div class="container pv">
+      <header class="pv-head">
+        <span class="eyebrow mono">~/privacidad</span>
+        <h1>Política de privacidad</h1>
+        <p class="pv-lead">
+          Aquí tienes, sin letra pequeña, qué datos personales trato cuando usas esta web, para qué, durante cuánto
+          tiempo y qué puedes hacer con ellos. Se aplica el Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 de
+          Protección de Datos y garantía de los derechos digitales (LOPDGDD).
+        </p>
+        <p class="pv-fecha mono">Última actualización: {actualizada}</p>
+      </header>
+
+      <!-- Buscador -->
+      <div class="pv-buscador" role="search">
+        <label class="pv-buscar">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <span class="visually-hidden">Buscar en la política de privacidad</span>
+          <input type="search" placeholder="Busca algo: cookies, chat, borrar mis datos…" autocomplete="off" spellcheck="false" data-pv-buscar />
+          <kbd class="pv-kbd mono" aria-hidden="true">/</kbd>
+          <button type="button" class="pv-limpiar" aria-label="Borrar búsqueda" hidden data-pv-limpiar>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+          </button>
+        </label>
+        <div class="pv-atajos" role="group" aria-label="Búsquedas rápidas">
+          {atajos.map((a) => <button type="button" data-pv-atajo={a}>{a}</button>)}
+        </div>
+        <p class="pv-info mono" aria-live="polite" data-pv-info></p>
+      </div>
+
+      <div class="pv-cuerpo">
+        <nav class="pv-indice" aria-label="Índice">
+          <span class="mono pv-indice__t">Índice</span>
+          <ol role="list">
+            {indice.map(([id, t], i) => (
+              <li data-pv-enlace={id}>
+                <a href={`#${id}`}><span class="mono">{String(i + 1).padStart(2, "0")}</span>{t}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+
+        <div class="pv-secciones">
+          <section id="resumen" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">01</span>Resumen rápido</h2>
+            <div class="pv-resumen">
+              <div><strong>Pocos datos</strong><p>Solo lo que me escribes o lo mínimo de tu cuenta para saber quién eres.</p></div>
+              <div><strong>Sin publicidad</strong><p>No vendo datos, no hago perfiles y no uso cookies de anuncios ni de analítica.</p></div>
+              <div><strong>Tú decides</strong><p>Puedes pedirme en cualquier momento ver, corregir o borrar tus datos.</p></div>
+              <div><strong>Un solo contacto</strong><p>Todo lo relacionado con tu privacidad, a <a href={`mailto:${site.email}`}>{site.email}</a>.</p></div>
+            </div>
+          </section>
+
+          <section id="responsable" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">02</span>Responsable del tratamiento</h2>
+            <p>
+              El responsable de los datos que se recogen en esta web es su titular, AntonioooJ Dev. Para cualquier
+              cuestión sobre privacidad o para ejercer tus derechos escribe a:
+            </p>
+            <a class="pv-correo" href={`mailto:${site.email}`}>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"></rect><path d="m4 7 8 6 8-6"></path></svg>
+              {site.email}
+            </a>
+            <p>No hay delegado de protección de datos porque, por su tamaño y actividad, la ley no lo exige.</p>
+          </section>
+
+          <section id="datos" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">03</span>Qué datos trato</h2>
+            <p>Depende de lo que hagas en la web. Si solo navegas, no te pido nada.</p>
+
+            <h3>Formulario de contacto</h3>
+            <p>
+              Nombre, email, empresa o proyecto (opcional), tipo de proyecto, presupuesto y plazo aproximados, y el texto
+              en el que me cuentas lo que necesitas.
+            </p>
+
+            <h3>Inicio de sesión (Discord, Google o GitHub)</h3>
+            <p>
+              Cuando entras con una de estas cuentas, el proveedor me envía solo tu identificador, tu nombre de usuario,
+              tu nombre visible y tu avatar. <strong>No recibo tu email, tu contraseña, tus servidores ni tus
+              mensajes</strong> en esas plataformas. También guardo cuándo creaste la cuenta aquí y cuándo entraste por
+              última vez.
+            </p>
+
+            <h3>Chat y tickets</h3>
+            <p>
+              Los mensajes que nos enviamos en el chat y los tickets que abres, con su asunto y sus fechas de apertura y
+              cierre. Al cerrarse un ticket, la conversación se queda guardada en él para que puedas releerla.
+            </p>
+
+            <h3>Proyectos</h3>
+            <p>
+              Si trabajamos juntos, los datos del encargo que te muestro en tu cuenta: nombre, descripción, estado,
+              progreso, fecha de entrega prevista y el historial de cambios.
+            </p>
+
+            <h3>Opiniones</h3>
+            <p>
+              El tema, la puntuación y el texto que escribes; y, solo si los rellenas, tu nombre y un dato de contacto. Si
+              has iniciado sesión, la opinión queda ligada a tu cuenta.
+            </p>
+
+            <h3>Datos técnicos</h3>
+            <p>
+              Para frenar el spam y los abusos, el servidor usa tu dirección IP para contar cuántas peticiones haces en un
+              intervalo corto. Ese recuento se guarda solo en memoria y se descarta en minutos; no se asocia a tu nombre ni
+              se usa para nada más. El proveedor de alojamiento puede guardar además registros técnicos de acceso
+              durante un tiempo limitado por seguridad.
+            </p>
+            <p>
+              El recuadro «Ahora mismo» de la portada muestra únicamente información mía (mi estado, lo que escucho en
+              Spotify); no recoge nada de quien visita la web.
+            </p>
+          </section>
+
+          <section id="finalidades" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">04</span>Para qué los uso</h2>
+            <ul>
+              <li>Responder a tu consulta y prepararte un presupuesto.</li>
+              <li>Mantener la conversación contigo por el chat y gestionar tus tickets.</li>
+              <li>Identificarte cuando inicias sesión y mantener la sesión abierta.</li>
+              <li>Mostrarte el estado de tus proyectos y avisarte de los cambios.</li>
+              <li>Leer las opiniones y mejorar mis servicios y la web.</li>
+              <li>Proteger la web frente a spam, abusos y accesos no autorizados.</li>
+              <li>Cumplir las obligaciones legales, fiscales y contables si llegamos a un acuerdo.</li>
+            </ul>
+            <p>No envío publicidad, no elaboro perfiles comerciales y no vendo ni alquilo tus datos.</p>
+          </section>
+
+          <section id="base-legal" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">05</span>Base legal</h2>
+            <div class="pv-tabla" role="region" aria-label="Base legal de cada tratamiento" tabindex="0">
+              <table>
+                <thead><tr><th>Tratamiento</th><th>Base legal (RGPD)</th></tr></thead>
+                <tbody>
+                  <tr><td>Formulario de contacto y presupuestos</td><td>Medidas precontractuales a petición tuya (art. 6.1.b) y tu consentimiento (art. 6.1.a)</td></tr>
+                  <tr><td>Cuenta, chat, tickets y proyectos</td><td>Ejecución de la relación que solicitas (art. 6.1.b)</td></tr>
+                  <tr><td>Opiniones</td><td>Tu consentimiento al enviarla (art. 6.1.a)</td></tr>
+                  <tr><td>Seguridad y prevención de abusos</td><td>Interés legítimo en proteger la web y a sus usuarios (art. 6.1.f)</td></tr>
+                  <tr><td>Facturación y obligaciones legales</td><td>Cumplimiento de una obligación legal (art. 6.1.c)</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Cuando la base es tu consentimiento, puedes retirarlo cuando quieras, sin que afecte a lo hecho antes.</p>
+          </section>
+
+          <section id="conservacion" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">06</span>Cuánto tiempo los conservo</h2>
+            <ul>
+              <li><strong>Consultas del formulario:</strong> mientras hablamos y, si no hay encargo, un máximo de 12 meses.</li>
+              <li><strong>Cuenta, chat y tickets:</strong> mientras mantengas la cuenta. Si me pides borrarla, la elimino junto con sus conversaciones.</li>
+              <li><strong>Proyectos y datos de facturación:</strong> el tiempo que exige la normativa fiscal y mercantil (normalmente de 4 a 6 años).</li>
+              <li><strong>Opiniones:</strong> hasta que me pidas retirarlas o dejen de ser útiles.</li>
+              <li><strong>Sesión:</strong> la cookie de sesión dura 30 días y se borra al cerrar sesión.</li>
+              <li><strong>Recuento de peticiones por IP:</strong> unos minutos, solo en memoria.</li>
+            </ul>
+            <p>Pasados esos plazos, los datos se borran o se anonimizan.</p>
+          </section>
+
+          <section id="destinatarios" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">07</span>Con quién se comparten</h2>
+            <p>No cedo tus datos a nadie salvo obligación legal. Sí intervienen estos proveedores, solo para lo indicado:</p>
+            <ul>
+              <li><strong>Web3Forms:</strong> hace llegar a mi correo los mensajes del formulario de contacto.</li>
+              <li><strong>Google (Gmail):</strong> es el correo donde recibo y contesto tus mensajes.</li>
+              <li><strong>Discord, Google y GitHub:</strong> gestionan el inicio de sesión que tú eliges.</li>
+              <li><strong>Proveedor de alojamiento:</strong> donde funcionan la web y su servidor.</li>
+            </ul>
+            <p>
+              Cada uno trata los datos según sus propias garantías y, cuando actúa por encargo mío, solo siguiendo mis
+              instrucciones.
+            </p>
+          </section>
+
+          <section id="transferencias" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">08</span>Transferencias fuera de la UE</h2>
+            <p>
+              Algunos de esos proveedores (Discord, Google, GitHub o Web3Forms) pueden tratar datos en Estados Unidos u
+              otros países fuera del Espacio Económico Europeo. En esos casos la transferencia se ampara en el Marco de
+              Privacidad de Datos UE-EE. UU., en cláusulas contractuales tipo aprobadas por la Comisión Europea o en otra
+              garantía adecuada prevista en el RGPD.
+            </p>
+          </section>
+
+          <section id="derechos" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">09</span>Tus derechos</h2>
+            <p>Sobre tus datos puedes ejercer en cualquier momento estos derechos:</p>
+            <div class="pv-derechos">
+              <div><strong>Acceso</strong><p>Saber qué datos tuyos tengo y recibir una copia.</p></div>
+              <div><strong>Rectificación</strong><p>Corregir los que sean inexactos o estén incompletos.</p></div>
+              <div><strong>Supresión</strong><p>Borrar tus datos, tu cuenta y tus conversaciones.</p></div>
+              <div><strong>Oposición</strong><p>Pedir que deje de tratarlos para un fin concreto.</p></div>
+              <div><strong>Limitación</strong><p>Que los conserve pero sin usarlos mientras se resuelve algo.</p></div>
+              <div><strong>Portabilidad</strong><p>Recibirlos en un formato que puedas llevarte a otro servicio.</p></div>
+            </div>
+            <h3>Cómo ejercerlos</h3>
+            <p>
+              Escribe a <a href={`mailto:${site.email}`}>{site.email}</a> indicando qué derecho quieres ejercer. Si
+              tienes cuenta, dime con qué cuenta entras (Discord, Google o GitHub) para encontrar tus datos; si hiciera
+              falta comprobar tu identidad, te lo pediré. Te contesto en un plazo máximo de un mes. Es gratuito.
+            </p>
+            <h3>Si no estás conforme</h3>
+            <p>
+              Puedes presentar una reclamación ante la
+              <a href="https://www.aepd.es" target="_blank" rel="noopener noreferrer">Agencia Española de Protección de Datos</a>,
+              aunque te agradeceré que antes me escribas para intentar resolverlo.
+            </p>
+          </section>
+
+          <section id="seguridad" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">10</span>Cómo los protejo</h2>
+            <ul>
+              <li>Conexión cifrada (HTTPS) en toda la web.</li>
+              <li>Sesión con cookie firmada, inaccesible desde JavaScript y que solo se envía a esta web.</li>
+              <li>No guardo contraseñas: el inicio de sesión lo resuelven Discord, Google o GitHub.</li>
+              <li>Límites de peticiones y protecciones contra spam y ataques automatizados.</li>
+              <li>Acceso a las conversaciones restringido a ti y a mí; las claves sensibles del servidor se guardan cifradas.</li>
+            </ul>
+            <p>
+              Ningún sistema es infalible; si ocurriera una brecha que afecte a tus datos, lo notificaré a la autoridad y,
+              cuando corresponda, a ti, como marca la ley.
+            </p>
+          </section>
+
+          <section id="cookies" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">11</span>Cookies y almacenamiento local</h2>
+            <p>
+              Esta web <strong>no usa cookies de analítica, publicidad ni seguimiento</strong>. Solo usa lo
+              imprescindible para funcionar, que no necesita tu consentimiento:
+            </p>
+            <div class="pv-tabla" role="region" aria-label="Cookies y almacenamiento" tabindex="0">
+              <table>
+                <thead><tr><th>Nombre</th><th>Tipo</th><th>Para qué</th><th>Duración</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">aj_session</td><td>Cookie técnica</td><td>Mantener tu sesión iniciada</td><td>30 días</td></tr>
+                  <tr><td class="mono">aj_oauth_state</td><td>Cookie técnica</td><td>Proteger el inicio de sesión frente a suplantaciones</td><td>10 minutos</td></tr>
+                  <tr><td class="mono">aj_oauth_next</td><td>Cookie técnica</td><td>Volver a la página en la que estabas tras iniciar sesión</td><td>10 minutos</td></tr>
+                  <tr><td class="mono">theme</td><td>Almacenamiento local</td><td>Recordar el tema claro u oscuro</td><td>Hasta que lo borres</td></tr>
+                  <tr><td class="mono">aj-lang</td><td>Almacenamiento local</td><td>Recordar el idioma elegido</td><td>Hasta que lo borres</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Puedes borrar todo esto desde la configuración de tu navegador; si borras la cookie de sesión, tendrás que volver a entrar.</p>
+          </section>
+
+          <section id="menores" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">12</span>Menores de edad</h2>
+            <p>
+              Los servicios de esta web están pensados para mayores de 14 años, la edad a partir de la cual la ley española
+              permite consentir el tratamiento de datos. Si eres menor de 14, pide a tu madre, padre o tutor que se ponga en
+              contacto conmigo. Si descubro que he recibido datos de un menor sin ese permiso, los borraré.
+            </p>
+          </section>
+
+          <section id="decisiones" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">13</span>Decisiones automatizadas</h2>
+            <p>
+              No tomo decisiones automatizadas ni elaboro perfiles que produzcan efectos sobre ti. Todo lo que hablamos y
+              presupuestamos lo reviso yo personalmente.
+            </p>
+          </section>
+
+          <section id="enlaces" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">14</span>Enlaces a otras webs</h2>
+            <p>
+              Desde aquí puedes llegar a webs de terceros (por ejemplo Discord, GitHub o las demos de proyectos). Cada una
+              tiene su propia política de privacidad, que te recomiendo leer; esta solo cubre lo que pasa en esta web.
+            </p>
+          </section>
+
+          <section id="cambios" class="pv-sec" data-pv-sec>
+            <h2><span class="mono">15</span>Cambios en esta política</h2>
+            <p>
+              Si cambio cómo trato tus datos, actualizaré esta página y la fecha de arriba. Si el cambio es importante y
+              tienes cuenta, te avisaré por el chat.
+            </p>
+          </section>
+
+          <p class="pv-vacio" hidden data-pv-vacio>
+            No he encontrado nada con «<span data-pv-termino></span>». Prueba con otra palabra o escríbeme a
+            <a href={`mailto:${site.email}`}>{site.email}</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const entrada = document.querySelector<HTMLInputElement>("[data-pv-buscar]")!;
+  const limpiar = document.querySelector<HTMLButtonElement>("[data-pv-limpiar]")!;
+  const info = document.querySelector<HTMLElement>("[data-pv-info]")!;
+  const vacio = document.querySelector<HTMLElement>("[data-pv-vacio]")!;
+  const secciones = [...document.querySelectorAll<HTMLElement>("[data-pv-sec]")];
+
+  // Sin tildes ni mayúsculas: «politica» encuentra «política»
+  const normal = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+  // Quita los <mark> de la búsqueda anterior
+  function desmarcar(raiz: HTMLElement) {
+    raiz.querySelectorAll("mark.pv-mark").forEach((m) => m.replaceWith(m.textContent ?? ""));
+    raiz.normalize();
+  }
+
+  // Resalta cada aparición en los nodos de texto (comparando sin tildes, que mantiene la longitud de cada letra)
+  function marcar(raiz: HTMLElement, termino: string): number {
+    let n = 0;
+    const walker = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
+    const nodos: Text[] = [];
+    while (walker.nextNode()) nodos.push(walker.currentNode as Text);
+    for (const nodo of nodos) {
+      const texto = nodo.data;
+      const plano = normal(texto);
+      if (plano.length !== texto.length) continue; // caracteres raros: sin resaltar
+      let desde = 0;
+      let i = plano.indexOf(termino);
+      if (i < 0) continue;
+      const trozos = document.createDocumentFragment();
+      while (i >= 0) {
+        trozos.append(texto.slice(desde, i));
+        const m = document.createElement("mark");
+        m.className = "pv-mark";
+        m.textContent = texto.slice(i, i + termino.length);
+        trozos.append(m);
+        n++;
+        desde = i + termino.length;
+        i = plano.indexOf(termino, desde);
+      }
+      trozos.append(texto.slice(desde));
+      nodo.replaceWith(trozos);
+    }
+    return n;
+  }
+
+  function buscar() {
+    const termino = normal(entrada.value.trim());
+    limpiar.hidden = !entrada.value;
+    let total = 0;
+    let visibles = 0;
+    for (const s of secciones) {
+      desmarcar(s);
+      const n = termino ? marcar(s, termino) : 0;
+      const ver = !termino || n > 0;
+      s.hidden = !ver;
+      document.querySelector(`[data-pv-enlace="${s.id}"]`)?.classList.toggle("is-fuera", !ver);
+      if (ver) visibles++;
+      total += n;
+    }
+    vacio.hidden = !termino || total > 0;
+    document.querySelector<HTMLElement>("[data-pv-termino]")!.textContent = entrada.value.trim();
+    info.textContent = termino && total
+      ? `${total} ${total === 1 ? "coincidencia" : "coincidencias"} en ${visibles} ${visibles === 1 ? "apartado" : "apartados"}`
+      : "";
+    document.querySelectorAll<HTMLButtonElement>("[data-pv-atajo]").forEach((b) =>
+      b.setAttribute("aria-pressed", String(normal(b.dataset.pvAtajo ?? "") === termino)),
+    );
+  }
+
+  let espera = 0;
+  entrada.addEventListener("input", () => {
+    clearTimeout(espera);
+    espera = window.setTimeout(buscar, 120);
+  });
+
+  limpiar.addEventListener("click", () => {
+    entrada.value = "";
+    buscar();
+    entrada.focus();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>("[data-pv-atajo]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const ya = b.getAttribute("aria-pressed") === "true";
+      entrada.value = ya ? "" : b.dataset.pvAtajo ?? "";
+      buscar();
+      // lleva a la primera coincidencia
+      document.querySelector(".pv-mark")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }),
+  );
+
+  // Intro: salta a la primera coincidencia; Esc: borra
+  entrada.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      clearTimeout(espera);
+      buscar();
+      document.querySelector(".pv-mark")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else if (e.key === "Escape" && entrada.value) {
+      e.preventDefault();
+      entrada.value = "";
+      buscar();
+    }
+  });
+
+  // «/» enfoca el buscador desde cualquier sitio de la página
+  document.addEventListener("keydown", (e) => {
+    const t = e.target as HTMLElement;
+    if (e.key === "/" && !t.closest("input, textarea, [contenteditable]")) {
+      e.preventDefault();
+      entrada.focus();
+    }
+  });
+
+  // Índice: marca el apartado que estás leyendo
+  const enlaces = new Map(secciones.map((s) => [s, document.querySelector(`[data-pv-enlace="${s.id}"]`)]));
+  const visto = new IntersectionObserver(
+    (entradas) => {
+      for (const en of entradas) {
+        if (!en.isIntersecting) continue;
+        enlaces.forEach((li) => li?.classList.remove("is-actual"));
+        enlaces.get(en.target as HTMLElement)?.classList.add("is-actual");
+      }
+    },
+    { rootMargin: "-30% 0px -60% 0px" },
+  );
+  secciones.forEach((s) => visto.observe(s));
+
+  // ?q=cookies abre la página ya filtrada
+  const q = new URLSearchParams(location.search).get("q");
+  if (q) {
+    entrada.value = q;
+    buscar();
+  }
+</script>
+
+<style>
+  .page {
+    padding-block: var(--space-8) var(--section);
+  }
+
+  .pv {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  /* cabecera */
+  .pv-head {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 48rem;
+  }
+
+  .eyebrow {
+    font-size: var(--fs-sm);
+    color: var(--fg-subtle);
+  }
+
+  h1 {
+    font-size: var(--fs-xl);
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+  }
+
+  .pv-lead {
+    font-size: var(--fs-base);
+    line-height: 1.65;
+    color: var(--fg-muted);
+  }
+
+  .pv-fecha {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  /* buscador */
+  .pv-buscador {
+    position: sticky;
+    top: calc(var(--header-h, 4rem) + var(--space-2));
+    z-index: 5;
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  .pv-buscar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    background: var(--bg-elev);
+    color: var(--fg-muted);
+    transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+
+  .pv-buscar:focus-within {
+    border-color: var(--fg);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--fg) 12%, transparent);
+  }
+
+  .pv-buscar input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.85rem 0;
+    border: 0;
+    background: transparent;
+    color: var(--fg);
+    font-size: var(--fs-base);
+    outline: none;
+  }
+
+  .pv-buscar input::placeholder {
+    color: var(--fg-subtle);
+  }
+
+  .pv-buscar input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  .pv-kbd {
+    padding: 0.1rem 0.45rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .pv-buscar:focus-within .pv-kbd {
+    display: none;
+  }
+
+  .pv-limpiar {
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    color: var(--fg-muted);
+  }
+
+  .pv-limpiar:hover {
+    background: var(--bg-code);
+    color: var(--fg);
+  }
+
+  .pv-limpiar[hidden] {
+    display: none;
+  }
+
+  .pv-atajos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .pv-atajos button {
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+    transition: all var(--dur) var(--ease);
+  }
+
+  .pv-atajos button:hover {
+    border-color: var(--border-strong);
+    color: var(--fg);
+  }
+
+  .pv-atajos button[aria-pressed="true"] {
+    background: var(--fg);
+    border-color: var(--fg);
+    color: var(--bg);
+  }
+
+  .pv-info {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .pv-info:empty {
+    display: none;
+  }
+
+  /* cuerpo: índice + apartados */
+  .pv-cuerpo {
+    display: grid;
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  .pv-indice {
+    position: sticky;
+    top: calc(var(--header-h, 4rem) + 11rem);
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .pv-indice__t {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .pv-indice ol {
+    display: grid;
+    gap: 2px;
+  }
+
+  .pv-indice a {
+    display: flex;
+    gap: var(--space-3);
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+    text-decoration: none;
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  }
+
+  .pv-indice a span {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+    padding-top: 0.1rem;
+  }
+
+  .pv-indice a:hover {
+    background: var(--bg-code);
+    color: var(--fg);
+  }
+
+  .pv-indice .is-actual a {
+    background: var(--bg-elev);
+    color: var(--fg);
+    font-weight: 600;
+  }
+
+  .pv-indice .is-fuera a {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .pv-secciones {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .pv-sec {
+    display: grid;
+    gap: var(--space-3);
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2.25rem);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--bg-elev);
+    scroll-margin-top: calc(var(--header-h, 4rem) + 11rem);
+    animation: pv-entra 0.3s var(--ease);
+  }
+
+  .pv-sec[hidden] {
+    display: none;
+  }
+
+  @keyframes pv-entra {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+
+  .pv-sec h2 {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    font-size: var(--fs-lg);
+    letter-spacing: -0.02em;
+  }
+
+  .pv-sec h2 span {
+    font-size: var(--fs-sm);
+    color: var(--fg-subtle);
+  }
+
+  .pv-sec h3 {
+    margin-top: var(--space-2);
+    font-size: var(--fs-base);
+  }
+
+  .pv-sec p,
+  .pv-sec li {
+    line-height: 1.65;
+    color: var(--fg-muted);
+  }
+
+  .pv-sec strong {
+    color: var(--fg);
+  }
+
+  .pv-sec a {
+    color: var(--fg);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .pv-sec ul {
+    display: grid;
+    gap: var(--space-2);
+    padding-left: 1.25rem;
+    list-style: disc;
+  }
+
+  .pv-sec li::marker {
+    color: var(--fg-subtle);
+  }
+
+  /* tarjetas del resumen y de derechos */
+  .pv-resumen,
+  .pv-derechos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: var(--space-3);
+  }
+
+  .pv-resumen > div,
+  .pv-derechos > div {
+    display: grid;
+    gap: var(--space-1);
+    align-content: start;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg);
+  }
+
+  .pv-resumen p,
+  .pv-derechos p {
+    font-size: var(--fs-sm);
+  }
+
+  .pv-correo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: fit-content;
+    max-width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    background: var(--bg);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    text-decoration: none !important;
+    overflow-wrap: anywhere;
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .pv-correo:hover {
+    border-color: var(--fg);
+  }
+
+  /* tablas */
+  .pv-tabla {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+
+  .pv-tabla table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+  }
+
+  .pv-tabla th,
+  .pv-tabla td {
+    padding: 0.7rem 0.9rem;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+    color: var(--fg-muted);
+  }
+
+  .pv-tabla th {
+    background: var(--bg);
+    color: var(--fg);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .pv-tabla tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .pv-tabla td.mono {
+    color: var(--fg);
+    white-space: nowrap;
+  }
+
+  /* resaltado de la búsqueda */
+  :global(mark.pv-mark) {
+    padding: 0 2px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--fg) 85%, transparent);
+    color: var(--bg);
+  }
+
+  .pv-vacio {
+    padding: var(--space-6);
+    border: 1px dashed var(--border-strong);
+    border-radius: 20px;
+    text-align: center;
+    color: var(--fg-muted);
+  }
+
+  .pv-vacio[hidden] {
+    display: none;
+  }
+
+  .pv-vacio a {
+    color: var(--fg);
+    text-decoration: underline;
+  }
+
+  @media (max-width: 56rem) {
+    .pv-cuerpo {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .pv-indice {
+      display: none;
+    }
+
+    .pv-sec {
+      scroll-margin-top: calc(var(--header-h, 4rem) + 9rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pv-sec {
+      animation: none;
+    }
+  }
+</style>

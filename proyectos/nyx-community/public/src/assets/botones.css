@@ -1,0 +1,80 @@
+/* =====================================================================
+   botones.css · Botones de acción principales con el diseño "Cristal morado"
+   (el mismo que el botón de Soporte): morado translúcido con borde morado;
+   al pasar el ratón el borde se intensifica y sale un brillo, sin moverse.
+
+   Cubre los botones que antes tenían el degradado rosa-morado:
+     sugerencias.html  .sg-btn.primario   (Nueva sugerencia, Enviar sugerencia, Guardar estado)
+     home.html         .act-empty-btn     (Abrir ticket, Enviar sugerencia)
+     tickets.html      #openNewTicketModalBtn, #submitNewTicketBtn, #sendReplyBtn
+     feedback.html     .fb-enviar         (Enviar opinión)
+     whitelist.html    .btn-modern-action
+     postulaciones     .btn-wizard-primary
+     facciones/sasp    .btn-postulate-modern
+
+   El #botones-cristal dentro de :is() da a todos la misma prioridad alta
+   (la de un ID), para que este diseño mande sobre el que cada página tenía.
+   Cada botón conserva su tamaño, relleno y forma.
+   ===================================================================== */
+:is(#botones-cristal, .sg-btn.primario, .act-empty-btn, #openNewTicketModalBtn, #submitNewTicketBtn, #sendReplyBtn,
+    .fb-enviar, .btn-modern-action, .btn-wizard-primary, .btn-postulate-modern) {
+    background: rgba(168, 85, 247, 0.14);
+    border: 1px solid rgba(168, 85, 247, 0.45);
+    color: #fff;
+    box-shadow: none;
+    filter: none;
+    transform: none;
+    text-shadow: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+}
+:is(#botones-cristal, .sg-btn.primario, .act-empty-btn, #openNewTicketModalBtn, #submitNewTicketBtn, #sendReplyBtn,
+    .fb-enviar, .btn-modern-action, .btn-wizard-primary, .btn-postulate-modern) i {
+    color: inherit;
+}
+:is(#botones-cristal, .sg-btn.primario, .act-empty-btn, #openNewTicketModalBtn, #submitNewTicketBtn, #sendReplyBtn,
+    .fb-enviar, .btn-modern-action, .btn-wizard-primary, .btn-postulate-modern):hover:not(:disabled) {
+    background: rgba(168, 85, 247, 0.14);
+    border-color: #a855f7;
+    box-shadow: 0 0 18px rgba(168, 85, 247, 0.4);
+    color: #fff;
+    filter: none;
+    transform: none;
+}
+:is(#botones-cristal, .sg-btn.primario, .act-empty-btn, #openNewTicketModalBtn, #submitNewTicketBtn, #sendReplyBtn,
+    .fb-enviar, .btn-modern-action, .btn-wizard-primary, .btn-postulate-modern):active:not(:disabled) {
+    background: rgba(168, 85, 247, 0.24);
+    transform: none;
+}
+:is(#botones-cristal, .sg-btn.primario, .act-empty-btn, #openNewTicketModalBtn, #submitNewTicketBtn, #sendReplyBtn,
+    .fb-enviar, .btn-modern-action, .btn-wizard-primary, .btn-postulate-modern):focus-visible {
+    outline: 2px solid #a855f7;
+    outline-offset: 2px;
+}
+:is(#botones-cristal, .sg-btn.primario, .act-empty-btn, #openNewTicketModalBtn, #submitNewTicketBtn, #sendReplyBtn,
+    .fb-enviar, .btn-modern-action, .btn-wizard-primary, .btn-postulate-modern):disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+/* Botones con su color puesto a mano en el HTML (p. ej. los verdes de "Acceso concedido"
+   o "Enviar Postulación Oficial"): conservan su color y no llevan el borde morado */
+:is(#botones-cristal, .sg-btn.primario, .act-empty-btn, #openNewTicketModalBtn, #submitNewTicketBtn, #sendReplyBtn,
+    .fb-enviar, .btn-modern-action, .btn-wizard-primary, .btn-postulate-modern)[style*="background"],
+:is(#botones-cristal, .sg-btn.primario, .act-empty-btn, #openNewTicketModalBtn, #submitNewTicketBtn, #sendReplyBtn,
+    .fb-enviar, .btn-modern-action, .btn-wizard-primary, .btn-postulate-modern)[style*="background"]:hover:not(:disabled) {
+    border-color: transparent;
+    box-shadow: none;
+}
+
+/* Sin los destellos y brillos decorativos que tenían los degradados */
+:is(#botones-cristal, .sg-btn.primario, .act-empty-btn, #openNewTicketModalBtn, #submitNewTicketBtn, #sendReplyBtn,
+    .fb-enviar, .btn-modern-action, .btn-wizard-primary, .btn-postulate-modern)::before,
+:is(#botones-cristal, .sg-btn.primario, .act-empty-btn, #openNewTicketModalBtn, #submitNewTicketBtn, #sendReplyBtn,
+    .fb-enviar, .btn-modern-action, .btn-wizard-primary, .btn-postulate-modern)::after {
+    display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(#botones-cristal, .sg-btn.primario, .act-empty-btn, #openNewTicketModalBtn, #submitNewTicketBtn, #sendReplyBtn,
+        .fb-enviar, .btn-modern-action, .btn-wizard-primary, .btn-postulate-modern) { transition: none; }
+}

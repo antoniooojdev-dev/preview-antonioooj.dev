@@ -1,0 +1,201 @@
+---
+// «Cómo trabajo» en bento: quién eres, los cuatro pasos de un encargo, cómo trabajas y
+// con qué tecnologías. Sustituye a las antiguas secciones «Proceso» y «Sobre mí».
+import SectionHead from "./SectionHead.astro";
+import { site } from "@/data/site";
+import { process } from "@/data/process";
+import { stack } from "@/data/stack";
+
+const values = [
+  { k: "Hablas conmigo", v: "Sin comerciales ni gestores de cuenta. Quien te contesta es quien lo programa." },
+  { k: "Código que otro pueda tocar", v: "Ordenado y explicado, para que mañana lo amplíe yo o cualquier otra persona." },
+  { k: "Webs ligeras", v: "Cargan rápido en el móvil, que es donde te va a ver la mayoría de la gente." },
+  { k: "Las cuentas claras", v: "Precio cerrado, avances cada semana y el código entero es tuyo al terminar." },
+];
+---
+
+<section id="sobre-mi" class="section">
+  <div class="container">
+    <span id="proceso" class="ancla" aria-hidden="true"></span>
+    <SectionHead
+      title="Una persona, no una agencia"
+    />
+
+    <div class="bento grid">
+      <div class="tile tile--neg t-yo" data-reveal>
+        <span class="tile__label">Sobre mí</span>
+        <p class="big">
+          Soy <strong>{site.fullName}</strong> Casi todo lo que hago va con HTML, JavaScript y PHP; para
+          FiveM uso Lua y para Discord, discord.js.
+        </p>
+        <p class="sub">
+          Si una herramienta nueva ahorra trabajo la uso, y si no, no. Lo que importa es que la web
+          funcione, se entienda y te traiga clientes.
+        </p>
+      </div>
+
+      {
+        process.map((step, i) => (
+          <div class="tile t-paso" data-reveal style={`--i:${i + 1}`}>
+            <div class="paso__top">
+              <span class="n">{i + 1}</span>
+              <span class="tile__label">{step.duration}</span>
+            </div>
+            <strong>{step.title}</strong>
+            <p class="sub">{step.description}</p>
+          </div>
+        ))
+      }
+
+      <div class="tile t-valores" data-reveal style="--i:5">
+        <span class="tile__label">Cómo lo hago</span>
+        <dl>
+          {
+            values.map((item) => (
+              <div>
+                <dt>{item.k}</dt>
+                <dd>{item.v}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+
+      <div class="tile t-stack" data-reveal style="--i:6">
+        <span class="tile__label">Con qué trabajo</span>
+        <ul role="list" class="chips">
+          {stack.flatMap((g) => g.items).map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ancla {
+    display: block;
+    position: relative;
+    top: calc(-1 * var(--space-8));
+  }
+
+  /* yo   yo   paso1 paso2
+     yo   yo   paso3 paso4
+     val  val  stack stack */
+  .grid {
+    grid-template-areas:
+      "yo yo p1 p2"
+      "yo yo p3 p4"
+      "val val stack stack";
+  }
+
+  .t-yo { grid-area: yo; justify-content: space-between; padding: clamp(1.5rem, 1rem + 2vw, 2.5rem); }
+  .t-paso:nth-of-type(2) { grid-area: p1; }
+  .t-paso:nth-of-type(3) { grid-area: p2; }
+  .t-paso:nth-of-type(4) { grid-area: p3; }
+  .t-paso:nth-of-type(5) { grid-area: p4; }
+  .t-valores { grid-area: val; }
+  .t-stack { grid-area: stack; }
+
+  .big {
+    max-width: 26ch;
+    font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.3rem);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+
+  .big strong {
+    font-weight: 750;
+  }
+
+  .sub {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+  }
+
+  .t-yo .sub {
+    max-width: 36rem;
+    font-size: var(--fs-md);
+  }
+
+  .paso__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: auto;
+  }
+
+  .n {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--fg);
+    color: var(--bg-elev);
+    font-weight: 700;
+  }
+
+  .t-paso strong {
+    margin-top: var(--space-4);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5) var(--space-6);
+    margin-top: var(--space-2);
+  }
+
+  dt {
+    font-weight: 700;
+  }
+
+  dd {
+    margin: 0.2rem 0 0;
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: var(--space-2);
+  }
+
+  .chips li {
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+  }
+
+  @media (max-width: 64rem) {
+    .grid {
+      grid-template-areas:
+        "yo yo"
+        "p1 p2"
+        "p3 p4"
+        "val val"
+        "stack stack";
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .grid {
+      grid-template-areas: none;
+    }
+
+    dl {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

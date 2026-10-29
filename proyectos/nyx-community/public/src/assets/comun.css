@@ -1,0 +1,95 @@
+/* =====================================================================
+   comun.css · Estilos comunes de Nyx Community
+   Se carga la última en todas las páginas (menos index.html), así que
+   manda sobre los estilos propios de cada una.
+
+   1. Fondo: el mismo en toda la web (el de sugerencias.html)
+   2. Footer: marca + Información + Postulaciones + Comunidad,
+      con los títulos de las tres categorías a la misma altura
+   ===================================================================== */
+
+/* ---------- 1. Fondo ----------
+   Color base #0f1016 y cuadrícula morada de 40 px. Se pinta en el body
+   (para las páginas sin capa de fondo) y en .grid-background (las demás). */
+html,
+body {
+    background-color: #0f1016 !important;
+}
+
+body {
+    background-image:
+        linear-gradient(to right, rgba(147, 51, 234, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(147, 51, 234, 0.04) 1px, transparent 1px) !important;
+    background-size: 40px 40px !important;
+    background-attachment: fixed !important;
+}
+
+.grid-background {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: #0f1016 !important;
+    background-image:
+        linear-gradient(to right, rgba(147, 51, 234, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(147, 51, 234, 0.04) 1px, transparent 1px) !important;
+    background-size: 40px 40px !important;
+}
+
+/* ---------- 2. Footer ---------- */
+
+/* Footer del panel (home.html…): .site-footer-grid > .footer-brand + .footer-col */
+.site-footer .site-footer-grid {
+    grid-template-columns: minmax(260px, 1.3fr) repeat(3, minmax(150px, 1fr));
+    align-items: start;
+    max-width: 1180px;
+}
+.site-footer .site-footer-grid > .footer-col {
+    padding-top: 0;   /* antes Comunidad iba 45 px más abajo */
+}
+
+/* Footer de las webs de facciones: .footer-content > .footer-brand-col + .footer-links-col */
+.landing-footer .footer-content {
+    grid-template-columns: 1.6fr repeat(3, 1fr);
+}
+.landing-footer .footer-content > .footer-links-col {
+    align-self: start;   /* las columnas ya no se centran según su número de enlaces */
+}
+
+/* Footer de LSSD: .footer-inner > .footer-brand + .footer-col */
+footer .footer-inner:has(> .footer-col) {
+    grid-template-columns: 1.6fr repeat(3, 1fr);
+    align-items: start;
+}
+
+/* Tablet: la marca ocupa toda la fila y debajo las tres categorías */
+@media (max-width: 900px) {
+    .site-footer .site-footer-grid,
+    .landing-footer .footer-content,
+    footer .footer-inner:has(> .footer-col) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .site-footer .site-footer-grid > .footer-brand,
+    .landing-footer .footer-content > .footer-brand-col,
+    footer .footer-inner > .footer-brand {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Móvil: una categoría debajo de otra */
+@media (max-width: 560px) {
+    .site-footer .site-footer-grid,
+    .landing-footer .footer-content,
+    footer .footer-inner:has(> .footer-col) {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Al imprimir (políticas, términos…), fondo blanco */
+@media print {
+    html,
+    body,
+    .grid-background {
+        background: #fff !important;
+    }
+}

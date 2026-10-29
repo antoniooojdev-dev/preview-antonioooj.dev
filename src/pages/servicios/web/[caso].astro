@@ -1,0 +1,31 @@
+---
+// Casos de ejemplo de «Web online»: cada uno es una web completa de una marca ficticia
+// (src/components/casos/). Datos de cada caso en src/data/casos.ts.
+import type { GetStaticPaths } from "astro";
+import CasoLayout from "@/layouts/CasoLayout.astro";
+import Brasa from "@/components/casos/Brasa.astro";
+import Clinica from "@/components/casos/Clinica.astro";
+import Gym from "@/components/casos/Gym.astro";
+import { casosDe, type Caso } from "@/data/casos";
+
+export const getStaticPaths = (() => casosDe("web").map((caso) => ({ params: { caso: caso.id }, props: { caso } }))) satisfies GetStaticPaths;
+
+interface Props {
+  caso: Caso;
+}
+
+const { caso } = Astro.props;
+
+// componente y tipografías de cada web
+const WEBS = {
+  brasa: { C: Brasa, fuentes: ["Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500..700", "Inter:wght@400;500;600;700"] },
+  clinica: { C: Clinica, fuentes: ["Plus+Jakarta+Sans:wght@400;500;600;700;800"] },
+  gym: { C: Gym, fuentes: ["Bebas+Neue", "Inter:wght@400;500;600;700;800"] },
+} as const;
+
+const { C, fuentes } = WEBS[caso.id as keyof typeof WEBS];
+---
+
+<CasoLayout caso={caso} fuentes={[...fuentes]}>
+  <C />
+</CasoLayout>

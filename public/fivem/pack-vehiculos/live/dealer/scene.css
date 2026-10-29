@@ -1,0 +1,105 @@
+/* Exposición del concesionario: pared, cristaleras, suelo brillante y plataforma giratoria.
+   Clases con prefijo dz- para no chocar con las de la NUI (p. ej. .plate es la matrícula). */
+.dz-room { position: absolute; inset: 0; background: linear-gradient(180deg, #0e0f13 0%, #16171c 52%, #0b0b0e 52.2%, #121317 100%); }
+.dz-room::before {
+    /* cristaleras al fondo */
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 70px;
+    height: 470px;
+    background:
+        repeating-linear-gradient(90deg, transparent 0 230px, #0a0b0e 230px 246px),
+        linear-gradient(180deg, #1d2840, #2c3350 55%, #41314a);
+    opacity: 0.55;
+}
+.dz-room::after {
+    /* reflejo del suelo */
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 562px;
+    bottom: 0;
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 240px),
+        radial-gradient(ellipse 60% 50% at 50% 30%, rgba(255, 255, 255, 0.07), transparent 70%);
+}
+.dz-sign {
+    position: absolute;
+    top: 110px;
+    left: 50%;
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 0.5em;
+    color: #fff;
+    text-shadow: 0 0 18px rgba(255, 255, 255, 0.6), 0 0 50px rgba(120, 160, 255, 0.4);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    opacity: 0.9;
+}
+.dz-spot {
+    position: absolute;
+    top: -80px;
+    left: 50%;
+    width: 1100px;
+    height: 900px;
+    background: radial-gradient(ellipse 40% 60% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 70%);
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.dz-stage { position: absolute; left: 50%; top: 735px; width: 0; height: 0; }
+.dz-plate {
+    position: absolute;
+    left: -560px;
+    top: -95px;
+    width: 1120px;
+    height: 190px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, #2a2c33 0%, #1b1c21 60%, #131418 100%);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06), 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 -10px 30px rgba(0, 0, 0, 0.5);
+}
+.dz-plate svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.dz-plate .glow { fill: none; stroke: rgba(160, 190, 255, 0.35); stroke-width: 2.5; filter: drop-shadow(0 0 12px rgba(160, 190, 255, 0.5)); }
+.dz-plate .dash { fill: none; stroke: rgba(255, 255, 255, 0.3); stroke-width: 3; stroke-dasharray: 18 22; }
+
+.dz-car {
+    position: absolute;
+    left: 0;
+    bottom: 10px;
+    width: 980px;
+    transform: translateX(-50%) scale(var(--zoom, 1));
+    transform-origin: 50% 100%;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s;
+}
+.dz-turn { position: relative; transform: scaleX(var(--sx, 1)); }
+.dz-turn img { display: block; width: 100%; filter: brightness(var(--bri, 1)) saturate(var(--sat, 1)) drop-shadow(0 30px 25px rgba(0, 0, 0, 0.6)); }
+.dz-paint {
+    position: absolute;
+    inset: 0;
+    background: var(--paint, transparent);
+    mix-blend-mode: color;
+    opacity: 0.62;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+}
+.dz-refl {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: -24px;
+    transform: scaleY(-1) scaleX(var(--sx, 1));
+    opacity: 0.14;
+    -webkit-mask-image: linear-gradient(to top, #000, transparent 45%);
+    mask-image: linear-gradient(to top, #000, transparent 45%);
+    filter: blur(2px);
+}
+.dz-car.swap { animation: carIn 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes carIn { from { opacity: 0; transform: translateX(-50%) translateY(30px) scale(calc(var(--zoom, 1) * 0.94)); } }
+.dz-car.empty { opacity: 0; }
+
+body.catalog .sc-keys, body.catalog .sc-wallet { opacity: 0; pointer-events: none; }
+.sc-keys, .sc-wallet { transition: opacity 0.3s; }

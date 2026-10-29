@@ -1,0 +1,1529 @@
+---
+// Página de un pack de scripts FiveM (/servicios/fivem/<pack>): qué incluye, demos jugables
+// (la NUI real de cada script dentro de un iframe a 1920×1080 escalado), el desarrollo de
+// cada script con su vídeo y capturas, cómo encajan entre ellos y detalles técnicos.
+// Contenido en src/data/packs.ts; demos y medios en public/fivem/<pack>/.
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Icono from "@/components/servicios/Icono.astro";
+import { fivemPacks, type Pack } from "@/data/packs";
+
+export const getStaticPaths = (() => fivemPacks.map((pack) => ({ params: { pack: pack.id }, props: { pack } }))) satisfies GetStaticPaths;
+
+interface Props {
+  pack: Pack;
+}
+
+const { pack } = Astro.props;
+const contacto = `/contacto?tipo=${encodeURIComponent("Script FiveM")}`;
+const hero = pack.scripts[0];
+---
+
+<BaseLayout title={`${pack.titulo} · Scripts FiveM`} description={pack.lead} image={hero.poster}>
+  <article class="page" style={`--acc:${pack.color}`}>
+    <div class="glow" aria-hidden="true"></div>
+    <div class="container">
+      <a href="/servicios/fivem" class="back mono">← cd ../scripts-fivem</a>
+
+      <!-- ── cabecera ── -->
+      <header class="head">
+        <span class="eyebrow mono"><span class="pill"><i aria-hidden="true"></i> pack</span> scripts fivem · {pack.scripts.length} recursos</span>
+        <h1>
+          <span class="h1-icon" aria-hidden="true"><Icono nombre={pack.icono} size={34} /></span>
+          {pack.titulo}
+        </h1>
+        <p class="lead">{pack.lead}</p>
+        <ul role="list" class="chips mono">
+          {pack.chips.map((c) => <li>{c}</li>)}
+        </ul>
+        <div class="head-actions">
+          <a href="#probar" class="btn btn-primary"><Icono nombre="play" size={14} /> Probar las demos</a>
+          <a href={contacto} class="btn btn-ghost">Pedir presupuesto <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </header>
+
+      <!-- ── vídeo grande ── -->
+      <figure class="hero-video" data-reveal>
+        <div class="screen-frame">
+          <div class="screen-bar mono">
+            <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span>FiveM · {hero.recurso}</span>
+            <span class="rec"><i aria-hidden="true"></i> grabado de la demo</span>
+          </div>
+          <video class="vid" src={hero.video} poster={hero.poster} muted loop playsinline preload="metadata" data-autoplay aria-label={`Vídeo: ${hero.nombre}`}></video>
+        </div>
+        <figcaption class="mono">{hero.nombre}: conversación con el vendedor, consejo, catálogo, giro y compra.</figcaption>
+      </figure>
+
+      <!-- ── qué incluye ── -->
+      <section class="block">
+        <div class="block-head">
+          <h2 class="kicker mono">// qué incluye</h2>
+          <p class="block-title">Tres scripts, <span>un mismo coche</span></p>
+          <p class="block-sub">{pack.resumen}</p>
+        </div>
+        <ul role="list" class="scripts">
+          {
+            pack.scripts.map((s, i) => (
+              <li class="script" data-reveal style={`--i:${i}`}>
+                <a href={`#${s.id}`} class="script__img">
+                  <img src={s.poster} alt="" loading="lazy" width="1920" height="1080" />
+                  <span class="script__num mono">{String(i + 1).padStart(2, "0")}</span>
+                </a>
+                <div class="script__body">
+                  <span class="script__icon" aria-hidden="true"><Icono nombre={s.icono} size={22} /></span>
+                  <div>
+                    <h3>{s.nombre}</h3>
+                    <span class="mono script__res">{s.recurso}</span>
+                  </div>
+                </div>
+                <p class="script__text">{s.resumen}</p>
+                <ul role="list" class="script__keys">
+                  {s.claves.map((k) => (
+                    <li>
+                      <Icono nombre="check" size={16} /> {k}
+                    </li>
+                  ))}
+                </ul>
+                <div class="script__foot mono">
+                  <a href={`#${s.id}`}>ver desarrollo ↓</a>
+                  <button type="button" data-try={s.id}>▶ probar</button>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <!-- ── demos jugables ── -->
+      <section class="block play" id="probar">
+        <div class="play-bg" aria-hidden="true"></div>
+        <div class="play-head">
+          <span class="live mono"><i aria-hidden="true"></i> demo jugable</span>
+          <h2 class="kicker mono">// pruébalo tú</h2>
+          <p class="play-title">La interfaz del juego, <span>en tu navegador</span></p>
+          <p class="play-sub">Es la misma NUI que corre dentro de FiveM. Lo de alrededor (el coche, el surtidor, la carretera y el servidor) está simulado para que puedas jugar sin instalar nada.</p>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Demos del pack">
+          {
+            pack.scripts.map((s, i) => (
+              <button type="button" role="tab" class:list={["tab", { "is-on": i === 0 }]} aria-selected={i === 0 ? "true" : "false"} data-tab={s.id}>
+                <Icono nombre={s.icono} size={16} />
+                {s.nombre}
+              </button>
+            ))
+          }
+        </div>
+
+        <div class="play-grid">
+          <div class="screen-frame">
+            <div class="screen-bar mono">
+              <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span data-play-res>{hero.recurso}</span>
+              <span class="screen-actions">
+                <button type="button" data-reset title="Empezar de nuevo"><Icono nombre="refresh" size={14} /> reiniciar</button>
+                <button type="button" data-full title="Pantalla completa"><Icono nombre="monitor" size={14} /> pantalla completa</button>
+              </span>
+            </div>
+            <div class="screen" data-screen>
+              <iframe title="Demo jugable" data-frame loading="lazy" tabindex="0"></iframe>
+              <button type="button" class="screen-start" data-start>
+                <span class="screen-start__btn"><Icono nombre="play" size={22} /></span>
+                <span>Cargar la demo</span>
+              </button>
+            </div>
+          </div>
+
+          <aside class="play-side">
+            {
+              pack.scripts.map((s, i) => (
+                <div class="howto" data-howto={s.id} hidden={i !== 0}>
+                  <span class="mono howto__k">cómo se juega</span>
+                  <h3>{s.demo.titulo}</h3>
+                  <ol role="list">
+                    {s.demo.pasos.map((p, j) => (
+                      <li>
+                        <span class="mono">{j + 1}</span>
+                        {p}
+                      </li>
+                    ))}
+                  </ol>
+                  <p class="howto__note">Haz clic dentro de la pantalla para usar el teclado. También puedes pulsar las teclas que salen abajo a la izquierda.</p>
+                </div>
+              ))
+            }
+          </aside>
+        </div>
+        <p class="play-note mono">Demo de demostración: nada de lo que hagas aquí se guarda ni se envía.</p>
+      </section>
+
+      <!-- ── desarrollo ── -->
+      <section class="block">
+        <div class="block-head">
+          <h2 class="kicker mono">// desarrollo</h2>
+          <p class="block-title">Cómo está hecho <span>cada script</span></p>
+        </div>
+
+        {
+          pack.scripts.map((s, i) => (
+            <section class:list={["dev", { "dev--rev": i % 2 === 1 }]} id={s.id}>
+              <header class="dev__head" data-reveal>
+                <span class="dev__num mono">{String(i + 1).padStart(2, "0")}</span>
+                <span class="dev__icon" aria-hidden="true"><Icono nombre={s.icono} size={24} /></span>
+                <div>
+                  <h3>{s.nombre}</h3>
+                  <p class="mono">{s.recurso} · {s.sub}</p>
+                </div>
+              </header>
+
+              <div class="dev__main">
+                <div class="dev__media" data-reveal>
+                  <div class="screen-frame">
+                    <video class="vid" src={s.video} poster={s.poster} muted loop playsinline preload="none" data-autoplay aria-label={`Vídeo: ${s.nombre}`}></video>
+                  </div>
+                  <dl class="cifras">
+                    {s.cifras.map((c) => (
+                      <div>
+                        <dt>{c.l}</dt>
+                        <dd>{c.v}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+                <div class="dev__text" data-reveal>
+                  {s.desarrollo.map((p) => <p>{p}</p>)}
+                  <button type="button" class="btn btn-ghost dev__try" data-try={s.id}>
+                    <Icono nombre="play" size={14} /> Probar {s.nombre.toLowerCase()}
+                  </button>
+                </div>
+              </div>
+
+              <ul role="list" class="funciones">
+                {s.funciones.map((f, j) => (
+                  <li data-reveal style={`--i:${j % 4}`}>
+                    <Icono nombre="check" size={18} />
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <ul role="list" class="galeria" data-galeria>
+                {s.galeria.map((g, j) => (
+                  <li data-reveal style={`--i:${j}`}>
+                    <button type="button" data-shot={g.src} data-caption={g.t}>
+                      <img src={g.src} alt={g.t} loading="lazy" width="1920" height="1080" />
+                      <span>{g.t}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))
+        }
+      </section>
+
+      <!-- ── cómo encajan ── -->
+      <section class="block">
+        <div class="block-head">
+          <h2 class="kicker mono">// cómo encajan</h2>
+          <p class="block-title">Se hablan <span>entre ellos</span></p>
+        </div>
+        <ul role="list" class="encajan">
+          {
+            pack.encajan.map((e, i) => (
+              <li data-reveal style={`--i:${i}`}>
+                <span class="enc__icon">
+                  <Icono nombre={e.icono} size={22} />
+                </span>
+                <strong>{e.t}</strong>
+                <p>{e.d}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <!-- ── técnico ── -->
+      <section class="block">
+        <div class="block-head">
+          <h2 class="kicker mono">// detalles técnicos</h2>
+          <p class="block-title">Por dentro, <span>sin sorpresas</span></p>
+        </div>
+        <ul role="list" class="tecnico">
+          {
+            pack.tecnico.map((t, i) => (
+              <li data-reveal style={`--i:${i}`}>
+                <Icono nombre={t.icono} size={20} />
+                <div>
+                  <strong>{t.t}</strong>
+                  <p>{t.d}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <!-- ── preguntas ── -->
+      <section class="block">
+        <h2 class="kicker mono">// preguntas frecuentes</h2>
+        <div class="faq">
+          {
+            pack.faq.map((f, i) => (
+              <details class="faq__item">
+                <summary>
+                  <span class="faq__n mono">{String(i + 1).padStart(2, "0")}</span>
+                  <span>{f.q}</span>
+                  <span class="faq__plus" aria-hidden="true" />
+                </summary>
+                <p>{f.a}</p>
+              </details>
+            ))
+          }
+        </div>
+      </section>
+
+      <aside class="cta">
+        <div>
+          <p class="cta-title">¿Quieres el {pack.titulo.toLowerCase()} en tu servidor?</p>
+          <p class="cta-sub mono">adaptado a tu estilo · instalación incluida · soporte tras la entrega</p>
+        </div>
+        <a href={contacto} class="btn btn-primary">Pedir presupuesto <span class="arrow" aria-hidden="true">→</span></a>
+      </aside>
+    </div>
+
+    <!-- visor de capturas -->
+    <dialog class="lightbox" data-lightbox>
+      <button type="button" class="lb-close" data-lb-close aria-label="Cerrar">✕</button>
+      <button type="button" class="lb-nav lb-prev" data-lb-prev aria-label="Anterior">‹</button>
+      <figure>
+        <img alt="" data-lb-img />
+        <figcaption data-lb-cap></figcaption>
+      </figure>
+      <button type="button" class="lb-nav lb-next" data-lb-next aria-label="Siguiente">›</button>
+    </dialog>
+  </article>
+</BaseLayout>
+
+<script define:vars={{ demos: pack.scripts.map((s) => ({ id: s.id, url: s.demo.url, recurso: s.recurso })) }}>
+  // ── Demos jugables: el iframe se pinta a 1920×1080 (como el juego) y se escala ──
+  const screen = document.querySelector("[data-screen]");
+  const frame = document.querySelector("[data-frame]");
+  const start = document.querySelector("[data-start]");
+  let actual = demos[0].id;
+  let cargada = false;
+
+  function escalar() {
+    const s = screen.clientWidth / 1920;
+    frame.style.transform = `scale(${s})`;
+  }
+  new ResizeObserver(escalar).observe(screen);
+  escalar();
+
+  function cargar(id, foco) {
+    const d = demos.find((x) => x.id === id);
+    actual = id;
+    cargada = true;
+    frame.src = d.url;
+    start.hidden = true;
+    document.querySelector("[data-play-res]").textContent = d.recurso;
+    if (foco) frame.addEventListener("load", () => frame.focus(), { once: true });
+  }
+
+  function elegir(id, cargarYa) {
+    document.querySelectorAll("[data-tab]").forEach((t) => {
+      const on = t.dataset.tab === id;
+      t.classList.toggle("is-on", on);
+      t.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    document.querySelectorAll("[data-howto]").forEach((h) => (h.hidden = h.dataset.howto !== id));
+    if (cargarYa || cargada) cargar(id);
+    else actual = id;
+  }
+
+  document.querySelectorAll("[data-tab]").forEach((t) => t.addEventListener("click", () => elegir(t.dataset.tab, cargada)));
+  start.addEventListener("click", () => cargar(actual, true));
+  document.querySelector("[data-reset]").addEventListener("click", () => {
+    if (cargada) frame.contentWindow.postMessage({ demo: "reset" }, location.origin);
+  });
+  document.querySelector("[data-full]").addEventListener("click", () => {
+    if (!cargada) cargar(actual);
+    const el = screen;
+    (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
+  });
+  document.addEventListener("fullscreenchange", escalar);
+
+  // «Probar» desde las tarjetas y el desarrollo
+  document.querySelectorAll("[data-try]").forEach((b) =>
+    b.addEventListener("click", () => {
+      elegir(b.dataset.try, true);
+      document.getElementById("probar").scrollIntoView({ behavior: "smooth", block: "start" });
+    }),
+  );
+
+  // ── Vídeos: solo se reproducen mientras se ven ──
+  const vids = document.querySelectorAll("video[data-autoplay]");
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        const v = e.target;
+        if (e.isIntersecting) {
+          if (v.preload === "none") v.preload = "auto";
+          v.play().catch(() => {});
+        } else v.pause();
+      }
+    },
+    { threshold: 0.35 },
+  );
+  vids.forEach((v) => io.observe(v));
+
+  // ── Visor de capturas ──
+  const lb = document.querySelector("[data-lightbox]");
+  const shots = [...document.querySelectorAll("[data-shot]")];
+  let idx = 0;
+  function ver(i) {
+    idx = (i + shots.length) % shots.length;
+    const b = shots[idx];
+    lb.querySelector("[data-lb-img]").src = b.dataset.shot;
+    lb.querySelector("[data-lb-img]").alt = b.dataset.caption;
+    lb.querySelector("[data-lb-cap]").textContent = b.dataset.caption;
+  }
+  shots.forEach((b, i) =>
+    b.addEventListener("click", () => {
+      ver(i);
+      lb.showModal();
+    }),
+  );
+  lb.querySelector("[data-lb-close]").addEventListener("click", () => lb.close());
+  lb.querySelector("[data-lb-prev]").addEventListener("click", () => ver(idx - 1));
+  lb.querySelector("[data-lb-next]").addEventListener("click", () => ver(idx + 1));
+  lb.addEventListener("click", (e) => e.target === lb && lb.close());
+  lb.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") ver(idx - 1);
+    if (e.key === "ArrowRight") ver(idx + 1);
+  });
+</script>
+
+<style>
+  .page {
+    position: relative;
+    padding-block: var(--space-7) var(--section);
+    overflow-x: clip;
+  }
+
+  .glow {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 760px;
+    background:
+      radial-gradient(ellipse 55% 55% at 50% 0%, color-mix(in srgb, var(--acc) 26%, transparent), transparent 70%),
+      radial-gradient(ellipse 35% 40% at 90% 15%, color-mix(in srgb, var(--acc) 12%, transparent), transparent 70%);
+    pointer-events: none;
+    animation: fade-in 1.2s ease both;
+  }
+
+  .container {
+    position: relative;
+  }
+
+  .back {
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .back:hover {
+    color: var(--fg);
+  }
+
+  /* ── cabecera ── */
+  .head {
+    display: grid;
+    justify-items: center;
+    max-width: 54rem;
+    margin: var(--space-7) auto var(--space-7);
+    text-align: center;
+  }
+
+  .head > * {
+    animation: page-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .head > :nth-child(2) { animation-delay: 0.06s; }
+  .head > :nth-child(3) { animation-delay: 0.14s; }
+  .head > :nth-child(4) { animation-delay: 0.22s; }
+  .head > :nth-child(5) { animation-delay: 0.3s; }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--acc) 45%, transparent);
+    background: color-mix(in srgb, var(--acc) 12%, transparent);
+    color: color-mix(in srgb, var(--acc) 70%, var(--fg));
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .pill i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--acc);
+  }
+
+  h1 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-block: var(--space-4) var(--space-4);
+    font-size: clamp(2.6rem, 1.6rem + 4.4vw, 5.2rem);
+    line-height: 1;
+    letter-spacing: -0.05em;
+  }
+
+  .h1-icon {
+    display: grid;
+    place-items: center;
+    width: 4.4rem;
+    height: 4.4rem;
+    flex-shrink: 0;
+    border-radius: 20px;
+    color: #fff;
+    background:
+      radial-gradient(circle at 30% 20%, rgb(255 255 255 / 0.35), transparent 50%),
+      linear-gradient(145deg, color-mix(in srgb, var(--acc) 80%, #fff), var(--acc) 55%, color-mix(in srgb, var(--acc) 70%, #000));
+    box-shadow: 0 20px 50px -18px var(--acc), inset 0 1px 0 rgb(255 255 255 / 0.4);
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .lead {
+    max-width: 44rem;
+    font-size: var(--fs-lg);
+    color: var(--fg-muted);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+    font-size: var(--fs-xs);
+  }
+
+  .chips li {
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--fg-muted);
+  }
+
+  .head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  /* ── marcos de pantalla (vídeos y demo) ── */
+  .screen-frame {
+    position: relative;
+    padding: 1.5px;
+    border-radius: 18px;
+    background: conic-gradient(from var(--ang, 0deg), var(--acc), transparent 25%, transparent 50%, color-mix(in srgb, var(--acc) 60%, #fff), transparent 75%, var(--acc));
+    box-shadow: 0 50px 120px -60px color-mix(in srgb, var(--acc) 80%, transparent);
+    animation: spin-border 8s linear infinite;
+  }
+
+  .screen-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0.65rem 1rem;
+    border-radius: 17px 17px 0 0;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  .dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dots i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ff5f57;
+  }
+
+  .dots i:nth-child(2) { background: #febc2e; }
+  .dots i:nth-child(3) { background: #28c840; }
+
+  .rec {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
+  }
+
+  .rec i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: blink 1.2s steps(2, start) infinite;
+  }
+
+  .vid {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #0b0c10;
+    border-radius: 0 0 17px 17px;
+    object-fit: cover;
+  }
+
+  .screen-frame > .vid:first-child {
+    border-radius: 17px;
+  }
+
+  .hero-video {
+    margin: 0 auto var(--space-9);
+    max-width: 64rem;
+  }
+
+  .hero-video figcaption {
+    margin-top: var(--space-3);
+    text-align: center;
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  /* ── bloques ── */
+  .block {
+    margin-bottom: var(--space-9);
+  }
+
+  .kicker {
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--fg-subtle);
+    margin-bottom: var(--space-4);
+  }
+
+  .block-head {
+    display: grid;
+    gap: var(--space-1);
+    margin-bottom: var(--space-6);
+  }
+
+  .block-head .kicker {
+    margin-bottom: 0;
+  }
+
+  .block-title {
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+
+  .block-title span,
+  .play-title span {
+    color: var(--acc);
+  }
+
+  .block-sub {
+    max-width: 44rem;
+    margin-top: var(--space-2);
+    color: var(--fg-muted);
+  }
+
+  /* ── tarjetas de los scripts ── */
+  .scripts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .script {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-3) var(--space-4);
+    border-radius: 22px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    transition:
+      border-color 0.3s ease,
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.35s ease;
+  }
+
+  .script:hover {
+    border-color: color-mix(in srgb, var(--acc) 45%, var(--border));
+    transform: translateY(-4px);
+    box-shadow: 0 30px 60px -36px color-mix(in srgb, var(--acc) 80%, transparent);
+  }
+
+  .script__img {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 14px;
+    aspect-ratio: 16 / 9;
+    background: #0b0c10;
+  }
+
+  .script__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .script:hover .script__img img {
+    transform: scale(1.06);
+  }
+
+  .script__num {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    padding: 0.15rem 0.5rem;
+    border-radius: 8px;
+    background: rgb(0 0 0 / 0.65);
+    color: #fff;
+    font-size: var(--fs-xs);
+  }
+
+  .script__body {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-inline: var(--space-2);
+  }
+
+  .script__icon,
+  .dev__icon,
+  .enc__icon {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    border-radius: 14px;
+    color: var(--acc);
+    background: color-mix(in srgb, var(--acc) 12%, var(--bg));
+    border: 1px solid color-mix(in srgb, var(--acc) 28%, transparent);
+  }
+
+  .script h3 {
+    font-size: var(--fs-md);
+    letter-spacing: -0.01em;
+  }
+
+  .script__res {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .script__text {
+    padding-inline: var(--space-2);
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .script__keys {
+    display: grid;
+    gap: var(--space-2);
+    padding-inline: var(--space-2);
+    font-size: var(--fs-sm);
+  }
+
+  .script__keys li {
+    display: flex;
+    gap: var(--space-2);
+    align-items: flex-start;
+  }
+
+  .script__keys :global(.icono),
+  .funciones :global(.icono) {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--acc);
+  }
+
+  .script__foot {
+    display: flex;
+    justify-content: space-between;
+    margin-top: auto;
+    padding: var(--space-3) var(--space-2) 0;
+    border-top: 1px dashed var(--border);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+  }
+
+  .script__foot a:hover,
+  .script__foot button:hover {
+    color: var(--acc);
+  }
+
+  .script__foot button {
+    color: color-mix(in srgb, var(--acc) 75%, var(--fg));
+  }
+
+  /* ── demos jugables ── */
+  .play {
+    position: relative;
+    padding: var(--space-8) var(--space-6) var(--space-6);
+    border-radius: 28px;
+    border: 1px solid color-mix(in srgb, var(--acc) 22%, var(--border));
+    isolation: isolate;
+    overflow: hidden;
+    scroll-margin-top: calc(var(--header-h) + var(--space-4));
+  }
+
+  .play-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, var(--acc) 22%, transparent), transparent 70%),
+      linear-gradient(color-mix(in srgb, var(--fg) 5%, transparent) 1px, transparent 1px) 0 0 / 32px 32px,
+      linear-gradient(90deg, color-mix(in srgb, var(--fg) 5%, transparent) 1px, transparent 1px) 0 0 / 32px 32px,
+      var(--bg);
+    -webkit-mask-image: linear-gradient(#000 40%, color-mix(in srgb, #000 60%, transparent));
+    mask-image: linear-gradient(#000 40%, color-mix(in srgb, #000 60%, transparent));
+  }
+
+  .play-head {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    max-width: 44rem;
+    margin: 0 auto var(--space-6);
+    text-align: center;
+  }
+
+  .play-head .kicker {
+    margin: 0;
+  }
+
+  .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--acc) 40%, var(--border));
+    background: color-mix(in srgb, var(--acc) 10%, var(--bg-elev));
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: color-mix(in srgb, var(--acc) 70%, var(--fg));
+  }
+
+  .live i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--acc);
+    animation: ping 1.8s ease-out infinite;
+  }
+
+  .play-title {
+    font-size: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    text-wrap: balance;
+  }
+
+  .play-sub {
+    color: var(--fg-muted);
+  }
+
+  .tabs {
+    display: flex;
+    gap: var(--space-2);
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto var(--space-5);
+    padding: 5px;
+    overflow-x: auto;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    scrollbar-width: none;
+  }
+
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    padding: 0.6rem 1rem;
+    border-radius: 11px;
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .tab:hover {
+    color: var(--fg);
+    background: var(--bg-code);
+  }
+
+  .tab.is-on {
+    background: var(--acc);
+    color: #fff;
+    box-shadow: 0 10px 24px -12px var(--acc);
+  }
+
+  .play-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 17rem;
+    gap: var(--space-5);
+    align-items: start;
+  }
+
+  .screen-actions {
+    display: flex;
+    gap: var(--space-3);
+    margin-left: auto;
+  }
+
+  .screen-actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--fg-muted);
+  }
+
+  .screen-actions button:hover {
+    color: var(--acc);
+  }
+
+  .screen {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 0 0 17px 17px;
+    background:
+      radial-gradient(ellipse at 50% 60%, color-mix(in srgb, var(--acc) 18%, #0b0c10), #0b0c10 70%);
+  }
+
+  .screen:fullscreen {
+    border-radius: 0;
+    aspect-ratio: auto;
+  }
+
+  .screen iframe {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    border: 0;
+    transform-origin: 0 0;
+    background: transparent;
+  }
+
+  .screen:fullscreen iframe {
+    top: 50%;
+    translate: 0 -50%;
+  }
+
+  .screen-start {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: var(--space-3);
+    color: #fff;
+    font-weight: 600;
+    background:
+      linear-gradient(rgb(11 12 16 / 0.55), rgb(11 12 16 / 0.75)),
+      url("/fivem/pack-vehiculos/media/dealer-02-chat.webp") center / cover;
+  }
+
+  .screen-start[hidden] {
+    display: none;
+  }
+
+  .screen-start__btn {
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+    background: var(--acc);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 60%, transparent);
+    animation: ping-big 2s ease-out infinite;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .screen-start:hover .screen-start__btn {
+    transform: scale(1.08);
+  }
+
+  .play-side {
+    padding: var(--space-5);
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+  }
+
+  .howto__k {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .howto h3 {
+    margin: var(--space-1) 0 var(--space-4);
+    font-size: var(--fs-lg);
+    letter-spacing: -0.02em;
+  }
+
+  .howto ol {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .howto li {
+    display: flex;
+    gap: var(--space-3);
+    font-size: var(--fs-sm);
+  }
+
+  .howto li .mono {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--acc);
+    color: #fff;
+    font-size: 0.6875rem;
+  }
+
+  .howto__note {
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--border);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .play-note {
+    margin-top: var(--space-4);
+    text-align: center;
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+
+  /* ── desarrollo ── */
+  .dev {
+    padding-block: var(--space-7);
+    border-top: 1px solid var(--border);
+    scroll-margin-top: calc(var(--header-h) + var(--space-4));
+  }
+
+  .dev__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  .dev__num {
+    font-size: 3.4rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    color: transparent;
+    -webkit-text-stroke: 1px color-mix(in srgb, var(--acc) 55%, transparent);
+  }
+
+  .dev__head h3 {
+    font-size: var(--fs-xl);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  .dev__head p {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .dev__main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: var(--space-7);
+    align-items: start;
+  }
+
+  .dev--rev .dev__media {
+    order: 2;
+  }
+
+  .dev__text {
+    display: grid;
+    gap: var(--space-4);
+    color: var(--fg-muted);
+  }
+
+  .dev__text p:first-child::first-letter {
+    float: left;
+    margin: 0.1em 0.12em 0 0;
+    font-size: 3.2em;
+    font-weight: 700;
+    line-height: 0.8;
+    color: var(--acc);
+  }
+
+  .dev__try {
+    justify-self: start;
+    margin-top: var(--space-2);
+  }
+
+  .dev__try :global(.icono) {
+    color: var(--acc);
+  }
+
+  .cifras {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  .cifras div {
+    padding: var(--space-3) var(--space-4);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+  }
+
+  .cifras dt {
+    order: 2;
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .cifras dd {
+    margin: 0;
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--fg);
+  }
+
+  .cifras div {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+
+  .funciones {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2) var(--space-6);
+    margin-top: var(--space-6);
+  }
+
+  .funciones li {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  .galeria {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  .galeria button {
+    display: grid;
+    gap: var(--space-2);
+    width: 100%;
+    text-align: left;
+  }
+
+  .galeria img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    transition:
+      transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.3s ease,
+      box-shadow 0.4s ease;
+  }
+
+  .galeria button:hover img,
+  .galeria button:focus-visible img {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--acc) 55%, var(--border));
+    box-shadow: 0 20px 40px -24px color-mix(in srgb, var(--acc) 80%, transparent);
+  }
+
+  .galeria span {
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+  }
+
+  /* ── cómo encajan ── */
+  .encajan {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .encajan li {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background:
+      linear-gradient(160deg, color-mix(in srgb, var(--acc) 8%, transparent), transparent 60%),
+      var(--bg-elev);
+  }
+
+  .enc__icon {
+    margin-bottom: var(--space-2);
+  }
+
+  .encajan p,
+  .tecnico p {
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+
+  /* ── técnico ── */
+  .tecnico {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2) var(--space-6);
+  }
+
+  .tecnico li {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tecnico :global(.icono) {
+    flex-shrink: 0;
+    color: var(--acc);
+  }
+
+  /* ── preguntas ── */
+  .faq {
+    display: grid;
+    gap: var(--space-2);
+    max-width: 50rem;
+  }
+
+  .faq__item {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+  }
+
+  .faq__item[open] {
+    border-color: color-mix(in srgb, var(--acc) 45%, var(--border));
+  }
+
+  .faq__item summary {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    font-weight: 500;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .faq__item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__n {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .faq__plus {
+    position: relative;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s;
+  }
+
+  .faq__plus::before,
+  .faq__plus::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 10px;
+    height: 1.5px;
+    margin: -0.75px 0 0 -5px;
+    background: currentColor;
+  }
+
+  .faq__plus::after {
+    transform: rotate(90deg);
+    transition: transform 0.35s;
+  }
+
+  .faq__item[open] .faq__plus {
+    transform: rotate(180deg);
+    background: var(--acc);
+    border-color: var(--acc);
+    color: #fff;
+  }
+
+  .faq__item[open] .faq__plus::after {
+    transform: rotate(0deg);
+  }
+
+  .faq__item p {
+    padding: 0 var(--space-5) var(--space-5) calc(var(--space-5) + 1.4rem + var(--space-4));
+    color: var(--fg-muted);
+  }
+
+  /* ── cta ── */
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-7) var(--space-6);
+    border-radius: 24px;
+    border: 1px solid color-mix(in srgb, var(--acc) 30%, var(--border));
+    background:
+      radial-gradient(ellipse 60% 120% at 100% 50%, color-mix(in srgb, var(--acc) 18%, transparent), transparent 70%),
+      var(--bg-elev);
+  }
+
+  .cta-title {
+    font-size: var(--fs-lg);
+    font-weight: 600;
+  }
+
+  .cta-sub {
+    margin-top: var(--space-1);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  /* ── visor de capturas ── */
+  .lightbox {
+    width: min(96vw, 1400px);
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    overflow: visible;
+  }
+
+  .lightbox::backdrop {
+    background: rgb(0 0 0 / 0.85);
+    backdrop-filter: blur(6px);
+  }
+
+  .lightbox[open] {
+    animation: lb-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .lightbox figure {
+    margin: 0;
+  }
+
+  .lightbox img {
+    width: 100%;
+    max-height: 82vh;
+    object-fit: contain;
+    border-radius: 14px;
+  }
+
+  .lightbox figcaption {
+    margin-top: var(--space-3);
+    text-align: center;
+    font-size: var(--fs-sm);
+    color: #d4d4d8;
+  }
+
+  .lb-close,
+  .lb-nav {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.12);
+    color: #fff;
+    font-size: 1.4rem;
+    transition: background 0.2s;
+  }
+
+  .lb-close:hover,
+  .lb-nav:hover {
+    background: var(--acc);
+  }
+
+  .lb-close {
+    top: -3.4rem;
+    right: 0;
+    font-size: 1rem;
+  }
+
+  .lb-nav {
+    top: 50%;
+    translate: 0 -50%;
+    z-index: 1;
+  }
+
+  .lb-prev { left: 0.75rem; }
+  .lb-next { right: 0.75rem; }
+
+  /* ── animaciones ── */
+  @property --ang {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+
+  @keyframes spin-border {
+    to { --ang: 360deg; }
+  }
+
+  @keyframes float {
+    50% { transform: translateY(-6px) rotate(-3deg); }
+  }
+
+  @keyframes page-in {
+    from { opacity: 0; transform: translateY(22px); filter: blur(4px); }
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+  }
+
+  @keyframes ping {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 70%, transparent); }
+    80%, 100% { box-shadow: 0 0 0 8px transparent; }
+  }
+
+  @keyframes ping-big {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 60%, transparent); }
+    80%, 100% { box-shadow: 0 0 0 22px transparent; }
+  }
+
+  @keyframes blink {
+    to { visibility: hidden; }
+  }
+
+  @keyframes lb-in {
+    from { opacity: 0; transform: scale(0.96); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .screen-frame,
+    .h1-icon,
+    .live i,
+    .rec i,
+    .screen-start__btn,
+    .head > *,
+    .glow {
+      animation: none;
+    }
+  }
+
+  /* ── responsive ── */
+  @media (max-width: 64rem) {
+    .scripts,
+    .encajan {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tecnico {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .play-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 52rem) {
+    .dev__main,
+    .funciones {
+      grid-template-columns: 1fr;
+    }
+
+    .dev--rev .dev__media {
+      order: 0;
+    }
+
+    .play {
+      padding: var(--space-6) var(--space-2) var(--space-3);
+      border-radius: 20px;
+    }
+
+    h1 {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .scripts,
+    .encajan,
+    .tecnico,
+    .cifras {
+      grid-template-columns: 1fr;
+    }
+
+    .screen-actions button span,
+    .screen-bar > span:nth-child(2) {
+      display: none;
+    }
+  }
+</style>

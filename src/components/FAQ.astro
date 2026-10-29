@@ -1,0 +1,711 @@
+---
+import SectionHead from "./SectionHead.astro";
+import { faq } from "@/data/faq";
+import { site } from "@/data/site";
+
+// datos estructurados para que Google muestre las preguntas en resultados
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+
+// Debajo de las preguntas: dejar una opinión (se guarda en la API y se lee en /admin → Opiniones)
+const temas = [
+  { id: "servicio", t: "El servicio" },
+  { id: "web", t: "La web" },
+  { id: "otro", t: "Otra cosa" },
+];
+---
+
+<section id="faq" class="section">
+  <div class="container grid">
+    <SectionHead
+      title="Lo que más me preguntan"
+      text="¿No está la tuya? Escríbeme y te contesto en menos de 24 horas."
+    />
+
+    <div class="col">
+      <div class="list tile">
+        {
+          faq.map((item, i) => (
+            <details data-reveal style={`--i:${i}`}>
+              <summary>
+                <span class="q">{item.q}</span>
+                <span class="icon" aria-hidden="true"><i></i><i></i></span>
+              </summary>
+              <div class="body">
+                <p>{item.a}</p>
+              </div>
+            </details>
+          ))
+        }
+      </div>
+
+      <!-- opinión -->
+      <div class="op tile" data-reveal style={`--i:${faq.length}`}>
+        <div class="op__txt">
+          <strong>¿Qué te ha parecido?</strong>
+          <span>Tu opinión sobre el servicio, la web o lo que quieras me ayuda a mejorar.</span>
+        </div>
+        <button type="button" class="btn btn-primary op__btn" data-op-abrir>
+          Dar mi opinión <span class="arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <dialog class="opd" data-op aria-labelledby="op-titulo" data-api={site.chatApi}>
+    <form class="opd__form" novalidate>
+      <div class="opd__head">
+        <div>
+          <h2 id="op-titulo">Dar mi opinión</h2>
+          <p>Lo leo yo personalmente. Gracias por tomarte el tiempo.</p>
+        </div>
+        <button type="button" class="opd__cerrar" data-op-cerrar aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+        </button>
+      </div>
+
+      <fieldset class="opd__grupo">
+        <legend>¿Sobre qué es?</legend>
+        <div class="opd__temas">
+          {
+            temas.map((t, i) => (
+              <label class="opd__tema">
+                <input type="radio" name="tema" value={t.id} checked={i === 0} />
+                <span>{t.t}</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="opd__grupo">
+        <legend>Puntuación</legend>
+        <div class="opd__estrellas" role="radiogroup" aria-label="Puntuación de 1 a 5">
+          {
+            [1, 2, 3, 4, 5].map((n) => (
+              <label class="opd__estrella" title={`${n} de 5`}>
+                <input type="radio" name="puntuacion" value={n} />
+                <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9L12 2.8z"></path></svg>
+                <span class="visually-hidden">{n} de 5</span>
+              </label>
+            ))
+          }
+          <span class="opd__nota" data-op-nota aria-live="polite"></span>
+        </div>
+      </fieldset>
+
+      <label class="opd__campo">
+        <span>Tu opinión</span>
+        <textarea name="texto" rows="4" maxlength="1500" required placeholder="Qué te ha gustado, qué mejorarías…"></textarea>
+      </label>
+
+      <div class="opd__fila">
+        <label class="opd__campo">
+          <span>Nombre <em>opcional</em></span>
+          <input name="nombre" type="text" maxlength="60" autocomplete="name" />
+        </label>
+        <label class="opd__campo">
+          <span>Contacto <em>opcional · por si quieres respuesta</em></span>
+          <input name="contacto" type="text" maxlength="120" autocomplete="email" placeholder="email o @discord" />
+        </label>
+      </div>
+
+      <!-- trampa para bots: las personas no la ven -->
+      <label class="opd__trampa" aria-hidden="true">
+        Web <input name="web" type="text" tabindex="-1" autocomplete="off" />
+      </label>
+
+      <p class="opd__error" role="alert"></p>
+      <div class="opd__acciones">
+        <button type="button" class="btn btn-ghost" data-op-cerrar>Cancelar</button>
+        <button type="submit" class="btn btn-primary opd__enviar">Enviar opinión</button>
+      </div>
+    </form>
+
+    <div class="opd__gracias" hidden>
+      <span class="opd__ok" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+      </span>
+      <h2>¡Gracias!</h2>
+      <p>He recibido tu opinión.</p>
+      <button type="button" class="btn btn-primary" data-op-cerrar>Cerrar</button>
+    </div>
+  </dialog>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+</section>
+
+<script>
+  // ── preguntas: solo una abierta a la vez, abriendo y cerrando con animación ──
+  const reducido = matchMedia("(prefers-reduced-motion: reduce)");
+  const items = [...document.querySelectorAll<HTMLDetailsElement>("#faq details")];
+  const anims = new Map<HTMLDetailsElement, Animation>();
+  const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+
+  function mover(d: HTMLDetailsElement, abrir: boolean) {
+    const body = d.querySelector<HTMLElement>(".body")!;
+    const p = body.querySelector("p")!;
+    if (reducido.matches) {
+      d.open = abrir;
+      d.classList.toggle("is-open", abrir);
+      return;
+    }
+    const desde = body.getBoundingClientRect().height;
+    anims.get(d)?.cancel();
+    if (abrir) d.open = true;
+    d.classList.toggle("is-open", abrir);
+    const hasta = abrir ? body.scrollHeight : 0;
+
+    const a = body.animate([{ height: `${desde}px` }, { height: `${hasta}px` }], {
+      duration: abrir ? 520 : 380,
+      easing: EASE,
+    });
+    // el texto entra un poco después de que empiece a abrirse, y se va antes de cerrarse
+    p.animate(
+      abrir
+        ? [{ opacity: 0, transform: "translateY(-10px)", filter: "blur(4px)" }, { opacity: 1, transform: "none", filter: "blur(0)" }]
+        : [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(-6px)" }],
+      { duration: abrir ? 480 : 220, delay: abrir ? 90 : 0, easing: EASE, fill: "both" },
+    );
+    anims.set(d, a);
+    a.onfinish = () => {
+      if (!abrir) d.open = false;
+      anims.delete(d);
+    };
+  }
+
+  items.forEach((d) => {
+    d.querySelector("summary")!.addEventListener("click", (e) => {
+      e.preventDefault();
+      const abrir = !d.classList.contains("is-open");
+      if (abrir) items.forEach((o) => o !== d && o.classList.contains("is-open") && mover(o, false));
+      mover(d, abrir);
+    });
+  });
+
+  // ── opinión ──
+  const dlg = document.querySelector<HTMLDialogElement>("[data-op]");
+  if (dlg) {
+    const form = dlg.querySelector<HTMLFormElement>("form")!;
+    const gracias = dlg.querySelector<HTMLElement>(".opd__gracias")!;
+    const error = dlg.querySelector<HTMLElement>(".opd__error")!;
+    const enviar = dlg.querySelector<HTMLButtonElement>(".opd__enviar")!;
+    const nota = dlg.querySelector<HTMLElement>("[data-op-nota]")!;
+    const NOTAS = ["", "Muy mal", "Mejorable", "Bien", "Muy bien", "¡Excelente!"];
+
+    document.querySelector("[data-op-abrir]")?.addEventListener("click", () => {
+      form.hidden = false;
+      gracias.hidden = true;
+      error.textContent = "";
+      dlg.showModal();
+    });
+    dlg.querySelectorAll("[data-op-cerrar]").forEach((b) => b.addEventListener("click", () => dlg.close()));
+    dlg.addEventListener("click", (e) => {
+      if (e.target === dlg) dlg.close();
+    });
+    form.addEventListener("change", () => {
+      const n = Number((form.elements.namedItem("puntuacion") as RadioNodeList).value || 0);
+      form.dataset.n = String(n);
+      nota.textContent = NOTAS[n] ?? "";
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      error.textContent = "";
+      const f = new FormData(form);
+      const datos = {
+        tema: String(f.get("tema") || ""),
+        puntuacion: Number(f.get("puntuacion") || 0),
+        texto: String(f.get("texto") || "").trim(),
+        nombre: String(f.get("nombre") || "").trim() || null,
+        contacto: String(f.get("contacto") || "").trim() || null,
+        web: String(f.get("web") || "") || null,
+      };
+      if (!datos.puntuacion) return void (error.textContent = "Elige una puntuación de 1 a 5.");
+      if (datos.texto.length < 3) return void (error.textContent = "Escribe un poco más sobre tu opinión.");
+      enviar.disabled = true;
+      try {
+        const r = await fetch(`${dlg.dataset.api ?? ""}/api/opiniones`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(datos),
+        });
+        if (!r.ok) {
+          const j = await r.json().catch(() => ({}));
+          throw new Error(typeof j.detail === "string" ? j.detail : "No se pudo enviar. Inténtalo de nuevo.");
+        }
+        form.reset();
+        delete form.dataset.n;
+        nota.textContent = "";
+        form.hidden = true;
+        gracias.hidden = false;
+      } catch (err) {
+        error.textContent = err instanceof Error && err.message !== "Failed to fetch" ? err.message : "Sin conexión. Inténtalo de nuevo.";
+      } finally {
+        enviar.disabled = false;
+      }
+    });
+  }
+</script>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: var(--space-8);
+    align-items: start;
+  }
+
+  /* aquí la cabecera va en una sola columna, pegada arriba mientras bajas */
+  .grid :global(.section-head) {
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-6));
+    grid-template-columns: 1fr;
+  }
+
+  .col {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .list {
+    gap: 0;
+    padding: var(--space-2);
+  }
+
+  details {
+    border-radius: 18px;
+    transition: background 0.4s ease;
+  }
+
+  details + details {
+    margin-top: 2px;
+  }
+
+  details:hover,
+  details.is-open {
+    background: var(--bg-code);
+  }
+
+  summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-4);
+    cursor: pointer;
+    list-style: none;
+    font-size: clamp(1.05rem, 1rem + 0.4vw, 1.3rem);
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary:focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: -2px;
+    border-radius: 18px;
+  }
+
+  .q {
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  details.is-open .q {
+    transform: translateX(4px);
+  }
+
+  /* + que se convierte en − al abrir */
+  .icon {
+    position: relative;
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    transition:
+      background 0.35s ease,
+      border-color 0.35s ease,
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .icon i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 2px;
+    margin: -1px 0 0 -6px;
+    border-radius: 2px;
+    background: currentColor;
+    transition:
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      background 0.35s ease;
+  }
+
+  .icon i:last-child {
+    transform: rotate(90deg);
+  }
+
+  details:hover .icon {
+    transform: scale(1.08);
+  }
+
+  details.is-open .icon {
+    background: var(--fg);
+    border-color: var(--fg);
+    transform: rotate(180deg);
+  }
+
+  details.is-open .icon i {
+    background: var(--bg-elev);
+  }
+
+  details.is-open .icon i:last-child {
+    transform: rotate(0deg);
+  }
+
+  .body {
+    overflow: hidden;
+  }
+
+  details p {
+    padding: 0 var(--space-4) var(--space-5);
+    color: var(--fg-muted);
+    max-width: 42rem;
+  }
+
+  /* ── tarjeta de opinión ── */
+  .op {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .op__txt {
+    display: grid;
+    gap: 0.25rem;
+    max-width: 30rem;
+  }
+
+  .op__txt strong {
+    font-size: var(--fs-lg);
+    letter-spacing: -0.02em;
+  }
+
+  .op__txt span {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .op__btn {
+    border-radius: 999px;
+  }
+
+  /* ── ventana de opinión ── */
+  .opd {
+    width: min(100% - 2rem, 36rem);
+    max-height: min(92vh, 50rem);
+    margin: auto;
+    padding: 0;
+    color: var(--fg);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    box-shadow: 0 40px 90px -30px rgb(0 0 0 / 0.5);
+    overflow-y: auto;
+  }
+
+  .opd[open] {
+    animation: opd-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .opd::backdrop {
+    background: rgb(0 0 0 / 0.45);
+    backdrop-filter: blur(6px);
+  }
+
+  @keyframes opd-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.96);
+    }
+  }
+
+  .opd__form,
+  .opd__gracias {
+    display: grid;
+    gap: var(--space-5);
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2rem);
+  }
+
+  .opd__form[hidden],
+  .opd__gracias[hidden] {
+    display: none;
+  }
+
+  .opd__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: var(--space-4);
+  }
+
+  .opd__head h2,
+  .opd__gracias h2 {
+    font-size: var(--fs-xl);
+    font-weight: 750;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+  }
+
+  .opd__head p,
+  .opd__gracias p {
+    margin-top: 0.3rem;
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .opd__cerrar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .opd__cerrar:hover {
+    border-color: var(--fg);
+  }
+
+  .opd__grupo {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  .opd__grupo legend,
+  .opd__campo > span {
+    margin-bottom: var(--space-2);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+  }
+
+  .opd__campo em {
+    font-style: normal;
+    font-weight: 400;
+    color: var(--fg-subtle);
+  }
+
+  .opd__temas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .opd__tema {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .opd__tema input,
+  .opd__estrella input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .opd__tema span {
+    display: inline-block;
+    padding: 0.55rem 1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .opd__tema:hover span {
+    border-color: var(--fg);
+  }
+
+  .opd__tema input:checked + span {
+    background: var(--fg);
+    border-color: var(--fg);
+    color: var(--bg-elev);
+  }
+
+  .opd__tema input:focus-visible + span,
+  .opd__estrella input:focus-visible + svg {
+    outline: 2px solid var(--fg);
+    outline-offset: 2px;
+  }
+
+  /* estrellas: se rellenan hasta la elegida (data-n) y hasta la que tienes debajo del ratón */
+  .opd__estrellas {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+  }
+
+  .opd__estrella {
+    cursor: pointer;
+    color: var(--border-strong);
+  }
+
+  .opd__estrella svg {
+    display: block;
+    fill: currentColor;
+    border-radius: 4px;
+    transition:
+      transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      color 0.2s ease;
+  }
+
+  .opd__estrella:hover svg {
+    transform: scale(1.15) rotate(-6deg);
+  }
+
+  form[data-n="1"] .opd__estrella:nth-child(-n + 1),
+  form[data-n="2"] .opd__estrella:nth-child(-n + 2),
+  form[data-n="3"] .opd__estrella:nth-child(-n + 3),
+  form[data-n="4"] .opd__estrella:nth-child(-n + 4),
+  form[data-n="5"] .opd__estrella:nth-child(-n + 5),
+  .opd__estrellas:hover .opd__estrella {
+    color: var(--fg);
+  }
+
+  .opd__estrellas:hover .opd__estrella:hover ~ .opd__estrella {
+    color: var(--border-strong);
+  }
+
+  .opd__nota {
+    margin-left: var(--space-3);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--fg-muted);
+  }
+
+  .opd__campo {
+    display: grid;
+    min-width: 0;
+  }
+
+  .opd__campo :is(input, textarea) {
+    width: 100%;
+    padding: 0.8rem 0.95rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    background: var(--bg);
+    color: var(--fg);
+    font: inherit;
+    font-size: var(--fs-base);
+    resize: vertical;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .opd__campo :is(input, textarea):focus-visible {
+    outline: none;
+    border-color: var(--fg);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--fg) 12%, transparent);
+  }
+
+  .opd__fila {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+
+  .opd__trampa {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .opd__error {
+    color: var(--error);
+    font-size: var(--fs-sm);
+  }
+
+  .opd__error:empty {
+    display: none;
+  }
+
+  .opd__acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+
+  .opd__acciones .btn,
+  .opd__gracias .btn {
+    border-radius: 999px;
+  }
+
+  .opd__gracias {
+    justify-items: center;
+    text-align: center;
+    padding-block: var(--space-7);
+  }
+
+  .opd__ok {
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background: var(--fg);
+    color: var(--bg-elev);
+    animation: opd-ok 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes opd-ok {
+    from {
+      transform: scale(0.4) rotate(-20deg);
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 52rem) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .grid :global(.section-head) {
+      position: static;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .opd__fila {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

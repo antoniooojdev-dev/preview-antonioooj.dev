@@ -1,0 +1,74 @@
+---
+import type { Project } from "@/data/projects";
+
+interface Props {
+  project: Project;
+  index: number;
+}
+
+const { project, index } = Astro.props;
+---
+
+<article class="tile is-link project" data-reveal style={`--i:${index}`}>
+  <span class="tile__corner" aria-hidden="true">↗</span>
+  <span class="tile__label"><span>{project.type}</span> · {project.year}</span>
+
+  <h3>
+    <a href={`/proyectos/${project.slug}`}>{project.title}</a>
+  </h3>
+  <p class="summary">{project.summary}</p>
+
+  <ul role="list" class="stack" aria-label="Tecnologías">
+    {project.stack.map((t) => <li>{t}</li>)}
+  </ul>
+</article>
+
+<style>
+  .project {
+    min-height: 15rem;
+  }
+
+  .tile__label {
+    padding-right: 3rem;
+  }
+
+  h3 {
+    margin-top: auto;
+    max-width: 26ch;
+    font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+    text-wrap: balance;
+  }
+
+  /* toda la tarjeta es clicable */
+  h3 a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  .summary {
+    max-width: 40rem;
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+  }
+
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .stack li {
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--bg-code);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--fg-muted);
+  }
+</style>

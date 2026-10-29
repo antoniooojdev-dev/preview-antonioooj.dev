@@ -1,0 +1,649 @@
+---
+// Demo «Automoderación»: botón para simular un raid (varias cuentas haciendo flood con
+// invitaciones, @everyone y enlaces). El bot marca y borra cada mensaje al momento,
+// banea a quien hace flood, activa el modo anti-raid (slowmode) y resume el ataque.
+// También modera lo que escribas tú: aviso 1/3, 2/3 y silencio. Registro en directo
+// en el panel derecho y contadores arriba.
+import Shell from "./Shell.astro";
+import Icono from "../Icono.astro";
+
+const canales = [
+  { cat: "información", items: [{ n: "normas" }, { n: "anuncios" }] },
+  { cat: "comunidad", items: [{ n: "general", activo: true }, { n: "clips" }, { n: "memes" }] },
+  { cat: "staff", items: [{ n: "mod-logs" }] },
+];
+---
+
+<div class="am" data-am>
+  <div class="am__bar">
+    <div class="am__actions">
+      <button type="button" class="am__act am__act--raid" data-raid>
+        <span class="am__act-ico"><Icono nombre="siren" size={20} /></span>
+        <span class="am__act-txt">
+          <b>Simular raid</b>
+          <small data-estado>5 cuentas · flood masivo</small>
+        </span>
+        <span class="am__act-go" aria-hidden="true"><Icono nombre="play" size={14} /></span>
+        <i class="am__act-prog" aria-hidden="true"></i>
+      </button>
+      <button type="button" class="am__act am__act--links" data-links>
+        <span class="am__act-ico"><Icono nombre="link" size={20} /></span>
+        <span class="am__act-txt">
+          <b>Spam de enlaces</b>
+          <small data-estado>3 enlaces maliciosos</small>
+        </span>
+        <span class="am__act-go" aria-hidden="true"><Icono nombre="play" size={14} /></span>
+        <i class="am__act-prog" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="am__stats">
+      <span><b data-am="borrados">0</b> borrados</span>
+      <span><b data-am="avisos">0</b> avisos</span>
+      <span><b data-am="baneados">0</b> baneados</span>
+    </div>
+    <span class="am__shield" data-shield>🛡 AutoMod activo</span>
+  </div>
+
+  <Shell demo="automod" canal="general" tema="Charla general · sé respetuoso" canales={canales} conPanel placeholder="Escribe algo… prueba con discord.gg/gratis o un insulto">
+    <div class="dc-welcome">
+      <div class="dc-welcome__icon">#</div>
+      <h4>¡Bienvenido a #general!</h4>
+      <p>Este canal está protegido por la automoderación de AntonioooJ Dev.</p>
+    </div>
+    <Fragment slot="panel">
+      <span class="dc__panel-title">mod-logs en directo</span>
+      <ol role="list" class="am__log" data-log>
+        <li class="am__log-empty">Sin incidencias. Pulsa «Simular raid» ☝️</li>
+      </ol>
+    </Fragment>
+  </Shell>
+</div>
+
+<script>
+  import { BOT, YO, el, mensaje, sistema, borrar, espera, escribiendo, toast, type Autor } from "@/scripts/discord-demo";
+
+  const MIEMBROS: Autor[] = [
+    { nombre: "Laura", color: "#eb459e" },
+    { nombre: "Dani", color: "#3ba55c" },
+    { nombre: "Sergio", color: "#faa61a" },
+  ];
+  const CHARLA = ["buenas a todos 👋", "¿alguien ha visto el último clip?", "esta noche evento a las 22:00", "jajaja qué bueno", "me encanta este server"];
+  const SPAMMERS = ["free_nitro_23", "xX_raider_Xx", "giveaway_bot_real", "crypto_king99", "n1tro_drop"];
+  const SPAM = [
+    "@everyone 🎁 FREE NITRO 👉 discord.gg/n1tro-free",
+    "ÚNETE YA 🔥🔥🔥 discord.gg/raid-zone",
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "gana 500€ al día 💸 https://bit.ly/dinero-facil",
+    "@everyone @here sorteo de skins: steamcommunnity.ru/gift",
+    "🤑🤑🤑🤑🤑🤑🤑🤑🤑🤑🤑🤑",
+  ];
+  const PROHIBIDO = /(discord\.gg\/|https?:\/\/|www\.|\.ru\b|bit\.ly|tonto|idiota|imb[eé]cil|subnormal|gilipollas)/i;
+
+  const raiz = document.querySelector<HTMLElement>("[data-am]");
+  if (raiz) iniciar(raiz);
+
+  function iniciar(am: HTMLElement) {
+    const dc = am.querySelector<HTMLElement>('[data-dc="automod"]')!;
+    const lista = dc.querySelector<HTMLElement>("[data-msgs]")!;
+    const form = dc.querySelector<HTMLFormElement>("[data-composer]")!;
+    const input = form.querySelector("input")!;
+    const log = am.querySelector<HTMLOListElement>("[data-log]")!;
+    const escudo = am.querySelector<HTMLElement>("[data-shield]")!;
+    const cuenta = { borrados: 0, avisos: 0, baneados: 0 };
+    let avisosYo = 0;
+    let enRaid = false;
+    let charlaT = 0;
+
+    function sumar(k: keyof typeof cuenta) {
+      cuenta[k]++;
+      const b = am.querySelector<HTMLElement>(`[data-am="${k}"]`)!;
+      b.textContent = String(cuenta[k]);
+      b.classList.remove("is-bump");
+      void b.offsetWidth;
+      b.classList.add("is-bump");
+    }
+
+    /** Pone un botón en «en curso» (barra de progreso + texto) o lo devuelve a reposo. */
+    function enCurso(b: HTMLButtonElement, texto: string | null) {
+      const s = b.querySelector<HTMLElement>("[data-estado]")!;
+      s.dataset.reposo ??= s.textContent ?? "";
+      s.textContent = texto ?? s.dataset.reposo;
+      b.classList.toggle("is-running", texto !== null);
+      if (texto === null) {
+        b.classList.add("is-done");
+        setTimeout(() => b.classList.remove("is-done"), 900);
+      }
+    }
+
+    function registrar(icono: string, accion: string, quien: string, motivo: string) {
+      log.querySelector(".am__log-empty")?.remove();
+      const li = el("li", "am__entry");
+      const top = el("div", "am__entry-top");
+      top.append(el("span", "", icono), el("b", "", accion), el("time", "", new Date().toLocaleTimeString("es-ES")));
+      li.append(top, el("span", "", `${quien} · ${motivo}`));
+      log.prepend(li);
+      while (log.children.length > 30) log.lastElementChild!.remove();
+    }
+
+    // Charla normal de fondo
+    function charlar() {
+      if (!document.hidden && !enRaid && lista.isConnected) {
+        mensaje(lista, MIEMBROS[Math.floor(Math.random() * MIEMBROS.length)], { texto: CHARLA[Math.floor(Math.random() * CHARLA.length)] });
+      }
+    }
+    charlar();
+    setTimeout(charlar, 900);
+    charlaT = window.setInterval(charlar, 9000);
+    window.addEventListener("pagehide", () => clearInterval(charlaT), { once: true });
+
+    /** Un mensaje de spam: aparece, se marca en rojo y el bot lo borra. */
+    async function spam(autor: Autor, texto: string, motivo: string) {
+      const m = mensaje(lista, autor, { texto });
+      await espera(180);
+      m.classList.add("is-flagged");
+      await espera(260);
+      borrar(m);
+      sumar("borrados");
+      registrar("🗑", "Mensaje borrado", autor.nombre, motivo);
+    }
+
+    function motivoDe(t: string) {
+      if (/discord\.gg/i.test(t)) return "invitación a otro servidor";
+      if (/https?:|\.ru|bit\.ly/i.test(t)) return "enlace sospechoso";
+      if (/@everyone|@here/.test(t)) return "mención masiva";
+      return "flood / caracteres repetidos";
+    }
+
+    async function banear(autor: Autor, n: number) {
+      sistema(lista, "🔨", [{ b: autor.nombre }, ` ha sido baneado · flood (${n} mensajes en 1 s)`], "red");
+      sumar("baneados");
+      registrar("🔨", "Usuario baneado", autor.nombre, "flood + spam");
+      dc.querySelector(`.dc-member[data-u="${autor.nombre}"]`)?.remove();
+    }
+
+    // ── raid ──
+    async function raid() {
+      if (enRaid) return;
+      enRaid = true;
+      const t0 = Date.now();
+      const antes = { ...cuenta };
+      am.classList.add("is-raid");
+      escudo.textContent = "⚠️ Raid detectado";
+      const botones = am.querySelectorAll<HTMLButtonElement>(".am__bar button");
+      const boton = am.querySelector<HTMLButtonElement>("[data-raid]")!;
+      botones.forEach((b) => (b.disabled = true));
+      enCurso(boton, "Raid en curso…");
+
+      const cuentas: Autor[] = SPAMMERS.map((n, i) => ({ nombre: n, color: ["#ed4245", "#9b59b6", "#e67e22", "#1abc9c", "#e91e63"][i] }));
+      cuentas.forEach((c) => sistema(lista, "→", [{ b: c.nombre }, " se ha unido al servidor."]));
+      await espera(500);
+
+      let ronda = 0;
+      for (const c of cuentas) {
+        const n = 3;
+        const envios: Promise<void>[] = [];
+        for (let i = 0; i < n; i++) {
+          const t = SPAM[(ronda + i) % SPAM.length];
+          envios.push(spam(c, t, motivoDe(t)));
+          await espera(120);
+        }
+        await Promise.all(envios);
+        await banear(c, n);
+        ronda++;
+        if (ronda === 2) antiRaid();
+        await espera(250);
+      }
+
+      await escribiendo(lista, BOT, 600);
+      const seg = ((Date.now() - t0) / 1000).toFixed(1);
+      mensaje(lista, BOT, {
+        embed: {
+          color: "#23a55a",
+          titulo: "🛡 Raid bloqueado",
+          texto: "El ataque se ha detenido automáticamente. Nadie del staff ha tenido que intervenir.",
+          campos: [
+            { k: "Mensajes borrados", v: String(cuenta.borrados - antes.borrados), inline: true },
+            { k: "Usuarios baneados", v: String(cuenta.baneados - antes.baneados), inline: true },
+            { k: "Tiempo de respuesta", v: `${seg} s`, inline: true },
+          ],
+          pie: "Informe enviado a #mod-logs",
+        },
+      });
+      am.classList.remove("is-raid");
+      escudo.textContent = "🛡 Anti-raid: slowmode 10 s";
+      setTimeout(() => {
+        escudo.textContent = "🛡 AutoMod activo";
+        am.classList.remove("is-slow");
+      }, 8000);
+      botones.forEach((b) => (b.disabled = false));
+      enCurso(boton, null);
+      enRaid = false;
+    }
+
+    function antiRaid() {
+      am.classList.add("is-slow");
+      escudo.textContent = "🛡 Modo anti-raid activado";
+      const banner = el("div", "am__banner", "🛡 Modo anti-raid activado · slowmode de 10 s y cuentas nuevas en cuarentena");
+      dc.querySelector(".dc__chat")!.insertBefore(banner, lista);
+      setTimeout(() => {
+        banner.classList.add("is-out");
+        setTimeout(() => banner.remove(), 400);
+      }, 9000);
+      registrar("🛡", "Anti-raid activado", "AntonioooJ Dev", "5 cuentas nuevas en 2 s");
+      toast(dc, "🛡 Modo anti-raid activado");
+    }
+
+    am.querySelector("[data-raid]")!.addEventListener("click", raid);
+
+    am.querySelector("[data-links]")!.addEventListener("click", async (e) => {
+      const b = e.currentTarget as HTMLButtonElement;
+      if (enRaid) return;
+      const botones = am.querySelectorAll<HTMLButtonElement>(".am__bar button");
+      botones.forEach((x) => (x.disabled = true));
+      enCurso(b, "Bloqueando enlaces…");
+      const quien: Autor = { nombre: "promo_master", color: "#e67e22" };
+      for (const t of [SPAM[0], SPAM[3], SPAM[4]]) {
+        spam(quien, t, motivoDe(t));
+        await espera(700);
+      }
+      await espera(500);
+      sistema(lista, "⏳", [{ b: "promo_master" }, " ha sido silenciado 10 minutos · 3 enlaces bloqueados"], "red");
+      sumar("avisos");
+      registrar("⏳", "Silenciado 10 min", "promo_master", "3 enlaces seguidos");
+      botones.forEach((x) => (x.disabled = false));
+      enCurso(b, null);
+    });
+
+    // ── lo que escribes tú ──
+    let silenciadoHasta = 0;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const t = input.value.trim();
+      if (!t) return;
+      if (Date.now() < silenciadoHasta) return toast(dc, "⏳ Estás silenciado unos segundos");
+      if (am.classList.contains("is-slow") && form.dataset.ultimo && Date.now() - Number(form.dataset.ultimo) < 3000) {
+        return toast(dc, "🐢 Slowmode: espera unos segundos");
+      }
+      form.dataset.ultimo = String(Date.now());
+      input.value = "";
+      const m = mensaje(lista, YO, { texto: t });
+      if (!PROHIBIDO.test(t)) return;
+
+      await espera(250);
+      m.classList.add("is-flagged");
+      await espera(350);
+      borrar(m);
+      sumar("borrados");
+      avisosYo++;
+      sumar("avisos");
+      const motivo = /discord\.gg|https?:|www\.|\.ru|bit\.ly/i.test(t) ? "enlace no permitido" : "lenguaje ofensivo";
+      registrar("⚠️", `Aviso ${Math.min(avisosYo, 3)}/3`, "Tú", motivo);
+      await escribiendo(lista, BOT, 400);
+      if (avisosYo < 3) {
+        const r = mensaje(lista, BOT, {
+          mencion: true,
+          embed: {
+            color: "#f0b232",
+            titulo: `⚠️ Aviso ${avisosYo}/3`,
+            texto: `Tu mensaje se ha borrado: ${motivo}. Al tercer aviso se te silenciará.`,
+          },
+        });
+        r.querySelector(".dc-msg__head")!.after(el("span", "dc-mention", "@Tú"));
+      } else {
+        avisosYo = 0;
+        silenciadoHasta = Date.now() + 15_000;
+        mensaje(lista, BOT, {
+          embed: { color: "#f23f43", titulo: "🔇 Silenciado 15 segundos", texto: "Has llegado a 3 avisos. Podrás volver a escribir enseguida." },
+        });
+        registrar("🔇", "Silenciado", "Tú", "3 avisos");
+        input.disabled = true;
+        const ph = input.placeholder;
+        let s = 15;
+        const t = setInterval(() => {
+          input.placeholder = `🔇 Silenciado · ${--s} s`;
+          if (s > 0) return;
+          clearInterval(t);
+          input.disabled = false;
+          input.placeholder = ph;
+        }, 1000);
+        input.placeholder = `🔇 Silenciado · ${s} s`;
+      }
+    });
+  }
+</script>
+
+<style is:global>
+  .am__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #1e1f22;
+    border-bottom: 1px solid #111214;
+    color: #dbdee1;
+  }
+
+  .am__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* Botones de acción: tarjeta con icono, título + detalle y flecha de «ejecutar» */
+  .am__act {
+    --c: #f23f43;
+    --c2: #c0262b;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 13.5rem;
+    padding: 8px 12px 8px 8px;
+    border-radius: 12px;
+    border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--c) 20%, transparent), color-mix(in srgb, var(--c) 4%, transparent)),
+      #2b2d31;
+    color: #f2f3f5;
+    text-align: left;
+    overflow: hidden;
+    isolation: isolate;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease, opacity 0.25s ease;
+  }
+
+  .am__act--links {
+    --c: #5865f2;
+    --c2: #3c45c4;
+  }
+
+  /* brillo que cruza el botón al pasar el ratón */
+  .am__act::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.12) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.7s ease;
+  }
+
+  .am__act:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: var(--c);
+    box-shadow: 0 10px 26px -12px var(--c), 0 0 0 3px color-mix(in srgb, var(--c) 18%, transparent);
+  }
+
+  .am__act:hover:not(:disabled)::before {
+    transform: translateX(100%);
+  }
+
+  .am__act:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+
+  .am__act:focus-visible {
+    outline: 2px solid var(--c);
+    outline-offset: 2px;
+  }
+
+  .am__act-ico {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--c), var(--c2));
+    color: #fff;
+    box-shadow: 0 6px 16px -6px var(--c);
+  }
+
+  /* onda que late alrededor del icono de la sirena */
+  .am__act--raid .am__act-ico::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 2px solid var(--c);
+    animation: am-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .am__act-txt {
+    display: grid;
+    flex: 1;
+    line-height: 1.2;
+  }
+
+  .am__act-txt b {
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  .am__act-txt small {
+    color: #b5bac1;
+    font-size: 0.75rem;
+  }
+
+  .am__act-go {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.06);
+    color: color-mix(in srgb, var(--c) 70%, #fff);
+    transition: transform 0.25s ease, background 0.25s ease;
+  }
+
+  .am__act:hover:not(:disabled) .am__act-go {
+    transform: translateX(2px);
+    background: var(--c);
+    color: #fff;
+  }
+
+  .am__act-prog {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c) 40%, #fff));
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .am__act:disabled {
+    cursor: not-allowed;
+  }
+
+  .am__act:disabled:not(.is-running) {
+    opacity: 0.45;
+    filter: saturate(0.4);
+  }
+
+  .am__act.is-running {
+    border-color: var(--c);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 22%, transparent), 0 10px 26px -12px var(--c);
+  }
+
+  .am__act.is-running .am__act-prog {
+    animation: am-prog 1.4s ease-in-out infinite;
+  }
+
+  .am__act.is-running .am__act-ico {
+    animation: am-shake 0.5s ease-in-out infinite;
+  }
+
+  .am__act.is-running .am__act-go {
+    animation: am-spin 1s linear infinite;
+  }
+
+  .am__act.is-running .am__act-txt small {
+    color: color-mix(in srgb, var(--c) 55%, #fff);
+  }
+
+  .am__act.is-done {
+    animation: am-done 0.9s ease;
+  }
+
+  @keyframes am-ping {
+    0% { transform: scale(1); opacity: 0.8; }
+    80%, 100% { transform: scale(1.45); opacity: 0; }
+  }
+
+  @keyframes am-prog {
+    0% { transform: scaleX(0); transform-origin: left; }
+    50% { transform: scaleX(1); transform-origin: left; }
+    50.01% { transform-origin: right; }
+    100% { transform: scaleX(0); transform-origin: right; }
+  }
+
+  @keyframes am-shake {
+    25% { transform: rotate(-8deg); }
+    75% { transform: rotate(8deg); }
+  }
+
+  @keyframes am-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes am-done {
+    0% { box-shadow: 0 0 0 0 rgb(35 165 90 / 0.6); border-color: #23a55a; }
+    100% { box-shadow: 0 0 0 12px rgb(35 165 90 / 0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .am__act *, .am__act::before, .am__act-ico::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+
+  .am__stats {
+    display: flex;
+    gap: 14px;
+    margin-left: auto;
+    color: #949ba4;
+    font-size: 0.8125rem;
+  }
+
+  .am__stats b {
+    display: inline-block;
+    color: #f2f3f5;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .am__stats b.is-bump {
+    animation: dc-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    color: #f23f43;
+  }
+
+  .am__shield {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgb(35 165 90 / 0.15);
+    color: #23a55a;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  .am.is-raid .am__shield {
+    background: rgb(242 63 67 / 0.18);
+    color: #f23f43;
+    animation: am-blink 0.6s ease-in-out infinite;
+  }
+
+  .am.is-raid .dc {
+    box-shadow: inset 0 0 0 2px rgb(242 63 67 / 0.6);
+  }
+
+  .am.is-raid .dc__chat::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 0%, rgb(242 63 67 / 0.12), transparent 60%);
+    animation: am-blink 0.9s ease-in-out infinite;
+  }
+
+  .am__banner {
+    margin: 8px 16px 0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: rgb(35 165 90 / 0.15);
+    border: 1px solid rgb(35 165 90 / 0.4);
+    color: #57f287;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    animation: dc-modal-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+
+  .am__banner.is-out {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  .am__log {
+    display: grid;
+    gap: 6px;
+    padding: 0 4px;
+  }
+
+  .am__log-empty {
+    padding: 8px;
+    color: #949ba4;
+    font-size: 0.8125rem;
+  }
+
+  .am__entry {
+    display: grid;
+    gap: 2px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: #1e1f22;
+    border-left: 3px solid #f23f43;
+    font-size: 0.75rem;
+    color: #949ba4;
+    animation: am-log 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .am__entry-top {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .am__entry-top b {
+    flex: 1;
+    color: #f2f3f5;
+    font-size: 0.8125rem;
+  }
+
+  .am__entry-top time {
+    font-size: 0.6875rem;
+  }
+
+  @keyframes am-blink {
+    50% { opacity: 0.55; }
+  }
+
+  @keyframes am-log {
+    from { opacity: 0; transform: translateX(16px); background: rgb(242 63 67 / 0.25); }
+  }
+
+  @media (max-width: 44rem) {
+    .am__actions,
+    .am__act {
+      width: 100%;
+    }
+
+    .am__stats {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+</style>

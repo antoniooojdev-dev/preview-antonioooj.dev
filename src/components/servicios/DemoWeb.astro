@@ -1,0 +1,1823 @@
+---
+// Ejemplo de «Web online»: la web de una clínica dental dentro de un navegador simulado.
+//  - Barra de herramientas: dispositivo (la web se adapta con container queries), color
+//    de marca, tipografía y modo oscuro.
+//  - La web está animada: fondo con manchas en movimiento, contadores, aparición al hacer
+//    scroll, opiniones que rotan y una barra de progreso de lectura y scroll con el color
+//    de la marca.
+//  - Pedir cita: tratamiento, fecha, hora libre y datos. La cita se guarda en «Mis citas»
+//    (panel lateral con fecha, cuenta atrás y estado) y llegan notificaciones a la
+//    campana: recibida, confirmada y recordatorio.
+// Todo vive en memoria: al recargar se pierde y nada se envía.
+const colores = ["#0ea5e9", "#10b981", "#f43f5e", "#8b5cf6", "#f59e0b"];
+const tratamientos = [
+  { id: "revision", nombre: "Revisión y limpieza", precio: "35 €", icono: "🪥", dur: "30 min" },
+  { id: "blanqueamiento", nombre: "Blanqueamiento", precio: "180 €", icono: "✨", dur: "60 min" },
+  { id: "ortodoncia", nombre: "Ortodoncia invisible", precio: "1ª visita gratis", icono: "😁", dur: "45 min" },
+  { id: "implantes", nombre: "Implantes", precio: "Financiado", icono: "🦷", dur: "60 min" },
+];
+const horas = ["09:00", "09:30", "10:30", "11:00", "12:30", "16:00", "17:00", "18:30"];
+const opiniones = [
+  { t: "Me quitaron el miedo al dentista. Trato de 10 y sin esperas.", a: "Laura G." },
+  { t: "Ortodoncia invisible en 9 meses y sin dolor. ¡Repetiría!", a: "Marcos P." },
+  { t: "Pedí cita online un domingo y el lunes ya estaba atendida.", a: "Elena R." },
+];
+---
+
+<div class="dw" data-demo-web style={`--brand:${colores[0]}`} data-tratamientos={JSON.stringify(tratamientos)}>
+  <div class="dw__bar">
+    <div class="dw__group" role="group" aria-label="Dispositivo">
+      <button type="button" class="dw__dev is-on" data-ancho="100%" aria-pressed="true">🖥 Escritorio</button>
+      <button type="button" class="dw__dev" data-ancho="760px" aria-pressed="false">Tablet</button>
+      <button type="button" class="dw__dev" data-ancho="390px" aria-pressed="false">Móvil</button>
+    </div>
+    <div class="dw__group" role="group" aria-label="Color de marca">
+      {colores.map((c, i) => <button type="button" class:list={["dw__color", { "is-on": i === 0 }]} style={`--c:${c}`} data-color={c} aria-label={`Color ${c}`} />)}
+    </div>
+    <div class="dw__group" role="group" aria-label="Tipografía">
+      <button type="button" class="dw__font is-on" data-font="sans">Aa</button>
+      <button type="button" class="dw__font dw__font--serif" data-font="serif">Aa</button>
+    </div>
+    <label class="dw__switch">
+      <input type="checkbox" class="dw__dark" />
+      <span aria-hidden="true"></span>
+      oscuro
+    </label>
+  </div>
+
+  <div class="dw__stage">
+    <div class="dw__chrome">
+      <span class="dw__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="dw__url mono">🔒 clinicasonrisa.es</span>
+      <span class="dw__w mono"></span>
+    </div>
+
+    <div class="dw__viewport">
+      <div class="site" data-font="sans">
+        <span class="site__progress" aria-hidden="true"></span>
+
+        <!-- navegación -->
+        <nav class="site__nav">
+          <strong class="site__logo"><span>🦷</span> Clínica Sonrisa</strong>
+          <ul role="list" class="site__links">
+            <li><a href="#s-trat">Tratamientos</a></li>
+            <li><a href="#s-opi">Opiniones</a></li>
+            <li><a href="#s-cita">Pedir cita</a></li>
+          </ul>
+          <div class="site__tools">
+            <button type="button" class="site__bell" aria-label="Notificaciones" aria-expanded="false">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+              <b class="site__badge" hidden>0</b>
+            </button>
+            <button type="button" class="site__mine">
+              📅 <span class="site__mine-txt">Mis citas</span> <b class="site__count">0</b>
+            </button>
+            <button type="button" class="site__burger" aria-label="Menú">☰</button>
+          </div>
+
+          <!-- desplegable de notificaciones -->
+          <div class="site__notifs" hidden>
+            <div class="site__notifs-head">
+              <strong>Notificaciones</strong>
+              <button type="button" class="site__readall">marcar leídas</button>
+            </div>
+            <ul role="list" class="site__notifs-list"></ul>
+            <p class="site__notifs-empty">Sin notificaciones todavía. Pide una cita 😉</p>
+          </div>
+        </nav>
+
+        <!-- hero -->
+        <header class="site__hero">
+          <span class="site__blob site__blob--a" aria-hidden="true"></span>
+          <span class="site__blob site__blob--b" aria-hidden="true"></span>
+          <div class="site__hero-text">
+            <span class="site__tag"><i aria-hidden="true"></i> Primera visita gratuita este mes</span>
+            <h4>Tu sonrisa, <em>en las mejores manos</em></h4>
+            <p>Odontología general, ortodoncia invisible e implantes en el centro de Sevilla.</p>
+            <div class="site__hero-cta">
+              <a href="#s-cita" class="site__btn">Reservar cita <span aria-hidden="true">→</span></a>
+              <span class="site__rating">⭐ 4,9 · <b data-count="1240">0</b>+ pacientes</span>
+            </div>
+          </div>
+          <div class="site__hero-card" aria-hidden="true">
+            <span class="site__smile">😁</span>
+            <span class="site__float site__float--a">✓ Sin esperas</span>
+            <span class="site__float site__float--b">💳 Financiación 0 %</span>
+          </div>
+        </header>
+
+        <!-- cifras -->
+        <section class="site__stats" data-in>
+          <div><b data-count="15">0</b><span>años de experiencia</span></div>
+          <div><b data-count="98">0</b><span>% recomiendan</span></div>
+          <div><b data-count="6">0</b><span>especialistas</span></div>
+        </section>
+
+        <!-- tratamientos -->
+        <section class="site__sec" id="s-trat">
+          <h5 data-in>Tratamientos</h5>
+          <div class="site__cards">
+            {
+              tratamientos.map((t, i) => (
+                <article class="site__card" data-in style={`--d:${i * 80}ms`} data-trat={t.id}>
+                  <span class="site__card-ico">{t.icono}</span>
+                  <strong>{t.nombre}</strong>
+                  <p>{t.precio} · {t.dur}</p>
+                  <button type="button" class="site__card-btn">Pedir cita →</button>
+                </article>
+              ))
+            }
+          </div>
+        </section>
+
+        <!-- opiniones -->
+        <section class="site__sec site__opi" id="s-opi" data-in>
+          <h5>Lo que dicen nuestros pacientes</h5>
+          <div class="site__quotes">
+            {
+              opiniones.map((o, i) => (
+                <blockquote class:list={["site__quote", { "is-on": i === 0 }]}>
+                  <p>“{o.t}”</p>
+                  <cite>— {o.a} · ⭐⭐⭐⭐⭐</cite>
+                </blockquote>
+              ))
+            }
+          </div>
+          <div class="site__dots" role="group" aria-label="Opiniones">
+            {opiniones.map((_, i) => <button type="button" class:list={{ "is-on": i === 0 }} data-q={i} aria-label={`Opinión ${i + 1}`} />)}
+          </div>
+        </section>
+
+        <!-- pedir cita -->
+        <section class="site__sec" id="s-cita">
+          <h5 data-in>Pide tu cita</h5>
+          <form class="site__form" data-in novalidate>
+            <fieldset class="site__full">
+              <legend>1 · Tratamiento</legend>
+              <div class="site__chips">
+                {
+                  tratamientos.map((t, i) => (
+                    <label class="site__chip">
+                      <input type="radio" name="trat" value={t.id} checked={i === 0} />
+                      <span>{t.icono} {t.nombre}</span>
+                    </label>
+                  ))
+                }
+              </div>
+            </fieldset>
+
+            <label>2 · Día<input name="fecha" type="date" required /></label>
+            <fieldset class="site__full">
+              <legend>3 · Hora <span class="site__hint">(las tachadas están ocupadas)</span></legend>
+              <div class="site__hours">
+                {
+                  horas.map((h, i) => (
+                    <label class="site__hour">
+                      <input type="radio" name="hora" value={h} disabled={i === 2 || i === 5} />
+                      <span>{h}</span>
+                    </label>
+                  ))
+                }
+              </div>
+            </fieldset>
+
+            <label>Nombre<input name="nombre" type="text" autocomplete="off" placeholder="Tu nombre" /></label>
+            <label>Teléfono<input name="tel" type="tel" autocomplete="off" placeholder="600 000 000" /></label>
+            <p class="site__err site__full" aria-live="polite"></p>
+            <button type="submit" class="site__btn site__full">Confirmar cita</button>
+          </form>
+        </section>
+
+        <footer class="site__foot">© Clínica Sonrisa · Aviso legal · Privacidad · Cookies</footer>
+
+        <!-- panel «Mis citas» -->
+        <aside class="site__drawer" aria-label="Mis citas" hidden>
+          <div class="site__drawer-head">
+            <strong>📅 Mis citas</strong>
+            <button type="button" class="site__close" aria-label="Cerrar">✕</button>
+          </div>
+          <ul role="list" class="site__appts"></ul>
+          <div class="site__appts-empty">
+            <span>🗓️</span>
+            <p>Aún no tienes citas.</p>
+            <button type="button" class="site__btn site__goto">Pedir mi primera cita</button>
+          </div>
+        </aside>
+        <div class="site__shade" hidden></div>
+
+        <!-- avisos flotantes -->
+        <div class="site__toasts"><div class="site__toasts-in" aria-live="polite"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  interface Tratamiento {
+    id: string;
+    nombre: string;
+    icono: string;
+    dur: string;
+  }
+
+  interface Cita {
+    id: number;
+    trat: Tratamiento;
+    fecha: Date;
+    nombre: string;
+    estado: "pendiente" | "confirmada" | "cancelada";
+  }
+
+  interface Aviso {
+    texto: string;
+    icono: string;
+    hora: Date;
+    leido: boolean;
+  }
+
+  const fmtFecha = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  const fmtHora = new Intl.DateTimeFormat("es-ES", { hour: "2-digit", minute: "2-digit" });
+  const rtf = new Intl.RelativeTimeFormat("es", { numeric: "auto" });
+
+  function cuando(fecha: Date): string {
+    const dias = Math.round((new Date(fecha).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86_400_000);
+    return rtf.format(dias, "day");
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-demo-web]").forEach((demo) => {
+    const tratamientos = JSON.parse(demo.dataset.tratamientos!) as Tratamiento[];
+    const vp = demo.querySelector<HTMLElement>(".dw__viewport")!;
+    const site = demo.querySelector<HTMLElement>(".site")!;
+    const $ = <T extends Element>(s: string) => site.querySelector<T>(s)!;
+    const citas: Cita[] = [];
+    const avisos: Aviso[] = [];
+    let siguiente = 1;
+
+    // ── barra de herramientas ──
+    const ancho = demo.querySelector<HTMLElement>(".dw__w")!;
+    new ResizeObserver(() => (ancho.textContent = `${Math.round(vp.getBoundingClientRect().width)} px`)).observe(vp);
+
+    const grupo = (sel: string, alPulsar: (b: HTMLButtonElement) => void) =>
+      demo.querySelectorAll<HTMLButtonElement>(sel).forEach((b) =>
+        b.addEventListener("click", () => {
+          demo.querySelectorAll(sel).forEach((x) => {
+            x.classList.toggle("is-on", x === b);
+            if (x.hasAttribute("aria-pressed")) x.setAttribute("aria-pressed", String(x === b));
+          });
+          alPulsar(b);
+        }),
+      );
+    grupo(".dw__dev", (b) => (vp.style.width = b.dataset.ancho!));
+    grupo(".dw__color", (b) => {
+      demo.style.setProperty("--brand", b.dataset.color!);
+      site.classList.remove("is-flash");
+      void site.offsetWidth;
+      site.classList.add("is-flash");
+    });
+    grupo(".dw__font", (b) => (site.dataset.font = b.dataset.font));
+    demo.querySelector<HTMLInputElement>(".dw__dark")!.addEventListener("change", (e) => {
+      site.classList.toggle("is-dark", (e.target as HTMLInputElement).checked);
+    });
+
+    // ── navegación interna (scroll dentro de la «pantalla») ──
+    const irA = (sel: string) => {
+      const destino = site.querySelector<HTMLElement>(sel);
+      if (destino) vp.scrollTo({ top: destino.offsetTop - 60, behavior: "smooth" });
+      site.classList.remove("menu-open");
+    };
+    site.querySelectorAll<HTMLAnchorElement>('a[href^="#s-"]').forEach((a) =>
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        irA(a.getAttribute("href")!);
+      }),
+    );
+    $(".site__burger").addEventListener("click", () => site.classList.toggle("menu-open"));
+
+    // barra de progreso de scroll
+    const progreso = $<HTMLElement>(".site__progress");
+    vp.addEventListener("scroll", () => {
+      const max = vp.scrollHeight - vp.clientHeight;
+      progreso.style.transform = `scaleX(${max > 0 ? vp.scrollTop / max : 0})`;
+      site.classList.toggle("is-scrolled", vp.scrollTop > 10);
+    });
+
+    // aparición al hacer scroll + contadores
+    const contar = (b: HTMLElement) => {
+      if (b.dataset.done) return;
+      b.dataset.done = "1";
+      const fin = Number(b.dataset.count);
+      const t0 = performance.now();
+      const paso = (t: number) => {
+        const p = Math.min(1, (t - t0) / 1400);
+        b.textContent = Math.round(fin * (1 - (1 - p) ** 3)).toLocaleString("es-ES");
+        if (p < 1) requestAnimationFrame(paso);
+      };
+      requestAnimationFrame(paso);
+    };
+    const io = new IntersectionObserver(
+      (entradas) =>
+        entradas.forEach((en) => {
+          if (!en.isIntersecting) return;
+          en.target.classList.add("is-in");
+          en.target.querySelectorAll<HTMLElement>("[data-count]").forEach(contar);
+          if ((en.target as HTMLElement).dataset.count) contar(en.target as HTMLElement);
+          io.unobserve(en.target);
+        }),
+      { root: vp, threshold: 0.2 },
+    );
+    site.querySelectorAll("[data-in], [data-count]").forEach((el) => io.observe(el));
+
+    // opiniones que rotan
+    let q = 0;
+    const quotes = site.querySelectorAll(".site__quote");
+    const dots = site.querySelectorAll<HTMLButtonElement>(".site__dots button");
+    const verQuote = (n: number) => {
+      q = n;
+      quotes.forEach((x, i) => x.classList.toggle("is-on", i === n));
+      dots.forEach((x, i) => x.classList.toggle("is-on", i === n));
+    };
+    dots.forEach((d) => d.addEventListener("click", () => verQuote(Number(d.dataset.q))));
+    const rot = window.setInterval(() => {
+      if (!document.hidden && demo.isConnected) verQuote((q + 1) % quotes.length);
+    }, 4500);
+
+    // ── avisos ──
+    const toasts = $<HTMLElement>(".site__toasts-in");
+    function toast(texto: string, icono = "🔔") {
+      const t = document.createElement("div");
+      t.className = "site__toast";
+      const i = document.createElement("span");
+      i.textContent = icono;
+      const p = document.createElement("p");
+      p.textContent = texto;
+      t.append(i, p);
+      toasts.append(t);
+      setTimeout(() => t.classList.add("is-out"), 3200);
+      setTimeout(() => t.remove(), 3600);
+    }
+
+    function avisar(texto: string, icono: string) {
+      avisos.unshift({ texto, icono, hora: new Date(), leido: false });
+      toast(texto, icono);
+      pintarAvisos();
+      const campana = $<HTMLElement>(".site__bell");
+      campana.classList.remove("is-ring");
+      void campana.offsetWidth;
+      campana.classList.add("is-ring");
+    }
+
+    function pintarAvisos() {
+      const sinLeer = avisos.filter((a) => !a.leido).length;
+      const badge = $<HTMLElement>(".site__badge");
+      badge.hidden = !sinLeer;
+      badge.textContent = String(sinLeer);
+      $<HTMLElement>(".site__notifs-empty").hidden = avisos.length > 0;
+      $(".site__notifs-list").replaceChildren(
+        ...avisos.slice(0, 8).map((a) => {
+          const li = document.createElement("li");
+          li.className = a.leido ? "" : "is-new";
+          const i = document.createElement("span");
+          i.textContent = a.icono;
+          const p = document.createElement("p");
+          p.textContent = a.texto;
+          const h = document.createElement("small");
+          h.textContent = fmtHora.format(a.hora);
+          li.append(i, p, h);
+          return li;
+        }),
+      );
+    }
+
+    const panelAvisos = $<HTMLElement>(".site__notifs");
+    $(".site__bell").addEventListener("click", (e) => {
+      e.stopPropagation();
+      panelAvisos.hidden = !panelAvisos.hidden;
+      $(".site__bell").setAttribute("aria-expanded", String(!panelAvisos.hidden));
+    });
+    $(".site__readall").addEventListener("click", () => {
+      avisos.forEach((a) => (a.leido = true));
+      pintarAvisos();
+    });
+    site.addEventListener("click", (e) => {
+      if (!panelAvisos.hidden && !(e.target as HTMLElement).closest(".site__notifs, .site__bell")) panelAvisos.hidden = true;
+    });
+
+    // ── Mis citas ──
+    const drawer = $<HTMLElement>(".site__drawer");
+    const sombra = $<HTMLElement>(".site__shade");
+    const abrirCitas = (si: boolean) => {
+      drawer.hidden = sombra.hidden = !si;
+      if (si) {
+        drawer.style.top = sombra.style.top = `${vp.scrollTop}px`;
+        avisos.forEach((a) => (a.leido = true));
+        pintarAvisos();
+        pintarCitas();
+      }
+    };
+    $(".site__mine").addEventListener("click", () => abrirCitas(true));
+    $(".site__close").addEventListener("click", () => abrirCitas(false));
+    sombra.addEventListener("click", () => abrirCitas(false));
+    vp.addEventListener("scroll", () => {
+      if (!drawer.hidden) drawer.style.top = sombra.style.top = `${vp.scrollTop}px`;
+    });
+    $(".site__goto").addEventListener("click", () => {
+      abrirCitas(false);
+      irA("#s-cita");
+    });
+
+    function pintarCitas() {
+      const activas = citas.filter((c) => c.estado !== "cancelada").length;
+      const n = $<HTMLElement>(".site__count");
+      n.textContent = String(activas);
+      n.classList.toggle("has", activas > 0);
+      $<HTMLElement>(".site__appts-empty").hidden = citas.length > 0;
+      $(".site__appts").replaceChildren(
+        ...[...citas]
+          .sort((a, b) => +a.fecha - +b.fecha)
+          .map((c) => {
+            const li = document.createElement("li");
+            li.className = "site__appt";
+            li.dataset.estado = c.estado;
+            const dia = document.createElement("span");
+            dia.className = "site__appt-day";
+            dia.innerHTML = "<b></b><small></small>";
+            dia.querySelector("b")!.textContent = String(c.fecha.getDate());
+            dia.querySelector("small")!.textContent = c.fecha.toLocaleDateString("es-ES", { month: "short" });
+            const info = document.createElement("div");
+            const titulo = document.createElement("strong");
+            titulo.textContent = `${c.trat.icono} ${c.trat.nombre}`;
+            const fecha = document.createElement("p");
+            fecha.textContent = `${fmtFecha.format(c.fecha)} · ${fmtHora.format(c.fecha)} · ${c.trat.dur}`;
+            const meta = document.createElement("p");
+            meta.className = "site__appt-meta";
+            const estado = document.createElement("span");
+            estado.className = "site__pill";
+            estado.textContent = c.estado === "pendiente" ? "⏳ pendiente" : c.estado === "confirmada" ? "✓ confirmada" : "✕ cancelada";
+            meta.append(estado, ` ${c.estado === "cancelada" ? "" : cuando(c.fecha)}`);
+            info.append(titulo, fecha, meta);
+            const acciones = document.createElement("div");
+            acciones.className = "site__appt-actions";
+            if (c.estado !== "cancelada") {
+              const cal = document.createElement("button");
+              cal.type = "button";
+              cal.textContent = "＋ Calendario";
+              cal.addEventListener("click", () => toast("Añadida a tu calendario", "🗓️"));
+              const cancelar = document.createElement("button");
+              cancelar.type = "button";
+              cancelar.className = "is-danger";
+              cancelar.textContent = "Cancelar";
+              cancelar.addEventListener("click", () => {
+                c.estado = "cancelada";
+                avisar(`Has cancelado tu cita de ${c.trat.nombre.toLowerCase()}`, "🗑️");
+                pintarCitas();
+              });
+              acciones.append(cal, cancelar);
+            }
+            li.append(dia, info, acciones);
+            return li;
+          }),
+      );
+    }
+
+    // ── formulario de cita ──
+    const form = $<HTMLFormElement>(".site__form");
+    const inputFecha = form.querySelector<HTMLInputElement>('[name="fecha"]')!;
+    const hoy = new Date();
+    const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const manana = new Date(hoy);
+    manana.setDate(hoy.getDate() + 1);
+    inputFecha.min = iso(manana);
+    inputFecha.value = iso(manana);
+
+    // «Pedir cita» en una tarjeta de tratamiento: lo marca y baja al formulario
+    site.querySelectorAll<HTMLElement>(".site__card").forEach((card) =>
+      card.querySelector("button")!.addEventListener("click", () => {
+        form.querySelector<HTMLInputElement>(`input[name="trat"][value="${card.dataset.trat}"]`)!.checked = true;
+        irA("#s-cita");
+      }),
+    );
+
+    const err = form.querySelector<HTMLElement>(".site__err")!;
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const d = new FormData(form);
+      const nombre = String(d.get("nombre") ?? "").trim();
+      const tel = String(d.get("tel") ?? "").replace(/\s/g, "");
+      const hora = String(d.get("hora") ?? "");
+      const fecha = String(d.get("fecha") ?? "");
+      form.querySelectorAll("[aria-invalid]").forEach((x) => x.removeAttribute("aria-invalid"));
+      const fallo = (msg: string, campo?: string) => {
+        err.textContent = msg;
+        if (campo) form.querySelector(`[name="${campo}"]`)?.setAttribute("aria-invalid", "true");
+        form.classList.remove("is-shake");
+        void form.offsetWidth;
+        form.classList.add("is-shake");
+      };
+      if (!fecha || fecha < inputFecha.min) return fallo("Elige un día a partir de mañana.", "fecha");
+      if (!hora) return fallo("Elige una hora libre.");
+      if (nombre.length < 2) return fallo("Escribe tu nombre.", "nombre");
+      if (!/^[6-9]\d{8}$/.test(tel)) return fallo("Escribe un teléfono de 9 cifras.", "tel");
+      err.textContent = "";
+
+      const [hh, mm] = hora.split(":").map(Number);
+      const cuando_ = new Date(`${fecha}T00:00`);
+      cuando_.setHours(hh, mm);
+      const trat = tratamientos.find((t) => t.id === d.get("trat")) ?? tratamientos[0];
+      const cita: Cita = { id: siguiente++, trat, fecha: cuando_, nombre: nombre.slice(0, 30), estado: "pendiente" };
+      citas.push(cita);
+      pintarCitas();
+
+      const boton = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+      boton.classList.add("is-done");
+      boton.textContent = "✓ ¡Cita solicitada!";
+      setTimeout(() => {
+        boton.classList.remove("is-done");
+        boton.textContent = "Confirmar cita";
+      }, 2200);
+      $<HTMLElement>(".site__mine").classList.add("is-pop");
+      setTimeout(() => $<HTMLElement>(".site__mine").classList.remove("is-pop"), 700);
+
+      avisar(`Cita solicitada: ${trat.nombre}, ${fmtFecha.format(cuando_)} a las ${hora}`, "📨");
+      // La clínica la confirma a los pocos segundos y llega un recordatorio
+      setTimeout(() => {
+        if (cita.estado !== "pendiente") return;
+        cita.estado = "confirmada";
+        avisar(`¡Confirmada! Te esperamos el ${fmtFecha.format(cuando_)} a las ${hora}`, "✅");
+        pintarCitas();
+      }, 4000);
+      setTimeout(() => {
+        if (cita.estado === "confirmada") avisar(`Recordatorio: ${trat.nombre.toLowerCase()} ${cuando(cuando_)} a las ${hora}`, "⏰");
+      }, 9000);
+      form.querySelectorAll<HTMLInputElement>('input[name="hora"]:checked').forEach((x) => (x.checked = false));
+    });
+
+    window.addEventListener("pagehide", () => clearInterval(rot), { once: true });
+    pintarAvisos();
+    pintarCitas();
+  });
+</script>
+
+<style>
+  .dw {
+    --brand: #0ea5e9;
+  }
+
+  /* ── barra de herramientas ── */
+  .dw__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-xs);
+  }
+
+  .dw__group {
+    display: flex;
+    gap: var(--space-1);
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--bg-code);
+  }
+
+  .dw__dev,
+  .dw__font {
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    color: var(--fg-muted);
+    transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .dw__dev.is-on,
+  .dw__font.is-on {
+    background: var(--bg-elev);
+    color: var(--fg);
+    box-shadow: 0 2px 8px -3px rgb(0 0 0 / 0.3);
+  }
+
+  .dw__font--serif {
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .dw__color {
+    width: 22px;
+    height: 22px;
+    margin: 1px;
+    border-radius: 50%;
+    background: var(--c);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+  }
+
+  .dw__color:hover {
+    transform: scale(1.15);
+  }
+
+  .dw__color.is-on {
+    box-shadow: 0 0 0 2px var(--bg-code), 0 0 0 4px var(--c);
+  }
+
+  .dw__switch {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    color: var(--fg-muted);
+    cursor: pointer;
+  }
+
+  .dw__switch input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .dw__switch span {
+    position: relative;
+    width: 34px;
+    height: 20px;
+    border-radius: 999px;
+    background: var(--border-strong);
+    transition: background 0.25s ease;
+  }
+
+  .dw__switch span::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .dw__switch input:checked + span {
+    background: var(--brand);
+  }
+
+  .dw__switch input:checked + span::after {
+    transform: translateX(14px);
+  }
+
+  .dw__switch input:focus-visible + span {
+    outline: 2px solid var(--fg);
+    outline-offset: 2px;
+  }
+
+  /* ── escenario ── */
+  .dw__stage {
+    display: grid;
+    justify-items: center;
+    padding: var(--space-5);
+    background:
+      radial-gradient(circle at 15% 0%, color-mix(in srgb, var(--brand) 18%, transparent), transparent 50%),
+      radial-gradient(circle at 90% 100%, color-mix(in srgb, var(--brand) 12%, transparent), transparent 45%),
+      var(--bg-code);
+    transition: background 0.5s ease;
+  }
+
+  .dw__chrome {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-radius: 12px 12px 0 0;
+    background: var(--bg-elev);
+    font-size: 0.6875rem;
+  }
+
+  .dw__dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .dw__dots i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--border-strong);
+  }
+
+  .dw__url {
+    flex: 1;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    background: var(--bg-code);
+    color: var(--fg-muted);
+  }
+
+  .dw__w {
+    color: var(--fg-subtle);
+  }
+
+  .dw__viewport {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    height: 560px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    border: 1px solid var(--border);
+    border-radius: 0 0 12px 12px;
+    container-type: inline-size;
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    /* barra de scroll con el color de la marca */
+    scrollbar-width: thin;
+    scrollbar-color: var(--brand) transparent;
+  }
+
+  .dw__viewport::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .dw__viewport::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .dw__viewport::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: linear-gradient(var(--brand), color-mix(in srgb, var(--brand) 60%, #000));
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  /* ── web de muestra ── */
+  .site {
+    --s-bg: #ffffff;
+    --s-fg: #0f172a;
+    --s-muted: #64748b;
+    --s-card: #f1f5f9;
+    --s-line: rgb(15 23 42 / 0.08);
+    position: relative;
+    min-height: 100%;
+    background: var(--s-bg);
+    color: var(--s-fg);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    transition: background 0.4s ease, color 0.4s ease;
+  }
+
+  .site[data-font="serif"] h4,
+  .site[data-font="serif"] h5,
+  .site[data-font="serif"] .site__logo,
+  .site[data-font="serif"] .site__quote p {
+    font-family: Georgia, "Times New Roman", serif;
+    letter-spacing: -0.01em;
+  }
+
+  .site.is-dark {
+    --s-bg: #0b1120;
+    --s-fg: #e2e8f0;
+    --s-muted: #94a3b8;
+    --s-card: #16213a;
+    --s-line: rgb(226 232 240 / 0.1);
+  }
+
+  .site.is-flash .site__hero {
+    animation: s-flash 0.8s ease;
+  }
+
+  .site a {
+    color: inherit;
+  }
+
+  .site__progress {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    display: block;
+    height: 3px;
+    margin-bottom: -3px;
+    background: linear-gradient(90deg, var(--brand), color-mix(in srgb, var(--brand) 50%, #fff));
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  /* nav */
+  .site__nav {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.9rem 1.2rem;
+    background: color-mix(in srgb, var(--s-bg) 80%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s ease, padding 0.3s ease;
+  }
+
+  .site.is-scrolled .site__nav {
+    padding-block: 0.6rem;
+    border-bottom-color: var(--s-line);
+  }
+
+  .site__logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--brand);
+    font-size: 1rem;
+    transition: color 0.4s ease;
+  }
+
+  .site__logo span {
+    display: inline-block;
+    animation: s-wiggle 3s ease-in-out infinite;
+  }
+
+  .site__links {
+    display: flex;
+    gap: 1.1rem;
+    color: var(--s-muted);
+    font-size: 0.8125rem;
+  }
+
+  .site__links a {
+    position: relative;
+  }
+
+  .site__links a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -3px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--brand);
+    transform: scaleX(0);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .site__links a:hover {
+    color: var(--s-fg);
+  }
+
+  .site__links a:hover::after {
+    transform: scaleX(1);
+  }
+
+  .site__tools {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .site__bell {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    color: var(--s-fg);
+    background: var(--s-card);
+  }
+
+  .site__bell.is-ring svg {
+    animation: s-ring 0.8s ease;
+    transform-origin: 50% 10%;
+  }
+
+  .site__badge {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.625rem;
+    line-height: 17px;
+    text-align: center;
+    box-shadow: 0 0 0 2px var(--s-bg);
+    animation: s-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .site__badge[hidden] {
+    display: none;
+  }
+
+  .site__mine {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    background: var(--brand);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: background 0.4s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .site__mine:hover {
+    transform: translateY(-1px);
+  }
+
+  .site__mine.is-pop {
+    animation: s-pop 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .site__count {
+    min-width: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.25);
+    font-size: 0.6875rem;
+    text-align: center;
+  }
+
+  .site__count.has {
+    background: #fff;
+    color: var(--brand);
+  }
+
+  .site__burger {
+    display: none;
+    font-size: 1.1rem;
+    color: var(--s-fg);
+  }
+
+  /* notificaciones */
+  .site__notifs {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 1rem;
+    z-index: 5;
+    width: min(20rem, calc(100% - 2rem));
+    padding: 0.6rem;
+    border-radius: 14px;
+    background: var(--s-bg);
+    border: 1px solid var(--s-line);
+    box-shadow: 0 24px 50px -20px rgb(0 0 0 / 0.45);
+    animation: s-drop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .site__notifs[hidden] {
+    display: none;
+  }
+
+  .site__notifs-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.2rem 0.4rem 0.5rem;
+  }
+
+  .site__readall {
+    color: var(--brand);
+    font-size: 0.6875rem;
+  }
+
+  .site__notifs-list {
+    display: grid;
+    gap: 2px;
+    max-height: 15rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--brand) transparent;
+  }
+
+  .site__notifs-list :global(li) {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.6rem;
+    align-items: start;
+    padding: 0.55rem 0.6rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    animation: s-in 0.3s ease;
+  }
+
+  .site__notifs-list :global(li.is-new) {
+    background: color-mix(in srgb, var(--brand) 10%, transparent);
+  }
+
+  .site__notifs-list :global(li.is-new::after) {
+    content: "";
+    position: absolute;
+    left: 3px;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    margin-top: -2.5px;
+    border-radius: 50%;
+    background: var(--brand);
+  }
+
+  .site__notifs-list :global(small) {
+    color: var(--s-muted);
+    font-size: 0.625rem;
+  }
+
+  .site__notifs-empty {
+    padding: 0.8rem 0.4rem;
+    color: var(--s-muted);
+    font-size: 0.75rem;
+  }
+
+  .site__notifs-empty[hidden] {
+    display: none;
+  }
+
+  /* hero */
+  .site__hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 1.5rem;
+    align-items: center;
+    padding: 3rem 1.4rem 2.5rem;
+    overflow: hidden;
+  }
+
+  .site__blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  .site__blob--a {
+    top: -30%;
+    left: -10%;
+    width: 60%;
+    aspect-ratio: 1;
+    background: var(--brand);
+    animation: s-blob 12s ease-in-out infinite;
+  }
+
+  .site__blob--b {
+    bottom: -40%;
+    right: -10%;
+    width: 50%;
+    aspect-ratio: 1;
+    background: color-mix(in srgb, var(--brand) 40%, #fbbf24);
+    animation: s-blob 14s ease-in-out infinite reverse;
+  }
+
+  .site__hero-text {
+    position: relative;
+    animation: s-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .site__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--s-bg) 70%, transparent);
+    border: 1px solid var(--s-line);
+    font-size: 0.6875rem;
+    color: var(--s-muted);
+  }
+
+  .site__tag i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: s-blink 1.6s ease-in-out infinite;
+  }
+
+  .site__hero h4 {
+    margin-block: 0.7rem;
+    font-size: clamp(1.6rem, 6cqi, 2.6rem);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+  }
+
+  .site__hero em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--brand), color-mix(in srgb, var(--brand) 50%, #f59e0b));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .site__hero p {
+    color: var(--s-muted);
+    margin-bottom: 1.2rem;
+    max-width: 30rem;
+  }
+
+  .site__hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .site__rating {
+    font-size: 0.75rem;
+    color: var(--s-muted);
+  }
+
+  .site__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1.2rem;
+    border-radius: 10px;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 10px 24px -12px var(--brand);
+    transition:
+      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.25s ease,
+      background 0.4s ease;
+  }
+
+  .site__btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 30px -12px var(--brand);
+  }
+
+  .site__btn span {
+    transition: transform 0.25s ease;
+  }
+
+  .site__btn:hover span {
+    transform: translateX(3px);
+  }
+
+  .site__btn.is-done {
+    background: #16a34a;
+  }
+
+  .site__hero-card {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    max-height: 230px;
+    border-radius: 32px;
+    background:
+      radial-gradient(circle at 30% 20%, rgb(255 255 255 / 0.5), transparent 50%),
+      color-mix(in srgb, var(--brand) 25%, var(--s-card));
+    animation: s-float 5s ease-in-out infinite;
+    transition: background 0.4s ease;
+  }
+
+  .site__smile {
+    font-size: 5rem;
+  }
+
+  .site__float {
+    position: absolute;
+    padding: 0.35rem 0.65rem;
+    border-radius: 10px;
+    background: var(--s-bg);
+    color: var(--s-fg);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    box-shadow: 0 10px 24px -12px rgb(0 0 0 / 0.4);
+    white-space: nowrap;
+  }
+
+  .site__float--a {
+    top: 12%;
+    left: -12%;
+    animation: s-float 4s ease-in-out infinite reverse;
+  }
+
+  .site__float--b {
+    bottom: 10%;
+    right: -10%;
+    animation: s-float 4.5s ease-in-out 0.5s infinite;
+  }
+
+  /* cifras */
+  .site__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin: 0 1.4rem;
+    padding: 1rem 0;
+    border-block: 1px solid var(--s-line);
+    text-align: center;
+  }
+
+  .site__stats div {
+    display: grid;
+  }
+
+  .site__stats b {
+    font-size: 1.6rem;
+    color: var(--brand);
+    font-variant-numeric: tabular-nums;
+    transition: color 0.4s ease;
+  }
+
+  .site__stats span {
+    font-size: 0.6875rem;
+    color: var(--s-muted);
+  }
+
+  /* secciones */
+  .site__sec {
+    padding: 2rem 1.4rem 0.5rem;
+  }
+
+  .site__sec h5 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+  }
+
+  .site__cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.8rem;
+  }
+
+  .site__card {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1rem;
+    border-radius: 14px;
+    background: var(--s-card);
+    border: 1px solid transparent;
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.3s ease,
+      box-shadow 0.3s ease,
+      background 0.4s ease;
+  }
+
+  .site__card:hover {
+    transform: translateY(-5px) rotate(-0.5deg);
+    border-color: color-mix(in srgb, var(--brand) 50%, transparent);
+    box-shadow: 0 18px 30px -20px var(--brand);
+  }
+
+  .site__card-ico {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: 0.3rem;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--brand) 18%, var(--s-bg));
+    font-size: 1.3rem;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .site__card:hover .site__card-ico {
+    transform: scale(1.12) rotate(-8deg);
+  }
+
+  .site__card p {
+    color: var(--s-muted);
+    font-size: 0.75rem;
+  }
+
+  .site__card-btn {
+    justify-self: start;
+    margin-top: 0.4rem;
+    color: var(--brand);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  /* opiniones */
+  .site__opi {
+    text-align: center;
+  }
+
+  .site__quotes {
+    display: grid;
+    padding: 1.2rem;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--brand) 8%, var(--s-card));
+  }
+
+  .site__quote {
+    grid-area: 1 / 1;
+    margin: 0;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .site__quote.is-on {
+    opacity: 1;
+    transform: none;
+  }
+
+  .site__quote p {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .site__quote cite {
+    display: block;
+    margin-top: 0.4rem;
+    font-style: normal;
+    font-size: 0.75rem;
+    color: var(--s-muted);
+  }
+
+  .site__dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 0.7rem;
+  }
+
+  .site__dots button {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--s-line);
+    transition: width 0.3s ease, background 0.3s ease;
+  }
+
+  .site__dots button.is-on {
+    width: 22px;
+    background: var(--brand);
+  }
+
+  /* formulario de cita */
+  .site__form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+    padding: 1.2rem;
+    border-radius: 16px;
+    border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent);
+    background: color-mix(in srgb, var(--brand) 4%, var(--s-bg));
+  }
+
+  .site__form.is-shake {
+    animation: s-shake 0.4s ease;
+  }
+
+  .site__full {
+    grid-column: 1 / -1;
+  }
+
+  .site__form fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .site__form legend,
+  .site__form label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--s-muted);
+  }
+
+  .site__form legend {
+    margin-bottom: 0.5rem;
+  }
+
+  .site__hint {
+    font-weight: 400;
+  }
+
+  .site__form > label {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .site__form input[type="text"],
+  .site__form input[type="tel"],
+  .site__form input[type="date"] {
+    padding: 0.6rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--s-line);
+    background: var(--s-bg);
+    color: var(--s-fg);
+    font: inherit;
+    font-weight: 400;
+    color-scheme: light;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .site.is-dark .site__form input {
+    color-scheme: dark;
+  }
+
+  .site__form input:focus-visible {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 25%, transparent);
+  }
+
+  .site__form [aria-invalid="true"] {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgb(239 68 68 / 0.2);
+  }
+
+  .site__chips,
+  .site__hours {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .site__chip,
+  .site__hour {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .site__chip input,
+  .site__hour input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .site__chip span,
+  .site__hour span {
+    display: inline-block;
+    padding: 0.45rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--s-line);
+    background: var(--s-bg);
+    color: var(--s-fg);
+    font-weight: 500;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .site__chip:hover span,
+  .site__hour:hover span {
+    border-color: var(--brand);
+  }
+
+  .site__chip input:checked + span,
+  .site__hour input:checked + span {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+    transform: scale(1.04);
+    box-shadow: 0 8px 18px -10px var(--brand);
+  }
+
+  .site__chip input:focus-visible + span,
+  .site__hour input:focus-visible + span {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .site__hour input:disabled + span {
+    opacity: 0.4;
+    text-decoration: line-through;
+    cursor: not-allowed;
+  }
+
+  .site__err {
+    color: #ef4444;
+    font-size: 0.75rem;
+  }
+
+  .site__err:empty {
+    display: none;
+  }
+
+  .site__foot {
+    margin-top: 2rem;
+    padding: 1rem 1.4rem;
+    border-top: 1px solid var(--s-line);
+    color: var(--s-muted);
+    font-size: 0.6875rem;
+  }
+
+  /* panel «Mis citas» */
+  .site__shade {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 560px;
+    z-index: 6;
+    background: rgb(0 0 0 / 0.35);
+    backdrop-filter: blur(2px);
+    animation: s-fade 0.3s ease;
+  }
+
+  .site__shade[hidden],
+  .site__drawer[hidden] {
+    display: none;
+  }
+
+  .site__drawer {
+    position: absolute;
+    right: 0;
+    z-index: 7;
+    display: flex;
+    flex-direction: column;
+    width: min(23rem, 100%);
+    height: 558px;
+    padding: 1rem;
+    background: var(--s-bg);
+    border-left: 1px solid var(--s-line);
+    box-shadow: -20px 0 50px -20px rgb(0 0 0 / 0.4);
+    animation: s-slide 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .site__drawer-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+  }
+
+  .site__close {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--s-card);
+    color: var(--s-fg);
+  }
+
+  .site__appts {
+    display: grid;
+    gap: 0.6rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--brand) transparent;
+  }
+
+  .site__appts :global(.site__appt) {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.4rem 0.8rem;
+    padding: 0.8rem;
+    border-radius: 14px;
+    background: var(--s-card);
+    border-left: 3px solid var(--brand);
+    animation: s-in 0.35s ease;
+  }
+
+  .site__appts :global(.site__appt[data-estado="pendiente"]) {
+    border-left-color: #f59e0b;
+  }
+
+  .site__appts :global(.site__appt[data-estado="confirmada"]) {
+    border-left-color: #22c55e;
+  }
+
+  .site__appts :global(.site__appt[data-estado="cancelada"]) {
+    border-left-color: #94a3b8;
+    opacity: 0.6;
+  }
+
+  .site__appts :global(.site__appt-day) {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    padding: 0.3rem 0;
+    border-radius: 10px;
+    background: var(--brand);
+    color: #fff;
+    line-height: 1.1;
+  }
+
+  .site__appts :global(.site__appt-day b) {
+    font-size: 1.2rem;
+  }
+
+  .site__appts :global(.site__appt-day small) {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+  }
+
+  .site__appts :global(.site__appt p) {
+    font-size: 0.75rem;
+    color: var(--s-muted);
+  }
+
+  .site__appts :global(.site__appt p::first-letter) {
+    text-transform: uppercase;
+  }
+
+  .site__appts :global(.site__appt-meta) {
+    margin-top: 0.3rem;
+  }
+
+  .site__appts :global(.site__pill) {
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: var(--s-bg);
+    color: var(--s-fg);
+    font-size: 0.6875rem;
+  }
+
+  .site__appts :global(.site__appt[data-estado="confirmada"] .site__pill) {
+    background: color-mix(in srgb, #22c55e 18%, var(--s-bg));
+    color: #16a34a;
+  }
+
+  .site__appts :global(.site__appt[data-estado="pendiente"] .site__pill) {
+    background: color-mix(in srgb, #f59e0b 18%, var(--s-bg));
+    color: #d97706;
+  }
+
+  .site__appts :global(.site__appt-actions) {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .site__appts :global(.site__appt-actions button) {
+    flex: 1;
+    padding: 0.4rem;
+    border-radius: 8px;
+    background: var(--s-bg);
+    color: var(--s-fg);
+    font-size: 0.6875rem;
+    font-weight: 600;
+  }
+
+  .site__appts :global(.site__appt-actions .is-danger) {
+    color: #ef4444;
+  }
+
+  .site__appts-empty {
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    margin-top: 2rem;
+    text-align: center;
+    color: var(--s-muted);
+  }
+
+  .site__appts-empty[hidden] {
+    display: none;
+  }
+
+  .site__appts-empty span {
+    font-size: 2.5rem;
+    animation: s-float 3s ease-in-out infinite;
+  }
+
+  /* avisos flotantes (pegados a la parte visible) */
+  .site__toasts {
+    position: sticky;
+    bottom: 12px;
+    z-index: 8;
+    height: 0;
+  }
+
+  .site__toasts-in {
+    position: absolute;
+    right: 12px;
+    bottom: 0;
+    left: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    pointer-events: none;
+  }
+
+  .site__toasts :global(.site__toast) {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: min(19rem, calc(100% - 1rem));
+    padding: 0.7rem 0.9rem;
+    border-radius: 12px;
+    background: var(--s-fg);
+    color: var(--s-bg);
+    font-size: 0.75rem;
+    box-shadow: 0 16px 40px -14px rgb(0 0 0 / 0.5);
+    animation: s-toast 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+
+  .site__toasts :global(.site__toast.is-out) {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  /* aparición al hacer scroll */
+  .site [data-in] {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.7s ease,
+      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--d, 0ms);
+  }
+
+  .site [data-in].is-in {
+    opacity: 1;
+    transform: none;
+  }
+
+  .site__card[data-in].is-in:hover {
+    transform: translateY(-5px) rotate(-0.5deg);
+  }
+
+  /* ── la web se adapta al ancho de su «pantalla» ── */
+  @container (max-width: 700px) {
+    .site__cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @container (max-width: 560px) {
+    .site__hero {
+      grid-template-columns: 1fr;
+      padding-top: 2rem;
+    }
+
+    .site__hero-card {
+      display: none;
+    }
+
+    .site__links {
+      display: none;
+      order: 3;
+      width: 100%;
+      flex-direction: column;
+      gap: 0.7rem;
+      padding-top: 0.6rem;
+    }
+
+    .site.menu-open .site__links {
+      display: flex;
+    }
+
+    .site__burger {
+      display: block;
+    }
+
+    .site__mine {
+      padding: 0.45rem 0.6rem;
+    }
+
+    .site__mine-txt {
+      display: none;
+    }
+
+    .site__form {
+      grid-template-columns: 1fr;
+    }
+
+    .site__cards {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  /* ── animaciones ── */
+  @keyframes s-blob {
+    33% { transform: translate(30%, 20%) scale(1.1); }
+    66% { transform: translate(-10%, 30%) scale(0.9); }
+  }
+  @keyframes s-float { 50% { transform: translateY(-8px); } }
+  @keyframes s-wiggle { 0%, 80%, 100% { transform: rotate(0); } 85% { transform: rotate(-12deg); } 90% { transform: rotate(10deg); } }
+  @keyframes s-rise { from { opacity: 0; transform: translateY(20px); } }
+  @keyframes s-blink { 50% { opacity: 0.3; } }
+  @keyframes s-pop { 0% { transform: scale(0.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+  @keyframes s-ring { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(18deg); } 40% { transform: rotate(-16deg); } 60% { transform: rotate(10deg); } 80% { transform: rotate(-6deg); } }
+  @keyframes s-drop { from { opacity: 0; transform: translateY(-8px) scale(0.97); } }
+  @keyframes s-in { from { opacity: 0; transform: translateY(-6px); } }
+  @keyframes s-fade { from { opacity: 0; } }
+  @keyframes s-slide { from { transform: translateX(100%); } }
+  @keyframes s-toast { from { opacity: 0; transform: translateY(16px) scale(0.96); } }
+  @keyframes s-shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+  @keyframes s-flash { 0% { filter: saturate(2) brightness(1.1); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site *,
+    .site *::after {
+      animation: none !important;
+    }
+
+    .site [data-in] {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (max-width: 52rem) {
+    .dw__stage {
+      padding: var(--space-3);
+    }
+
+    .dw__bar {
+      gap: var(--space-2);
+    }
+  }
+</style>

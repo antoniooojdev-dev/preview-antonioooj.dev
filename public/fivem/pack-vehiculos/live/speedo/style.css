@@ -1,0 +1,290 @@
+:root {
+    --bg: #111111;
+    --bg-2: #181818;
+    --black: #050505;
+    --line: #262626;
+    --line-2: #333333;
+    --white: #ffffff;
+    --text: #f5f5f5;
+    --muted: #8c8c8c;
+    --dim: #555555;
+    --good: #22c55e;
+    --regular: #eab308;
+    --broken: #ef4444;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    color: var(--text);
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+}
+
+.hidden { display: none !important; }
+
+#speedo {
+    position: absolute;
+    right: 2.2vw;
+    bottom: 4vh;
+    width: 300px;
+    padding: 14px 16px 14px;
+    background: linear-gradient(180deg, var(--bg-2), var(--bg));
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    animation: speedoIn 0.6s var(--ease);
+}
+#speedo.out { animation: speedoOut 0.35s ease forwards; }
+@keyframes speedoIn  { from { opacity: 0; transform: translateY(24px) scale(0.97); } }
+@keyframes speedoOut { to   { opacity: 0; transform: translateY(24px) scale(0.97); } }
+
+/* las piezas entran escalonadas */
+#speedo > * { animation: partIn 0.55s var(--ease) both; }
+#speedo > :nth-child(1) { animation-delay: 0.05s; }
+#speedo > :nth-child(2) { animation-delay: 0.1s; }
+#speedo > :nth-child(3) { animation-delay: 0.15s; }
+#speedo > :nth-child(4) { animation-delay: 0.2s; }
+@keyframes partIn { from { opacity: 0; transform: translateY(8px); } }
+
+/* ---------- Cinturón ---------- */
+/* la fila se pliega con animación cuando no hace falta (cinturón puesto o moto) */
+.belt-row {
+    display: grid;
+    grid-template-rows: 1fr;
+    margin-bottom: 10px;
+    transition: grid-template-rows 0.45s var(--ease), margin-bottom 0.45s var(--ease), opacity 0.35s;
+}
+.belt-clip { min-height: 0; overflow: hidden; padding: 0 5px; margin: 0 -5px; } /* el margen deja sitio a la animación de sacudida */
+.belt-row.collapsed { grid-template-rows: 0fr; margin-bottom: 0; opacity: 0; }
+
+.belt {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 7px 6px 6px;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    border-radius: 11px;
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.14), rgba(239, 68, 68, 0.03) 70%), var(--black);
+    transition: border-color 0.35s, background 0.35s;
+}
+.belt-icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.16);
+    transition: background 0.35s;
+}
+.belt-icon svg { width: 18px; height: 18px; overflow: visible; }
+.belt-icon .b-head, .belt-icon .b-body { fill: #fca5a5; opacity: 0.55; transition: fill 0.35s, opacity 0.35s; }
+.belt-icon .b-strap {
+    fill: none;
+    stroke: var(--broken);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-dasharray: 14;
+    stroke-dashoffset: 14;          /* sin cinturón: la correa no está */
+    transition: stroke-dashoffset 0.5s var(--ease), stroke 0.35s;
+}
+.belt-icon .b-buckle { fill: var(--broken); opacity: 0; transition: opacity 0.3s 0.25s, fill 0.35s; }
+/* aviso latiendo */
+.belt:not(.on) .belt-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    border: 1.5px solid var(--broken);
+    animation: beltRing 1.6s ease-out infinite;
+}
+@keyframes beltRing { from { opacity: 0.8; transform: scale(1); } to { opacity: 0; transform: scale(1.5); } }
+.belt:not(.on) .b-head, .belt:not(.on) .b-body { animation: beltBlink 1.6s ease-in-out infinite; }
+@keyframes beltBlink { 50% { opacity: 0.25; } }
+
+.belt-text { flex: 1; font-size: 12px; font-weight: 700; color: var(--white); }
+.belt kbd {
+    display: grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border: 1px solid var(--line-2);
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--white);
+    background: #1a1a1a;
+}
+
+/* cinturón puesto: correa dibujada, todo en blanco/verde y luego se pliega */
+.belt.on { border-color: rgba(34, 197, 94, 0.35); background: linear-gradient(90deg, rgba(34, 197, 94, 0.14), rgba(34, 197, 94, 0.03) 70%), var(--black); }
+.belt.on .belt-icon { background: rgba(34, 197, 94, 0.16); }
+.belt.on .b-head, .belt.on .b-body { fill: var(--white); opacity: 0.9; }
+.belt.on .b-strap { stroke: var(--good); stroke-dashoffset: 0; }
+.belt.on .b-buckle { fill: var(--good); opacity: 1; }
+.belt.on kbd { display: none; }
+
+/* intentar salir con el cinturón puesto / ir rápido sin él */
+.belt.nudge { animation: nudge 0.45s var(--ease); }
+@keyframes nudge { 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+.belt.danger { border-color: var(--broken); }
+.belt.danger .belt-text { color: #fecaca; }
+
+/* ---------- Velocidad + marcha ---------- */
+.main {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+.speed-wrap { display: flex; align-items: flex-end; gap: 10px; }
+.speed {
+    min-width: 2ch;
+    font-size: 54px;
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -2.5px;
+    color: var(--white);
+    font-variant-numeric: tabular-nums;
+    transition: color 0.3s, opacity 0.3s;
+}
+.speed-meta { display: flex; flex-direction: column; gap: 3px; padding-bottom: 3px; }
+.unit {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text);
+}
+.state {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    transition: color 0.3s;
+}
+.state:empty { display: none; }
+.state.swap { animation: stateSwap 0.35s var(--ease); }
+@keyframes stateSwap { from { opacity: 0; transform: translateY(4px); } }
+
+/* motor apagado: todo más apagado */
+#speedo.off .speed { color: var(--dim); }
+#speedo.off .unit { color: var(--dim); }
+
+/* Marcha: como una tecla */
+.gear-wrap { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.gear {
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    border: 1px solid var(--line-2);
+    border-bottom-width: 4px;
+    border-radius: 13px;
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--white);
+    background: linear-gradient(180deg, #1c1c1c, var(--black));
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition: color 0.2s, background 0.2s;
+}
+.gear.shift { animation: press 0.32s var(--ease); }
+@keyframes press {
+    0%   { transform: translateY(0); }
+    35%  { transform: translateY(3px); border-bottom-width: 1px; background: #2a2a2a; }
+    100% { transform: translateY(0); }
+}
+.gear.reverse { color: var(--black); background: var(--white); border-color: #d4d4d4; }
+
+.gear-dots { display: flex; gap: 3px; }
+.gear-dots span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--line-2);
+    transition: background 0.2s, transform 0.25s var(--spring);
+}
+.gear-dots span.on { background: var(--white); transform: scale(1.25); }
+
+/* Línea de velocidad */
+.speed-line {
+    height: 3px;
+    margin: 12px 0 12px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: var(--line);
+}
+#speed-fill {
+    width: 0%;
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #6b6b6b, var(--white));
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
+    transition: width 0.25s linear;
+}
+
+/* ---------- Gasolina + motor ---------- */
+.bottom { display: flex; gap: 8px; }
+.pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 11px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--black);
+}
+.fuel { flex: 1; min-width: 0; }
+.fuel > i { font-size: 13px; color: var(--text); }
+.fuel-info { flex: 1; min-width: 0; }
+.fuel-info span { font-size: 12px; color: var(--muted); }
+.fuel-info b { font-size: 14px; font-weight: 800; color: var(--white); font-variant-numeric: tabular-nums; }
+.fuel-info small { font-size: 10.5px; font-weight: 700; }
+.fuel-bar {
+    height: 3px;
+    margin-top: 5px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: var(--line-2);
+}
+#fuel-fill {
+    width: 0%;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--white);
+    transition: width 0.6s var(--ease);
+}
+/* poca gasolina: parpadea */
+.fuel.low > i, .fuel.low b { animation: blink 1s ease-in-out infinite; }
+.fuel.low #fuel-fill { background: var(--broken); }
+@keyframes blink { 50% { opacity: 0.25; } }
+
+/* Estado del motor: único elemento con color */
+.engine { flex: none; }
+.engine svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--c);
+    filter: drop-shadow(0 0 6px var(--c-glow));
+    transition: fill 0.4s;
+}
+.engine.good    { --c: var(--good);    --c-glow: rgba(34, 197, 94, 0.5); }
+.engine.regular { --c: var(--regular); --c-glow: rgba(234, 179, 8, 0.5); }
+.engine.broken  { --c: var(--broken);  --c-glow: rgba(239, 68, 68, 0.6); }
+.engine.broken svg { animation: pulse 0.9s ease-in-out infinite; }
+.engine.swap svg { animation: engineSwap 0.5s var(--spring); }
+@keyframes pulse { 50% { opacity: 0.35; transform: scale(0.9); } }
+@keyframes engineSwap { from { transform: scale(0.4) rotate(-20deg); opacity: 0; } }
+.engine-info { display: flex; flex-direction: column; line-height: 1.15; }
+.engine-info span { font-size: 12px; font-weight: 800; color: var(--white); }
+.engine-info small { font-size: 10px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }

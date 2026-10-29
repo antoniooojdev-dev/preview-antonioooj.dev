@@ -1,0 +1,792 @@
+---
+// Demo «Comandos slash»: al escribir «/» aparece el menú de comandos del bot, agrupado
+// por categorías, con filtro al escribir, flechas + Enter y una animación de entrada.
+// Cada comando responde con su embed (ping animado, encuesta con votos, sorteo con
+// cuenta atrás, /clear que borra mensajes, /ban…). Al cargar, se teclea «/» solo.
+import Shell from "./Shell.astro";
+
+const canales = [
+  { cat: "información", items: [{ n: "bienvenida" }, { n: "anuncios" }] },
+  { cat: "bot", items: [{ n: "comandos", activo: true }, { n: "logs-bot" }] },
+  { cat: "comunidad", items: [{ n: "general" }, { n: "memes" }] },
+];
+---
+
+<Shell demo="comandos" canal="comandos" tema="Prueba aquí todos los comandos del bot" canales={canales} placeholder="Escribe / para ver los comandos">
+  <div class="dc-welcome">
+    <div class="dc-welcome__icon">#</div>
+    <h4>¡Bienvenido a #comandos!</h4>
+    <p>Escribe <code>/</code> en el chat para ver todo lo que puede hacer el bot.</p>
+  </div>
+  <div slot="composer" class="dc__composer" data-composer>
+    <div class="dc-palette" hidden role="listbox" aria-label="Comandos">
+      <div class="dc-palette__head">
+        <span>Comandos que coinciden con <b class="dc-palette__q">/</b></span>
+        <span class="dc-palette__keys"><kbd>↑</kbd><kbd>↓</kbd> navegar · <kbd>↵</kbd> usar · <kbd>Esc</kbd> cerrar</span>
+      </div>
+      <div class="dc-palette__wrap">
+        <div class="dc-palette__bot" aria-hidden="true"><img src="/logo.png" alt="" /></div>
+        <ul role="list" class="dc-palette__list"></ul>
+      </div>
+    </div>
+    <div class="dc-opt" hidden></div>
+    <form class="dc__input">
+      <span class="dc__input-plus" aria-hidden="true">+</span>
+      <span class="dc-cmdchip" hidden></span>
+      <input type="text" maxlength="120" autocomplete="off" placeholder="Escribe / para ver los comandos" aria-label="Mensaje" />
+      <span class="dc__input-tools" aria-hidden="true"><i>🎁</i><b>GIF</b><i>🗒️</i><i>😊</i></span>
+    </form>
+  </div>
+</Shell>
+
+<script>
+  import { BOT, YO, el, mensaje, escribiendo, borrar, sistema, espera, barra, confeti, bajar, type Autor } from "@/scripts/discord-demo";
+
+  interface Comando {
+    n: string;
+    d: string;
+    cat: "utilidad" | "comunidad" | "moderación";
+    icono: string;
+    opcion?: { k: string; ej: string };
+  }
+
+  const COMANDOS: Comando[] = [
+    { n: "ping", d: "Mira la latencia del bot", cat: "utilidad", icono: "🏓" },
+    { n: "info", d: "Información del servidor", cat: "utilidad", icono: "ℹ️" },
+    { n: "encuesta", d: "Crea una encuesta con votos", cat: "utilidad", icono: "📊", opcion: { k: "pregunta", ej: "¿Qué juego jugamos el viernes?" } },
+    { n: "recordatorio", d: "Te avisa dentro de un rato", cat: "utilidad", icono: "⏰", opcion: { k: "texto", ej: "Revisar los tickets" } },
+    { n: "nivel", d: "Tu nivel y experiencia", cat: "comunidad", icono: "⭐" },
+    { n: "sorteo", d: "Crea un sorteo con cuenta atrás", cat: "comunidad", icono: "🎉", opcion: { k: "premio", ej: "Nitro 1 mes" } },
+    { n: "avatar", d: "Muestra el avatar de alguien", cat: "comunidad", icono: "🖼️" },
+    { n: "clear", d: "Borra los últimos mensajes", cat: "moderación", icono: "🧹", opcion: { k: "cantidad", ej: "3" } },
+    { n: "ban", d: "Banea a un usuario", cat: "moderación", icono: "🔨", opcion: { k: "usuario", ej: "@Troll#0420" } },
+    { n: "mute", d: "Silencia a un usuario", cat: "moderación", icono: "🔇", opcion: { k: "usuario", ej: "@Spammer#1337" } },
+  ];
+
+  const MIEMBROS: Autor[] = [
+    { nombre: "Laura", color: "#eb459e" },
+    { nombre: "Dani", color: "#3ba55c" },
+    { nombre: "Sergio", color: "#faa61a" },
+  ];
+
+  const raiz = document.querySelector<HTMLElement>('[data-dc="comandos"]');
+  if (raiz) iniciar(raiz);
+
+  function iniciar(dc: HTMLElement) {
+    const lista = dc.querySelector<HTMLElement>("[data-msgs]")!;
+    const paleta = dc.querySelector<HTMLElement>(".dc-palette")!;
+    const ul = dc.querySelector<HTMLUListElement>(".dc-palette__list")!;
+    const q = dc.querySelector<HTMLElement>(".dc-palette__q")!;
+    const form = dc.querySelector<HTMLFormElement>(".dc__input")!;
+    const input = form.querySelector("input")!;
+    const chip = dc.querySelector<HTMLElement>(".dc-cmdchip")!;
+    const opt = dc.querySelector<HTMLElement>(".dc-opt")!;
+    let visibles: Comando[] = [];
+    let sel = 0;
+    let elegido: Comando | null = null;
+    let tocado = false;
+
+    // Unos mensajes de ambiente (para que /clear tenga algo que borrar)
+    const charla = ["¿alguien para una partida?", "el nuevo bot va genial 🔥", "jajaja", "¿cómo se abre un ticket?"];
+    charla.forEach((t, i) => mensaje(lista, MIEMBROS[i % MIEMBROS.length], { texto: t }));
+
+    // ── menú ──
+    function pintar() {
+      const filtro = input.value.slice(1).trim().toLowerCase();
+      visibles = COMANDOS.filter((c) => c.n.startsWith(filtro) || c.d.toLowerCase().includes(filtro));
+      q.textContent = `/${filtro}`;
+      sel = Math.min(sel, Math.max(0, visibles.length - 1));
+      let cat = "";
+      ul.replaceChildren(
+        ...visibles.flatMap((c, i) => {
+          const items: HTMLElement[] = [];
+          if (c.cat !== cat) {
+            cat = c.cat;
+            items.push(el("li", "dc-palette__cat", c.cat));
+          }
+          const li = el("li", "dc-palette__item");
+          li.setAttribute("role", "option");
+          li.setAttribute("aria-selected", String(i === sel));
+          li.style.setProperty("--i", String(i));
+          const ico = el("span", "dc-palette__ico", c.icono);
+          const nombre = el("span", "dc-palette__name");
+          nombre.append(el("b", "", `/${c.n}`));
+          if (c.opcion) nombre.append(el("span", "dc-palette__opt", c.opcion.k));
+          li.append(ico, nombre, el("span", "dc-palette__desc", c.d));
+          li.addEventListener("mouseenter", () => {
+            sel = i;
+            marcar();
+          });
+          li.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            elegir(c);
+          });
+          items.push(li);
+          return items;
+        }),
+      );
+      if (!visibles.length) ul.append(el("li", "dc-palette__none", "Ningún comando coincide"));
+    }
+
+    function marcar() {
+      ul.querySelectorAll<HTMLElement>(".dc-palette__item").forEach((li, i) => {
+        li.setAttribute("aria-selected", String(i === sel));
+        if (i === sel) li.scrollIntoView({ block: "nearest" });
+      });
+    }
+
+    function abrir(si: boolean) {
+      if (si === !paleta.hidden) return;
+      paleta.hidden = !si;
+      if (si) {
+        paleta.classList.remove("is-in");
+        void paleta.offsetWidth;
+        paleta.classList.add("is-in");
+      }
+    }
+
+    function elegir(c: Comando) {
+      elegido = c;
+      abrir(false);
+      chip.hidden = false;
+      chip.textContent = `/${c.n}`;
+      input.value = "";
+      input.placeholder = c.opcion ? `${c.opcion.k}: ${c.opcion.ej}` : "Pulsa Enter para enviar";
+      opt.hidden = !c.opcion;
+      if (c.opcion) {
+        opt.replaceChildren(el("b", "", c.opcion.k), el("span", "", ` · ${c.d} (opcional, Enter para usar el ejemplo)`));
+      }
+      input.focus();
+    }
+
+    function soltar() {
+      elegido = null;
+      chip.hidden = true;
+      opt.hidden = true;
+      input.placeholder = "Escribe / para ver los comandos";
+    }
+
+    input.addEventListener("input", () => {
+      tocado = true;
+      if (!elegido && input.value.startsWith("/") && !input.value.includes(" ")) {
+        abrir(true);
+        pintar();
+      } else abrir(false);
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (elegido && e.key === "Backspace" && !input.value) {
+        e.preventDefault();
+        soltar();
+        input.value = "/";
+        abrir(true);
+        pintar();
+        return;
+      }
+      if (paleta.hidden) return;
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        sel = (sel + (e.key === "ArrowDown" ? 1 : -1) + visibles.length) % visibles.length;
+        marcar();
+      } else if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        if (visibles[sel]) elegir(visibles[sel]);
+      } else if (e.key === "Escape") {
+        abrir(false);
+      }
+    });
+
+    input.addEventListener("blur", () => setTimeout(() => abrir(false), 120));
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!paleta.hidden) return;
+      if (elegido) {
+        const c = elegido;
+        const arg = input.value.trim() || c.opcion?.ej || "";
+        soltar();
+        input.value = "";
+        ejecutar(c, arg);
+        return;
+      }
+      const t = input.value.trim();
+      if (!t) return;
+      input.value = "";
+      if (t.startsWith("/")) {
+        const c = COMANDOS.find((x) => x.n === t.slice(1).split(" ")[0].toLowerCase());
+        if (c) return ejecutar(c, t.split(" ").slice(1).join(" ") || c.opcion?.ej || "");
+      }
+      mensaje(lista, YO, { texto: t });
+    });
+
+    // ── respuestas ──
+    function usado(c: Comando, arg: string) {
+      const u = el("div", "dc-used");
+      u.append("↱ ", el("b", "", "Tú"), " ha usado ", el("b", "", `/${c.n}${arg && c.opcion ? ` ${c.opcion.k}: ${arg}` : ""}`));
+      lista.append(u);
+    }
+
+    function soloTu(m: HTMLElement) {
+      const p = el("div", "dc-ephemeral", "👁 Solo tú puedes ver esto · ");
+      const d = el("button", "", "Descartar mensaje");
+      d.type = "button";
+      d.addEventListener("click", () => borrar(m));
+      p.append(d);
+      m.lastElementChild!.append(p);
+    }
+
+    async function ejecutar(c: Comando, arg: string) {
+      usado(c, arg);
+      await escribiendo(lista, BOT, 650);
+      switch (c.n) {
+        case "ping": {
+          const lat = el("b", "dc-count", "0 ms");
+          const extra = el("div", "dc-kpis");
+          extra.append(kpi("Latencia API", lat), kpi("Websocket", el("b", "", "18 ms")), kpi("En línea", el("b", "", "14 d 6 h")));
+          mensaje(lista, BOT, { embed: { color: "#23a55a", titulo: "🏓 ¡Pong!", extra, pie: "AntonioooJ Dev" } });
+          contar(lat, 42, " ms");
+          break;
+        }
+        case "info":
+          mensaje(lista, BOT, {
+            embed: {
+              color: "#5865f2",
+              autor: "AntonioooJ Dev",
+              titulo: "Información del servidor",
+              miniatura: "/logo.png",
+              campos: [
+                { k: "👥 Miembros", v: "1.284", inline: true },
+                { k: "🟢 En línea", v: "312", inline: true },
+                { k: "💬 Canales", v: "34", inline: true },
+                { k: "🎭 Roles", v: "18", inline: true },
+                { k: "🚀 Mejoras", v: "Nivel 2", inline: true },
+                { k: "📅 Creado", v: "hace 2 años", inline: true },
+              ],
+              extra: barra(72, "14 / 20 mejoras para el nivel 3"),
+            },
+          });
+          break;
+        case "encuesta":
+          encuesta(arg);
+          break;
+        case "recordatorio": {
+          const m = mensaje(lista, BOT, { texto: `⏰ ¡Hecho! Te recordaré «${arg}» dentro de 10 segundos.` });
+          soloTu(m);
+          setTimeout(() => {
+            const r = mensaje(lista, BOT, { texto: el("span") as Node, mencion: true });
+            const cuerpo = r.querySelector(".dc-msg__body")!;
+            cuerpo.append(el("span", "dc-mention", "@Tú"), ` ⏰ Recordatorio: ${arg}`);
+          }, 10_000);
+          break;
+        }
+        case "nivel":
+          mensaje(lista, BOT, {
+            embed: {
+              color: "#f0b232",
+              titulo: "⭐ Tú · Nivel 7",
+              campos: [
+                { k: "Ranking", v: "#23 de 1.284", inline: true },
+                { k: "Mensajes", v: "1.042", inline: true },
+                { k: "Monedas", v: "🪙 2.350", inline: true },
+              ],
+              extra: barra(64, "640 / 1.000 XP para el nivel 8"),
+            },
+          });
+          break;
+        case "sorteo":
+          sorteo(arg);
+          break;
+        case "avatar": {
+          const img = el("img", "dc-bigimg");
+          img.src = "/logo.png";
+          img.alt = "Avatar";
+          mensaje(lista, BOT, { embed: { color: "#5865f2", titulo: "🖼️ Avatar de AntonioooJ Dev", extra: img } });
+          break;
+        }
+        case "clear": {
+          const n = Math.max(1, Math.min(10, parseInt(arg, 10) || 3));
+          const candidatos = [...lista.querySelectorAll<HTMLElement>(".dc-msg")].filter((m) => !m.querySelector(".dc-tag")).slice(-n);
+          for (const m of candidatos.reverse()) {
+            borrar(m);
+            await espera(140);
+          }
+          const r = mensaje(lista, BOT, { texto: `🧹 He borrado ${candidatos.length} mensaje${candidatos.length === 1 ? "" : "s"}.` });
+          soloTu(r);
+          break;
+        }
+        case "ban": {
+          const u = arg.replace(/^@/, "") || "Troll#0420";
+          mensaje(lista, BOT, {
+            embed: {
+              color: "#f23f43",
+              titulo: "🔨 Usuario baneado",
+              campos: [
+                { k: "Usuario", v: u, inline: true },
+                { k: "Moderador", v: "Tú", inline: true },
+                { k: "Motivo", v: "Incumplir las normas", inline: true },
+              ],
+              pie: "Registrado en #logs-bot",
+            },
+          });
+          sistema(lista, "🔨", [{ b: u }, " ha sido baneado del servidor."], "red");
+          break;
+        }
+        case "mute": {
+          const u = arg.replace(/^@/, "") || "Spammer#1337";
+          mensaje(lista, BOT, {
+            embed: {
+              color: "#faa61a",
+              titulo: "🔇 Usuario silenciado",
+              texto: `${u} no podrá escribir durante 10 minutos.`,
+              pie: "Se quitará solo",
+            },
+          });
+          break;
+        }
+      }
+    }
+
+    function kpi(k: string, v: HTMLElement) {
+      const d = el("div", "dc-kpi");
+      d.append(el("span", "", k), v);
+      return d;
+    }
+
+    function contar(b: HTMLElement, fin: number, suf: string) {
+      const t0 = performance.now();
+      const paso = (t: number) => {
+        const p = Math.min(1, (t - t0) / 900);
+        b.textContent = `${Math.round(fin * (1 - (1 - p) ** 3))}${suf}`;
+        if (p < 1) requestAnimationFrame(paso);
+      };
+      requestAnimationFrame(paso);
+    }
+
+    function encuesta(pregunta: string) {
+      const opciones = [
+        { t: "🔥 Sí, me apunto", v: 4 },
+        { t: "🤔 Puede ser", v: 2 },
+        { t: "❌ Esta vez no", v: 1 },
+      ];
+      let votado = -1;
+      const caja = el("div", "dc-poll");
+      const filas = opciones.map((o, i) => {
+        const b = el("button", "dc-poll__opt");
+        b.type = "button";
+        b.append(el("span", "dc-poll__fill"), el("span", "dc-poll__t", o.t), el("span", "dc-poll__p"));
+        b.addEventListener("click", () => {
+          if (votado === i) return;
+          if (votado >= 0) opciones[votado].v--;
+          votado = i;
+          o.v++;
+          actualizar();
+        });
+        caja.append(b);
+        return b;
+      });
+      const total = el("div", "dc-poll__total");
+      caja.append(total);
+      function actualizar() {
+        const sum = opciones.reduce((s, o) => s + o.v, 0);
+        filas.forEach((b, i) => {
+          const p = Math.round((opciones[i].v / sum) * 100);
+          b.style.setProperty("--p", `${p}%`);
+          b.classList.toggle("is-mine", i === votado);
+          b.querySelector(".dc-poll__p")!.textContent = `${p}% · ${opciones[i].v}`;
+        });
+        total.textContent = `${sum} votos${votado >= 0 ? " · has votado ✓" : " · pulsa una opción para votar"}`;
+      }
+      mensaje(lista, BOT, { embed: { color: "#5865f2", titulo: `📊 ${pregunta}`, extra: caja, pie: "Encuesta abierta 24 h" } });
+      actualizar();
+      // Otros miembros van votando
+      let n = 0;
+      const t = setInterval(() => {
+        if (!caja.isConnected || ++n > 8) return clearInterval(t);
+        opciones[Math.floor(Math.random() * 3)].v++;
+        actualizar();
+      }, 1500);
+    }
+
+    function sorteo(premio: string) {
+      let seg = 15;
+      let gente = 7;
+      let dentro = false;
+      const reloj = el("b", "dc-count", "0:15");
+      const cuantos = el("b", "", "7");
+      const extra = el("div", "dc-kpis");
+      extra.append(kpi("Termina en", reloj), kpi("Participantes", cuantos), kpi("Ganadores", el("b", "", "1")));
+      const m = mensaje(lista, BOT, {
+        embed: {
+          color: "#eb459e",
+          titulo: `🎉 SORTEO · ${premio}`,
+          texto: "Pulsa el botón para participar.",
+          extra,
+          botones: [
+            {
+              t: "🎉 Participar",
+              estilo: "blurple",
+              onClick: (b) => {
+                dentro = true;
+                gente++;
+                cuantos.textContent = String(gente);
+                b.disabled = true;
+                b.textContent = "✓ Participando";
+                b.classList.add("is-done");
+              },
+            },
+          ],
+        },
+      });
+      const t = setInterval(() => {
+        seg--;
+        reloj.textContent = `0:${String(seg).padStart(2, "0")}`;
+        if (Math.random() > 0.5) cuantos.textContent = String(++gente);
+        if (seg > 0) return;
+        clearInterval(t);
+        m.querySelectorAll("button").forEach((b) => (b.disabled = true));
+        const ganas = dentro && Math.random() > 0.35;
+        const ganador = ganas ? "Tú" : MIEMBROS[Math.floor(Math.random() * MIEMBROS.length)].nombre;
+        const r = mensaje(lista, BOT, { mencion: ganas, texto: el("span") as Node });
+        r.querySelector(".dc-msg__body")!.append("🎊 ¡Enhorabuena ", el("span", "dc-mention", `@${ganador}`), `! Has ganado ${premio}.`);
+        if (ganas) confeti(dc);
+        bajar(lista, true);
+      }, 1000);
+    }
+
+    // ── animación de bienvenida: teclea «/» solo si el usuario no ha tocado nada ──
+    const io = new IntersectionObserver(async (e) => {
+      if (!e[0].isIntersecting) return;
+      io.disconnect();
+      await espera(900);
+      if (tocado) return;
+      input.focus({ preventScroll: true });
+      input.value = "/";
+      input.dispatchEvent(new Event("input"));
+      tocado = false;
+    }, { threshold: 0.6 });
+    io.observe(dc);
+  }
+</script>
+
+<style is:global>
+  /* menú de comandos */
+  .dc-palette {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 8px);
+    z-index: 10;
+    display: grid;
+    max-height: 22rem;
+    border-radius: 8px;
+    background: #2b2d31;
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.3),
+      0 16px 48px rgb(0 0 0 / 0.5);
+    overflow: hidden;
+    transform-origin: 50% 100%;
+  }
+
+  .dc-palette[hidden] {
+    display: none;
+  }
+
+  .dc-palette.is-in {
+    animation: dc-pal-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .dc-palette.is-in .dc-palette__item {
+    animation: dc-pal-item 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 35ms + 80ms);
+  }
+
+  .dc-palette__head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #1f2023;
+    color: #b5bac1;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .dc-palette__head b {
+    color: #fff;
+    text-transform: none;
+  }
+
+  .dc-palette__keys {
+    text-transform: none;
+    font-weight: 400;
+    color: #80848e;
+  }
+
+  .dc-palette__keys kbd {
+    padding: 0 4px;
+    margin: 0 1px;
+    border-radius: 3px;
+    background: #1e1f22;
+    font-family: inherit;
+    font-size: 0.6875rem;
+  }
+
+  .dc-palette__wrap {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    min-height: 0;
+  }
+
+  .dc-palette__bot {
+    padding: 10px 8px;
+    background: #232428;
+  }
+
+  .dc-palette__bot img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 2px #5865f2;
+  }
+
+  .dc-palette__list {
+    max-height: 18rem;
+    padding: 6px;
+    overflow-y: auto;
+  }
+
+  .dc-palette__cat {
+    padding: 8px 8px 4px;
+    color: #949ba4;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .dc-palette__item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 32px auto 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .dc-palette__item[aria-selected="true"] {
+    background: #404249;
+  }
+
+  .dc-palette__item[aria-selected="true"]::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    border-radius: 3px;
+    background: #5865f2;
+    animation: dc-pop 0.3s ease;
+  }
+
+  .dc-palette__ico {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #1e1f22;
+    font-size: 1rem;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .dc-palette__item[aria-selected="true"] .dc-palette__ico {
+    transform: scale(1.1) rotate(-6deg);
+    background: #5865f2;
+  }
+
+  .dc-palette__name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .dc-palette__name b {
+    color: #f2f3f5;
+    font-weight: 600;
+  }
+
+  .dc-palette__opt {
+    padding: 0 6px;
+    border-radius: 4px;
+    background: #1e1f22;
+    color: #b5bac1;
+    font-size: 0.75rem;
+  }
+
+  .dc-palette__desc {
+    overflow: hidden;
+    color: #949ba4;
+    font-size: 0.8125rem;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dc-palette__none {
+    padding: 12px;
+    color: #949ba4;
+  }
+
+  /* comando elegido en la caja de escribir */
+  .dc-cmdchip {
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgb(88 101 242 / 0.3);
+    color: #c9cdfb;
+    font-weight: 600;
+    white-space: nowrap;
+    animation: dc-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .dc-cmdchip[hidden],
+  .dc-opt[hidden] {
+    display: none;
+  }
+
+  .dc-opt {
+    margin-bottom: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #2b2d31;
+    color: #949ba4;
+    font-size: 0.8125rem;
+    animation: dc-msg-in 0.3s ease;
+  }
+
+  .dc-opt b {
+    color: #f2f3f5;
+  }
+
+  /* mensajes «solo tú puedes ver esto» */
+  .dc-ephemeral {
+    margin-top: 4px;
+    color: #949ba4;
+    font-size: 0.75rem;
+  }
+
+  .dc-ephemeral button {
+    color: #00a8fc !important;
+  }
+
+  .dc-ephemeral button:hover {
+    text-decoration: underline;
+  }
+
+  /* cifras en embeds */
+  .dc-kpis {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .dc-kpi {
+    display: grid;
+    gap: 2px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: #1e1f22;
+    font-size: 0.75rem;
+    color: #949ba4;
+  }
+
+  .dc-kpi b {
+    color: #f2f3f5;
+    font-size: 1.05rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dc-bigimg {
+    width: 160px;
+    height: 160px;
+    border-radius: 8px;
+    background: #fff;
+    animation: dc-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* encuesta */
+  .dc-poll {
+    display: grid;
+    gap: 6px;
+  }
+
+  .dc-poll__opt {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: #1e1f22;
+    border: 1px solid transparent;
+    overflow: hidden;
+    text-align: left;
+    transition: border-color 0.2s ease;
+  }
+
+  .dc-poll__opt:hover {
+    border-color: #5865f2;
+  }
+
+  .dc-poll__opt.is-mine {
+    border-color: #5865f2;
+  }
+
+  .dc-poll__fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--p, 0%);
+    background: rgb(88 101 242 / 0.25);
+    transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .dc-poll__opt.is-mine .dc-poll__fill {
+    background: rgb(88 101 242 / 0.45);
+  }
+
+  .dc-poll__t,
+  .dc-poll__p {
+    position: relative;
+    font-size: 0.875rem;
+  }
+
+  .dc-poll__p {
+    color: #b5bac1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dc-poll__total {
+    color: #949ba4;
+    font-size: 0.75rem;
+  }
+
+  @keyframes dc-pal-in {
+    from { opacity: 0; transform: translateY(14px) scale(0.97); filter: blur(4px); }
+  }
+
+  @keyframes dc-pal-item {
+    from { opacity: 0; transform: translateX(-10px); }
+  }
+
+  @media (max-width: 44rem) {
+    .dc-palette__keys,
+    .dc-palette__desc {
+      display: none;
+    }
+  }
+</style>

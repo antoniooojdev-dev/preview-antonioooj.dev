@@ -1,0 +1,205 @@
+/* ─────────────────────────────────────────────
+   Design tokens — monocromo: blanco, negro y grises (a juego con el logo)
+
+   Paletas:
+   - :root / .paper → la del tema activo (clara por defecto).
+   - .ink           → siempre oscura (cabecera, portada).
+   - .inv           → la contraria al tema activo: así las secciones se
+                      alternan en bandas blancas y negras en los dos temas.
+   Como todo usa estas variables, basta con poner la clase en una sección
+   para que todo lo de dentro cambie.
+   ───────────────────────────────────────────── */
+
+:root {
+  /* tipografía: Archivo (eje de anchura 62–125 %) para todo; mono solo para datos pequeños */
+  --font-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: 1.125rem;
+  --fs-lg: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --fs-xl: clamp(2rem, 1.4rem + 2.4vw, 3.5rem);
+  /* mínimo pensado para que «comunidades.» quepa en un móvil de 360 px */
+  --fs-2xl: clamp(2.4rem, 0.6rem + 8.4vw, 8.5rem);
+
+  /* espaciado */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --section: clamp(4.5rem, 3rem + 6vw, 9rem);
+
+  /* layout */
+  --container: 84rem;
+  --gutter: clamp(1rem, 0.5rem + 2.5vw, 2.5rem);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-tile: 26px;
+  --header-h: 4rem;
+  --rule: 2px;
+
+  /* movimiento */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur: 180ms;
+}
+
+/* ── paleta clara ── */
+:root,
+.paper {
+  --bg: #efefef;
+  --bg-elev: #ffffff;
+  --bg-code: #e6e6e6;
+  --fg: #0a0a0a;
+  --fg-muted: #4a4a4a;
+  --fg-subtle: #8a8a8a;
+  --border: #e2e2e2;
+  --border-strong: #c2c2c2;
+  --signal: #0a0a0a;
+  --signal-ink: #ffffff;
+  --accent: #0a0a0a;
+  --accent-fg: #ffffff;
+  --ok: #15803d;
+  --error: #b91c1c;
+  --tok-key: #0a0a0a;
+  --tok-str: #4b4b4b;
+  --tok-com: #9a9a9a;
+  --tok-kw: #0a0a0a;
+  --tok-punct: #8a8a8a;
+  color-scheme: light;
+}
+
+/* ── paleta oscura (negro y gris oscuro) ── */
+.ink,
+.inv {
+  --bg: #0a0a0a;
+  --bg-elev: #151515;
+  --bg-code: #1c1c1c;
+  --fg: #f4f4f4;
+  --fg-muted: #a3a3a3;
+  --fg-subtle: #6b6b6b;
+  --border: #252525;
+  --border-strong: #3a3a3a;
+  --signal: #f4f4f4;
+  --signal-ink: #0a0a0a;
+  --accent: #f4f4f4;
+  --accent-fg: #0a0a0a;
+  --ok: #4ade80;
+  --error: #f87171;
+  --tok-key: #f4f4f4;
+  --tok-str: #b5b5b5;
+  --tok-com: #5c5c5c;
+  --tok-kw: #f4f4f4;
+  --tok-punct: #6b6b6b;
+  color-scheme: dark;
+}
+
+/* ── tema oscuro: la página pasa a negro y las bandas .inv a blanco ── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a0a0a;
+    --bg-elev: #151515;
+    --bg-code: #1c1c1c;
+    --fg: #f4f4f4;
+    --fg-muted: #a3a3a3;
+    --fg-subtle: #6b6b6b;
+    --border: #252525;
+    --border-strong: #3a3a3a;
+    --signal: #f4f4f4;
+    --signal-ink: #0a0a0a;
+    --accent: #f4f4f4;
+    --accent-fg: #0a0a0a;
+    --ok: #4ade80;
+    --error: #f87171;
+    --tok-key: #f4f4f4;
+    --tok-str: #b5b5b5;
+    --tok-com: #5c5c5c;
+    --tok-kw: #f4f4f4;
+    --tok-punct: #6b6b6b;
+    color-scheme: dark;
+  }
+
+  :root:not([data-theme="light"]) .inv {
+    --bg: #efefef;
+    --bg-elev: #ffffff;
+    --bg-code: #e6e6e6;
+    --fg: #0a0a0a;
+    --fg-muted: #4a4a4a;
+    --fg-subtle: #8a8a8a;
+    --border: #e2e2e2;
+    --border-strong: #c2c2c2;
+    --signal: #0a0a0a;
+    --signal-ink: #ffffff;
+    --accent: #0a0a0a;
+    --accent-fg: #ffffff;
+    --ok: #15803d;
+    --error: #b91c1c;
+    --tok-key: #0a0a0a;
+    --tok-str: #4b4b4b;
+    --tok-com: #9a9a9a;
+    --tok-kw: #0a0a0a;
+    --tok-punct: #8a8a8a;
+    color-scheme: light;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0a0a0a;
+  --bg-elev: #151515;
+  --bg-code: #1c1c1c;
+  --fg: #f4f4f4;
+  --fg-muted: #a3a3a3;
+  --fg-subtle: #6b6b6b;
+  --border: #252525;
+  --border-strong: #3a3a3a;
+  --signal: #f4f4f4;
+  --signal-ink: #0a0a0a;
+  --accent: #f4f4f4;
+  --accent-fg: #0a0a0a;
+  --ok: #4ade80;
+  --error: #f87171;
+  --tok-key: #f4f4f4;
+  --tok-str: #b5b5b5;
+  --tok-com: #5c5c5c;
+  --tok-kw: #f4f4f4;
+  --tok-punct: #6b6b6b;
+  color-scheme: dark;
+}
+
+:root[data-theme="dark"] .inv {
+  --bg: #efefef;
+  --bg-elev: #ffffff;
+  --bg-code: #e6e6e6;
+  --fg: #0a0a0a;
+  --fg-muted: #4a4a4a;
+  --fg-subtle: #8a8a8a;
+  --border: #e2e2e2;
+  --border-strong: #c2c2c2;
+  --signal: #0a0a0a;
+  --signal-ink: #ffffff;
+  --accent: #0a0a0a;
+  --accent-fg: #ffffff;
+  --ok: #15803d;
+  --error: #b91c1c;
+  --tok-key: #0a0a0a;
+  --tok-str: #4b4b4b;
+  --tok-com: #9a9a9a;
+  --tok-kw: #0a0a0a;
+  --tok-punct: #8a8a8a;
+  color-scheme: light;
+}
+
+/* las bandas pintan su propio fondo */
+.paper,
+.ink,
+.inv {
+  background: var(--bg);
+  color: var(--fg);
+}
