@@ -6,6 +6,8 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { services, serviceDetails, discordDemos } from "@/data/services";
 import { casosDe } from "@/data/casos";
 import { fivemPacks } from "@/data/packs";
+import { site } from "@/data/site";
+import logoMask from "@/assets/logo-mask.png";
 
 interface Enlace {
   href: string;
@@ -35,6 +37,24 @@ const grupos: { titulo: string; enlaces: Enlace[] }[] = [
     enlaces: fivemPacks.map((p) => ({ href: `/servicios/fivem/${p.id}`, t: p.titulo })),
   },
 ].filter((g) => g.enlaces.length);
+
+// ideas para el fondo del pie: cada una tiene su efecto en src/scripts/fondos-pie.ts
+const fondos: { id: string; t: string; d: string; tags: string[] }[] = [
+  { id: "nombre", t: "Nombre a sangre", d: "Tu nombre de lado a lado, solo el contorno. Se rellena al avanzar: aquí con el ratón, en el pie con el scroll.", tags: ["CSS", "Ligero"] },
+  { id: "cta", t: "CTA gigante", d: "«¿Hablamos?» ocupando todo el fondo. Un círculo sigue al cursor y lo rellena; al hacer clic, a /contacto.", tags: ["CSS", "Ligero"] },
+  { id: "variable", t: "Letras vivas", d: "Archivo es variable: cada letra engorda y se ensancha según lo cerca que pase el cursor.", tags: ["Fuente variable", "Ligero"] },
+  { id: "marquee", t: "Cinta de servicios", d: "Dos cintas en sentidos opuestos. Aceleran con el scroll y cambian de sentido al subir. Haz scroll y mira.", tags: ["JS", "Ligero"] },
+  { id: "particulas", t: "Logo de partículas", d: "El logo hecho de puntos, como en la portada: se apartan del cursor y vuelven. Haz clic para una explosión.", tags: ["Canvas", "Medio"] },
+  { id: "radar", t: "Rejilla radar", d: "Rejilla de puntos que se enciende alrededor del cursor y lanza ondas. Haz clic para soltar una.", tags: ["Canvas", "Ligero"] },
+  { id: "malla", t: "Terreno wireframe", d: "Malla en perspectiva que ondula como un mar; el cursor levanta una colina.", tags: ["Canvas", "Medio"] },
+  { id: "topo", t: "Mapa topográfico", d: "Curvas de nivel que se mueven despacio. Donde está el cursor sale una montaña.", tags: ["Canvas", "Medio"] },
+  { id: "ascii", t: "Logo ASCII", d: "El logo dibujado con caracteres que van cambiando; el cursor lo desordena.", tags: ["Canvas", "Medio"] },
+  { id: "lluvia", t: "Lluvia de stack", d: "Columnas de letras con tus tecnologías cayendo. Bajo el cursor se frenan.", tags: ["Canvas", "Ligero"] },
+  { id: "linterna", t: "Linterna", d: "El pie parece vacío: el cursor ilumina el logo y una rejilla que estaban escondidos.", tags: ["CSS mask", "Ligero"] },
+  { id: "glitch", t: "Logo glitch", d: "El logo se corta en franjas que saltan de vez en cuando, más fuerte cerca del cursor.", tags: ["Canvas", "Ligero"] },
+  { id: "terminal", t: "Terminal en vivo", d: "Comandos de tus proyectos escribiéndose solos al fondo: build, deploy, bots, FiveM.", tags: ["JS", "Ligero"] },
+  { id: "reloj", t: "Reloj en directo", d: "La hora de España en grande con los dígitos girando, y la diferencia con la del visitante.", tags: ["JS", "Ligero"] },
+];
 ---
 
 <BaseLayout title="Pruebas" description="Atajos a las páginas de servicios." noindex>
@@ -70,7 +90,69 @@ const grupos: { titulo: string; enlaces: Enlace[] }[] = [
       }
     </div>
   </section>
+
+  <section class="fp-sec" data-fp data-logo={logoMask.src} style={`--logo: url("${logoMask.src}")`} data-no-i18n>
+    <div class="container pb__in">
+      <header class="pb__head fp-head">
+        <div>
+          <span class="pb__kicker">Fondos para el pie</span>
+          <h1>{fondos.length} ideas para el fondo del footer</h1>
+          <p>Pasa el ratón por encima (y prueba a hacer clic). Sin ratón, cada una se mueve sola.</p>
+        </div>
+        <button class="fp-mock-btn" type="button" data-fp-mock aria-pressed="true">Ocultar contenido del pie</button>
+      </header>
+
+      <div class="fp-grid">
+        {
+          fondos.map((f, i) => (
+            <article class="fp" data-fondo={f.id}>
+              <div class="fp__vista">
+                <div class="fp__fx" data-fx />
+                <div class="fp__mock" aria-hidden="true">
+                  <p>{site.description}</p>
+                  <div>
+                    <b>Contacto</b>
+                    <span>{site.email}</span>
+                    <span>{site.location}</span>
+                  </div>
+                  <div>
+                    <b>Redes</b>
+                    <span>GitHub</span>
+                    <span>Discord</span>
+                  </div>
+                  <div>
+                    <b>Legal</b>
+                    <span>Aviso legal</span>
+                    <span>Privacidad</span>
+                  </div>
+                </div>
+              </div>
+              <div class="fp__info">
+                <span class="fp__n">{String(i + 1).padStart(2, "0")}</span>
+                <div class="fp__txt">
+                  <h3>{f.t}</h3>
+                  <p>{f.d}</p>
+                  <ul role="list" class="fp__tags">
+                    {f.tags.map((t) => (
+                      <li>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+                <button class="fp__amp" type="button" aria-pressed="false">
+                  Ampliar
+                </button>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
 </BaseLayout>
+
+<script>
+  import "@/scripts/fondos-pie";
+</script>
 
 <style>
   .pb {
@@ -185,5 +267,474 @@ const grupos: { titulo: string; enlaces: Enlace[] }[] = [
     color: var(--fg-muted);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
+  }
+</style>
+
+<style>
+  /* ── fondos para el pie ── */
+  .fp-sec {
+    padding-bottom: var(--section);
+  }
+
+  .fp-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-top: var(--space-7);
+    border-top: 1px solid var(--border);
+  }
+
+  .fp-head > div {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .fp-mock-btn,
+  .fp__amp {
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--fg);
+    font: inherit;
+    font-size: var(--fs-sm);
+    cursor: pointer;
+    transition:
+      background var(--dur) var(--ease),
+      color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease);
+  }
+
+  .fp-mock-btn:hover,
+  .fp__amp:hover,
+  .fp__amp[aria-pressed="true"] {
+    border-color: var(--fg);
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .fp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+    gap: var(--space-4);
+  }
+
+  .fp {
+    display: grid;
+    align-content: start;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .fp:hover {
+    border-color: var(--border-strong);
+  }
+
+  .fp.is-grande {
+    grid-column: 1 / -1;
+  }
+
+  .fp__vista {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    height: 16rem;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    cursor: crosshair;
+    transition: height 0.5s var(--ease);
+  }
+
+  .fp.is-grande .fp__vista {
+    height: clamp(20rem, 34vw, 30rem);
+  }
+
+  .fp__fx {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    container-type: size;
+    color: var(--fg);
+  }
+
+  /* el contenido del pie de verdad, pequeño, para ver cómo se lee encima */
+  .fp__mock {
+    position: absolute;
+    inset: var(--space-5) var(--space-5) auto;
+    display: grid;
+    grid-template-columns: 2.4fr repeat(3, 1fr);
+    gap: var(--space-3);
+    color: var(--fg-muted);
+    font-size: 0.66rem;
+    line-height: 1.4;
+    pointer-events: none;
+    transition: opacity 0.3s var(--ease);
+  }
+
+  .fp__mock p {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--fg);
+    font-size: 0.72rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .fp__mock div {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+  }
+
+  .fp__mock b {
+    margin-bottom: 2px;
+    color: var(--fg-subtle);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .fp-sec.sin-mock .fp__mock {
+    opacity: 0;
+  }
+
+  .fp__info {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: start;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5) var(--space-5);
+  }
+
+  .fp__n {
+    padding-top: 0.3em;
+    color: var(--fg-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .fp__txt {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  h3 {
+    font-size: var(--fs-md);
+    letter-spacing: -0.015em;
+  }
+
+  .fp__txt p {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+  }
+
+  .fp__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-top: var(--space-1);
+  }
+
+  .fp__tags li {
+    padding: 2px var(--space-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+  }
+
+  @media (max-width: 34rem) {
+    .fp__mock {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .fp__mock p {
+      grid-column: 1 / -1;
+    }
+
+    .fp__mock div:last-child {
+      display: none;
+    }
+  }
+</style>
+
+<!-- los efectos crean su DOM desde JS, así que sus estilos no pueden ir con ámbito -->
+<style is:global>
+  .fp__fx canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* 01 · nombre */
+  .fx-nom {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-items: end;
+    justify-items: center;
+    --p: 0;
+  }
+
+  .fx-nom span {
+    grid-area: 1 / 1;
+    font-family: var(--font-display);
+    font-size: 11.2cqw;
+    font-stretch: 125%;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 0.78;
+    white-space: nowrap;
+    transform: translateY(8%);
+  }
+
+  .fx-nom__borde {
+    color: transparent;
+    -webkit-text-stroke: 1px var(--fg);
+    opacity: 0.35;
+  }
+
+  .fx-nom__lleno {
+    clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0);
+    opacity: 0.85;
+  }
+
+  .fx-nom__raya {
+    position: absolute;
+    inset-block: 0;
+    left: calc(var(--p) * 100%);
+    width: 1px;
+    background: var(--fg);
+    opacity: 0.25;
+  }
+
+  /* 02 · CTA */
+  .fx-cta {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+
+  .fx-cta span:not(.fx-cta__nota) {
+    grid-area: 1 / 1;
+    padding-top: 12%;
+    font-family: var(--font-display);
+    font-size: 15cqw;
+    font-stretch: 112%;
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .fx-cta__b {
+    color: transparent;
+    -webkit-text-stroke: 1px var(--fg);
+    opacity: 0.4;
+  }
+
+  .fx-cta__l {
+    clip-path: circle(var(--r, 0) at var(--x, 50%) var(--y, 50%));
+  }
+
+  .fx-cta__nota {
+    position: absolute;
+    right: var(--space-5);
+    bottom: var(--space-4);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+
+  /* 03 · letras variables */
+  .fx-var {
+    position: absolute;
+    inset: auto 0 6% 0;
+    display: flex;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 12cqw;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+  }
+
+  .fx-var span {
+    font-variation-settings: "wght" 120, "wdth" 62;
+    opacity: 0.25;
+  }
+
+  /* 04 · cintas */
+  .fx-mq {
+    position: absolute;
+    inset: auto 0 0 0;
+    display: grid;
+    gap: 2cqh;
+    padding-bottom: 5cqh;
+  }
+
+  .fx-mq__f {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .fx-mq__pista {
+    display: inline-flex;
+    will-change: transform;
+  }
+
+  .fx-mq__f span {
+    padding-right: 0.3em;
+    font-family: var(--font-display);
+    font-size: 19cqh;
+    font-stretch: 120%;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    opacity: 0.85;
+  }
+
+  .fx-mq__f--b span {
+    color: transparent;
+    -webkit-text-stroke: 1px var(--fg);
+    opacity: 0.45;
+  }
+
+  /* 11 · linterna */
+  .fx-lin {
+    position: absolute;
+    inset: 0;
+    --foco: radial-gradient(circle var(--r, 100px) at var(--x, 50%) var(--y, 50%), #000 0%, rgba(0, 0, 0, 0.6) 45%, transparent 100%);
+  }
+
+  .fx-lin > div {
+    position: absolute;
+    inset: 0;
+  }
+
+  .fx-lin__base,
+  .fx-lin__logo {
+    margin: 6%;
+  }
+
+  .fx-lin__base {
+    background: var(--fg);
+    opacity: 0.04;
+    -webkit-mask: var(--logo) center / contain no-repeat;
+    mask: var(--logo) center / contain no-repeat;
+  }
+
+  .fx-lin__rej {
+    background-image:
+      linear-gradient(var(--fg) 1px, transparent 1px),
+      linear-gradient(90deg, var(--fg) 1px, transparent 1px);
+    background-size: 24px 24px;
+    opacity: 0.16;
+    -webkit-mask: var(--foco);
+    mask: var(--foco);
+  }
+
+  .fx-lin__logo {
+    background: var(--fg);
+    opacity: 0.9;
+    -webkit-mask:
+      var(--logo) center / contain no-repeat,
+      var(--foco);
+    -webkit-mask-composite: source-in;
+    mask:
+      var(--logo) center / contain no-repeat,
+      var(--foco);
+    mask-composite: intersect;
+  }
+
+  /* 13 · terminal */
+  .fx-ter {
+    position: absolute;
+    inset: auto var(--space-5) var(--space-4);
+    margin: 0;
+    color: var(--fg);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 20px;
+    opacity: 0.5;
+    white-space: pre-wrap;
+  }
+
+  .fx-ter i {
+    display: inline-block;
+    width: 0.6em;
+    height: 1.05em;
+    margin-left: 2px;
+    vertical-align: -0.15em;
+    background: currentColor;
+    animation: fx-parpadeo 1s steps(1) infinite;
+  }
+
+  @keyframes fx-parpadeo {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* 14 · reloj */
+  .fx-rel {
+    position: absolute;
+    inset: auto 0 6% 0;
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+  }
+
+  .fx-rel__h {
+    display: flex;
+    font-family: var(--font-display);
+    font-size: 19cqw;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.04em;
+    line-height: 0.85;
+    opacity: 0.85;
+  }
+
+  .fx-rel__h span {
+    display: inline-block;
+    overflow: hidden;
+  }
+
+  .fx-rel__h .dos {
+    opacity: 0.3;
+    animation: fx-parpadeo 2s steps(1) infinite;
+  }
+
+  .fx-rel__h b {
+    display: inline-block;
+    font-weight: inherit;
+  }
+
+  .fx-rel__h b.entra {
+    animation: fx-gira 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  @keyframes fx-gira {
+    from {
+      transform: translateY(-100%) rotateX(80deg);
+      opacity: 0;
+    }
+  }
+
+  .fx-rel__sub {
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
   }
 </style>

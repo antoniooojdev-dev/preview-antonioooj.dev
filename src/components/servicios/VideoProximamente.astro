@@ -1,0 +1,545 @@
+---
+// Vídeo de un servicio. Mientras no hay `src` es un reproductor de mentira: ruido de
+// televisión, visor de cámara grabando con su código de tiempo, un play que no arranca
+// (avisa de que aún no está) y la barra con los capítulos que tendrá, cargando sin fin.
+// Siempre oscuro (.ink), como una pantalla.
+interface Props {
+  src?: string;
+  capitulos: string[];
+}
+
+const { src, capitulos } = Astro.props;
+---
+
+{
+  src ? (
+    <video class="vp-real" src={src} controls playsinline preload="metadata" />
+  ) : (
+    <div class="vp ink" data-vp>
+      <canvas class="vp__ruido" width="160" height="90" aria-hidden="true" />
+      <div class="vp__scan" aria-hidden="true" />
+      <div class="vp__barrido" aria-hidden="true" />
+      <div class="vp__vineta" aria-hidden="true" />
+
+      <span class="vp__esq vp__esq--1" aria-hidden="true" />
+      <span class="vp__esq vp__esq--2" aria-hidden="true" />
+      <span class="vp__esq vp__esq--3" aria-hidden="true" />
+      <span class="vp__esq vp__esq--4" aria-hidden="true" />
+
+      <div class="vp__top mono" aria-hidden="true">
+        <span class="vp__rec">
+          <i /> REC
+        </span>
+        <span class="vp__tc" data-vp-tc>
+          00:00:00:00
+        </span>
+        <span class="vp__info">FiveM · ESX</span>
+      </div>
+
+      <div class="vp__centro">
+        <button class="vp__play" type="button" data-vp-play aria-label="Reproducir vídeo (todavía no disponible)">
+          <span class="vp__onda" aria-hidden="true" />
+          <span class="vp__onda vp__onda--2" aria-hidden="true" />
+          <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+            <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.6-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" fill="currentColor" />
+          </svg>
+        </button>
+        <strong class="vp__titulo" data-vp-titulo>
+          Vídeo en camino
+        </strong>
+        <span class="vp__sub mono">grabando en el servidor · montaje en curso</span>
+      </div>
+
+      <div class="vp__controles" aria-hidden="true">
+        <svg class="vp__ico" viewBox="0 0 24 24" width="16" height="16">
+          <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.6-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" fill="currentColor" />
+        </svg>
+        <div class="vp__barra">
+          {
+            capitulos.map((c, i) => (
+              <span class="vp__cap" style={`--i:${i}`}>
+                <i />
+                <small class="mono">{c}</small>
+              </span>
+            ))
+          }
+        </div>
+        <span class="vp__tiempo mono">--:-- / --:--</span>
+        <svg class="vp__ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+          <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+        </svg>
+        <svg class="vp__ico" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+        </svg>
+      </div>
+
+      <p class="vp__aviso mono" data-vp-aviso role="status" />
+    </div>
+  )
+}
+
+<script>
+  const AVISOS = ["Todavía no está subido. ¡Muy pronto!", "Paciencia: está en el horno.", "Aún grabando… vuelve en unos días."];
+
+  document.querySelectorAll<HTMLElement>("[data-vp]").forEach((vp) => {
+    const lienzo = vp.querySelector<HTMLCanvasElement>(".vp__ruido")!;
+    const g = lienzo.getContext("2d")!;
+    const tc = vp.querySelector<HTMLElement>("[data-vp-tc]")!;
+    const play = vp.querySelector<HTMLButtonElement>("[data-vp-play]")!;
+    const aviso = vp.querySelector<HTMLElement>("[data-vp-aviso]")!;
+    const reducido = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const img = g.createImageData(lienzo.width, lienzo.height);
+
+    // ruido de televisión: píxeles grises al azar, a unos 24 fps
+    const ruido = () => {
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const v = (Math.random() * 255) | 0;
+        d[i] = d[i + 1] = d[i + 2] = v;
+        d[i + 3] = 255;
+      }
+      g.putImageData(img, 0, 0);
+    };
+
+    const dos = (n: number) => String(n).padStart(2, "0");
+    let visible = false;
+    let inicio = 0;
+    let ultimo = 0;
+    const bucle = (t: number) => {
+      if (!visible) return;
+      if (t - ultimo > 41) {
+        ultimo = t;
+        ruido();
+        const f = Math.floor(((t - inicio) / 1000) * 24);
+        tc.textContent = `${dos(Math.floor(f / 86400))}:${dos(Math.floor(f / 1440) % 60)}:${dos(Math.floor(f / 24) % 60)}:${dos(f % 24)}`;
+      }
+      requestAnimationFrame(bucle);
+    };
+
+    ruido();
+    if (!reducido)
+      new IntersectionObserver(([e]) => {
+        const antes = visible;
+        visible = e.isIntersecting;
+        if (visible && !antes) {
+          inicio ||= performance.now();
+          requestAnimationFrame(bucle);
+        }
+      }).observe(vp);
+
+    // el play no arranca nada: tiembla la imagen y sale un aviso
+    let n = 0;
+    let quitar = 0;
+    play.addEventListener("click", () => {
+      aviso.textContent = AVISOS[n++ % AVISOS.length];
+      vp.classList.remove("is-golpe");
+      void vp.offsetWidth;
+      vp.classList.add("is-golpe", "is-aviso");
+      clearTimeout(quitar);
+      quitar = window.setTimeout(() => vp.classList.remove("is-aviso"), 2600);
+    });
+  });
+</script>
+
+<style>
+  .vp-real {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+  }
+
+  .vp {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 9;
+    min-height: 18rem;
+    background: #050505;
+    color: var(--fg);
+  }
+
+  .vp > * {
+    position: absolute;
+  }
+
+  /* ── la «imagen»: ruido, líneas de barrido, un brillo que pasa y viñeta ── */
+  .vp__ruido {
+    inset: 0;
+    z-index: -3;
+    width: 100%;
+    height: 100%;
+    opacity: 0.09;
+    image-rendering: pixelated;
+  }
+
+  .vp__scan {
+    inset: 0;
+    z-index: -2;
+    background: repeating-linear-gradient(transparent 0 2px, rgba(0, 0, 0, 0.45) 2px 3px);
+    pointer-events: none;
+  }
+
+  .vp__barrido {
+    inset: -20% 0 auto;
+    z-index: -2;
+    height: 30%;
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.045), transparent);
+    animation: vp-barrido 6s linear infinite;
+    pointer-events: none;
+  }
+
+  .vp__vineta {
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(ellipse 60% 55% at 50% 48%, color-mix(in srgb, var(--acc, #fff) 14%, transparent), transparent 70%),
+      radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.75));
+    pointer-events: none;
+  }
+
+  /* ── visor de cámara ── */
+  .vp__esq {
+    width: 26px;
+    height: 26px;
+    border: 0 solid color-mix(in srgb, var(--fg) 55%, transparent);
+  }
+
+  .vp__esq--1 {
+    top: 18px;
+    left: 18px;
+    border-width: 2px 0 0 2px;
+  }
+
+  .vp__esq--2 {
+    top: 18px;
+    right: 18px;
+    border-width: 2px 2px 0 0;
+  }
+
+  .vp__esq--3 {
+    bottom: 18px;
+    left: 18px;
+    border-width: 0 0 2px 2px;
+  }
+
+  .vp__esq--4 {
+    right: 18px;
+    bottom: 18px;
+    border-width: 0 2px 2px 0;
+  }
+
+  .vp__top {
+    inset: 26px 56px auto;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--fg-muted);
+  }
+
+  .vp__rec {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--fg);
+    font-weight: 500;
+  }
+
+  .vp__rec i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 12px #ef4444;
+    animation: vp-rec 1.2s steps(1) infinite;
+  }
+
+  .vp__tc {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .vp__info {
+    margin-left: auto;
+  }
+
+  /* ── centro ── */
+  .vp__centro {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: var(--space-4);
+    padding-bottom: var(--space-6);
+    text-align: center;
+  }
+
+  .vp__play {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 5.5rem;
+    height: 5.5rem;
+    padding: 0 0 0 4px;
+    border: 1px solid color-mix(in srgb, var(--fg) 35%, transparent);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--fg) 8%, transparent);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    color: var(--fg);
+    cursor: pointer;
+    transition:
+      transform 0.35s var(--ease),
+      background 0.35s var(--ease),
+      color 0.35s var(--ease);
+  }
+
+  .vp__play:hover,
+  .vp__play:focus-visible {
+    transform: scale(1.08);
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .vp__play:active {
+    transform: scale(0.96);
+  }
+
+  .vp__onda {
+    position: absolute;
+    inset: -1px;
+    border: 1px solid color-mix(in srgb, var(--fg) 40%, transparent);
+    border-radius: 50%;
+    animation: vp-onda 2.6s var(--ease) infinite;
+    pointer-events: none;
+  }
+
+  .vp__onda--2 {
+    animation-delay: 1.3s;
+  }
+
+  .vp__titulo {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 1rem + 2.6vw, 3rem);
+    font-stretch: 118%;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    text-shadow:
+      0 0 24px color-mix(in srgb, var(--fg) 25%, transparent),
+      0 0 1px var(--fg);
+    animation: vp-parpadeo 5s infinite;
+  }
+
+  .vp__sub {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: var(--fg-muted);
+  }
+
+  /* ── controles de reproductor, desactivados ── */
+  .vp__controles {
+    inset: auto 0 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-6) var(--space-6) var(--space-4);
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+    color: var(--fg-muted);
+  }
+
+  .vp__ico {
+    flex: none;
+    opacity: 0.6;
+  }
+
+  .vp__barra {
+    flex: 1;
+    display: flex;
+    gap: 4px;
+  }
+
+  .vp__cap {
+    position: relative;
+    flex: 1;
+    display: grid;
+    gap: 6px;
+  }
+
+  .vp__cap i {
+    height: 4px;
+    border-radius: 2px;
+    background:
+      repeating-linear-gradient(-45deg, color-mix(in srgb, var(--fg) 45%, transparent) 0 6px, color-mix(in srgb, var(--fg) 14%, transparent) 6px 12px) 0 0 / 34px 100%,
+      color-mix(in srgb, var(--fg) 12%, transparent);
+    animation: vp-carga 1.2s linear infinite;
+    animation-delay: calc(var(--i) * -0.3s);
+    transition: transform 0.25s var(--ease);
+  }
+
+  .vp__cap:hover i {
+    transform: scaleY(1.8);
+  }
+
+  .vp__cap small {
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    color: var(--fg-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.25s var(--ease);
+  }
+
+  .vp__cap:hover small {
+    color: var(--fg);
+  }
+
+  .vp__tiempo {
+    flex: none;
+    font-size: 0.72rem;
+  }
+
+  /* ── aviso al pulsar play ── */
+  .vp__aviso {
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    margin: 0;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--bg-elev);
+    color: var(--fg);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 4.2rem)) scale(0.9);
+    transition:
+      opacity 0.3s var(--ease),
+      transform 0.3s var(--ease);
+    pointer-events: none;
+  }
+
+  .vp.is-aviso .vp__aviso {
+    opacity: 1;
+    transform: translate(-50%, calc(-50% + 5rem));
+  }
+
+  .vp.is-aviso .vp__titulo,
+  .vp.is-aviso .vp__sub {
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .vp.is-golpe .vp__centro {
+    animation: vp-golpe 0.4s steps(2) 1;
+  }
+
+  .vp.is-golpe .vp__ruido {
+    animation: vp-flash 0.4s 1;
+  }
+
+  @keyframes vp-barrido {
+    to {
+      transform: translateY(520%);
+    }
+  }
+
+  @keyframes vp-rec {
+    50% {
+      opacity: 0.15;
+    }
+  }
+
+  @keyframes vp-onda {
+    from {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    to {
+      transform: scale(1.9);
+      opacity: 0;
+    }
+  }
+
+  @keyframes vp-carga {
+    to {
+      background-position: 34px 0, 0 0;
+    }
+  }
+
+  /* parpadeo de señal: casi siempre quieto, un par de cortes de vez en cuando */
+  @keyframes vp-parpadeo {
+    0%,
+    91%,
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+    92% {
+      opacity: 0.4;
+      transform: translateX(-3px) skewX(-6deg);
+    }
+    93% {
+      opacity: 1;
+      transform: translateX(4px);
+    }
+    95% {
+      opacity: 0.6;
+      transform: none;
+    }
+  }
+
+  @keyframes vp-golpe {
+    0% {
+      transform: translate(-6px, 2px) skewX(8deg);
+    }
+    50% {
+      transform: translate(5px, -2px) skewX(-6deg);
+    }
+    100% {
+      transform: none;
+    }
+  }
+
+  @keyframes vp-flash {
+    0% {
+      opacity: 0.4;
+    }
+    100% {
+      opacity: 0.09;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .vp {
+      aspect-ratio: auto;
+      min-height: 22rem;
+    }
+
+    .vp__info,
+    .vp__tiempo,
+    .vp__cap small {
+      display: none;
+    }
+
+    .vp__top {
+      inset-inline: 48px;
+    }
+
+    .vp__controles {
+      padding-inline: var(--space-5);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vp *,
+    .vp *::before {
+      animation: none !important;
+    }
+  }
+</style>

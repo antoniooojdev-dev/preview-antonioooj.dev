@@ -11,6 +11,7 @@ import DemoApp from "@/components/servicios/DemoApp.astro";
 import DemoMantenimiento from "@/components/servicios/DemoMantenimiento.astro";
 import DemoFivem from "@/components/servicios/DemoFivem.astro";
 import DemoDiscord from "@/components/servicios/DemoDiscord.astro";
+import VideoProximamente from "@/components/servicios/VideoProximamente.astro";
 import { services, serviceDetails, type Service, type ServiceDetail } from "@/data/services";
 import { casosDe } from "@/data/casos";
 
@@ -63,6 +64,9 @@ const casos = service.id === "web" || service.id === "app" ? casosDe(service.id)
 // «Web online» va sin la demo de citas: el botón del ejemplo lleva a las webs de ejemplo y los
 // botones van sin flecha
 const esWeb = service.id === "web";
+// servicios cuyo ejemplo es un vídeo (FiveM): «Pedir presupuesto» también va sin flecha
+const video = detail.demo.video;
+const sinFlecha = esWeb || service.id === "fivem";
 ---
 
 <BaseLayout title={service.title} description={detail.lead}>
@@ -79,9 +83,9 @@ const esWeb = service.id === "web";
         <h1 style={`view-transition-name: svc-title-${service.id}`}>{service.title}</h1>
         <p class="lead">{detail.lead}</p>
         <div class="head-actions">
-          <a href={contacto} class="btn btn-primary">Pedir presupuesto{!esWeb && <span class="arrow" aria-hidden="true"> →</span>}</a>
+          <a href={contacto} class="btn btn-primary">Pedir presupuesto{!sinFlecha && <span class="arrow" aria-hidden="true"> →</span>}</a>
           <a href={esWeb ? "#casos" : "#ejemplo"} class="btn btn-ghost">
-            <Icono nombre="play" size={14} /> Ver ejemplo interactivo
+            <Icono nombre="play" size={14} /> {video ? "Ver el adelanto" : "Ver ejemplo interactivo"}
           </a>
         </div>
       </header>
@@ -167,15 +171,25 @@ const esWeb = service.id === "web";
                   <div class="demo-bg" aria-hidden="true" />
                   <div class="demo-head">
                     <span class="live mono">
-                      <i aria-hidden="true" /> demo en vivo
+                      <i aria-hidden="true" /> {video ? "en producción" : "demo en vivo"}
                     </span>
-                    <h2 class="kicker mono">// ejemplo interactivo</h2>
-                    <h3>{detail.demo.titulo}</h3>
+                    <h2 class="kicker mono">{video ? "// vídeo" : "// ejemplo interactivo"}</h2>
+                    <h3 class:list={{ "h3--grande": video }}>{detail.demo.titulo}</h3>
                     <p>{detail.demo.texto}</p>
                     <ul role="list" class="demo-chips mono">
-                      <li>⟡ interactivo</li>
-                      <li>⟡ sin registro</li>
-                      <li>⟡ nada se guarda</li>
+                      {video ? (
+                        <>
+                          <li>⟡ grabado en el juego</li>
+                          <li>⟡ scripts propios</li>
+                          <li>⟡ sin cortes</li>
+                        </>
+                      ) : (
+                        <>
+                          <li>⟡ interactivo</li>
+                          <li>⟡ sin registro</li>
+                          <li>⟡ nada se guarda</li>
+                        </>
+                      )}
                     </ul>
                   </div>
                   <div class="demo-frame" data-reveal>
@@ -186,15 +200,19 @@ const esWeb = service.id === "web";
                         <i />
                       </span>
                       <span class="demo-path">
-                        antonioooj.dev / demos / <b>{service.id}</b>
+                        antonioooj.dev / {video ? "videos" : "demos"} / <b>{video ? `${service.id}.mp4` : service.id}</b>
                       </span>
-                      <span class="demo-tag">interactivo</span>
+                      <span class="demo-tag">{video ? "próximamente" : "interactivo"}</span>
                     </div>
-                    <div class="demo">
-                      <Demo />
-                    </div>
+                    <div class="demo">{video ? <VideoProximamente src={video.src} capitulos={video.capitulos} /> : <Demo />}</div>
                   </div>
-                  <p class="demo-note mono">Ejemplo de demostración: nada de lo que hagas aquí se guarda ni se envía.</p>
+                  {video ? (
+                    <p class="demo-note mono">
+                      Mientras tanto, puedes probar el <a href="/servicios/fivem/pack-vehiculos">Pack vehículos</a>, con demos jugables.
+                    </p>
+                  ) : (
+                    <p class="demo-note mono">Ejemplo de demostración: nada de lo que hagas aquí se guarda ni se envía.</p>
+                  )}
                 </section>
               );
 
@@ -972,6 +990,29 @@ const esWeb = service.id === "web";
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+
+  /* «PRÓXIMAMENTE»: más grande y ancho, como un cartel */
+  .demo-head:has(.h3--grande) {
+    max-width: none;
+  }
+
+  .demo-head:has(.h3--grande) p {
+    max-width: 40rem;
+  }
+
+  .demo-head h3.h3--grande {
+    font-size: clamp(2rem, 7vw, 6rem);
+    white-space: nowrap;
+    font-stretch: 125%;
+    font-weight: 800;
+    letter-spacing: -0.045em;
+  }
+
+  .demo-note a {
+    color: var(--fg);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .demo-head p {

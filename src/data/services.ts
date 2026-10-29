@@ -20,7 +20,8 @@ export interface ServiceDetail {
   incluye: { t: string; d: string; icono: string; demo?: string }[];
   idealPara: string[];
   proceso: { t: string; d: string }[];
-  demo: { titulo: string; texto: string };
+  /** video: en lugar del ejemplo interactivo va el vídeo (o «próximamente» si aún no hay src) */
+  demo: { titulo: string; texto: string; video?: { src?: string; capitulos: string[] } };
   faq: { q: string; a: string }[];
 }
 
@@ -225,8 +226,9 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       { t: "Entrega", d: "Código limpio, config documentada y soporte post-entrega." },
     ],
     demo: {
-      titulo: "Prueba una interfaz NUI",
-      texto: "Abre el garaje, saca un vehículo y mira el HUD reaccionar. Todo esto es HTML/JS como el que corre dentro del juego.",
+      titulo: "PRÓXIMAMENTE",
+      texto: "Estoy grabando un vídeo con los scripts funcionando dentro del juego: el garaje, el HUD y las interfaces NUI en acción. Muy pronto, aquí.",
+      video: { capitulos: ["Garaje", "HUD", "Interfaces NUI", "Resmon"] },
     },
     faq: [
       { q: "¿El código está ofuscado?", a: "No, es tuyo y legible. Si quieres protegerlo para revenderlo, se puede usar escrow." },
