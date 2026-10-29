@@ -6,7 +6,8 @@
 // Avisa con eventos para que cada página haga lo suyo:
 //  - «aj:arriba»: ir arriba (la portada mueve su scroll suave, Lenis).
 //  - «aj:entrada»: la cortina se está levantando (la página repite su animación de entrada).
-// `entradaLista` se cumple cuando la página ya se ve (al instante si no llegó con cortina).
+// `entradaLista` se cumple cuando la página ya se ve: al levantarse la cortina o al irse la
+// pantalla de carga (components/SiteLoader.astro, html.is-loading).
 // Estilos en global.css («cortina del cambio de idioma»).
 
 import logoUrl from "@/assets/logo-mask.png?url";
@@ -98,4 +99,13 @@ export const entradaLista: Promise<void> = llegada
       // (la clase se quita al final: sin ella la cortina de llegada desaparece de golpe)
       levantar(llegada).then(() => document.documentElement.classList.remove("llega-cortina"));
     })()
-  : Promise.resolve();
+  : new Promise<void>((listo) => {
+      const raiz = document.documentElement;
+      if (!raiz.classList.contains("is-loading")) return listo();
+      const obs = new MutationObserver(() => {
+        if (raiz.classList.contains("is-loading")) return;
+        obs.disconnect();
+        listo();
+      });
+      obs.observe(raiz, { attributes: true, attributeFilter: ["class"] });
+    });

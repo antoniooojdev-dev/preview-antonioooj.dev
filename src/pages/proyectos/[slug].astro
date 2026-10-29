@@ -16,9 +16,9 @@ const { project } = Astro.props;
 const others = projects.filter((p) => p.slug !== project.slug).slice(0, 2);
 ---
 
-<!-- sin la pantalla de carga general: la ficha tiene su propia entrada (src/scripts/proyecto.ts)
-     y, si se llega desde la portada, la cortina de la entrada (src/scripts/cortina-idioma.ts) -->
-<BaseLayout title={project.title} description={project.summary} intro={false}>
+<!-- entra con la pantalla de carga de siempre o, si se llega desde la portada, con la cortina
+     (src/scripts/cortina-idioma.ts); al irse, el titular sube línea a línea (src/scripts/proyecto.ts) -->
+<BaseLayout title={project.title} description={project.summary}>
   <article class="page" data-proyecto>
     <div class="container">
       <a href="/#proyectos" class="back mono" data-pr-cab>← cd ../proyectos</a>

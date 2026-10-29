@@ -56,10 +56,8 @@ function cambiarConAnimacion(theme: Theme, btn: HTMLElement) {
 
 document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach((btn) => {
   btn.setAttribute("aria-pressed", String(currentTheme() === "dark"));
+  // (los iconos sol/luna se cruzan girando solos con el cambio de tema, ver ThemeToggle.astro)
   btn.addEventListener("click", () => {
-    btn.classList.remove("is-girando");
-    void btn.offsetWidth; // reinicia la animación del icono si se pulsa seguido
-    btn.classList.add("is-girando");
     cambiarConAnimacion(currentTheme() === "dark" ? "light" : "dark", btn);
   });
 });

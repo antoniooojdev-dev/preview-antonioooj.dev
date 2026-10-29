@@ -1,48 +1,22 @@
 ---
-// Pantalla de entrada (solo la primera visita de la sesión; al navegar entre páginas ya no).
+// Pantalla de entrada de las páginas interiores: la misma que la de la portada (fondo negro,
+// logo y una línea que se llena). En la portada el logo vuela a su sitio y se hace partículas;
+// aquí, al terminar, el logo crece y se desvanece (como la cortina del cambio de idioma) y la
+// web aparece debajo con un pequeño zoom.
 //
-// 1. El logo se «rellena» de abajo arriba al ritmo de un contador 000 → 100 que sigue la
-//    carga real de la página (window load), con un mínimo para que dé tiempo a verse.
-// 2. Debajo, el nombre entra letra a letra y una palabra va rotando (webs, apps…).
-// 3. Al llegar a 100 la cortina sube y la web aparece debajo con un pequeño zoom.
-//
-// El logo es una máscara (logo-mask.png con fondo transparente) pintada con color, así se
-// puede animar sin recuadros. La pantalla es siempre oscura, en los dos temas.
+// La línea tarda lo mismo que en la portada y la pantalla no se va hasta que la página ha
+// cargado (window load), con un tope de 5 s.
 // Contrato con el resto: quita html.is-loading al terminar (reveal.ts lo espera) y pone
 // html.page-in durante la entrada de la página.
 import logoMask from "@/assets/logo-mask.png";
-import { site } from "@/data/site";
-
-const nombre = site.name.split("");
-const palabras = ["webs", "apps", "scripts FiveM", "bots de Discord"];
 ---
 
 <link rel="preload" as="image" href={logoMask.src} />
 
-<div id="site-loader" aria-hidden="true" data-logo={logoMask.src} style={`--logo: url("${logoMask.src}")`}>
-  <div class="sl-grano"></div>
-  <div class="sl-centro">
-    <div class="sl-logo">
-      <span class="sl-logo__fantasma"></span>
-      <span class="sl-logo__lleno"></span>
-      <span class="sl-logo__brillo"></span>
-    </div>
-    <div class="sl-nombre">
-      {nombre.map((l, i) => <span style={`--i:${i}`}>{l}</span>)}
-    </div>
-    <div class="sl-rota">
-      <span class="sl-rota__fijo">hago</span>
-      <span class="sl-rota__caja">
-        {palabras.map((p, i) => <span style={`--i:${i}`}>{p}</span>)}
-      </span>
-    </div>
-  </div>
-
-  <div class="sl-pie">
-    <span class="sl-cuenta" data-sl-cuenta>000</span>
-    <span class="sl-meta">{site.location}</span>
-  </div>
-  <div class="sl-linea"><i data-sl-linea></i></div>
+<div id="site-loader" aria-hidden="true" style={`--logo: url("${logoMask.src}")`}>
+  <div class="sl-fondo"></div>
+  <div class="sl-logo"></div>
+  <div class="sl-barra"><i></i></div>
 </div>
 
 <noscript><style is:inline>#site-loader{display:none!important}html.is-loading body>*{opacity:1!important}</style></noscript>
@@ -55,50 +29,30 @@ const palabras = ["webs", "apps", "scripts FiveM", "bots de Discord"];
     if (!root.classList.contains("is-loading")) return loader.remove();
 
     var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var MIN = reduced ? 300 : 1900; // como mínimo, para que la animación se vea entera
-    var cuenta = loader.querySelector("[data-sl-cuenta]");
-    var linea = loader.querySelector("[data-sl-linea]");
-    var inicio = performance.now();
+    var MIN = reduced ? 200 : 1600; // lo que tarda la línea en llenarse (igual que en la portada)
     var cargada = document.readyState === "complete";
-    var valor = 0;
+    var minimo = false;
     var done = false;
 
-    addEventListener("load", function () { cargada = true; });
-
-    function pintar(v) {
-      var n = Math.round(v);
-      cuenta.textContent = (n < 10 ? "00" : n < 100 ? "0" : "") + n;
-      loader.style.setProperty("--p", (v / 100).toFixed(4));
-      linea.style.transform = "scaleX(" + (v / 100).toFixed(4) + ")";
-    }
-
-    // Avanza solo hacia 92 mientras la página carga; al cargar (y pasado el mínimo) va a 100
-    function paso(t) {
-      if (done) return;
-      var pasado = t - inicio;
-      var techo = cargada && pasado >= MIN ? 100 : Math.min(92, (pasado / MIN) * 100);
-      valor += (techo - valor) * (cargada && pasado >= MIN ? 0.22 : 0.08);
-      if (techo === 100 && valor > 99.5) valor = 100;
-      pintar(valor);
-      if (valor >= 100) return salir();
-      requestAnimationFrame(paso);
-    }
+    // la línea se llena con una transición de CSS (.is-llenando)
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { loader.classList.add("is-llenando"); });
+    });
+    setTimeout(function () { minimo = true; if (cargada) salir(); }, MIN);
+    addEventListener("load", function () { cargada = true; if (minimo) salir(); });
 
     function salir() {
       if (done) return;
       done = true;
-      pintar(100);
-      loader.classList.add("is-lleno");
+      loader.classList.add("hide");
+      // la página ya responde mientras el fondo se desvanece
       setTimeout(function () {
-        loader.classList.add("hide");
         root.classList.remove("is-loading");
         root.classList.add("page-in");
-        try { sessionStorage.setItem("aj-intro", "1"); } catch (e) {}
-        setTimeout(function () { loader.remove(); root.classList.remove("page-in"); }, 1300);
-      }, reduced ? 0 : 380);
+      }, reduced ? 0 : 250);
+      setTimeout(function () { loader.remove(); root.classList.remove("page-in"); }, reduced ? 300 : 1500);
     }
 
-    requestAnimationFrame(paso);
     // Red de seguridad: nunca más de 5 s tapando la web
     setTimeout(salir, 5000);
   })();
@@ -114,234 +68,104 @@ const palabras = ["webs", "apps", "scripts FiveM", "bots de Discord"];
     opacity: 0;
   }
 
-  /* la web aparece debajo de la cortina con un pequeño zoom */
+  /* la web aparece debajo de la pantalla con un pequeño zoom */
   html.page-in body > *:not(#site-loader) {
     animation: page-in 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   #site-loader {
-    --sl-bg: #0a0a0a;
-    --sl-fg: #f2f2f2;
-    --sl-dim: #8a8a8a;
     position: fixed;
     inset: 0;
     z-index: 9999;
-    display: grid;
-    place-items: center;
-    background: var(--sl-bg);
-    color: var(--sl-fg);
-    clip-path: inset(0 0 0 0);
-    transition: clip-path 0.95s cubic-bezier(0.76, 0, 0.24, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-6);
   }
 
-  /* cortina: sube y deja ver la web */
   #site-loader.hide {
-    clip-path: inset(0 0 100% 0);
     pointer-events: none;
   }
 
-  /* grano muy suave para que el negro no sea plano */
-  .sl-grano {
-    position: absolute;
-    inset: -50%;
-    opacity: 0.06;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    animation: sl-grano 0.9s steps(4) infinite;
-    pointer-events: none;
-  }
-
-  .sl-centro {
-    display: grid;
-    justify-items: center;
-    gap: 1.4rem;
-    transition: transform 0.6s cubic-bezier(0.7, 0, 0.84, 0), opacity 0.45s ease;
-  }
-
-  #site-loader.hide .sl-centro {
-    transform: translateY(-40px) scale(0.96);
-    opacity: 0;
-  }
-
-  /* logo: silueta tenue + relleno que sube con el progreso (--p de 0 a 1) */
-  .sl-logo {
-    position: relative;
-    width: min(190px, 46vw);
-    aspect-ratio: 895 / 879;
-    animation: sl-logo-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  .sl-logo > span {
+  /* el fondo va aparte para desvanecerlo mientras el logo crece */
+  .sl-fondo {
     position: absolute;
     inset: 0;
+    background: radial-gradient(ellipse at center, #141414 0%, #0a0a0a 70%);
+    transition: opacity 1.1s cubic-bezier(0.45, 0, 0.55, 1) 0.15s;
+  }
+
+  #site-loader.hide .sl-fondo {
+    opacity: 0;
+  }
+
+  .sl-logo,
+  .sl-barra {
+    position: relative;
+  }
+
+  .sl-logo {
+    width: min(240px, 60vw);
+    aspect-ratio: 895 / 879;
+    background: #f2f2f2;
     -webkit-mask: var(--logo) center / contain no-repeat;
     mask: var(--logo) center / contain no-repeat;
+    animation:
+      sl-logo-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both,
+      sl-respira 2.4s ease-in-out 0.9s infinite;
+    transition:
+      transform 1.1s cubic-bezier(0.87, 0, 0.13, 1) 0.1s,
+      opacity 0.7s ease 0.5s;
   }
 
-  .sl-logo__fantasma {
-    background: #262626;
-  }
-
-  .sl-logo__lleno {
-    background: var(--sl-fg);
-    clip-path: inset(calc((1 - var(--p, 0)) * 100%) 0 0 0);
-  }
-
-  /* destello que cruza el logo cuando se completa */
-  .sl-logo__brillo {
-    background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.9) 50%, transparent 65%) no-repeat;
-    background-size: 250% 100%;
-    background-position: 150% 0;
+  #site-loader.hide .sl-logo {
+    animation: none;
+    transform: scale(1.18);
     opacity: 0;
   }
 
-  #site-loader.is-lleno .sl-logo__brillo {
-    opacity: 1;
-    animation: sl-brillo 0.6s ease-out forwards;
-  }
-
-  #site-loader.is-lleno .sl-logo {
-    animation: sl-pulso 0.38s cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-
-  /* nombre letra a letra */
-  .sl-nombre {
-    display: flex;
-    overflow: hidden;
-    font-family: var(--font-display);
-    font-size: clamp(1.4rem, 1rem + 1.6vw, 2rem);
-    font-weight: 800;
-    font-stretch: 112%;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
-  }
-
-  .sl-nombre span {
-    display: inline-block;
-    animation: sl-letra 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: calc(0.25s + var(--i) * 0.045s);
-  }
-
-  /* «hago ___» con la palabra rotando */
-  .sl-rota {
-    display: flex;
-    gap: 0.45em;
-    font-family: var(--font-mono);
-    font-size: 0.8125rem;
-    color: var(--sl-dim);
-    animation: sl-fade 0.6s ease 0.6s both;
-  }
-
-  .sl-rota__caja {
-    position: relative;
-    display: inline-grid;
-    height: 1.4em;
-    overflow: hidden;
-    color: var(--sl-fg);
-  }
-
-  .sl-rota__caja span {
-    grid-area: 1 / 1;
-    line-height: 1.4em;
-    opacity: 0;
-    transform: translateY(100%);
-    animation: sl-palabra 1.8s cubic-bezier(0.7, 0, 0.2, 1) infinite;
-    animation-delay: calc(0.7s + var(--i) * 0.45s);
-  }
-
-  .sl-pie {
-    position: absolute;
-    left: clamp(1rem, 4vw, 2.5rem);
-    right: clamp(1rem, 4vw, 2.5rem);
-    bottom: clamp(1.25rem, 4vw, 2.25rem);
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1rem;
-    transition: opacity 0.3s ease;
-  }
-
-  #site-loader.hide .sl-pie,
-  #site-loader.hide .sl-linea {
-    opacity: 0;
-  }
-
-  .sl-cuenta {
-    font-family: var(--font-display);
-    font-size: clamp(3rem, 2rem + 6vw, 7rem);
-    font-weight: 800;
-    font-stretch: 70%;
-    line-height: 0.8;
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-    animation: sl-fade 0.5s ease both;
-  }
-
-  .sl-meta {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--sl-dim);
-    animation: sl-fade 0.5s ease 0.3s both;
-  }
-
-  .sl-linea {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
+  .sl-barra {
+    width: 200px;
     height: 2px;
-    background: #1c1c1c;
-    transition: opacity 0.3s ease;
+    border-radius: 2px;
+    overflow: hidden;
+    background: #262626;
+    animation: sl-fade 0.6s ease 0.2s both;
+    transition:
+      opacity 0.4s cubic-bezier(0.55, 0, 1, 0.45),
+      transform 0.4s cubic-bezier(0.55, 0, 1, 0.45);
   }
 
-  .sl-linea i {
+  #site-loader.hide .sl-barra {
+    animation: none;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  .sl-barra i {
     display: block;
     height: 100%;
-    background: var(--sl-fg);
+    background: #f2f2f2;
     transform: scaleX(0);
     transform-origin: left;
+    transition: transform 1.6s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  #site-loader.is-llenando .sl-barra i {
+    transform: scaleX(1);
   }
 
   @keyframes sl-logo-in {
     from {
       opacity: 0;
-      transform: scale(0.85) rotate(-4deg);
-      filter: blur(10px);
+      transform: scale(0.92);
     }
   }
 
-  @keyframes sl-pulso {
+  @keyframes sl-respira {
     50% {
-      transform: scale(1.05);
-    }
-  }
-
-  @keyframes sl-brillo {
-    to {
-      background-position: -50% 0;
-    }
-  }
-
-  @keyframes sl-letra {
-    from {
-      transform: translateY(110%) rotate(8deg);
-      opacity: 0;
-    }
-  }
-
-  @keyframes sl-palabra {
-    0% {
-      opacity: 0;
-      transform: translateY(100%);
-    }
-    5%,
-    22% {
-      opacity: 1;
-      transform: none;
-    }
-    27%,
-    100% {
-      opacity: 0;
-      transform: translateY(-100%);
+      opacity: 0.75;
     }
   }
 
@@ -349,12 +173,6 @@ const palabras = ["webs", "apps", "scripts FiveM", "bots de Discord"];
     from {
       opacity: 0;
     }
-  }
-
-  @keyframes sl-grano {
-    25% { transform: translate(-3%, 2%); }
-    50% { transform: translate(2%, -3%); }
-    75% { transform: translate(-1%, -2%); }
   }
 
   @keyframes page-in {
@@ -371,11 +189,7 @@ const palabras = ["webs", "apps", "scripts FiveM", "bots de Discord"];
     html.page-in body > *:not(#site-loader) {
       animation: none !important;
       transition-duration: 0.01s !important;
-    }
-
-    .sl-rota__caja span:first-child {
-      opacity: 1;
-      transform: none;
+      transition-delay: 0s !important;
     }
   }
 </style>

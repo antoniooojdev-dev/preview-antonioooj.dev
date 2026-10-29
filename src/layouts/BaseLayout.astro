@@ -110,13 +110,9 @@ const jsonLd = {
     {
       intro && (
         <script is:inline>
-          // pantalla de carga solo en la primera visita de la sesión (y no si ya llega con cortina)
-          try {
-            if (!sessionStorage.getItem("aj-intro") && !document.documentElement.classList.contains("llega-cortina"))
-              document.documentElement.classList.add("is-loading");
-          } catch {
+          // pantalla de carga al entrar, como en la portada (salvo si ya llega tapada con la cortina)
+          if (!document.documentElement.classList.contains("llega-cortina"))
             document.documentElement.classList.add("is-loading");
-          }
         </script>
       )
     }
@@ -139,6 +135,7 @@ const jsonLd = {
       import "@/scripts/i18n";
       import "@/scripts/theme";
       import "@/scripts/reveal";
+      import "@/scripts/scroll-suave";
     </script>
   </body>
 </html>

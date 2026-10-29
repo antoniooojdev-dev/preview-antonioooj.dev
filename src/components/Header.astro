@@ -17,8 +17,8 @@ import { IDIOMAS } from "@/i18n/dict";
     <nav id="main-nav" aria-label="Principal">
       <ul role="list" class="links">
         {
-          nav.map((item) => (
-            <li>
+          nav.map((item, i) => (
+            <li style={`--i:${i}`}>
               <a href={item.href}>{item.label}</a>
             </li>
           ))
@@ -114,6 +114,20 @@ import { IDIOMAS } from "@/i18n/dict";
   }
 
   btn?.addEventListener("click", () => setOpen(!header?.hasAttribute("data-open")));
+  // al tocar fuera del menú abierto, se cierra
+  document.addEventListener("click", (e) => {
+    if (header?.hasAttribute("data-open") && !header.contains(e.target as Node)) setOpen(false);
+  });
+
+  // ── botones de arriba a la derecha: un «pulso» al tocarlos (sobre todo para el móvil) ──
+  header?.querySelectorAll<HTMLElement>(".actions > button, .actions > a, .lang__btn").forEach((b) =>
+    b.addEventListener("pointerdown", () => {
+      b.classList.remove("is-toque");
+      void b.offsetWidth; // reinicia la animación si se pulsa seguido
+      b.classList.add("is-toque");
+    }),
+  );
+  header?.addEventListener("animationend", (e) => (e.target as HTMLElement).classList.remove("is-toque"));
   header?.querySelectorAll("nav a").forEach((a) => a.addEventListener("click", () => setOpen(false)));
   document.addEventListener("keydown", (e) => e.key === "Escape" && setOpen(false));
 
@@ -252,6 +266,44 @@ import { IDIOMAS } from "@/i18n/dict";
     display: none;
   }
 
+  /* ── al tocar los botones: se hunden un poco, rebotan y sueltan un aro ── */
+  .lang__btn,
+  .menu-btn,
+  .hd-account,
+  .actions :global(.theme-toggle) {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .lang__btn,
+  .menu-btn,
+  .actions :global(.theme-toggle) {
+    transition:
+      color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease),
+      transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+
+  .lang__btn:active,
+  .menu-btn:active,
+  .actions :global(.theme-toggle:active) {
+    transform: scale(0.86);
+    transition-duration: 0.12s;
+  }
+
+  .actions :global(.is-toque) {
+    animation: toque 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  @keyframes toque {
+    from {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--fg) 30%, transparent);
+    }
+    to {
+      box-shadow: 0 0 0 10px color-mix(in srgb, var(--fg) 0%, transparent);
+    }
+  }
+
   /* ── idioma ── */
   .lang {
     position: relative;
@@ -275,10 +327,23 @@ import { IDIOMAS } from "@/i18n/dict";
       border-color var(--dur) var(--ease);
   }
 
-  .lang__btn:hover,
   .lang__btn[aria-expanded="true"] {
     color: var(--fg);
     border-color: var(--fg);
+  }
+
+  @media (hover: hover) {
+    .lang__btn:hover {
+      color: var(--fg);
+      border-color: var(--fg);
+    }
+  }
+
+  /* en el móvil, el texto ES/EN/PT nítido como los iconos */
+  @media (hover: none) {
+    .lang__btn {
+      color: var(--fg);
+    }
   }
 
   .lang__menu {
@@ -392,7 +457,7 @@ import { IDIOMAS } from "@/i18n/dict";
     width: 16px;
     height: 1.5px;
     background: var(--fg);
-    transition: transform var(--dur) var(--ease);
+    transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1);
   }
 
   .header[data-open] .menu-btn span:first-child {
@@ -408,8 +473,8 @@ import { IDIOMAS } from "@/i18n/dict";
       display: grid;
     }
 
+    /* el menú baja como una persiana y los enlaces entran uno detrás de otro */
     nav {
-      display: none;
       position: absolute;
       top: var(--header-h);
       left: 0;
@@ -417,10 +482,36 @@ import { IDIOMAS } from "@/i18n/dict";
       background: var(--bg);
       border-bottom: 1px solid var(--border);
       padding: var(--space-4) var(--gutter) var(--space-6);
+      visibility: hidden;
+      clip-path: inset(0 0 100% 0);
+      transition:
+        clip-path 0.45s cubic-bezier(0.7, 0, 0.2, 1),
+        visibility 0s linear 0.45s;
     }
 
     .header[data-open] nav {
-      display: block;
+      visibility: visible;
+      clip-path: inset(0 0 0 0);
+      transition:
+        clip-path 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0s;
+    }
+
+    .links li {
+      opacity: 0;
+      transform: translateY(-10px);
+      transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    .header[data-open] .links li {
+      opacity: 1;
+      transform: none;
+      transition:
+        opacity 0.4s ease,
+        transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+      transition-delay: calc(0.08s + var(--i) * 0.05s);
     }
 
     .links {
@@ -433,6 +524,23 @@ import { IDIOMAS } from "@/i18n/dict";
       display: block;
       padding-block: var(--space-3);
       border-bottom: 1px solid var(--border);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    nav,
+    .header[data-open] nav,
+    .links li,
+    .header[data-open] .links li,
+    .lang__btn,
+    .menu-btn,
+    .menu-btn span {
+      transition-duration: 0.01s !important;
+      transition-delay: 0s !important;
+    }
+
+    .actions :global(.is-toque) {
+      animation: none;
     }
   }
 
