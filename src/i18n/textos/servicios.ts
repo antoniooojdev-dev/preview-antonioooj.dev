@@ -26,6 +26,8 @@ export const servicios: Record<string, Trad> = {
   "Otros servicios": { en: "Other services", pt: "Outros serviços" },
   "// otros servicios": { en: "// other services", pt: "// outros serviços" },
   "Quizá también te interese": { en: "You might also like", pt: "Talvez também te interesse" },
+  "Quizá también te": { en: "You might also", pt: "Talvez também te" },
+  interese: { en: "like", pt: "interesse" },
   ver: { en: "see", pt: "ver" },
   "Todo lo necesario,": { en: "Everything you need,", pt: "Tudo o que precisa," },
   "sin sorpresas": { en: "no surprises", pt: "sem surpresas" },
@@ -159,9 +161,9 @@ export const servicios: Record<string, Trad> = {
     en: "A website is your shop window online: who you are, what you offer, why choose you and how to reach you. I don't use templates: I design every section from your brand and what your clients are looking for.",
     pt: "Um site é a sua vitrine na internet: quem você é, o que oferece, por que te escolher e como entrar em contato. Não uso templates: desenho cada seção a partir da sua marca e do que seus clientes procuram.",
   },
-  "La entrego rápida (menos de 1 s de carga), adaptada a móvil, tablet y ordenador, y preparada para que Google la entienda desde el primer día. Tú solo tienes que preocuparte de atender a los clientes que lleguen.": {
-    en: "I deliver it fast (under 1 s to load), adapted to mobile, tablet and desktop, and ready for Google to understand from day one. You only have to worry about looking after the clients who arrive.",
-    pt: "Entrego rápido (menos de 1 s de carregamento), adaptado a celular, tablet e computador, e preparado para o Google entender desde o primeiro dia. Você só precisa se preocupar em atender os clientes que chegarem.",
+  "La entrego rápida, adaptada a móvil, tablet, ordenador y preparada para que Google la entienda desde el primer día. Tú solo tienes que preocuparte de atender a los clientes que lleguen.": {
+    en: "I deliver it fast, adapted to mobile, tablet, desktop and ready for Google to understand from day one. You only have to worry about looking after the clients who arrive.",
+    pt: "Entrego rápido, adaptado a celular, tablet, computador e preparado para o Google entender desde o primeiro dia. Você só precisa se preocupar em atender os clientes que chegarem.",
   },
   "Autónomos y profesionales": { en: "Freelancers and professionals", pt: "Autônomos e profissionais" },
   "Pymes y comercios locales": { en: "SMEs and local shops", pt: "PMEs e comércios locais" },

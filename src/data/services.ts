@@ -104,7 +104,7 @@ export const serviceDetails: Record<string, ServiceDetail> = {
     lead: "La web de tu negocio, diseñada desde cero para explicar bien lo que haces y convertir visitas en clientes.",
     consiste: [
       "Una web online es tu escaparate en internet: quién eres, qué ofreces, por qué elegirte y cómo contactarte. No uso plantillas: diseño cada sección a partir de tu marca y de lo que buscan tus clientes.",
-      "La entrego rápida (menos de 1 s de carga), adaptada a móvil, tablet y ordenador, y preparada para que Google la entienda desde el primer día. Tú solo tienes que preocuparte de atender a los clientes que lleguen.",
+      "La entrego rápida, adaptada a móvil, tablet, ordenador y preparada para que Google la entienda desde el primer día. Tú solo tienes que preocuparte de atender a los clientes que lleguen.",
     ],
     incluye: [
       { t: "Diseño a medida", icono: "palette", d: "Basado en tu logo, colores y tono. Te enseño una propuesta antes de programar nada." },

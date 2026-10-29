@@ -50,9 +50,9 @@ interface Distribucion {
   proceso: "vertical" | "horizontal";
 }
 const DISTRIBUCIONES: Record<string, Distribucion> = {
-  web: { orden: ["demo", "casos", "consiste", "incluye", "proceso", "faq"], cabecera: "centrada", incluye: "lista", proceso: "horizontal" },
+  web: { orden: ["casos", "consiste", "incluye", "proceso", "faq"], cabecera: "centrada", incluye: "lista", proceso: "horizontal" },
   app: { orden: ["consiste", "incluye", "demo", "casos", "proceso", "faq"], cabecera: "izquierda", incluye: "bento", proceso: "horizontal" },
-  mantenimiento: { orden: ["incluye", "demo", "consiste", "proceso", "faq"], cabecera: "izquierda", incluye: "filas", proceso: "vertical" },
+  mantenimiento: { orden: ["consiste", "demo", "proceso", "incluye", "faq"], cabecera: "centrada", incluye: "bento", proceso: "horizontal" },
   fivem: { orden: ["demo", "incluye", "consiste", "proceso", "faq"], cabecera: "centrada", incluye: "grid", proceso: "vertical" },
   discord: { orden: ["consiste", "demo", "incluye", "faq", "proceso"], cabecera: "izquierda", incluye: "grid", proceso: "horizontal" },
 };
@@ -60,6 +60,9 @@ const dist = DISTRIBUCIONES[service.id] ?? DISTRIBUCIONES.app;
 const others = services.filter((s) => s.id !== service.id && serviceDetails[s.id]);
 const contacto = `/contacto?tipo=${encodeURIComponent(detail.tipo)}`;
 const casos = service.id === "web" || service.id === "app" ? casosDe(service.id) : [];
+// «Web online» va sin la demo de citas: el botón del ejemplo lleva a las webs de ejemplo y los
+// botones van sin flecha
+const esWeb = service.id === "web";
 ---
 
 <BaseLayout title={service.title} description={detail.lead}>
@@ -68,7 +71,7 @@ const casos = service.id === "web" || service.id === "app" ? casosDe(service.id)
     <div class="container">
       <a href="/#servicios" class="back mono">← cd ../servicios</a>
 
-      <header class:list={["head", `head--${dist.cabecera}`]}>
+      <header class:list={["head", `head--${dist.cabecera}`, `head--${service.id}`]}>
         <span class="hero-icon" aria-hidden="true" style={`view-transition-name: svc-ico-${service.id}`}>
           <Icono nombre={detail.icono} size={34} />
         </span>
@@ -76,8 +79,8 @@ const casos = service.id === "web" || service.id === "app" ? casosDe(service.id)
         <h1 style={`view-transition-name: svc-title-${service.id}`}>{service.title}</h1>
         <p class="lead">{detail.lead}</p>
         <div class="head-actions">
-          <a href={contacto} class="btn btn-primary">Pedir presupuesto <span class="arrow" aria-hidden="true">→</span></a>
-          <a href="#ejemplo" class="btn btn-ghost">
+          <a href={contacto} class="btn btn-primary">Pedir presupuesto{!esWeb && <span class="arrow" aria-hidden="true"> →</span>}</a>
+          <a href={esWeb ? "#casos" : "#ejemplo"} class="btn btn-ghost">
             <Icono nombre="play" size={14} /> Ver ejemplo interactivo
           </a>
         </div>
@@ -241,9 +244,11 @@ const casos = service.id === "web" || service.id === "app" ? casosDe(service.id)
                                 <span>{f}</span>
                               ))}
                             </span>
-                            <span class="caso__ir mono">
-                              abrir ejemplo <Icono nombre="arrow" size={14} />
-                            </span>
+                            {!esWeb && (
+                              <span class="caso__ir mono">
+                                abrir ejemplo <Icono nombre="arrow" size={14} />
+                              </span>
+                            )}
                           </span>
                         </a>
                       </li>
@@ -303,14 +308,16 @@ const casos = service.id === "web" || service.id === "app" ? casosDe(service.id)
           <p class="cta-title">{`¿Hablamos de ${/^(scripts|bots)/i.test(service.title) ? "tus" : "tu"} ${service.title[0].toLowerCase()}${service.title.slice(1)}?`}</p>
           <p class="cta-sub mono">{service.timeline} · presupuesto cerrado</p>
         </div>
-        <a href={contacto} class="btn btn-primary">Cuéntame tu idea <span class="arrow" aria-hidden="true">→</span></a>
+        <a href={contacto} class="btn btn-primary">Cuéntame tu idea{!esWeb && <span class="arrow" aria-hidden="true"> →</span>}</a>
       </aside>
 
       <!-- otros servicios -->
       <nav class="others" aria-label="Otros servicios">
         <div class="block-head">
           <h2 class="kicker mono">// otros servicios</h2>
-          <p class="block-title">Quizá también te interese</p>
+          <p class="block-title">
+            Quizá también te <span>interese</span>
+          </p>
         </div>
         <ul role="list">
           {
@@ -325,11 +332,6 @@ const casos = service.id === "web" || service.id === "app" ? casosDe(service.id)
                     <span class="other__text">
                       <strong style={`view-transition-name: svc-title-${s.id}; width: fit-content`}>{s.title}</strong>
                       <span>{s.description}</span>
-                    </span>
-                    <span class="other__foot mono">
-                      <span class="other__go">
-                        ver <Icono nombre="arrow" size={14} />
-                      </span>
                     </span>
                   </a>
                 </li>
@@ -607,6 +609,16 @@ const casos = service.id === "web" || service.id === "app" ? casosDe(service.id)
 
   .head--centrada .lead {
     max-width: 40rem;
+  }
+
+  /* «Mantenimiento» es largo: el título se ajusta al ancho para verse entero en una línea */
+  .head--mantenimiento {
+    max-width: none;
+  }
+
+  .head--mantenimiento h1 {
+    font-size: clamp(2.2rem, 11.5vw, 7.5rem);
+    white-space: nowrap;
   }
 
   /* ── qué incluye ── */
@@ -1504,15 +1516,20 @@ const casos = service.id === "web" || service.id === "app" ? casosDe(service.id)
   }
 
   .others ul {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: var(--space-3);
+  }
+
+  .others li {
+    flex: 0 1 17rem;
   }
 
   .other {
     position: relative;
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto 1fr;
     gap: var(--space-4);
     height: 100%;
     padding: var(--space-5);
@@ -1572,36 +1589,6 @@ const casos = service.id === "web" || service.id === "app" ? casosDe(service.id)
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-  }
-
-  .other__foot {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding-top: var(--space-3);
-    border-top: 1px dashed var(--border);
-    font-size: var(--fs-xs);
-    color: var(--fg-subtle);
-  }
-
-  .other__go {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    color: var(--fg-muted);
-    transition: color 0.3s ease;
-  }
-
-  .other__go :global(.icono) {
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .other:hover .other__go {
-    color: var(--c);
-  }
-
-  .other:hover .other__go :global(.icono) {
-    transform: translateX(4px);
   }
 
   /* ── animaciones ── */
