@@ -15,6 +15,12 @@ export const demos: Record<string, Trad> = {
   "Validado en servidor": { en: "Server-validated", pt: "Validado no servidor" },
   "En español": { en: "In Spanish", pt: "Em espanhol" },
   "Probar las demos": { en: "Try the demos", pt: "Testar as demos" },
+  "vídeo del pack": { en: "pack video", pt: "vídeo do pack" },
+  "El pack completo en el juego.": { en: "The full pack in-game.", pt: "O pack completo no jogo." },
+  "Estoy grabando el vídeo del pack completo en el juego. Muy pronto, aquí.": {
+    en: "I'm recording the video of the full pack in-game. Coming here very soon.",
+    pt: "Estou gravando o vídeo do pack completo no jogo. Muito em breve, aqui.",
+  },
   "grabado de la demo": { en: "demo recording", pt: "gravação da demo" },
   "Vídeo: Concesionario": { en: "Video: Dealership", pt: "Vídeo: Concessionária" },
   "Concesionario: conversación con el vendedor, consejo, catálogo, giro y compra.": {

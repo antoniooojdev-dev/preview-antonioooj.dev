@@ -38,6 +38,8 @@ export interface Pack {
   resumen: string;
   chips: string[];
   scripts: PackScript[];
+  /** vídeo grande de cabecera; sin él sale el reproductor «próximamente» */
+  video?: string;
   encajan: { t: string; d: string; icono: string }[];
   tecnico: { t: string; d: string; icono: string }[];
   faq: { q: string; a: string }[];

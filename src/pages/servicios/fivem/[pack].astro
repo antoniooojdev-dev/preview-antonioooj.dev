@@ -6,6 +6,7 @@
 import type { GetStaticPaths } from "astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Icono from "@/components/servicios/Icono.astro";
+import VideoProximamente from "@/components/servicios/VideoProximamente.astro";
 import { fivemPacks, type Pack } from "@/data/packs";
 
 export const getStaticPaths = (() => fivemPacks.map((pack) => ({ params: { pack: pack.id }, props: { pack } }))) satisfies GetStaticPaths;
@@ -42,17 +43,19 @@ const hero = pack.scripts[0];
         </div>
       </header>
 
-      <!-- ── vídeo grande ── -->
+      <!-- ── vídeo grande del pack (mientras no hay, el reproductor «próximamente») ── -->
       <figure class="hero-video" data-reveal>
         <div class="screen-frame">
           <div class="screen-bar mono">
             <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span>FiveM · {hero.recurso}</span>
-            <span class="rec"><i aria-hidden="true"></i> grabado de la demo</span>
+            <span>FiveM · {pack.id}.mp4</span>
+            <span class="rec"><i aria-hidden="true"></i> {pack.video ? "vídeo del pack" : "próximamente"}</span>
           </div>
-          <video class="vid" src={hero.video} poster={hero.poster} muted loop playsinline preload="metadata" data-autoplay aria-label={`Vídeo: ${hero.nombre}`}></video>
+          <div class="hero-video__player">
+            <VideoProximamente src={pack.video} capitulos={pack.scripts.map((s) => s.nombre)} />
+          </div>
         </div>
-        <figcaption class="mono">{hero.nombre}: conversación con el vendedor, consejo, catálogo, giro y compra.</figcaption>
+        <figcaption class="mono">{pack.video ? "El pack completo en el juego." : "Estoy grabando el vídeo del pack completo en el juego. Muy pronto, aquí."}</figcaption>
       </figure>
 
       <!-- ── qué incluye ── -->
@@ -606,6 +609,11 @@ const hero = pack.scripts[0];
   .hero-video {
     margin: 0 auto var(--space-9);
     max-width: 64rem;
+  }
+
+  .hero-video__player {
+    overflow: hidden;
+    border-radius: 0 0 17px 17px;
   }
 
   .hero-video figcaption {
