@@ -8,7 +8,7 @@
     "dev": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
-    "demo:nyx": "cd proyectos/nyx-community && .venv\\Scripts\\python -m uvicorn main:app --host 127.0.0.1 --port 8001 --reload",
+    "demo:gta": "cd proyectos/servidor-gta && .venv\\Scripts\\python -m uvicorn main:app --host 127.0.0.1 --port 8001 --reload",
     "astro": "astro"
   },
   "dependencies": {

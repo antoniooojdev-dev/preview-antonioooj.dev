@@ -47,8 +47,8 @@ export interface Demo {
 
 export const demos: Demo[] = [
   {
-    slug: "nyx-community",
-    title: "Nyx Community",
+    slug: "servidor-gta",
+    title: "Servidor de GTA - FiveM",
     client: "Servidor de rol FiveM",
     status: "en-desarrollo",
     summary:
@@ -63,7 +63,7 @@ export const demos: Demo[] = [
     // Portada de la web (public/index.html). El backend arranca solo con `npm run dev`.
     // Con "localhost" y no "127.0.0.1": imgur bloquea las imágenes si se piden desde 127.0.0.1
     devUrl: "http://localhost:8001/index.html",
-    devCommand: "npm run dev (se arranca sola) o npm run demo:nyx",
+    devCommand: "npm run dev (se arranca sola) o npm run demo:gta",
     changelog: [
       {
         date: "2026-10-13",
@@ -112,21 +112,21 @@ export const demos: Demo[] = [
             text: "Nueva sección «Postulaciones» en el pie de página: acceso directo a STAFF, Playmaker, Crew y banda.",
           },
           { type: "ajuste", text: "Las categorías del pie de página quedan alineadas a la misma altura." },
-          { type: "ajuste", text: "La moneda de la tienda pasa a llamarse NyxPoints." },
+          { type: "ajuste", text: "La moneda de la tienda pasa a llamarse Points." },
         ],
       },
       {
         date: "2026-10-07",
         version: "v0.4.0",
-        title: "Panel de usuario con la identidad de Nyx",
+        title: "Panel de usuario con la identidad del servidor",
         changes: [
           {
             type: "mejora",
-            text: "Home, calendario y resto de páginas del panel con el logo, el nombre y el pie de página de Nyx Community.",
+            text: "Home, calendario y resto de páginas del panel con el logo, el nombre y el pie de página del servidor de GTA - FiveM.",
           },
-          { type: "mejora", text: "El inicio de sesión lleva siempre al panel de Nyx Community." },
+          { type: "mejora", text: "El inicio de sesión lleva siempre al panel del servidor de GTA - FiveM." },
           { type: "nuevo", text: "Modo demo para recorrer el panel completo sin iniciar sesión con Discord." },
-          { type: "ajuste", text: "Los avisos enviados por Discord enlazan directamente a la web de Nyx Community." },
+          { type: "ajuste", text: "Los avisos enviados por Discord enlazan directamente a la web del servidor de GTA - FiveM." },
           { type: "corrección", text: "El calendario vuelve a sincronizar los eventos correctamente." },
         ],
       },
@@ -158,9 +158,9 @@ export const demos: Demo[] = [
       {
         date: "2026-10-07",
         version: "v0.2.0",
-        title: "Nueva identidad: Nyx Community",
+        title: "Nueva identidad del servidor de GTA - FiveM",
         changes: [
-          { type: "nuevo", text: "Logo de Nyx Community en la portada, el menú lateral, el panel de administración y los avisos del bot." },
+          { type: "nuevo", text: "Logo del servidor de GTA - FiveM en la portada, el menú lateral, el panel de administración y los avisos del bot." },
           { type: "mejora", text: "Nombre de la comunidad actualizado en todas las páginas, formularios y mensajes." },
           { type: "corrección", text: "Las imágenes vuelven a cargar correctamente al abrir la demo." },
         ],

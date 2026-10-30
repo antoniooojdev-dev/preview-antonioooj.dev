@@ -10,7 +10,7 @@ export default defineConfig({
   integrations: [
     sitemap(),
     // Webs ESTÁTICAS de /proyectos que se publican en /demos/<carpeta>/.
-    // nyx-community no va aquí: tiene backend Python (FastAPI) y su .env, así que se aloja aparte.
+    // servidor-gta no va aquí: tiene backend Python (FastAPI) y su .env, así que se aloja aparte.
     demos([]),
     // Backends que arrancan solos con `npm run dev`: el del chat y los de las demos (ver src/data/demos.ts)
     demoBackends([
@@ -31,8 +31,8 @@ export default defineConfig({
         port: 8002,
       },
       {
-        name: "nyx-community",
-        cwd: "proyectos/nyx-community",
+        name: "servidor-gta",
+        cwd: "proyectos/servidor-gta",
         command: ".venv/Scripts/python.exe",
         args: ["-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8001"],
         port: 8001,

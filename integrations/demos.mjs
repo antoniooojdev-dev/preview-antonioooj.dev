@@ -64,7 +64,7 @@ export default function demos(folders) {
           } catch {
             return next();
           }
-          // Con el separador al final: "proyectos/nyx" no debe dejar leer "proyectos/nyx-community/..."
+          // Con el separador al final: "proyectos/servidor" no debe dejar leer "proyectos/servidor-gta/..."
           if (!(file + path.sep).startsWith(base + path.sep)) return next();
           if (PRIVADO.test(path.relative(base, file))) return next();
 

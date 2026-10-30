@@ -132,9 +132,11 @@ const trabajos = projects.filter((p) => p.featured);
                   <div class="pr-trab__info">
                     <div class="pr-trab__meta">
                       <span class="pr-trab__num">{String(i + 1).padStart(2, "0")}</span>
-                      <span class="pr-mono">
-                        {p.type} · {p.year}
-                      </span>
+                      {p.type && (
+                        <span class="pr-mono">
+                          {p.type} · {p.year}
+                        </span>
+                      )}
                     </div>
                     <h3>{p.title}</h3>
                     <p class="pr-trab__res">{p.summary}</p>

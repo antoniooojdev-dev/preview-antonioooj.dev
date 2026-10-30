@@ -24,7 +24,7 @@ const others = projects.filter((p) => p.slug !== project.slug).slice(0, 2);
       <a href="/#proyectos" class="back mono" data-pr-cab>← cd ../proyectos</a>
 
       <header class="head">
-        <span class="eyebrow mono" data-pr-cab>{project.type} · {project.year}</span>
+        {project.type && <span class="eyebrow mono" data-pr-cab>{project.type} · {project.year}</span>}
         <h1 data-pr-split>{project.title}</h1>
         <p class="lead" data-pr-cab>{project.summary}</p>
       </header>
@@ -32,7 +32,7 @@ const others = projects.filter((p) => p.slug !== project.slug).slice(0, 2);
       <dl class="meta mono" data-pr-meta>
         <div><dt>sector</dt><dd>{project.client}</dd></div>
         <div><dt>año</dt><dd>{project.year}</dd></div>
-        <div><dt>tipo</dt><dd>{project.type}</dd></div>
+        {project.type && <div><dt>tipo</dt><dd>{project.type}</dd></div>}
         <div>
           <dt>stack</dt>
           <dd>{project.stack.join(" · ")}</dd>

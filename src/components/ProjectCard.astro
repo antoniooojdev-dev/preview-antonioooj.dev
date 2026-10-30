@@ -11,7 +11,7 @@ const { project, index } = Astro.props;
 
 <article class="tile is-link project" data-reveal style={`--i:${index}`}>
   <span class="tile__corner" aria-hidden="true">↗</span>
-  <span class="tile__label"><span>{project.type}</span> · {project.year}</span>
+  {project.type && <span class="tile__label"><span>{project.type}</span> · {project.year}</span>}
 
   <h3>
     <a href={`/proyectos/${project.slug}`}>{project.title}</a>

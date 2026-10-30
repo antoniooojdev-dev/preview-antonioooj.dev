@@ -14,7 +14,8 @@ export interface Project {
   title: string;
   client: string;
   year: number;
-  type: string;
+  /** Sin type no se muestra la línea «tipo · año» */
+  type?: string;
   summary: string;
   problem: string;
   solution: string;
@@ -28,11 +29,10 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    slug: "nyx-community",
-    title: "Web del servidor de rol Nyx Community",
-    client: "Nyx Community · Servidor FiveM",
+    slug: "servidor-gta",
+    title: "Web de servidor de GTA - FiveM",
+    client: "Servidor FiveM",
     year: 2026,
-    type: "Web de comunidad · En desarrollo",
     summary: "Web y panel de jugadores de un servidor de rol: login con Discord, sugerencias con votos, postulaciones y estado en vivo.",
     problem:
       "Los servidores de rol reparten su información entre canales de Discord y documentos sueltos: el jugador nuevo no sabe cómo entrar, la normativa es difícil de consultar y no hay forma de ver si el servidor está activo antes de abrir el juego.",
