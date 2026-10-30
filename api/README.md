@@ -48,11 +48,16 @@ server {
     # SAMEORIGIN (no DENY): las demos jugables de /servicios/fivem/... se cargan en un iframe de la propia web
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+    add_header Cross-Origin-Opener-Policy "same-origin" always;
+    # La misma que en public/_headers. connect-src y form-action incluyen web3forms: sin él, el
+    # formulario de contacto no podría enviar.
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https://api.web3forms.com; form-action 'self' https://api.web3forms.com; frame-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; upgrade-insecure-requests" always;
 
-    # Páginas de pruebas/borradores que están en public/ y no deben verse en producción
+    # Borradores que están en public/ y no deben verse en producción
     location ~ ^/(test|pruebas)\.html$ { return 404; }
+    # Nunca servir archivos ocultos (.env, .git...) aunque acabaran en dist por error
+    location ~ /\.(?!well-known) { return 404; }
 
     # Límite de peticiones a la API por IP (además del que ya aplica la propia API)
     # (en el bloque http {}: limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;)
@@ -61,6 +66,8 @@ server {
     location /api/ {
         proxy_pass http://127.0.0.1:8002;
         proxy_set_header Host $host;
+        # La API cuenta los límites por IP con esta cabecera (seguridad.ip_cliente)
+        proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
@@ -151,3 +158,7 @@ da el enlace). «Abrir carpeta» solo funciona con la API en tu PC.
   y un login de menos de `ADMIN_SESSION_HOURS` horas (24 por defecto).
 - Máximo 2000 caracteres por mensaje y 20 mensajes por minuto por cliente.
 - Los mensajes se pintan como texto, nunca como HTML.
+- Límites por IP real (también detrás de nginx): 300 lecturas y 60 escrituras por minuto, 20
+  intentos de login cada 10 min y 5 opiniones por hora.
+- Las respuestas de la API llevan una CSP que no deja ejecutar nada (`default-src 'none'`), no
+  se pueden cargar desde otra web (`Cross-Origin-Resource-Policy`) ni meter en un iframe.

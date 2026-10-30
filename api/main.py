@@ -115,6 +115,11 @@ async def cabeceras(request: Request, call_next):
     respuesta.headers.setdefault("X-Content-Type-Options", "nosniff")
     respuesta.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     respuesta.headers.setdefault("X-Frame-Options", "DENY")
+    # La API solo devuelve JSON y redirecciones: nada de lo que responde debe ejecutar código,
+    # cargarse desde otra web ni meterse en un iframe (la transcripción pone su propia CSP)
+    respuesta.headers.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'")
+    respuesta.headers.setdefault("Cross-Origin-Resource-Policy", "same-origin")
+    respuesta.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
     if seguridad.cookie_segura():
         respuesta.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
     return respuesta
@@ -200,7 +205,9 @@ async def discord_callback(request: Request, code: str | None = None, state: str
     esperado = request.cookies.get(COOKIE_ESTADO)
     if not code or not state or not esperado or not secrets.compare_digest(state, esperado):
         return error
-    if seguridad.demasiadas(f"login:{request.client.host if request.client else '-'}", 20, 600):
+    # Por la IP real del visitante: detrás de nginx todas llegan desde 127.0.0.1 y, contadas así,
+    # 20 intentos de cualquiera bloquearían el login de todos
+    if seguridad.demasiadas(f"login:{seguridad.ip_cliente(request)}", 20, 600):
         return error
 
     try:
@@ -301,7 +308,7 @@ async def proveedor_callback(nombre: str, request: Request, code: str | None = N
         return error
     if not (p["client_id"] and p["client_secret"]):
         return error
-    if seguridad.demasiadas(f"login:{request.client.host if request.client else '-'}", 20, 600):
+    if seguridad.demasiadas(f"login:{seguridad.ip_cliente(request)}", 20, 600):
         return error
 
     try:

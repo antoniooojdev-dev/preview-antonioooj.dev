@@ -5,3 +5,5 @@ python-dotenv==1.2.4
 psutil==7.2.2
 cryptography==50.0.2
 discord.py==2.7.1
+# Lo trae httpx; las versiones anteriores a 2026.10.18 confían en certificados raíz comprometidos (GHSA-6q48-6c7w-9gw2)
+certifi>=2026.10.18

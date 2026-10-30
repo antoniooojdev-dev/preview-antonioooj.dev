@@ -8,7 +8,11 @@ import demoBackends from "./integrations/backends.mjs";
 export default defineConfig({
   site: "https://antonioooj.dev",
   integrations: [
-    sitemap(),
+    // Fuera del sitemap las páginas con noindex: no tiene sentido anunciar a los buscadores
+    // el panel, el login o los borradores
+    sitemap({
+      filter: (page) => !/\/(admin|login|cuenta|chat|gracias|pruebas1?)\/?$/.test(new URL(page).pathname),
+    }),
     // Webs ESTÁTICAS de /proyectos que se publican en /demos/<carpeta>/.
     // servidor-gta no va aquí: tiene backend Python (FastAPI) y su .env, así que se aloja aparte.
     demos([]),

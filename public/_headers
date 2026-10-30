@@ -1,5 +1,12 @@
 # Cabeceras de seguridad. Netlify y Cloudflare Pages leen este archivo automáticamente;
 # en otro hosting hay que configurarlas en su panel (o en vercel.json / .htaccess).
+# Con nginx, las mismas están en api/README.md: si cambias una, cambia la otra.
+#
+# Content-Security-Policy: qué puede cargar la web y adónde puede enviar datos.
+# 'unsafe-inline' en scripts porque Astro mete scripts pequeños en cada página; aun así, un código
+# inyectado no podría mandar nada a otro servidor (connect-src / form-action), cargar plugins
+# (object-src) ni cambiar la base de los enlaces (base-uri).
+# Si algo deja de cargar, mira la consola del navegador y añade ese dominio a su directiva.
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
@@ -7,3 +14,8 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
   Cross-Origin-Opener-Policy: same-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https://api.web3forms.com; form-action 'self' https://api.web3forms.com; frame-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; upgrade-insecure-requests
+
+# Borrador de diseño que está en public/: que no lo indexen los buscadores
+/test.html
+  X-Robots-Tag: noindex, nofollow
