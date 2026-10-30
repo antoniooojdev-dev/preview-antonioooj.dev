@@ -9,10 +9,12 @@ export const legal: Record<string, Trad> = {
     pt: "Em cumprimento da Lei espanhola 34/2002, de Serviços da Sociedade da Informação e de Comércio Eletrônico (LSSI-CE), informam-se os dados do titular deste site:",
   },
   "Titular:": { en: "Owner:", pt: "Titular:" },
-  "NIF:": { en: "Tax ID (NIF):", pt: "NIF:" },
-  "Domicilio:": { en: "Address:", pt: "Endereço:" },
   "Email:": { en: "Email:", pt: "E-mail:" },
   "Sitio web:": { en: "Website:", pt: "Site:" },
+  "Los datos identificativos completos del titular (nombre y apellidos, NIF y domicilio) se facilitan a quien los solicite escribiendo a": {
+    en: "The owner's full identification details (full name, tax ID and address) are provided to anyone who requests them by writing to",
+    pt: "Os dados de identificação completos do titular (nome completo, NIF e domicílio) são fornecidos a quem os solicitar escrevendo para",
+  },
   "2. Objeto": { en: "2. Purpose", pt: "2. Objeto" },
   "Este sitio web tiene como finalidad informar sobre los servicios de desarrollo web que ofrece el titular y facilitar el contacto con potenciales clientes.": {
     en: "The purpose of this website is to provide information about the web development services offered by the owner and to make it easy for potential clients to get in touch.",
@@ -39,9 +41,9 @@ export const legal: Record<string, Trad> = {
     pt: "Este site não usa cookies próprios de rastreamento nem de publicidade. Só fica salva no seu navegador a preferência de tema (claro ou escuro), que não identifica ninguém.",
   },
   "7. Legislación aplicable": { en: "7. Applicable law", pt: "7. Legislação aplicável" },
-  "Este aviso legal se rige por la legislación española. Para cualquier controversia, las partes se someten a los juzgados y tribunales del domicilio del titular.": {
-    en: "This legal notice is governed by Spanish law. For any dispute, the parties submit to the courts of the owner's place of residence.",
-    pt: "Este aviso legal rege-se pela legislação espanhola. Para qualquer controvérsia, as partes submetem-se aos juizados e tribunais do domicílio do titular.",
+  "Este aviso legal se rige por la legislación española. Para cualquier controversia, las partes se someten a los juzgados y tribunales que correspondan conforme a la normativa aplicable.": {
+    en: "This legal notice is governed by Spanish law. For any dispute, the parties submit to the courts that have jurisdiction under the applicable law.",
+    pt: "Este aviso legal rege-se pela legislação espanhola. Para qualquer controvérsia, as partes submetem-se aos juizados e tribunais competentes conforme a legislação aplicável.",
   },
 
   // ── privacidad ──

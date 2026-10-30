@@ -15,11 +15,13 @@ import { site } from "@/data/site";
       </p>
       <ul>
         <li><strong>Titular:</strong> {site.legal.owner}</li>
-        <li><strong>NIF:</strong> {site.legal.nif}</li>
-        <li><strong>Domicilio:</strong> {site.legal.address}</li>
         <li><strong>Email:</strong> <a href={`mailto:${site.email}`}>{site.email}</a></li>
         <li><strong>Sitio web:</strong> {site.url}</li>
       </ul>
+      <p>
+        Los datos identificativos completos del titular (nombre y apellidos, NIF y domicilio) se facilitan a
+        quien los solicite escribiendo a <a href={`mailto:${site.email}`}>{site.email}</a>.
+      </p>
 
       <h2>2. Objeto</h2>
       <p>
@@ -57,7 +59,7 @@ import { site } from "@/data/site";
       <h2>7. Legislación aplicable</h2>
       <p>
         Este aviso legal se rige por la legislación española. Para cualquier controversia, las
-        partes se someten a los juzgados y tribunales del domicilio del titular.
+        partes se someten a los juzgados y tribunales que correspondan conforme a la normativa aplicable.
       </p>
     </div>
   </section>

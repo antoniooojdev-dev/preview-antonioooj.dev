@@ -21,10 +21,10 @@ export const site = {
   // Dirección de la API del chat (/chat). Vacía = misma web (/api la reenvía el servidor).
   // Solo hay que ponerla si la API va en otro dominio, p. ej. "https://api.antonioooj.dev".
   chatApi: "",
+  // Aviso legal: solo el nombre comercial. Nombre completo, NIF y domicilio se dan por email a
+  // quien los pida (el aviso lo explica).
   legal: {
-    owner: "Antonio J. [apellidos]",
-    nif: "[NIF]",
-    address: "[Dirección fiscal]",
+    owner: "AntonioooJ Dev",
   },
 } as const;
 
