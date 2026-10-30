@@ -80,7 +80,6 @@ export const portada: Record<string, Trad> = {
   },
   "Respuesta en menos de 24 h": { en: "Reply in under 24 h", pt: "Resposta em menos de 24 h" },
   "Presupuesto cerrado y por escrito": { en: "Fixed quote, in writing", pt: "Orçamento fechado e por escrito" },
-  "La primera llamada es gratis": { en: "The first call is free", pt: "A primeira ligação é grátis" },
   "Un formulario corto, en dos minutos": { en: "A short form, two minutes", pt: "Um formulário curto, em dois minutos" },
   "Chat en directo": { en: "Live chat", pt: "Chat ao vivo" },
   "Entra con Discord, Google o GitHub": { en: "Sign in with Discord, Google or GitHub", pt: "Entre com Discord, Google ou GitHub" },
