@@ -1,4 +1,22 @@
-# API del chat publicada con Cloudflare Tunnel (gratis, desde el PC)
+# API del chat publicada con Cloudflare Tunnel (gratis)
+
+> **Desde 2026-10-30 corre en Google Cloud**, no en el PC: VM `antonioooj-api` (e2-micro «Always Free»,
+> us-central1-a, Ubuntu 24.04), `ssh antonio@35.254.200.19`.
+> - API: `/opt/antonioooj/api` (código + `.env` + `.env.production` + `data/`), servicio systemd
+>   `antonioooj-api` (puerto 8003). Tras cambiar el código: copiar los .py y `sudo systemctl restart antonioooj-api`.
+> - Túnel: `/etc/cloudflared/config.yml` + credenciales, servicio systemd `cloudflared`.
+> - Logs: `journalctl -u antonioooj-api -f` / `journalctl -u cloudflared -f`.
+> - La base de datos de verdad es la del servidor; la del PC (`api/data/chat.db`) se quedó como copia del 30-10.
+> - En el PC quedan `api/produccion.ps1` y las tareas «AntonioooJ API» / «AntonioooJ Tunel» (sin usar).
+> - **Demo pública de servidor-fivem** en <https://fivem.antonioooj.dev> (misma VM y mismo túnel):
+>   código en `/opt/antonioooj/fivem` (`.env` con `DEMO_PUBLICA=1`, sin bot ni claves de Discord),
+>   servicio systemd `antonioooj-fivem` (puerto 8004, máx. 300 MB). Cada arranque copia los datos
+>   ficticios de `/opt/antonioooj/fivem-semilla` y se reinicia solo cada 24 h, así que todo vuelve a
+>   empezar a diario. «Entrar como visitante» (`/auth/visitante`) solo existe con `DEMO_PUBLICA=1`, y en
+>   la demo no se pueden subir imágenes. Para actualizarla: copiar el código (sin `.env` ni `data/`) y
+>   `sudo systemctl restart antonioooj-fivem`.
+>
+> Lo de abajo describe el montaje original en el PC, que sigue valiendo de plan B.
 
 ```
 visitante → antonioooj.dev (Cloudflare Pages)

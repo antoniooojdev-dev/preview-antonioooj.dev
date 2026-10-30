@@ -58,4 +58,17 @@ export const proyectos: Record<string, Trad> = {
   "Reservas atómicas: sin overbooking con peticiones simultáneas": { en: "Atomic bookings: no overbooking with simultaneous requests", pt: "Reservas atômicas: sem overbooking com requisições simultâneas" },
   "Panel de administración con CSRF y sesión segura": { en: "Admin panel with CSRF and a secure session", pt: "Painel de administração com CSRF e sessão segura" },
   "Sin base de datos ni dependencias": { en: "No database or dependencies", pt: "Sem banco de dados nem dependências" },
+
+  // ── web de ejemplo (servidor FiveM, fivem.antonioooj.dev) ──
+  "// web de ejemplo": { en: "// example website", pt: "// site de exemplo" },
+  "Una web completa que puedes recorrer: con datos inventados y todo funcionando.": {
+    en: "A complete website you can explore: made-up data, everything working.",
+    pt: "Um site completo que você pode percorrer: com dados inventados e tudo funcionando.",
+  },
+  "Nombre del Servidor": { en: "Server Name", pt: "Nome do Servidor" },
+  "La web completa de un servidor de rol, funcionando: portada, normativas, facciones y tienda, y con «Entrar como visitante» el perfil, los tickets y el panel de staff.": {
+    en: "The full website of a roleplay server, up and running: home page, rules, factions and shop, plus the profile, tickets and staff panel with «Enter as a visitor».",
+    pt: "O site completo de um servidor de RP, funcionando: página inicial, regras, facções e loja, e com «Entrar como visitante» o perfil, os tickets e o painel da staff.",
+  },
+  "Sugerencias con votos": { en: "Suggestions with votes", pt: "Sugestões com votos" },
 };

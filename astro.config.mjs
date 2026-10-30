@@ -44,7 +44,7 @@ export default defineConfig({
       {
         // Proyecto fuera del portfolio. Solo la web: el bot de Discord se arranca aparte con run.py
         name: "clicksense-rp",
-        cwd: "../ClickSense RP WEB",
+        cwd: "../servidor-fivem",
         command: ".venv/Scripts/python.exe",
         args: ["-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8000"],
         port: 8000,

@@ -193,10 +193,21 @@ export const demos: Demo[] = [
       "Panel de staff con avisos por MD mediante el bot",
     ],
     stack: ["Python", "FastAPI", "SQLite", "discord.py", "JavaScript"],
-    // Proyecto en Developer\ClickSense RP WEB. La web arranca sola con `npm run dev`; el bot, con run.py
+    // Proyecto en Developer\servidor-fivem. La web arranca sola con `npm run dev`; el bot, con run.py
     devUrl: "http://localhost:8000/index.html",
-    devCommand: "npm run dev (se arranca sola) o python run.py en ClickSense RP WEB",
+    devCommand: "npm run dev (se arranca sola) o python run.py en servidor-fivem",
     changelog: [
+      {
+        date: "2026-10-30",
+        version: "v1.6.0",
+        title: "Demo pública para recorrer la web",
+        changes: [
+          { type: "nuevo", text: "La web ya se puede visitar online como ejemplo, con datos inventados que vuelven a su estado inicial cada día." },
+          { type: "nuevo", text: "Botón «Entrar como visitante» para probar el perfil, los tickets y el panel de staff sin necesidad de Discord." },
+          { type: "ajuste", text: "Imagen de marca neutra («Nombre del Servidor») para que cada servidor la adapte con su nombre y su logo." },
+          { type: "ajuste", text: "La moneda de la tienda pasa a llamarse «Puntos», con tarjetas de compra renovadas." },
+        ],
+      },
       {
         date: "2026-10-13",
         version: "v1.5.0",

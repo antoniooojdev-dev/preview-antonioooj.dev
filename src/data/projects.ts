@@ -9,6 +9,19 @@ export interface Snippet {
   filename: string;
 }
 
+export interface Ejemplo {
+  url: string;
+  nombre: string;
+  sector: string;
+  resumen: string;
+  funciones: string[];
+  /** Colores de la marca (como los casos de src/data/casos.ts) */
+  color: string;
+  fondo: string;
+  /** Icono de Font Awesome (estilo sólido) */
+  icono: string;
+}
+
 export interface Project {
   slug: string;
   title: string;
@@ -22,6 +35,8 @@ export interface Project {
   highlights: string[];
   stack: string[];
   snippet?: Snippet;
+  /** Web completa de ejemplo que se puede recorrer (tarjeta «// web de ejemplo» de su ficha) */
+  ejemplo?: Ejemplo;
   url?: string;
   repo?: string;
   featured?: boolean;
@@ -57,6 +72,19 @@ async function loadStatus() {
   const max = Number(info.sv_maxclients) || server.maxPlayers;
   setStatus("online", "Servidor online", players, max);
 }`,
+    },
+    // Demo pública alojada en el servidor de Google Cloud (servicio antonioooj-fivem, ver DESPLIEGUE-TUNEL.md):
+    // datos ficticios que vuelven a su estado inicial cada día y acceso «Entrar como visitante»
+    ejemplo: {
+      url: "https://fivem.antonioooj.dev",
+      nombre: "Nombre del Servidor",
+      sector: "Servidor de rol FiveM",
+      resumen:
+        "La web completa de un servidor de rol, funcionando: portada, normativas, facciones y tienda, y con «Entrar como visitante» el perfil, los tickets y el panel de staff.",
+      funciones: ["Whitelist con test", "Tickets", "Sugerencias con votos", "Panel de staff", "Tienda"],
+      color: "#a855f7",
+      fondo: "#0b0716",
+      icono: "gamepad",
     },
     featured: true,
   },

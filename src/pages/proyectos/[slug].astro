@@ -3,6 +3,7 @@ import type { GetStaticPaths } from "astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import ProjectCard from "@/components/ProjectCard.astro";
 import CodeBlock from "@/components/CodeBlock.astro";
+import CasoTarjeta from "@/components/CasoTarjeta.astro";
 import { projects, type Project } from "@/data/projects";
 
 export const getStaticPaths = (() =>
@@ -56,6 +57,32 @@ const others = projects.filter((p) => p.slug !== project.slug).slice(0, 2);
             {project.highlights.map((r) => <li>{r}</li>)}
           </ul>
         </section>
+
+        {
+          project.ejemplo && (
+            <section data-pr-sec>
+              <link rel="stylesheet" href="/fa/css/fontawesome.min.css" />
+              <link rel="stylesheet" href="/fa/css/solid.min.css" />
+              <h2 class="mono">// web de ejemplo</h2>
+              <p class="ejemplo-sub">Una web completa que puedes recorrer: con datos inventados y todo funcionando.</p>
+              <!-- en su propio bloque: la tarjeta ocupa el 100 % del alto de su contenedor -->
+              <div>
+                <CasoTarjeta
+                  href={project.ejemplo.url}
+                  nombre={project.ejemplo.nombre}
+                  sector={project.ejemplo.sector}
+                  resumen={project.ejemplo.resumen}
+                  funciones={project.ejemplo.funciones}
+                  color={project.ejemplo.color}
+                  fondo={project.ejemplo.fondo}
+                  icono={project.ejemplo.icono}
+                  ir="abrir ejemplo"
+                  externo
+                />
+              </div>
+            </section>
+          )
+        }
 
         {
           project.snippet && (
@@ -208,6 +235,10 @@ const others = projects.filter((p) => p.slug !== project.slug).slice(0, 2);
   .body p {
     font-size: var(--fs-md);
     color: var(--fg-muted);
+  }
+
+  .ejemplo-sub {
+    margin-bottom: var(--space-4);
   }
 
   .results {

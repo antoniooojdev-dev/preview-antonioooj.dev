@@ -1,0 +1,228 @@
+---
+// Tarjeta de un ejemplo con los colores de su marca: mini «captura» de la web arriba y
+// sector, nombre, resumen y funciones debajo. La usan los casos de /servicios/web y
+// /servicios/app y la web de ejemplo de /proyectos/<slug>.
+import Icono from "@/components/servicios/Icono.astro";
+
+interface Props {
+  href: string;
+  nombre: string;
+  sector: string;
+  resumen: string;
+  funciones: string[];
+  /** Color de la marca y fondo de la «captura» */
+  color: string;
+  fondo: string;
+  /** Icono de Font Awesome (estilo sólido) */
+  icono: string;
+  /** Texto del enlace de abajo; sin él no se muestra */
+  ir?: string;
+  /** Abre en otra pestaña (webs alojadas fuera, p. ej. fivem.antonioooj.dev) */
+  externo?: boolean;
+}
+
+const { href, nombre, sector, resumen, funciones, color, fondo, icono, ir, externo } = Astro.props;
+---
+
+<a
+  class="caso"
+  href={href}
+  style={`--cc:${color}; --cf:${fondo}`}
+  {...externo ? { target: "_blank", rel: "noopener" } : {}}
+>
+  <span class="caso__vista" aria-hidden="true">
+    <span class="caso__barra">
+      <i />
+      <i />
+      <i />
+    </span>
+    <span class="caso__marca">
+      <i class={`fa-solid fa-${icono}`} />
+      {nombre}
+    </span>
+    <span class="caso__lineas">
+      <i />
+      <i />
+      <i />
+    </span>
+  </span>
+  <span class="caso__cuerpo">
+    <span class="caso__sector mono">{sector}</span>
+    <strong>{nombre}</strong>
+    <span class="caso__resumen">{resumen}</span>
+    <span class="caso__funciones">
+      {funciones.map((f) => (
+        <span>{f}</span>
+      ))}
+    </span>
+    {ir && (
+      <span class="caso__ir mono">
+        {ir} <Icono nombre="arrow" size={14} />
+      </span>
+    )}
+  </span>
+</a>
+
+<style>
+  .caso {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100%;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: var(--bg-elev);
+    overflow: hidden;
+    transition:
+      transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.3s ease,
+      box-shadow 0.4s ease;
+  }
+
+  .caso:hover,
+  .caso:focus-visible {
+    transform: translateY(-6px);
+    border-color: color-mix(in srgb, var(--cc) 55%, var(--border));
+    box-shadow: 0 30px 60px -35px var(--cc);
+  }
+
+  /* mini «captura» de la web con sus colores */
+  .caso__vista {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    height: 11rem;
+    padding: var(--space-3) var(--space-4);
+    background:
+      radial-gradient(80% 90% at 100% 0%, color-mix(in srgb, var(--cc) 35%, transparent), transparent 70%),
+      var(--cf);
+    overflow: hidden;
+  }
+
+  .caso__barra {
+    display: flex;
+    gap: 5px;
+  }
+
+  .caso__barra i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--cc) 40%, #999);
+    opacity: 0.6;
+  }
+
+  .caso__marca {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: var(--space-4);
+    color: var(--cc);
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .caso__marca i {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 12px;
+    background: var(--cc);
+    color: #fff;
+    font-size: 1.1rem;
+  }
+
+  .caso:hover .caso__marca {
+    transform: translateX(6px);
+  }
+
+  .caso__lineas {
+    display: grid;
+    gap: 6px;
+  }
+
+  .caso__lineas i {
+    height: 7px;
+    border-radius: 99px;
+    background: color-mix(in srgb, var(--cc) 30%, transparent);
+  }
+
+  .caso__lineas i:nth-child(1) {
+    width: 80%;
+  }
+
+  .caso__lineas i:nth-child(2) {
+    width: 60%;
+  }
+
+  .caso__lineas i:nth-child(3) {
+    width: 34%;
+    height: 18px;
+    border-radius: 7px;
+    background: var(--cc);
+    opacity: 0.8;
+  }
+
+  .caso__cuerpo {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-5);
+  }
+
+  .caso__sector {
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .caso__cuerpo strong {
+    font-size: var(--fs-lg);
+    letter-spacing: -0.02em;
+  }
+
+  .caso__resumen {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .caso__funciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: var(--space-2);
+  }
+
+  .caso__funciones span {
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--cc) 12%, transparent);
+    color: color-mix(in srgb, var(--cc) 75%, var(--fg));
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .caso__ir {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: var(--space-3);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    transition: color 0.3s ease;
+  }
+
+  .caso__ir :global(.icono) {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .caso:hover .caso__ir {
+    color: var(--cc);
+  }
+
+  .caso:hover .caso__ir :global(.icono) {
+    transform: translateX(4px);
+  }
+</style>
