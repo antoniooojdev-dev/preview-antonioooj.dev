@@ -23,6 +23,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
+# La instancia pública (produccion.ps1) carga antes .env.production: lo que ponga ahí
+# (PUBLIC_URL https, DEMO_LOGIN=0, PROXY_SECRET...) manda sobre el .env de desarrollo
+if os.getenv("API_ENTORNO") == "produccion":
+    load_dotenv(os.path.join(os.path.dirname(__file__), ".env.production"), override=True)
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
 import db  # noqa: E402  (después de load_dotenv)
@@ -89,6 +93,9 @@ LIMITE_ESCRITURAS = 60
 @app.middleware("http")
 async def cabeceras(request: Request, call_next):
     escribe = request.method in {"POST", "PUT", "PATCH", "DELETE"}
+    # Publicada por el túnel: solo lo que llega a través de la web (ver seguridad.viene_del_proxy)
+    if not seguridad.viene_del_proxy(request):
+        return JSONResponse({"detail": "No encontrado"}, status_code=404)
     # Peticiones enormes: fuera antes de leerlas (anti-saturación)
     try:
         largo = int(request.headers.get("content-length") or 0)

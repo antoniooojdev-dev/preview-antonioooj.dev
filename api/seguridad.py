@@ -199,13 +199,28 @@ def origenes_permitidos() -> set[str]:
     return salida
 
 
+def viene_del_proxy(request) -> bool:
+    """
+    Con PROXY_SECRET (API publicada por Cloudflare Tunnel) solo se atiende lo que reenvía la
+    función de Cloudflare Pages, que añade esta cabecera. Así nadie puede entrar directo por el
+    túnel saltándose la web ni inventarse la IP. Sin PROXY_SECRET no se exige nada.
+    """
+    clave = (os.getenv("PROXY_SECRET") or "").strip()
+    if not clave:
+        return True
+    return hmac.compare_digest((request.headers.get("x-proxy-secret") or "").encode(), clave.encode())
+
+
 def ip_cliente(request) -> str:
     """
     IP real del visitante. Si la petición llega de un proxy en este mismo equipo (nginx o el
     servidor de Astro reenviando /api) o con TRUST_PROXY=1, se usa la que añade el proxy.
     A cualquier otro no se le cree la cabecera: podría inventarse la IP.
+    Con PROXY_SECRET, cloudflared también llega desde 127.0.0.1: la cabecera solo vale si trae la clave.
     """
     directa = request.client.host if request.client else "-"
+    if os.getenv("PROXY_SECRET") and not viene_del_proxy(request):
+        return directa
     if directa in ("127.0.0.1", "::1") or os.getenv("TRUST_PROXY") == "1":
         real = (request.headers.get("x-real-ip") or "").strip()
         reenviada = (request.headers.get("x-forwarded-for") or "").split(",")[-1].strip()
