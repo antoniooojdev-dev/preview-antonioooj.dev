@@ -57,7 +57,6 @@ export const portada: Record<string, Trad> = {
   Proyectos: { en: "Projects", pt: "Projetos" },
   "Proyectos reales, con su código": { en: "Real projects, with their code", pt: "Projetos reais, com o código" },
   "En desarrollo": { en: "In progress", pt: "Em desenvolvimento" },
-  "Web de comunidad": { en: "Community website", pt: "Site de comunidade" },
   "Ver proyecto": { en: "View project", pt: "Ver projeto" },
   Proceso: { en: "Process", pt: "Processo" },
   "De la idea a publicado, en cuatro pasos": { en: "From idea to launch, in four steps", pt: "Da ideia ao ar, em quatro passos" },
