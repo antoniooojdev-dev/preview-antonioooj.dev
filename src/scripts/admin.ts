@@ -669,7 +669,7 @@ function iniciar(panel: HTMLElement) {
     let elegido = "recomendados";
     const radios = h("div", { class: "pn-radios", role: "radiogroup", "aria-label": "Permisos" });
     const url = h("code", { class: "pn-code" });
-    const abrir = h("a", { class: "btn btn-primary", target: "_blank", rel: "noopener noreferrer" }, "Abrir en Discord", h("span", { class: "arrow", "aria-hidden": "true" }, " →"));
+    const abrir = h("a", { class: "btn btn-primary", target: "_blank", rel: "noopener noreferrer" }, "Abrir en Discord");
     const copiarBtn = h("button", { type: "button", class: "btn btn-ghost" }, "Copiar enlace");
 
     const generar = () => {

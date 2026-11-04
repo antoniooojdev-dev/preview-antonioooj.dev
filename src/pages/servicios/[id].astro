@@ -62,12 +62,9 @@ const dist = DISTRIBUCIONES[service.id] ?? DISTRIBUCIONES.app;
 const others = services.filter((s) => s.id !== service.id && serviceDetails[s.id]);
 const contacto = `/contacto?tipo=${encodeURIComponent(detail.tipo)}`;
 const casos = service.id === "web" || service.id === "app" ? casosDe(service.id) : [];
-// «Web online» va sin la demo de citas: el botón del ejemplo lleva a las webs de ejemplo y los
-// botones van sin flecha
+// «Web online» va sin la demo de citas: el botón del ejemplo lleva a las webs de ejemplo
 const esWeb = service.id === "web";
-// servicios cuyo ejemplo es un vídeo (FiveM): «Pedir presupuesto» también va sin flecha
 const video = detail.demo.video;
-const sinFlecha = esWeb || service.id === "fivem";
 ---
 
 <BaseLayout title={service.title} description={detail.lead}>
@@ -84,7 +81,7 @@ const sinFlecha = esWeb || service.id === "fivem";
         <h1 style={`view-transition-name: svc-title-${service.id}`}>{service.title}</h1>
         <p class="lead">{detail.lead}</p>
         <div class="head-actions">
-          <a href={contacto} class="btn btn-primary">Pedir presupuesto{!sinFlecha && <span class="arrow" aria-hidden="true"> →</span>}</a>
+          <a href={contacto} class="btn btn-primary">Pedir presupuesto</a>
           <a href={esWeb ? "#casos" : "#ejemplo"} class="btn btn-ghost">
             <Icono nombre="play" size={14} /> {video ? "Ver el adelanto" : "Ver ejemplo interactivo"}
           </a>
@@ -238,7 +235,8 @@ const sinFlecha = esWeb || service.id === "fivem";
                     {casos.map((c, i) => (
                       <li data-reveal style={`--i:${i}`}>
                         <CasoTarjeta
-                          href={`/servicios/${service.id}/${c.id}`}
+                          href={c.url ?? `/servicios/${service.id}/${c.id}`}
+                          externo={!!c.url}
                           nombre={c.nombre}
                           sector={c.sector}
                           resumen={c.resumen}
@@ -305,7 +303,7 @@ const sinFlecha = esWeb || service.id === "fivem";
           <p class="cta-title">{`¿Hablamos de ${/^(scripts|bots)/i.test(service.title) ? "tus" : "tu"} ${service.title[0].toLowerCase()}${service.title.slice(1)}?`}</p>
           <p class="cta-sub mono">{service.timeline} · presupuesto cerrado</p>
         </div>
-        <a href={contacto} class="btn btn-primary">Cuéntame tu idea{!esWeb && <span class="arrow" aria-hidden="true"> →</span>}</a>
+        <a href={contacto} class="btn btn-primary">Cuéntame tu idea</a>
       </aside>
 
       <!-- otros servicios -->
