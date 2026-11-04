@@ -17,7 +17,6 @@ const raiz = document.querySelector<HTMLElement>("[data-pr]")!;
 const $ = <T extends Element = HTMLElement>(s: string, el: ParentNode = raiz) => el.querySelector<T>(s);
 const $$ = <T extends Element = HTMLElement>(s: string, el: ParentNode = raiz) => [...el.querySelectorAll<T>(s)];
 const reducido = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const punteroFino = matchMedia("(pointer: fine)").matches;
 
 // ── idioma de los textos partidos ─────
 // SplitText convierte cada texto en muchos <span> que i18n.ts no sabría traducir. Por eso esos
@@ -326,23 +325,6 @@ if (!reducido) {
       { "--relleno": "0%" },
       { "--relleno": "100%", ease: "none", scrollTrigger: { trigger: ".pr-cta", start: "top 80%", end: "center 55%", scrub: true } },
     );
-  }
-
-  // ── botones que siguen un poco al ratón ─────
-  if (punteroFino) {
-    $$("[data-pr-iman]").forEach((el) => {
-      const x = gsap.quickTo(el, "x", { duration: 0.5, ease: "elastic.out(1, 0.4)" });
-      const y = gsap.quickTo(el, "y", { duration: 0.5, ease: "elastic.out(1, 0.4)" });
-      el.addEventListener("pointermove", (e) => {
-        const r = el.getBoundingClientRect();
-        x((e.clientX - r.left - r.width / 2) * 0.35);
-        y((e.clientY - r.top - r.height / 2) * 0.35);
-      });
-      el.addEventListener("pointerleave", () => {
-        x(0);
-        y(0);
-      });
-    });
   }
 }
 

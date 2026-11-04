@@ -49,10 +49,10 @@ const trabajos = projects.filter((p) => p.featured);
           cerrado por escrito antes de empezar.
         </p>
         <div class="pr-hero__ctas" data-pr-aparece>
-          <a class="pr-btn pr-btn--claro" href="/contacto" data-pr-iman>
+          <a class="pr-btn pr-btn--claro" href="/contacto">
             <span>Cuéntame tu proyecto</span>
           </a>
-          <a class="pr-btn pr-btn--linea" href="#proyectos" data-pr-iman>Ver proyectos</a>
+          <a class="pr-btn pr-btn--linea" href="#proyectos">Ver proyectos</a>
         </div>
       </div>
     </section>
@@ -353,20 +353,57 @@ const trabajos = projects.filter((p) => p.featured);
     border-radius: 999px;
     font-weight: 600;
     text-decoration: none;
-    transition: background 0.3s var(--ease), color 0.3s var(--ease), border-color 0.3s var(--ease);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    transition:
+      transform 0.35s var(--ease),
+      box-shadow 0.35s var(--ease),
+      color 0.35s var(--ease),
+      border-color 0.35s var(--ease);
+  }
+
+  /* al pasar el ratón: se eleva un poco y un relleno barre el botón de izquierda a derecha
+     (fijo, no sigue al ratón) */
+  .pr-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.45s var(--ease);
+  }
+
+  .pr-btn:hover,
+  .pr-btn:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--fg) 45%, transparent);
+  }
+
+  .pr-btn:hover::before,
+  .pr-btn:focus-visible::before {
+    transform: scaleX(1);
+  }
+
+  .pr-btn:active {
+    transform: translateY(-1px) scale(0.98);
   }
 
   .pr-btn--claro {
     background: var(--fg);
     color: var(--bg);
+    border: 1px solid var(--fg);
   }
 
-  .pr-btn--claro svg {
-    transition: transform 0.3s var(--ease);
+  .pr-btn--claro::before {
+    background: var(--bg);
   }
 
-  .pr-btn--claro:hover svg {
-    transform: translateX(4px);
+  .pr-btn--claro:hover,
+  .pr-btn--claro:focus-visible {
+    color: var(--fg);
   }
 
   .pr-btn--linea {
@@ -374,10 +411,25 @@ const trabajos = projects.filter((p) => p.featured);
     color: var(--fg);
   }
 
-  .pr-btn--linea:hover {
+  .pr-btn--linea::before {
     background: var(--fg);
+  }
+
+  .pr-btn--linea:hover,
+  .pr-btn--linea:focus-visible {
     color: var(--bg);
     border-color: var(--fg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pr-btn,
+    .pr-btn::before {
+      transition-duration: 0.01s;
+    }
+    .pr-btn:hover,
+    .pr-btn:focus-visible {
+      transform: none;
+    }
   }
 
   /* ── entrada (la de la portada de siempre: logo + línea) ── */
