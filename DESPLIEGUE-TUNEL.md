@@ -15,6 +15,11 @@
 >   empezar a diario. «Entrar como visitante» (`/auth/visitante`) solo existe con `DEMO_PUBLICA=1`, y en
 >   la demo no se pueden subir imágenes. Para actualizarla: copiar el código (sin `.env` ni `data/`) y
 >   `sudo systemctl restart antonioooj-fivem`.
+> - **Web «Sergio Planes Peluqueros» (caballeros y niños)** en <https://peluqueria.antonioooj.dev> (misma VM y mismo túnel):
+>   estática, código en `Desktop/Developer/peluqueria-web` → `/opt/antonioooj/peluqueria`, servicio systemd
+>   `antonioooj-peluqueria` (`python3 server.py 8005`, máx. 80 MB, sin dependencias). Para actualizarla basta
+>   copiar `index.html`, `assets/` y `server.py` (no hace falta reiniciar; sí si cambia `server.py`).
+>   El DNS se creó con `cloudflared tunnel route dns 90d3edc8-… peluqueria.antonioooj.dev` desde el PC.
 >
 > Lo de abajo describe el montaje original en el PC, que sigue valiendo de plan B.
 

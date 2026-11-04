@@ -22,7 +22,7 @@ const grupos: { titulo: string; enlaces: Enlace[] }[] = [
   },
   {
     titulo: "Webs online",
-    enlaces: casosDe("web").map((c) => ({ href: `/servicios/web/${c.id}`, t: c.nombre, sub: c.sector })),
+    enlaces: casosDe("web").map((c) => ({ href: c.url ?? `/servicios/web/${c.id}`, t: c.nombre, sub: c.sector })),
   },
   {
     titulo: "Aplicaciones web",

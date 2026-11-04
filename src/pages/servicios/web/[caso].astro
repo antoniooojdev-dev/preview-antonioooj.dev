@@ -8,7 +8,7 @@ import Clinica from "@/components/casos/Clinica.astro";
 import Gym from "@/components/casos/Gym.astro";
 import { casosDe, type Caso } from "@/data/casos";
 
-export const getStaticPaths = (() => casosDe("web").map((caso) => ({ params: { caso: caso.id }, props: { caso } }))) satisfies GetStaticPaths;
+export const getStaticPaths = (() => casosDe("web").filter((caso) => !caso.url).map((caso) => ({ params: { caso: caso.id }, props: { caso } }))) satisfies GetStaticPaths;
 
 interface Props {
   caso: Caso;
