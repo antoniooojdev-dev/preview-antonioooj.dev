@@ -211,7 +211,7 @@ export const serviceDetails: Record<string, ServiceDetail> = {
     ],
     incluye: [
       { t: "Pack vehículos", demo: "pack-vehiculos", icono: "car", d: "Concesionario con vendedor, gasolinera con manguera y velocímetro con cinturón. Con demos jugables y vídeos." },
-      { t: "Menú de handling", demo: "menu-handling", ver: "ver script", icono: "sliders", d: "Panel de admin para ajustar cualquier vehículo del servidor y aplicarlo a todos al momento. Con vídeo y capturas." },
+      { t: "Menú de handling", demo: "menu-handling", ver: "ver script", icono: "sliders", d: "Panel de admin para ajustar cualquier vehículo del servidor y aplicarlo a todos al momento. Para ESX Legacy, QBCore y Qbox." },
       { t: "ESX y QBCore", icono: "layers", d: "O standalone. Se integra con tu framework, inventario y target." },
       { t: "Anti-exploit", icono: "shield", d: "Validación en servidor de cada acción: dinero, objetos y distancias." },
       { t: "Interfaces NUI", icono: "monitor", d: "Menús y HUDs en HTML/CSS/JS con animaciones y tu identidad visual." },

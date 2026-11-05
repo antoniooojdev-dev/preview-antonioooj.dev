@@ -227,6 +227,7 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
                 ))}
               </ul>
 
+{s.galeria.length > 0 && (
               <ul role="list" class="galeria" data-galeria>
                 {s.galeria.map((g, j) => (
                   <li data-reveal style={`--i:${j}`}>
@@ -237,6 +238,7 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
                   </li>
                 ))}
               </ul>
+              )}
             </section>
           ))
         }
