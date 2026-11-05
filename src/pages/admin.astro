@@ -104,6 +104,7 @@ const dev = import.meta.env.DEV;
             <button type="button" class="pn-seccion" data-seccion="proyectos" aria-pressed="true"><Icono nombre="folder" size={17} /> Proyectos <span class="pn-seccion__n" data-dato="nProys"></span></button>
             <button type="button" class="pn-seccion" data-seccion="bots" aria-pressed="false"><Icono nombre="bot" size={17} /> Bots de Discord <span class="pn-seccion__n" data-dato="nBots"></span></button>
             <button type="button" class="pn-seccion" data-seccion="opiniones" aria-pressed="false"><Icono nombre="message" size={17} /> Opiniones <span class="pn-seccion__badge" data-dato="opinionesNav" hidden></span></button>
+            <button type="button" class="pn-seccion" data-seccion="estadisticas" aria-pressed="false"><Icono nombre="chart" size={17} /> Estadísticas</button>
             <button type="button" class="pn-seccion" data-seccion="estado" aria-pressed="false"><Icono nombre="clock" size={17} /> Mi estado</button>
             <a class="pn-seccion" href="/chat"><Icono nombre="message" size={17} /> Chat <span class="pn-seccion__badge" data-dato="sinLeerNav" hidden></span></a>
           </nav>
@@ -293,6 +294,9 @@ const dev = import.meta.env.DEV;
               <div class="pn-opver__body"></div>
             </dialog>
           </section>
+
+          <!-- Estadísticas de la web y consumo del servidor (lo pinta src/scripts/admin-estadisticas.ts) -->
+          <div class="est" data-panel="estadisticas" hidden aria-label="Estadísticas"></div>
 
           <!-- Mi estado («Ahora mismo» con su editor): en su pestaña, para que no salga al entrar -->
           <div data-panel="estado" hidden>

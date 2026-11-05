@@ -5,6 +5,7 @@
 
 import { cerrarSesion, urlLogin } from "@/scripts/sesion";
 import { icono } from "@/data/iconos";
+import { montarEstadisticas } from "@/scripts/admin-estadisticas";
 import { haceCuanto, tarjetaAviso, type Cambio, type DatosAviso, type ProyectoPublico } from "@/scripts/proyectos-ui";
 
 interface Yo {
@@ -1815,8 +1816,9 @@ function iniciar(panel: HTMLElement) {
 
   // ── secciones ──────────────────────────────
 
-  type Seccion = "proyectos" | "bots" | "estado" | "opiniones";
+  type Seccion = "proyectos" | "bots" | "estado" | "opiniones" | "estadisticas";
   let botsCargados = false;
+  let estadisticas: ReturnType<typeof montarEstadisticas> | null = null;
 
   async function irASeccion(s: Seccion) {
     if (s === "proyectos") salirDeNuevo();
@@ -1827,6 +1829,11 @@ function iniciar(panel: HTMLElement) {
     try {
       localStorage.setItem("aj-panel-seccion", s);
     } catch {}
+    // Estadísticas: se montan la primera vez y se refrescan solas mientras están a la vista
+    if (s === "estadisticas") {
+      estadisticas ??= montarEstadisticas($<HTMLElement>('[data-panel="estadisticas"]', panel), aviso);
+      estadisticas.mostrar();
+    } else estadisticas?.ocultar();
     // Las opiniones se piden cada vez que se abre su pestaña (pueden llegar nuevas)
     if (s === "opiniones") {
       cargarOpiniones().catch((e) => aviso(e instanceof Error ? e.message : "Error al cargar las opiniones", true));
@@ -1895,7 +1902,7 @@ function iniciar(panel: HTMLElement) {
     let inicial: Seccion = "proyectos";
     try {
       const guardada = localStorage.getItem("aj-panel-seccion");
-      if (guardada === "bots" || guardada === "estado" || guardada === "opiniones") inicial = guardada;
+      if (guardada === "bots" || guardada === "estado" || guardada === "opiniones" || guardada === "estadisticas") inicial = guardada;
     } catch {}
     if (location.hash.startsWith("#bot-")) inicial = "bots";
     irASeccion(inicial);

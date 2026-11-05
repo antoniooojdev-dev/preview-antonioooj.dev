@@ -19,6 +19,9 @@ export async function onRequest({ request, env }) {
   cabeceras.set("x-forwarded-for", ip);
   cabeceras.set("x-forwarded-proto", "https");
   cabeceras.set("x-proxy-secret", env.PROXY_SECRET);
+  // País del visitante (lo calcula Cloudflare) para las estadísticas del panel. Solo el código
+  // de dos letras; la IP no se guarda en ningún sitio.
+  cabeceras.set("x-pais", (request.cf && request.cf.country) || "");
   cabeceras.delete("host");
 
   try {

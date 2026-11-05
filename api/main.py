@@ -40,6 +40,7 @@ import notificar  # noqa: E402
 import transcripcion  # noqa: E402
 import tickets  # noqa: E402
 import opiniones  # noqa: E402
+import estadisticas  # noqa: E402
 
 DISCORD_API = "https://discord.com/api/v10"
 CLIENT_ID = (os.getenv("DISCORD_CLIENT_ID") or "").strip()
@@ -66,7 +67,10 @@ db.iniciar()
 async def ciclo_de_vida(_app):
     # Bot de Discord que sigue tu estado para «Sobre mí» (no hace nada sin DISCORD_BOT_TOKEN)
     presencia.arrancar()
+    # Estadísticas de /admin: cada minuto vuelca el contador de peticiones y mide CPU/RAM/red
+    estadisticas.arrancar()
     yield
+    await estadisticas.parar()
     await presencia.parar()
 
 
@@ -111,7 +115,14 @@ async def cabeceras(request: Request, call_next):
     # CSRF: lo que cambia datos solo se acepta si viene de la propia web
     if escribe and not seguridad.origen_valido(request.headers.get("origin"), request.headers.get("referer")):
         return JSONResponse({"detail": "Origen no permitido"}, status_code=403)
+    inicio = time.perf_counter()
     respuesta = await call_next(request)
+    # Consumo para las estadísticas del panel (solo cuenta; no guarda rutas ni IPs)
+    try:
+        enviados = int(respuesta.headers.get("content-length") or 0)
+    except ValueError:
+        enviados = 0
+    estadisticas.contar(respuesta.status_code, (time.perf_counter() - inicio) * 1000, enviados)
     # Mientras se usa la web, la sesión se alarga (hasta el máximo desde el login). Si la propia
     # ruta ya pone o borra la cookie (login, logout), manda la ruta.
     renovada = seguridad.renovacion(request.cookies.get(seguridad.COOKIE_SESION))
@@ -661,6 +672,8 @@ app.include_router(estado.crear_router(solo_admin))
 app.include_router(spotify.crear_router(solo_admin, API_URL, PUBLIC_URL))
 # Opiniones que dejan los visitantes desde la portada
 app.include_router(opiniones.crear_router(solo_admin, usuario_json))
+# Visitas de la web (anónimas, sin cookies) y consumo del servidor: pestaña «Estadísticas»
+app.include_router(estadisticas.crear_router(solo_admin, lambda uid: uid in ADMIN_IDS))
 
 
 @app.get("/api/health")
