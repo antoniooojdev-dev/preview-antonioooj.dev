@@ -2,7 +2,7 @@
 // segundos que digas. Sin ffmpeg: Chrome sin ventana reproduce el vídeo, lo pinta en un canvas
 // y lo graba con MediaRecorder (tarda lo mismo que dura el vídeo).
 //
-// Uso: node tools/fivem-video.mjs <video.mp4> <carpeta-salida> <nombre> [--probe] [--shots=3,12.5,40] [--no-video] [--kbps=2500] [--width=1600]
+// Uso: node tools/fivem-video.mjs <video.mp4> <carpeta-salida> <nombre> [--probe] [--shots=3,12.5,40] [--no-video] [--kbps=2500] [--width=1600] [--quality=0.82]
 //   --probe     solo dice duración y tamaño
 //   --shots     segundos de las capturas: <nombre>-01.webp, <nombre>-02.webp…
 import { spawn } from "node:child_process";
@@ -24,6 +24,7 @@ if (!src || !outDir || !name) {
 }
 const kbps = Number(opt("kbps") || 2500);
 const width = Number(opt("width") || 1600);
+const quality = Number(opt("quality") || 0.82);
 const shots = (opt("shots") || "").split(",").filter(Boolean).map(Number);
 mkdirSync(outDir, { recursive: true });
 
@@ -87,7 +88,7 @@ if (!args.includes("--probe")) {
   // Capturas
   for (const [i, t] of shots.entries()) {
     const b64 = await ev(`new Promise(ok => {
-      V.onseeked = () => { X.drawImage(V, 0, 0, C.width, C.height); C.toBlob(b => { const r = new FileReader(); r.onload = () => ok(r.result.split(',')[1]); r.readAsDataURL(b); }, 'image/webp', 0.82); };
+      V.onseeked = () => { X.drawImage(V, 0, 0, C.width, C.height); C.toBlob(b => { const r = new FileReader(); r.onload = () => ok(r.result.split(',')[1]); r.readAsDataURL(b); }, 'image/webp', ${quality}); };
       V.currentTime = ${Math.min(t, info.d - 0.05)};
     })`);
     const f = `${name}-${String(i + 1).padStart(2, "0")}.webp`;

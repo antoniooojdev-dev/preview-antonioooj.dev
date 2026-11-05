@@ -17,7 +17,7 @@ export interface ServiceDetail {
   lead: string;
   consiste: string[];
   /** demo: id de una demo propia (/servicios/<id>/<demo>), ver discordDemos */
-  incluye: { t: string; d: string; icono: string; demo?: string }[];
+  incluye: { t: string; d: string; icono: string; demo?: string; /** texto del enlace a la ficha; sin él, «probar demo» */ ver?: string }[];
   idealPara: string[];
   proceso: { t: string; d: string }[];
   /** video: en lugar del ejemplo interactivo va el vídeo (o «próximamente» si aún no hay src) */
@@ -211,7 +211,7 @@ export const serviceDetails: Record<string, ServiceDetail> = {
     ],
     incluye: [
       { t: "Pack vehículos", demo: "pack-vehiculos", icono: "car", d: "Concesionario con vendedor, gasolinera con manguera y velocímetro con cinturón. Con demos jugables y vídeos." },
-      { t: "Menú de handling", demo: "menu-handling", icono: "sliders", d: "Panel de admin para ajustar cualquier vehículo del servidor y aplicarlo a todos al momento. Con demo jugable y vídeo." },
+      { t: "Menú de handling", demo: "menu-handling", ver: "ver script", icono: "sliders", d: "Panel de admin para ajustar cualquier vehículo del servidor y aplicarlo a todos al momento. Con vídeo y capturas." },
       { t: "ESX y QBCore", icono: "layers", d: "O standalone. Se integra con tu framework, inventario y target." },
       { t: "Anti-exploit", icono: "shield", d: "Validación en servidor de cada acción: dinero, objetos y distancias." },
       { t: "Interfaces NUI", icono: "monitor", d: "Menús y HUDs en HTML/CSS/JS con animaciones y tu identidad visual." },

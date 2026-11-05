@@ -26,7 +26,8 @@ export interface PackScript {
   video: string;
   poster: string;
   galeria: PackShot[];
-  demo: { url: string; titulo: string; pasos: string[]; /** nota bajo los pasos; sin ella, la de las teclas */ nota?: string };
+  /** demo jugable; sin ella el script no sale en «pruébalo tú» ni lleva botones de probar */
+  demo?: { url: string; titulo: string; pasos: string[]; /** nota bajo los pasos; sin ella, la de las teclas */ nota?: string };
 }
 
 export interface Pack {
@@ -231,9 +232,6 @@ export const fivemPacks: Pack[] = [
     incluyeTitulo: ["Un panel, ", "cualquier vehículo"],
     encajanTitulo: ["Pensado para ", "el staff"],
     videoTexto: "Admincar · Panel de admin, grabado en el juego.",
-    portadaDemo: `${H}/admincar-03.webp`,
-    playSub:
-      "Es la misma NUI que corre dentro de FiveM, en el modo prueba del script: unos coches de ejemplo, sin juego detrás y sin guardar nada. Arriba puedes cambiar entre los estilos de la interfaz.",
     video: `${H}/admincar.webm`,
     scripts: [
       {
@@ -275,12 +273,6 @@ export const fivemPacks: Pack[] = [
           { src: `${H}/admincar-06.webp`, t: "Modo avanzado: todos los valores por apartados y con buscador" },
           { src: `${H}/admincar-07.webp`, t: "Registro de versiones: quién guardó qué y cuándo" },
         ],
-        demo: {
-          url: "/fivem/menu-handling/live/admincar/",
-          titulo: "Ajusta un coche",
-          pasos: ["Toca una plantilla o mueve las barras del ajuste rápido", "Pasa a «Avanzado» para ver todos los valores, o elige otro coche con la casita", "Guarda y mira la lista de cambios y el historial"],
-          nota: "Es el modo prueba: en la web no se conduce ni se guarda nada de verdad. Con «Ampliar» ves el editor en grande.",
-        },
       },
     ],
     encajan: [
@@ -298,7 +290,6 @@ export const fivemPacks: Pack[] = [
       { t: "En español", icono: "message", d: "Cada valor con su nombre y una explicación de qué hace, para que lo entienda cualquier admin." },
     ],
     faq: [
-      { q: "¿Lo que pruebo en la web es el script de verdad?", a: "La interfaz sí: es la misma del juego, en su modo prueba. Los coches de ejemplo y sus valores están simulados, y en la web no se conduce ni se guarda nada." },
       { q: "¿Funciona con coches addon?", a: "Sí. El selector lee los vehículos que tiene el servidor, también los que has añadido tú, y el botón «Sincronizar» vuelve a leerlos si metes uno nuevo." },
       { q: "¿Hay que reiniciar el servidor al guardar?", a: "No. El cambio se reparte al momento a todos los jugadores y se mantiene después de reiniciar, porque queda en la base de datos." },
       { q: "¿Puedo volver al handling de fábrica?", a: "Sí, con «Reiniciar ajustes», o recuperando cualquier versión anterior del historial." },

@@ -19,6 +19,9 @@ const { pack } = Astro.props;
 const contacto = `/contacto?tipo=${encodeURIComponent("Script FiveM")}`;
 const hero = pack.scripts[0];
 const uno = pack.scripts.length === 1;
+// scripts con demo jugable: sin ninguno no sale «pruébalo tú» ni los botones de probar
+const conDemo = pack.scripts.filter((s) => s.demo);
+const heroDemo = conDemo[0];
 const incluye = pack.incluyeTitulo ?? ["Tres scripts, ", "un mismo coche"];
 const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
 ---
@@ -41,8 +44,10 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
           {pack.chips.map((c) => <li>{c}</li>)}
         </ul>
         <div class="head-actions">
-          <a href="#probar" class="btn btn-primary"><Icono nombre="play" size={14} /> {uno ? "Probar la demo" : "Probar las demos"}</a>
-          <a href={contacto} class="btn btn-ghost">Pedir presupuesto</a>
+          {conDemo.length > 0 && (
+            <a href="#probar" class="btn btn-primary"><Icono nombre="play" size={14} /> {conDemo.length === 1 ? "Probar la demo" : "Probar las demos"}</a>
+          )}
+          <a href={contacto} class:list={["btn", conDemo.length > 0 ? "btn-ghost" : "btn-primary"]}>Pedir presupuesto</a>
         </div>
       </header>
 
@@ -93,7 +98,7 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
                 </ul>
                 <div class="script__foot mono">
                   <a href={`#${s.id}`}>ver desarrollo ↓</a>
-                  <button type="button" data-try={s.id}>▶ probar</button>
+                  {s.demo && <button type="button" data-try={s.id}>▶ probar</button>}
                 </div>
               </li>
             ))
@@ -102,6 +107,7 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
       </section>
 
       <!-- ── demos jugables ── -->
+      {heroDemo && (
       <section class="block play" id="probar">
         <div class="play-bg" aria-hidden="true"></div>
         <div class="play-head">
@@ -111,9 +117,9 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
           <p class="play-sub">{pack.playSub ?? "Es la misma NUI que corre dentro de FiveM. Lo de alrededor (el coche, el surtidor, la carretera y el servidor) está simulado para que puedas jugar sin instalar nada."}</p>
         </div>
 
-        <div class="tabs" role="tablist" aria-label="Demos del pack" hidden={uno}>
+        <div class="tabs" role="tablist" aria-label="Demos del pack" hidden={conDemo.length === 1}>
           {
-            pack.scripts.map((s, i) => (
+            conDemo.map((s, i) => (
               <button type="button" role="tab" class:list={["tab", { "is-on": i === 0 }]} aria-selected={i === 0 ? "true" : "false"} data-tab={s.id}>
                 <Icono nombre={s.icono} size={16} />
                 {s.nombre}
@@ -126,7 +132,7 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
           <div class="screen-frame">
             <div class="screen-bar mono">
               <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-              <span data-play-res>{hero.recurso}</span>
+              <span data-play-res>{heroDemo.recurso}</span>
               <span class="screen-actions">
                 <button type="button" data-reset title="Empezar de nuevo"><Icono nombre="refresh" size={14} /> reiniciar</button>
                 <button type="button" data-full title="Pantalla completa"><Icono nombre="monitor" size={14} /> pantalla completa</button>
@@ -143,19 +149,19 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
 
           <aside class="play-side">
             {
-              pack.scripts.map((s, i) => (
+              conDemo.map((s, i) => (
                 <div class="howto" data-howto={s.id} hidden={i !== 0}>
                   <span class="mono howto__k">cómo se juega</span>
-                  <h3>{s.demo.titulo}</h3>
+                  <h3>{s.demo!.titulo}</h3>
                   <ol role="list">
-                    {s.demo.pasos.map((p, j) => (
+                    {s.demo!.pasos.map((p, j) => (
                       <li>
                         <span class="mono">{j + 1}</span>
                         {p}
                       </li>
                     ))}
                   </ol>
-                  <p class="howto__note">{s.demo.nota ?? "Haz clic dentro de la pantalla para usar el teclado. También puedes pulsar las teclas que salen abajo a la izquierda."}</p>
+                  <p class="howto__note">{s.demo!.nota ?? "Haz clic dentro de la pantalla para usar el teclado. También puedes pulsar las teclas que salen abajo a la izquierda."}</p>
                 </div>
               ))
             }
@@ -163,6 +169,7 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
         </div>
         <p class="play-note mono">Demo de demostración: nada de lo que hagas aquí se guarda ni se envía.</p>
       </section>
+      )}
 
       <!-- ── desarrollo ── -->
       <section class="block">
@@ -203,9 +210,11 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
                 </div>
                 <div class="dev__text" data-reveal>
                   {s.desarrollo.map((p) => <p>{p}</p>)}
-                  <button type="button" class="btn btn-ghost dev__try" data-try={s.id}>
-                    <Icono nombre="play" size={14} /> Probar {s.nombre.toLowerCase()}
-                  </button>
+                  {s.demo && (
+                    <button type="button" class="btn btn-ghost dev__try" data-try={s.id}>
+                      <Icono nombre="play" size={14} /> Probar {s.nombre.toLowerCase()}
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -281,13 +290,15 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
         <div class="faq">
           {
             pack.faq.map((f, i) => (
-              <details class="faq__item">
+              <details class="faq__item" data-faq>
                 <summary>
                   <span class="faq__n mono">{String(i + 1).padStart(2, "0")}</span>
                   <span>{f.q}</span>
                   <span class="faq__plus" aria-hidden="true" />
                 </summary>
-                <p>{f.a}</p>
+                <div class="faq__body">
+                  <p>{f.a}</p>
+                </div>
               </details>
             ))
           }
@@ -304,73 +315,80 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
     </div>
 
     <!-- visor de capturas -->
-    <dialog class="lightbox" data-lightbox>
-      <button type="button" class="lb-close" data-lb-close aria-label="Cerrar">✕</button>
-      <button type="button" class="lb-nav lb-prev" data-lb-prev aria-label="Anterior">‹</button>
-      <figure>
-        <img alt="" data-lb-img />
-        <figcaption data-lb-cap></figcaption>
-      </figure>
-      <button type="button" class="lb-nav lb-next" data-lb-next aria-label="Siguiente">›</button>
+    <dialog class="lightbox" data-lightbox aria-label="Capturas">
+      <div class="lb-top">
+        <span class="lb-num mono" data-lb-num></span>
+        <button type="button" class="lb-close" data-lb-close aria-label="Cerrar">✕</button>
+      </div>
+      <div class="lb-stage" data-lb-stage>
+        <button type="button" class="lb-nav lb-prev" data-lb-prev aria-label="Anterior">‹</button>
+        <figure>
+          <img alt="" data-lb-img />
+          <figcaption data-lb-cap></figcaption>
+        </figure>
+        <button type="button" class="lb-nav lb-next" data-lb-next aria-label="Siguiente">›</button>
+      </div>
     </dialog>
   </article>
 </BaseLayout>
 
-<script define:vars={{ demos: pack.scripts.map((s) => ({ id: s.id, url: s.demo.url, recurso: s.recurso })) }}>
-  // ── Demos jugables: el iframe se pinta a 1920×1080 (como el juego) y se escala ──
-  const screen = document.querySelector("[data-screen]");
-  const frame = document.querySelector("[data-frame]");
-  const start = document.querySelector("[data-start]");
-  let actual = demos[0].id;
-  let cargada = false;
+<script define:vars={{ demos: conDemo.map((s) => ({ id: s.id, url: s.demo!.url, recurso: s.recurso })) }}>
+  if (demos.length) {
+    // ── Demos jugables: el iframe se pinta a 1920×1080 (como el juego) y se escala ──
+    const screen = document.querySelector("[data-screen]");
+    const frame = document.querySelector("[data-frame]");
+    const start = document.querySelector("[data-start]");
+    let actual = demos[0].id;
+    let cargada = false;
 
-  function escalar() {
-    const s = screen.clientWidth / 1920;
-    frame.style.transform = `scale(${s})`;
-  }
-  new ResizeObserver(escalar).observe(screen);
-  escalar();
+    function escalar() {
+      const s = screen.clientWidth / 1920;
+      frame.style.transform = `scale(${s})`;
+    }
+    new ResizeObserver(escalar).observe(screen);
+    escalar();
 
-  function cargar(id, foco) {
-    const d = demos.find((x) => x.id === id);
-    actual = id;
-    cargada = true;
-    frame.src = d.url;
-    start.hidden = true;
-    document.querySelector("[data-play-res]").textContent = d.recurso;
-    if (foco) frame.addEventListener("load", () => frame.focus(), { once: true });
-  }
+    function cargar(id, foco) {
+      const d = demos.find((x) => x.id === id);
+      actual = id;
+      cargada = true;
+      frame.src = d.url;
+      start.hidden = true;
+      document.querySelector("[data-play-res]").textContent = d.recurso;
+      if (foco) frame.addEventListener("load", () => frame.focus(), { once: true });
+    }
 
-  function elegir(id, cargarYa) {
-    document.querySelectorAll("[data-tab]").forEach((t) => {
-      const on = t.dataset.tab === id;
-      t.classList.toggle("is-on", on);
-      t.setAttribute("aria-selected", on ? "true" : "false");
+    function elegir(id, cargarYa) {
+      document.querySelectorAll("[data-tab]").forEach((t) => {
+        const on = t.dataset.tab === id;
+        t.classList.toggle("is-on", on);
+        t.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      document.querySelectorAll("[data-howto]").forEach((h) => (h.hidden = h.dataset.howto !== id));
+      if (cargarYa || cargada) cargar(id);
+      else actual = id;
+    }
+
+    document.querySelectorAll("[data-tab]").forEach((t) => t.addEventListener("click", () => elegir(t.dataset.tab, cargada)));
+    start.addEventListener("click", () => cargar(actual, true));
+    document.querySelector("[data-reset]").addEventListener("click", () => {
+      if (cargada) frame.contentWindow.postMessage({ demo: "reset" }, location.origin);
     });
-    document.querySelectorAll("[data-howto]").forEach((h) => (h.hidden = h.dataset.howto !== id));
-    if (cargarYa || cargada) cargar(id);
-    else actual = id;
+    document.querySelector("[data-full]").addEventListener("click", () => {
+      if (!cargada) cargar(actual);
+      const el = screen;
+      (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
+    });
+    document.addEventListener("fullscreenchange", escalar);
+
+    // «Probar» desde las tarjetas y el desarrollo
+    document.querySelectorAll("[data-try]").forEach((b) =>
+      b.addEventListener("click", () => {
+        elegir(b.dataset.try, true);
+        document.getElementById("probar").scrollIntoView({ behavior: "smooth", block: "start" });
+      }),
+    );
   }
-
-  document.querySelectorAll("[data-tab]").forEach((t) => t.addEventListener("click", () => elegir(t.dataset.tab, cargada)));
-  start.addEventListener("click", () => cargar(actual, true));
-  document.querySelector("[data-reset]").addEventListener("click", () => {
-    if (cargada) frame.contentWindow.postMessage({ demo: "reset" }, location.origin);
-  });
-  document.querySelector("[data-full]").addEventListener("click", () => {
-    if (!cargada) cargar(actual);
-    const el = screen;
-    (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
-  });
-  document.addEventListener("fullscreenchange", escalar);
-
-  // «Probar» desde las tarjetas y el desarrollo
-  document.querySelectorAll("[data-try]").forEach((b) =>
-    b.addEventListener("click", () => {
-      elegir(b.dataset.try, true);
-      document.getElementById("probar").scrollIntoView({ behavior: "smooth", block: "start" });
-    }),
-  );
 
   // ── Vídeos: solo se reproducen mientras se ven ──
   const vids = document.querySelectorAll("video[data-autoplay]");
@@ -388,31 +406,117 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
   );
   vids.forEach((v) => io.observe(v));
 
-  // ── Visor de capturas ──
+  const suave = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ── Visor de capturas: se abre y se cierra con animación, flechas, teclado y deslizar ──
   const lb = document.querySelector("[data-lightbox]");
+  const lbImg = lb.querySelector("[data-lb-img]");
+  const lbCap = lb.querySelector("[data-lb-cap]");
+  const lbNum = lb.querySelector("[data-lb-num]");
   const shots = [...document.querySelectorAll("[data-shot]")];
   let idx = 0;
-  function ver(i) {
+  function ver(i, dir = 0) {
     idx = (i + shots.length) % shots.length;
     const b = shots[idx];
-    lb.querySelector("[data-lb-img]").src = b.dataset.shot;
-    lb.querySelector("[data-lb-img]").alt = b.dataset.caption;
-    lb.querySelector("[data-lb-cap]").textContent = b.dataset.caption;
+    const poner = () => {
+      lbImg.src = b.dataset.shot;
+      lbImg.alt = b.dataset.caption;
+      lbCap.textContent = b.dataset.caption;
+      lbNum.textContent = `${idx + 1} / ${shots.length}`;
+    };
+    if (!dir || !suave || !lb.open) return poner();
+    lbImg.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: `translateX(${-24 * dir}px)` }], { duration: 140, easing: "ease-in" }).finished.then(() => {
+      poner();
+      const entra = () => lbImg.animate([{ opacity: 0, transform: `translateX(${24 * dir}px)` }, { opacity: 1, transform: "none" }], { duration: 260, easing: "cubic-bezier(0.16, 1, 0.3, 1)" });
+      lbImg.complete ? entra() : lbImg.addEventListener("load", entra, { once: true });
+    });
   }
-  shots.forEach((b, i) =>
-    b.addEventListener("click", () => {
-      ver(i);
-      lb.showModal();
+  // precarga las vecinas para que al pasar no haya espera
+  function precargar() {
+    [idx + 1, idx - 1].forEach((k) => (new Image().src = shots[(k + shots.length) % shots.length].dataset.shot));
+  }
+  function abrir(i) {
+    ver(i);
+    lb.classList.remove("is-closing");
+    lb.showModal();
+    document.documentElement.style.overflow = "hidden";
+    precargar();
+  }
+  function cerrar() {
+    if (!lb.open || lb.classList.contains("is-closing")) return;
+    const fin = () => {
+      lb.classList.remove("is-closing");
+      lb.close();
+      document.documentElement.style.overflow = "";
+    };
+    if (!suave) return fin();
+    lb.classList.add("is-closing");
+    setTimeout(fin, 220);
+  }
+  const pasar = (d) => {
+    ver(idx + d, d);
+    precargar();
+  };
+  shots.forEach((b, i) => b.addEventListener("click", () => abrir(i)));
+  lb.querySelector("[data-lb-close]").addEventListener("click", cerrar);
+  lb.querySelector("[data-lb-prev]").addEventListener("click", () => pasar(-1));
+  lb.querySelector("[data-lb-next]").addEventListener("click", () => pasar(1));
+  // clic fuera de la imagen (en el fondo) cierra
+  lb.addEventListener("click", (e) => {
+    if (e.target === lb || e.target.matches("[data-lb-stage], figure")) cerrar();
+  });
+  lb.addEventListener("cancel", (e) => {
+    e.preventDefault();
+    cerrar();
+  });
+  lb.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") pasar(-1);
+    if (e.key === "ArrowRight") pasar(1);
+  });
+  let x0 = null;
+  lb.addEventListener("touchstart", (e) => (x0 = e.touches[0].clientX), { passive: true });
+  lb.addEventListener("touchend", (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) pasar(dx < 0 ? 1 : -1);
+    x0 = null;
+  });
+
+  // ── Preguntas frecuentes: una abierta a la vez, abrir y cerrar con animación ──
+  const faqs = [...document.querySelectorAll("[data-faq]")];
+  const anims = new WeakMap();
+  function animar(item, abrirla) {
+    const cuerpo = item.querySelector(".faq__body");
+    anims.get(item)?.cancel();
+    if (abrirla) item.open = true;
+    item.classList.toggle("is-open", abrirla);
+    if (!suave) {
+      if (!abrirla) item.open = false;
+      return;
+    }
+    const alto = cuerpo.scrollHeight;
+    const desde = abrirla ? 0 : cuerpo.getBoundingClientRect().height;
+    const a = cuerpo.animate(
+      [
+        { height: `${desde}px`, opacity: abrirla ? 0 : 1 },
+        { height: `${abrirla ? alto : 0}px`, opacity: abrirla ? 1 : 0 },
+      ],
+      { duration: abrirla ? 380 : 280, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+    );
+    anims.set(item, a);
+    a.onfinish = () => {
+      anims.delete(item);
+      if (!abrirla) item.open = false;
+    };
+  }
+  faqs.forEach((item) =>
+    item.querySelector("summary").addEventListener("click", (e) => {
+      e.preventDefault();
+      const abrirla = !item.classList.contains("is-open");
+      if (abrirla) faqs.forEach((o) => o !== item && o.classList.contains("is-open") && animar(o, false));
+      animar(item, abrirla);
     }),
   );
-  lb.querySelector("[data-lb-close]").addEventListener("click", () => lb.close());
-  lb.querySelector("[data-lb-prev]").addEventListener("click", () => ver(idx - 1));
-  lb.querySelector("[data-lb-next]").addEventListener("click", () => ver(idx + 1));
-  lb.addEventListener("click", (e) => e.target === lb && lb.close());
-  lb.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowLeft") ver(idx - 1);
-    if (e.key === "ArrowRight") ver(idx + 1);
-  });
 </script>
 
 <style>
@@ -1215,7 +1319,7 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
 
   .galeria {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
     gap: var(--space-3);
     margin-top: var(--space-6);
   }
@@ -1313,7 +1417,11 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
     background: var(--bg-elev);
   }
 
-  .faq__item[open] {
+  .faq__item {
+    transition: border-color 0.3s ease;
+  }
+
+  .faq__item.is-open {
     border-color: color-mix(in srgb, var(--acc) 45%, var(--border));
   }
 
@@ -1363,15 +1471,19 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
     transition: transform 0.35s;
   }
 
-  .faq__item[open] .faq__plus {
+  .faq__item.is-open .faq__plus {
     transform: rotate(180deg);
     background: var(--acc);
     border-color: var(--acc);
     color: #fff;
   }
 
-  .faq__item[open] .faq__plus::after {
+  .faq__item.is-open .faq__plus::after {
     transform: rotate(0deg);
+  }
+
+  .faq__body {
+    overflow: hidden;
   }
 
   .faq__item p {
@@ -1406,39 +1518,89 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
   }
 
   /* ── visor de capturas ── */
+  /* visor a pantalla completa: la captura lo más grande posible sin recortarse */
   .lightbox {
-    width: min(96vw, 1400px);
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;
     max-width: none;
     max-height: none;
+    margin: 0;
     padding: 0;
     border: 0;
     background: transparent;
     color: #fff;
-    overflow: visible;
-  }
-
-  .lightbox::backdrop {
-    background: rgb(0 0 0 / 0.85);
-    backdrop-filter: blur(6px);
+    overflow: hidden;
   }
 
   .lightbox[open] {
-    animation: lb-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    animation: lb-fade 0.3s ease both;
+  }
+
+  .lightbox::backdrop {
+    background: rgb(5 5 8 / 0.92);
+    backdrop-filter: blur(10px);
+    animation: lb-fade 0.3s ease both;
+  }
+
+  .lightbox.is-closing,
+  .lightbox.is-closing::backdrop {
+    animation: lb-fade-out 0.22s ease both;
+  }
+
+  .lb-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-5) 0;
+  }
+
+  .lb-num {
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    color: #a1a1aa;
+  }
+
+  .lb-stage {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    padding: var(--space-3) clamp(1rem, 5vw, 5.5rem) var(--space-5);
   }
 
   .lightbox figure {
     margin: 0;
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    max-width: 100%;
+    max-height: 100%;
+    animation: lb-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .lightbox.is-closing figure {
+    animation: lb-out 0.22s ease-in both;
   }
 
   .lightbox img {
-    width: 100%;
-    max-height: 82vh;
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: min(100%, 1920px);
+    max-height: calc(100dvh - 9.5rem);
     object-fit: contain;
-    border-radius: 14px;
+    border-radius: 12px;
+    border: 1px solid rgb(255 255 255 / 0.1);
+    box-shadow: 0 40px 120px -30px rgb(0 0 0 / 0.9);
+    background: #0b0c10;
   }
 
   .lightbox figcaption {
-    margin-top: var(--space-3);
     text-align: center;
     font-size: var(--fs-sm);
     color: #d4d4d8;
@@ -1446,37 +1608,59 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
 
   .lb-close,
   .lb-nav {
-    position: absolute;
     display: grid;
     place-items: center;
     width: 2.75rem;
     height: 2.75rem;
     border-radius: 50%;
-    background: rgb(255 255 255 / 0.12);
+    background: rgb(255 255 255 / 0.1);
+    border: 1px solid rgb(255 255 255 / 0.12);
     color: #fff;
     font-size: 1.4rem;
-    transition: background 0.2s;
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      transform 0.2s;
+  }
+
+  .lb-close {
+    font-size: 1rem;
   }
 
   .lb-close:hover,
   .lb-nav:hover {
     background: var(--acc);
-  }
-
-  .lb-close {
-    top: -3.4rem;
-    right: 0;
-    font-size: 1rem;
+    transform: scale(1.06);
   }
 
   .lb-nav {
+    position: absolute;
     top: 50%;
     translate: 0 -50%;
     z-index: 1;
   }
 
-  .lb-prev { left: 0.75rem; }
-  .lb-next { right: 0.75rem; }
+  .lb-nav:hover {
+    transform: scale(1.06);
+  }
+
+  .lb-prev { left: clamp(0.5rem, 1.5vw, 1.5rem); }
+  .lb-next { right: clamp(0.5rem, 1.5vw, 1.5rem); }
+
+  @media (max-width: 36rem) {
+    .lb-stage {
+      padding-inline: var(--space-2);
+    }
+    .lb-nav {
+      top: auto;
+      bottom: var(--space-2);
+      translate: none;
+    }
+  }
+
+  .galeria button {
+    cursor: zoom-in;
+  }
 
   /* ── animaciones ── */
   @property --ang {
@@ -1516,7 +1700,29 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
   }
 
   @keyframes lb-in {
-    from { opacity: 0; transform: scale(0.96); }
+    from { opacity: 0; transform: translateY(14px) scale(0.94); }
+  }
+
+  @keyframes lb-out {
+    to { opacity: 0; transform: translateY(8px) scale(0.96); }
+  }
+
+  @keyframes lb-fade {
+    from { opacity: 0; }
+  }
+
+  @keyframes lb-fade-out {
+    to { opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lightbox[open],
+    .lightbox::backdrop,
+    .lightbox figure,
+    .lightbox.is-closing,
+    .lightbox.is-closing figure {
+      animation: none;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

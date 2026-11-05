@@ -150,7 +150,7 @@ const video = detail.demo.video;
                         </span>
                         {x.demo ? (
                           <span class="inc__check inc__try mono" aria-hidden="true">
-                            ▶ probar demo <Icono nombre="arrow" size={13} />
+                            {x.ver ? `▶ ${x.ver}` : "▶ probar demo"} <Icono nombre="arrow" size={13} />
                           </span>
                         ) : (
                           <span class="inc__check mono" aria-hidden="true">
