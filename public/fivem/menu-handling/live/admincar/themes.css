@@ -1,0 +1,277 @@
+/* Admincar · estilos alternativos (se prueban con /prueba). --white = color de acento, --bg = texto sobre el acento */
+
+/* ===== Barra del modo prueba ===== */
+#demo-bar {
+    position: absolute; top: 18px; left: 492px; z-index: 50;
+    display: flex; align-items: center; gap: 12px; padding: 7px 8px 7px 12px;
+    border-radius: 16px; background: rgba(12, 13, 16, 0.94); border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5); color: #ececee; font-family: 'Inter', sans-serif;
+    animation: fadeUp 0.35s var(--ease);
+}
+.db-tag { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #f5c451; }
+.db-themes { display: flex; gap: 4px; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, 0.06); }
+.db-t { display: flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 9px; font-size: 12px; font-weight: 700; color: #9a9ca3; transition: 0.15s; }
+.db-t:hover { color: #fff; }
+.db-t.on { color: #111215; background: #fff; }
+.db-desc { min-width: 190px; padding-right: 6px; font-size: 11.5px; color: #9a9ca3; }
+
+/* ===================================================================== */
+/* 1 · PISTA: grafito cálido con naranja de carreras                       */
+/* ===================================================================== */
+body[data-theme="pista"] {
+    --bg: #1a0f02; --bg-1: #1b1a19; --bg-2: #22201e; --bg-3: #2b2825; --bg-4: #36322e;
+    --line: #2c2926; --line-2: #403a34;
+    --white: #ff8a1f; --text: #f3efea; --muted: #a59d94; --dim: #6c645b;
+    --amber: #ffd166; --ok: #7ee081; --bad: #ff6b5b;
+}
+body[data-theme="pista"] .panel,
+body[data-theme="pista"] .picker {
+    background: linear-gradient(180deg, rgba(26, 24, 22, 0.98), rgba(17, 16, 15, 0.98));
+    border-color: #3a332c;
+}
+body[data-theme="pista"] .panel::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; z-index: 20;
+    background: repeating-linear-gradient(90deg, #ff8a1f 0 18px, #1b1a19 18px 24px);
+}
+body[data-theme="pista"] .adv-tools { background: rgba(22, 20, 19, 0.98); }
+body[data-theme="pista"] .drive,
+body[data-theme="pista"] .toast { background: rgba(22, 20, 19, 0.96); border-color: #3a332c; }
+body[data-theme="pista"] .hd h1 { font-style: italic; letter-spacing: -0.02em; }
+body[data-theme="pista"] .btn.primary { background: linear-gradient(180deg, #ff9a3c, #f06d00); border-color: #f06d00; box-shadow: 0 6px 18px rgba(255, 122, 0, 0.3); }
+body[data-theme="pista"] .rpm i.red { background: #ff3b30; }
+body[data-theme="pista"] .lb-card { background: radial-gradient(120% 90% at 50% 100%, #3a2a1a 0%, #141210 70%); }
+
+/* ===================================================================== */
+/* 2 · NEÓN: azul noche con cian brillante                                 */
+/* ===================================================================== */
+body[data-theme="neon"] {
+    --bg: #021219; --bg-1: #0e1424; --bg-2: #131a2d; --bg-3: #1a2238; --bg-4: #232c46;
+    --line: #1c2540; --line-2: #2b3658;
+    --white: #22d3ee; --text: #e6ecff; --muted: #8b97ba; --dim: #56628a;
+    --amber: #f472b6; --ok: #34d399; --bad: #fb7185;
+}
+body[data-theme="neon"] .panel,
+body[data-theme="neon"] .picker {
+    background:
+        radial-gradient(120% 60% at 0% 0%, rgba(34, 211, 238, 0.10), transparent 60%),
+        radial-gradient(100% 50% at 100% 100%, rgba(168, 85, 247, 0.12), transparent 60%),
+        rgba(9, 13, 25, 0.97);
+    border-color: rgba(34, 211, 238, 0.22);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(34, 211, 238, 0.08);
+}
+body[data-theme="neon"] .adv-tools { background: rgba(10, 14, 27, 0.98); }
+body[data-theme="neon"] .drive,
+body[data-theme="neon"] .toast { background: rgba(9, 13, 25, 0.96); border-color: rgba(34, 211, 238, 0.25); }
+body[data-theme="neon"] .btn.primary,
+body[data-theme="neon"] .mode-ink,
+body[data-theme="neon"] .groups button.active { background: linear-gradient(90deg, #22d3ee, #818cf8); border-color: transparent; box-shadow: 0 0 18px rgba(34, 211, 238, 0.35); }
+body[data-theme="neon"] .rpm i,
+body[data-theme="neon"] .pf-bar i,
+body[data-theme="neon"] .rng .fill { background: linear-gradient(90deg, #22d3ee, #a855f7); box-shadow: 0 0 10px rgba(34, 211, 238, 0.6); }
+body[data-theme="neon"] input[type=range]::-webkit-slider-thumb { box-shadow: 0 0 0 1px var(--line-2), 0 0 12px rgba(34, 211, 238, 0.8); }
+body[data-theme="neon"] .tl-speed b { color: #22d3ee; text-shadow: 0 0 14px rgba(34, 211, 238, 0.6); }
+body[data-theme="neon"] .hd-ico,
+body[data-theme="neon"] .pk-ico { box-shadow: 0 0 16px rgba(34, 211, 238, 0.45); }
+body[data-theme="neon"] .lb-card { background: radial-gradient(120% 90% at 50% 100%, #1b2550 0%, #080c18 70%); }
+
+/* ===================================================================== */
+/* 3 · CLARO: blanco con azul                                              */
+/* ===================================================================== */
+body[data-theme="claro"] {
+    --bg: #ffffff; --bg-1: #f3f5f9; --bg-2: #eceff5; --bg-3: #e3e7ef; --bg-4: #d6dbe6;
+    --line: #e1e5ed; --line-2: #c9d0dc;
+    --white: #2563eb; --text: #141821; --muted: #5d6577; --dim: #8b93a5;
+    --amber: #d97706; --ok: #16a34a; --bad: #dc2626;
+}
+body[data-theme="claro"] .panel,
+body[data-theme="claro"] .picker { background: rgba(255, 255, 255, 0.98); border-color: #dfe3ea; box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35); }
+body[data-theme="claro"] .adv-tools { background: rgba(255, 255, 255, 0.98); }
+body[data-theme="claro"] .drive,
+body[data-theme="claro"] .toast,
+body[data-theme="claro"] .cf-card { background: rgba(255, 255, 255, 0.98); border-color: #dfe3ea; color: var(--text); }
+body[data-theme="claro"] .hd-img img,
+body[data-theme="claro"] .lb-card img { filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.2)); }
+body[data-theme="claro"] .lb-card { background: radial-gradient(120% 90% at 50% 100%, #e6ebf5 0%, #ffffff 70%); }
+body[data-theme="claro"] .btn.primary { box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28); }
+body[data-theme="claro"] kbd { color: var(--text); }
+body[data-theme="claro"] ::-webkit-scrollbar-thumb { background: #c9d0dc; }
+
+/* Con «Ampliar» el panel ocupa todo el ancho: se baja un poco y la barra queda encima */
+body.demo #app.big .panel { top: 76px; }
+body.demo #app.big ~ #demo-bar { left: 18px; }
+
+/* Con muchos estilos la barra se parte en dos líneas si no cabe */
+#demo-bar { max-width: calc(100vw - 510px); flex-wrap: wrap; }
+.db-themes { flex-wrap: wrap; }
+
+/* ===================================================================== */
+/* 4 · CARBONO: negro fibra de carbono con rojo, esquinas rectas           */
+/* ===================================================================== */
+body[data-theme="carbono"] {
+    --bg: #ffffff; --bg-1: #141414; --bg-2: #1a1a1a; --bg-3: #222222; --bg-4: #2c2c2c;
+    --line: #242424; --line-2: #363636;
+    --white: #e10600; --text: #f2f2f2; --muted: #9b9b9b; --dim: #626262;
+    --amber: #ffb703; --ok: #4ade80; --bad: #ff4d4d;
+}
+body[data-theme="carbono"] .panel,
+body[data-theme="carbono"] .picker {
+    background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.018) 0 2px, transparent 2px 4px),
+        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.25) 0 2px, transparent 2px 4px),
+        rgba(12, 12, 12, 0.98);
+    border-color: #2a2a2a; border-radius: 8px;
+}
+body[data-theme="carbono"] .panel::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 3px; background: #e10600; z-index: 20; }
+body[data-theme="carbono"] .adv-tools { background: rgba(14, 14, 14, 0.98); }
+body[data-theme="carbono"] .drive,
+body[data-theme="carbono"] .toast { background: rgba(12, 12, 12, 0.96); border-color: #2a2a2a; border-radius: 8px; }
+body[data-theme="carbono"] .btn, body[data-theme="carbono"] .ibtn, body[data-theme="carbono"] .tpl,
+body[data-theme="carbono"] .row, body[data-theme="carbono"] .macro, body[data-theme="carbono"] .groups button,
+body[data-theme="carbono"] .modes, body[data-theme="carbono"] .modes button, body[data-theme="carbono"] .mode-ink,
+body[data-theme="carbono"] .tele > div, body[data-theme="carbono"] .search, body[data-theme="carbono"] .hd-img,
+body[data-theme="carbono"] .expand-btn, body[data-theme="carbono"] .hd-ico { border-radius: 4px; }
+body[data-theme="carbono"] .hd h1, body[data-theme="carbono"] .kicker { text-transform: uppercase; letter-spacing: 0.06em; }
+body[data-theme="carbono"] .btn.primary { box-shadow: 0 6px 18px rgba(225, 6, 0, 0.35); }
+
+/* ===================================================================== */
+/* 5 · ESMERALDA: verde muy oscuro con lima                                */
+/* ===================================================================== */
+body[data-theme="esmeralda"] {
+    --bg: #0a1f0d; --bg-1: #0f1a14; --bg-2: #13211a; --bg-3: #1a2b22; --bg-4: #22362b;
+    --line: #1a2a21; --line-2: #2a4033;
+    --white: #a3e635; --text: #e8f5ec; --muted: #8fa89a; --dim: #587063;
+    --amber: #facc15; --ok: #4ade80; --bad: #f87171;
+}
+body[data-theme="esmeralda"] .panel,
+body[data-theme="esmeralda"] .picker {
+    background: radial-gradient(120% 50% at 50% 0%, rgba(163, 230, 53, 0.08), transparent 60%), rgba(9, 16, 12, 0.97);
+    border-color: #1f3328;
+}
+body[data-theme="esmeralda"] .adv-tools { background: rgba(10, 18, 13, 0.98); }
+body[data-theme="esmeralda"] .drive,
+body[data-theme="esmeralda"] .toast { background: rgba(9, 16, 12, 0.96); border-color: #1f3328; }
+body[data-theme="esmeralda"] .tl-speed b { color: #a3e635; }
+body[data-theme="esmeralda"] .btn.primary { box-shadow: 0 6px 18px rgba(163, 230, 53, 0.22); }
+
+/* ===================================================================== */
+/* 6 · ORO: negro de lujo con dorado                                       */
+/* ===================================================================== */
+body[data-theme="oro"] {
+    --bg: #1a1305; --bg-1: #151412; --bg-2: #1b1a17; --bg-3: #23211d; --bg-4: #2d2a25;
+    --line: #25231f; --line-2: #3a362e;
+    --white: #d4af37; --text: #f5efe0; --muted: #a39b88; --dim: #6b6455;
+    --amber: #f5c451; --ok: #86efac; --bad: #f87171;
+}
+body[data-theme="oro"] .panel,
+body[data-theme="oro"] .picker { background: linear-gradient(180deg, rgba(22, 20, 17, 0.98), rgba(12, 11, 10, 0.98)); border-color: rgba(212, 175, 55, 0.28); }
+body[data-theme="oro"] .adv-tools { background: rgba(19, 17, 15, 0.98); }
+body[data-theme="oro"] .drive,
+body[data-theme="oro"] .toast { background: rgba(14, 13, 11, 0.96); border-color: rgba(212, 175, 55, 0.3); }
+body[data-theme="oro"] .hd h1 { font-family: Georgia, serif; font-weight: 700; font-size: 19px; letter-spacing: 0.01em; }
+body[data-theme="oro"] .kicker { color: #b8962e; }
+body[data-theme="oro"] .btn.primary, body[data-theme="oro"] .mode-ink, body[data-theme="oro"] .groups button.active,
+body[data-theme="oro"] .hd-ico, body[data-theme="oro"] .pk-ico { background: linear-gradient(135deg, #f3d77a, #b8902a); border-color: transparent; }
+body[data-theme="oro"] .rpm i, body[data-theme="oro"] .pf-bar i, body[data-theme="oro"] .rng .fill { background: linear-gradient(90deg, #b8902a, #f3d77a); }
+
+/* ===================================================================== */
+/* 7 · SYNTHWAVE: morado y rosa de los 80                                  */
+/* ===================================================================== */
+body[data-theme="synth"] {
+    --bg: #2a0420; --bg-1: #1a1030; --bg-2: #20143a; --bg-3: #2a1a4a; --bg-4: #352259;
+    --line: #2a1b47; --line-2: #3d2a66;
+    --white: #ff4fd8; --text: #f6ecff; --muted: #a895c8; --dim: #6c5a8e;
+    --amber: #ffd23f; --ok: #3ef2c2; --bad: #ff5c7a;
+}
+body[data-theme="synth"] .panel,
+body[data-theme="synth"] .picker {
+    background:
+        linear-gradient(180deg, transparent 70%, rgba(255, 79, 216, 0.10)),
+        repeating-linear-gradient(0deg, rgba(255, 79, 216, 0.05) 0 1px, transparent 1px 28px),
+        linear-gradient(180deg, rgba(24, 12, 46, 0.98), rgba(14, 7, 28, 0.98));
+    border-color: rgba(255, 79, 216, 0.3);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 36px rgba(255, 79, 216, 0.15);
+}
+body[data-theme="synth"] .adv-tools { background: rgba(22, 11, 42, 0.98); }
+body[data-theme="synth"] .drive,
+body[data-theme="synth"] .toast { background: rgba(18, 9, 36, 0.96); border-color: rgba(255, 79, 216, 0.35); }
+body[data-theme="synth"] .btn.primary, body[data-theme="synth"] .mode-ink, body[data-theme="synth"] .groups button.active {
+    background: linear-gradient(90deg, #ff4fd8, #ff9a3c); border-color: transparent; box-shadow: 0 0 18px rgba(255, 79, 216, 0.4);
+}
+body[data-theme="synth"] .rpm i, body[data-theme="synth"] .pf-bar i, body[data-theme="synth"] .rng .fill { background: linear-gradient(90deg, #7b5cff, #ff4fd8, #ff9a3c); }
+body[data-theme="synth"] .tl-speed b { color: #ff9a3c; text-shadow: 0 0 14px rgba(255, 154, 60, 0.6); }
+body[data-theme="synth"] .hd h1 { font-style: italic; text-shadow: 0 0 12px rgba(255, 79, 216, 0.5); }
+
+/* ===================================================================== */
+/* 8 · CRISTAL: panel translúcido, se ve el juego detrás                   */
+/* ===================================================================== */
+body[data-theme="cristal"] {
+    --bg: #0b1220; --bg-1: rgba(255, 255, 255, 0.07); --bg-2: rgba(255, 255, 255, 0.10); --bg-3: rgba(255, 255, 255, 0.14); --bg-4: rgba(255, 255, 255, 0.2);
+    --line: rgba(255, 255, 255, 0.12); --line-2: rgba(255, 255, 255, 0.22);
+    --white: #ffffff; --text: #ffffff; --muted: rgba(255, 255, 255, 0.75); --dim: rgba(255, 255, 255, 0.5);
+    --amber: #fde047; --ok: #86efac; --bad: #fca5a5;
+}
+body[data-theme="cristal"] .panel {
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04) 40%, rgba(10, 14, 24, 0.5));
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+body[data-theme="cristal"] .picker { background: rgba(16, 22, 36, 0.9); }
+body[data-theme="cristal"] .adv-tools { background: rgba(30, 36, 50, 0.85); }
+body[data-theme="cristal"] .drive,
+body[data-theme="cristal"] .toast { background: rgba(20, 26, 40, 0.6); border-color: rgba(255, 255, 255, 0.25); }
+body[data-theme="cristal"] .btn.primary, body[data-theme="cristal"] .mode-ink { text-shadow: none; }
+
+/* ===================================================================== */
+/* Barra del modo prueba en dos líneas: estilos y tarjetas               */
+/* ===================================================================== */
+#demo-bar { flex-direction: column; align-items: stretch; gap: 6px; padding: 7px 8px 7px 12px; }
+.db-line { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.db-line .db-tag { min-width: 128px; }
+.db-c { padding: 7px 12px; border-radius: 9px; font-size: 12px; font-weight: 700; color: #9a9ca3; transition: 0.15s; }
+.db-c:hover { color: #fff; }
+.db-c.on { color: #111215; background: #fff; }
+
+/* ===================================================================== */
+/* Diseños de las tarjetas de plantillas (Confort, Deportivo…)           */
+/* ===================================================================== */
+
+/* A · FILA: icono en cuadro a la izquierda, texto al lado, 2 columnas */
+body[data-card="fila"] .tpls { grid-template-columns: repeat(2, 1fr); }
+body[data-card="fila"] .tpl { flex-direction: row; align-items: center; gap: 11px; padding: 10px 11px; }
+body[data-card="fila"] .tpl-ico { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--bg-3); flex-shrink: 0; transition: 0.15s; }
+body[data-card="fila"] .tpl-ico i { font-size: 15px; }
+body[data-card="fila"] .tpl-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+body[data-card="fila"] .tpl:hover .tpl-ico { background: var(--white); }
+body[data-card="fila"] .tpl:hover .tpl-ico i { color: var(--bg); }
+body[data-card="fila"] #app.big .tpls { grid-template-columns: repeat(3, 1fr); }
+
+/* B · CENTRADA: icono grande en un círculo, todo centrado */
+body[data-card="centro"] .tpl { align-items: center; text-align: center; gap: 7px; padding: 14px 8px 12px; }
+body[data-card="centro"] .tpl-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--bg-3); border: 1px solid var(--line-2); transition: 0.2s; }
+body[data-card="centro"] .tpl-ico i { font-size: 17px; }
+body[data-card="centro"] .tpl-txt { display: flex; flex-direction: column; gap: 3px; align-items: center; }
+body[data-card="centro"] .tpl b { font-size: 12.5px; }
+body[data-card="centro"] .tpl:hover .tpl-ico { background: var(--white); border-color: var(--white); transform: translateY(-2px); }
+body[data-card="centro"] .tpl:hover .tpl-ico i { color: var(--bg); }
+
+/* C · LISTA: una por línea, descripción al lado y flecha */
+body[data-card="lista"] .tpls { grid-template-columns: 1fr; gap: 4px; }
+body[data-card="lista"] .tpl { flex-direction: row; align-items: center; gap: 12px; padding: 9px 12px; }
+body[data-card="lista"] .tpl-ico { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--bg-3); flex-shrink: 0; }
+body[data-card="lista"] .tpl-ico i { font-size: 13px; }
+body[data-card="lista"] .tpl-txt { display: flex; align-items: baseline; gap: 10px; flex: 1; min-width: 0; }
+body[data-card="lista"] .tpl b { font-size: 12.5px; white-space: nowrap; }
+body[data-card="lista"] .tpl small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body[data-card="lista"] .tpl .tpl-go { display: block; font-size: 11px; color: var(--dim); transition: transform 0.15s, color 0.15s; }
+body[data-card="lista"] .tpl:hover .tpl-go { color: var(--white); transform: translateX(3px); }
+body[data-card="lista"] #app.big .tpls { grid-template-columns: repeat(3, 1fr); }
+
+/* D · FRANJA: franja de color a la izquierda, icono y nombre en la misma línea */
+body[data-card="franja"] .tpl { position: relative; overflow: hidden; gap: 4px; padding: 10px 11px 10px 15px; }
+body[data-card="franja"] .tpl::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 4px; background: var(--line-2); transition: background 0.15s, width 0.15s; }
+body[data-card="franja"] .tpl-txt { display: flex; flex-direction: column; gap: 3px; }
+body[data-card="franja"] .tpl-ico { display: block; position: absolute; top: 10px; right: 11px; }
+body[data-card="franja"] .tpl-ico i { font-size: 12px; }
+body[data-card="franja"] .tpl b { font-size: 12.5px; padding-right: 18px; }
+body[data-card="franja"] .tpl:hover::before { background: var(--white); width: 5px; }

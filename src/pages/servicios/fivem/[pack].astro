@@ -18,6 +18,9 @@ interface Props {
 const { pack } = Astro.props;
 const contacto = `/contacto?tipo=${encodeURIComponent("Script FiveM")}`;
 const hero = pack.scripts[0];
+const uno = pack.scripts.length === 1;
+const incluye = pack.incluyeTitulo ?? ["Tres scripts, ", "un mismo coche"];
+const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
 ---
 
 <BaseLayout title={`${pack.titulo} · Scripts FiveM`} description={pack.lead} image={hero.poster}>
@@ -28,7 +31,7 @@ const hero = pack.scripts[0];
 
       <!-- ── cabecera ── -->
       <header class="head">
-        <span class="eyebrow mono"><span class="pill"><i aria-hidden="true"></i> pack</span> scripts fivem · {pack.scripts.length} recursos</span>
+        <span class="eyebrow mono"><span class="pill"><i aria-hidden="true"></i> pack</span> scripts fivem · {pack.scripts.length} {uno ? "recurso" : "recursos"}</span>
         <h1>
           <span class="h1-icon" aria-hidden="true"><Icono nombre={pack.icono} size={34} /></span>
           {pack.titulo}
@@ -38,7 +41,7 @@ const hero = pack.scripts[0];
           {pack.chips.map((c) => <li>{c}</li>)}
         </ul>
         <div class="head-actions">
-          <a href="#probar" class="btn btn-primary"><Icono nombre="play" size={14} /> Probar las demos</a>
+          <a href="#probar" class="btn btn-primary"><Icono nombre="play" size={14} /> {uno ? "Probar la demo" : "Probar las demos"}</a>
           <a href={contacto} class="btn btn-ghost">Pedir presupuesto</a>
         </div>
       </header>
@@ -55,17 +58,17 @@ const hero = pack.scripts[0];
             <VideoProximamente src={pack.video} capitulos={pack.scripts.map((s) => s.nombre)} />
           </div>
         </div>
-        <figcaption class="mono">{pack.video ? "El pack completo en el juego." : "Estoy grabando el vídeo del pack completo en el juego. Muy pronto, aquí."}</figcaption>
+        <figcaption class="mono">{pack.video ? (pack.videoTexto ?? "El pack completo en el juego.") : "Estoy grabando el vídeo del pack completo en el juego. Muy pronto, aquí."}</figcaption>
       </figure>
 
       <!-- ── qué incluye ── -->
       <section class="block">
         <div class="block-head">
           <h2 class="kicker mono">// qué incluye</h2>
-          <p class="block-title">Tres scripts, <span>un mismo coche</span></p>
+          <p class="block-title">{incluye[0]}<span>{incluye[1]}</span></p>
           <p class="block-sub">{pack.resumen}</p>
         </div>
-        <ul role="list" class="scripts">
+        <ul role="list" class:list={["scripts", { "scripts--uno": uno }]}>
           {
             pack.scripts.map((s, i) => (
               <li class="script" data-reveal style={`--i:${i}`}>
@@ -105,10 +108,10 @@ const hero = pack.scripts[0];
           <span class="live mono"><i aria-hidden="true"></i> demo jugable</span>
           <h2 class="kicker mono">// pruébalo tú</h2>
           <p class="play-title">La interfaz del juego, <span>en tu navegador</span></p>
-          <p class="play-sub">Es la misma NUI que corre dentro de FiveM. Lo de alrededor (el coche, el surtidor, la carretera y el servidor) está simulado para que puedas jugar sin instalar nada.</p>
+          <p class="play-sub">{pack.playSub ?? "Es la misma NUI que corre dentro de FiveM. Lo de alrededor (el coche, el surtidor, la carretera y el servidor) está simulado para que puedas jugar sin instalar nada."}</p>
         </div>
 
-        <div class="tabs" role="tablist" aria-label="Demos del pack">
+        <div class="tabs" role="tablist" aria-label="Demos del pack" hidden={uno}>
           {
             pack.scripts.map((s, i) => (
               <button type="button" role="tab" class:list={["tab", { "is-on": i === 0 }]} aria-selected={i === 0 ? "true" : "false"} data-tab={s.id}>
@@ -129,7 +132,7 @@ const hero = pack.scripts[0];
                 <button type="button" data-full title="Pantalla completa"><Icono nombre="monitor" size={14} /> pantalla completa</button>
               </span>
             </div>
-            <div class="screen" data-screen>
+            <div class="screen" data-screen style={pack.portadaDemo ? `--portada:url("${pack.portadaDemo}")` : undefined}>
               <iframe title="Demo jugable" data-frame loading="lazy" tabindex="0"></iframe>
               <button type="button" class="screen-start" data-start>
                 <span class="screen-start__btn"><Icono nombre="play" size={22} /></span>
@@ -152,7 +155,7 @@ const hero = pack.scripts[0];
                       </li>
                     ))}
                   </ol>
-                  <p class="howto__note">Haz clic dentro de la pantalla para usar el teclado. También puedes pulsar las teclas que salen abajo a la izquierda.</p>
+                  <p class="howto__note">{s.demo.nota ?? "Haz clic dentro de la pantalla para usar el teclado. También puedes pulsar las teclas que salen abajo a la izquierda."}</p>
                 </div>
               ))
             }
@@ -165,7 +168,7 @@ const hero = pack.scripts[0];
       <section class="block">
         <div class="block-head">
           <h2 class="kicker mono">// desarrollo</h2>
-          <p class="block-title">Cómo está hecho <span>cada script</span></p>
+          <p class="block-title">Cómo está <span>{uno ? "hecho" : "hecho cada script"}</span></p>
         </div>
 
         {
@@ -183,7 +186,11 @@ const hero = pack.scripts[0];
               <div class="dev__main">
                 <div class="dev__media" data-reveal>
                   <div class="screen-frame">
-                    <video class="vid" src={s.video} poster={s.poster} muted loop playsinline preload="none" data-autoplay aria-label={`Vídeo: ${s.nombre}`}></video>
+                    {s.video === pack.video ? (
+                      <img class="vid" src={s.poster} alt={`${s.nombre} en el juego`} loading="lazy" width="1920" height="1080" />
+                    ) : (
+                      <video class="vid" src={s.video} poster={s.poster} muted loop playsinline preload="none" data-autoplay aria-label={`Vídeo: ${s.nombre}`}></video>
+                    )}
                   </div>
                   <dl class="cifras">
                     {s.cifras.map((c) => (
@@ -230,7 +237,7 @@ const hero = pack.scripts[0];
       <section class="block">
         <div class="block-head">
           <h2 class="kicker mono">// cómo encajan</h2>
-          <p class="block-title">Se hablan <span>entre ellos</span></p>
+          <p class="block-title">{encajan[0]}<span>{encajan[1]}</span></p>
         </div>
         <ul role="list" class="encajan">
           {
@@ -669,6 +676,41 @@ const hero = pack.scripts[0];
     gap: var(--space-4);
   }
 
+  /* un solo script: tarjeta a todo el ancho, imagen a la izquierda */
+  .scripts--uno {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 52rem) {
+    .scripts--uno .script {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      grid-template-rows: auto auto auto 1fr;
+      column-gap: var(--space-6);
+      row-gap: var(--space-4);
+      padding: var(--space-3) var(--space-6) var(--space-3) var(--space-3);
+    }
+
+    .scripts--uno .script__img {
+      grid-column: 1;
+      grid-row: 1 / -1;
+      align-self: center;
+    }
+
+    .scripts--uno .script > :not(.script__img) {
+      grid-column: 2;
+    }
+
+    .scripts--uno .script__body {
+      margin-top: var(--space-4);
+    }
+
+    .scripts--uno .script__foot {
+      align-self: end;
+      margin-bottom: var(--space-2);
+    }
+  }
+
   .script {
     display: flex;
     flex-direction: column;
@@ -867,6 +909,10 @@ const hero = pack.scripts[0];
     color: var(--fg-muted);
   }
 
+  .tabs[hidden] {
+    display: none;
+  }
+
   .tabs {
     display: flex;
     gap: var(--space-2);
@@ -970,7 +1016,7 @@ const hero = pack.scripts[0];
     font-weight: 600;
     background:
       linear-gradient(rgb(11 12 16 / 0.55), rgb(11 12 16 / 0.75)),
-      url("/fivem/pack-vehiculos/media/dealer-02-chat.webp") center / cover;
+      var(--portada, url("/fivem/pack-vehiculos/media/dealer-02-chat.webp")) center / cover;
   }
 
   .screen-start[hidden] {

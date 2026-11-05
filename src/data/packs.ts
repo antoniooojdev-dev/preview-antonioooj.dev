@@ -26,7 +26,7 @@ export interface PackScript {
   video: string;
   poster: string;
   galeria: PackShot[];
-  demo: { url: string; titulo: string; pasos: string[] };
+  demo: { url: string; titulo: string; pasos: string[]; /** nota bajo los pasos; sin ella, la de las teclas */ nota?: string };
 }
 
 export interface Pack {
@@ -43,9 +43,17 @@ export interface Pack {
   encajan: { t: string; d: string; icono: string }[];
   tecnico: { t: string; d: string; icono: string }[];
   faq: { q: string; a: string }[];
+  /** títulos de «qué incluye» y «cómo encajan»: [texto, parte resaltada] */
+  incluyeTitulo?: [string, string];
+  encajanTitulo?: [string, string];
+  /** pie del vídeo grande, texto bajo «pruébalo tú» y fondo del botón «Cargar la demo» */
+  videoTexto?: string;
+  playSub?: string;
+  portadaDemo?: string;
 }
 
 const M = "/fivem/pack-vehiculos/media";
+const H = "/fivem/menu-handling/media";
 
 export const fivemPacks: Pack[] = [
   {
@@ -210,6 +218,91 @@ export const fivemPacks: Pack[] = [
       { q: "¿Se pueden instalar por separado?", a: "Sí. Cada script funciona solo; juntos se integran (la gasolina se ve en el velocímetro y el coche comprado aparece en los garajes)." },
       { q: "¿Funciona con QBCore?", a: "Están hechos para ESX Legacy. La adaptación a QBCore u otro framework se presupuesta aparte." },
       { q: "¿Puedo cambiar el estilo y los textos?", a: "Sí: la interfaz es HTML y CSS, y los precios, colores, teclas y textos están en la configuración." },
+    ],
+  },
+  {
+    id: "menu-handling",
+    titulo: "Menú de handling",
+    icono: "sliders",
+    color: "#a855f7",
+    lead: "Un panel de admin para cambiar cómo va cualquier vehículo del servidor sin tocar un handling.meta: potencia, frenos, agarre o suspensión con barras, lo pruebas conduciendo y lo guardas para todos los coches de ese modelo.",
+    resumen: "/admincar abre un editor de handling dentro del juego: eliges el vehículo, lo ajustas con plantillas o valor a valor, lo pruebas al momento y, al guardar, se aplica a todos sin reiniciar el servidor.",
+    chips: ["/admincar", "ESX Legacy", "Interfaz NUI propia", "Sin reiniciar el servidor", "En español"],
+    incluyeTitulo: ["Un panel, ", "cualquier vehículo"],
+    encajanTitulo: ["Pensado para ", "el staff"],
+    videoTexto: "Admincar · Panel de admin, grabado en el juego.",
+    portadaDemo: `${H}/admincar-03.webp`,
+    playSub:
+      "Es la misma NUI que corre dentro de FiveM, en el modo prueba del script: unos coches de ejemplo, sin juego detrás y sin guardar nada. Arriba puedes cambiar entre los estilos de la interfaz.",
+    video: `${H}/admincar.webm`,
+    scripts: [
+      {
+        id: "admincar",
+        nombre: "Admincar",
+        recurso: "antoniooojdev_admincar",
+        icono: "sliders",
+        sub: "Editor de handling para el staff",
+        resumen:
+          "Con /admincar se abre el panel sobre el coche en el que vas (o el más cercano). Lo ajustas con barras en porcentaje sobre el de fábrica, sueltas el ratón para conducirlo con el panel abierto y, al guardar, todos los coches de ese modelo van igual.",
+        claves: ["Cualquier vehículo del servidor, también addons", "Ajuste rápido con plantillas o valor a valor", "Lo pruebas conduciendo y comparas con fábrica", "Guardado por modelo, con historial de versiones"],
+        funciones: [
+          "Selector con todos los vehículos del servidor, incluidos los addons: buscador por nombre o ID de spawneo y filtros por tipo (coches, motos, barcos, helicópteros, trabajo…).",
+          "Ajuste rápido con barras en porcentaje sobre el de fábrica: potencia, velocidad punta, frenos, agarre, giro, dureza, estabilidad, peso, daño y altura.",
+          "Plantillas de un clic: Confort, Deportivo, Drift, Rally, Todoterreno y Blindado.",
+          "Modo avanzado con los 63 valores del handling por apartados (motor, frenos, agarre, suspensión, física, daños, vuelo y barcos), con buscador y explicación de cada uno.",
+          "Telemetría en directo: velocidad, marcha, revoluciones, punta máxima y 0-100 cronometrado.",
+          "Conducir con el panel abierto (RePág) y alternar entre tus cambios y el de fábrica (AvPág) para notar la diferencia.",
+          "Deshacer y rehacer (Ctrl+Z / Ctrl+Y), lista de cambios contra el de fábrica y reinicio de fábrica con confirmación.",
+          "Registro de versiones: quién guardó qué y cuándo, con un clic para recuperar cualquiera.",
+        ],
+        desarrollo: [
+          "Ajustar el handling en un servidor suele ser editar un handling.meta, reiniciar el recurso, entrar al coche y repetir. El panel lleva todo eso al juego: cambias un valor y lo notas al momento en el coche que conduces.",
+          "Los valores son los internos del juego, leídos del propio vehículo, así que lo que ves es lo que hay (la dirección en radianes, los repartos como los guarda el motor del juego). El ajuste rápido junta varios valores en una sola barra en porcentaje, para que no haga falta saber qué es fTractionCurveMax.",
+          "Al guardar, el servidor valida cada valor y lo guarda en la base de datos. Desde ahí se reparte a todos los jugadores: cualquiera que conduzca ese modelo recibe el handling nuevo en menos de un segundo, sin reiniciar nada. Cada guardado queda en el historial y en el registro de acciones de admin.",
+        ],
+        cifras: [
+          { v: "63", l: "valores del handling" },
+          { v: "6", l: "plantillas de un clic" },
+          { v: "0", l: "reinicios para aplicarlo" },
+        ],
+        video: `${H}/admincar.webm`,
+        poster: `${H}/admincar-03.webp`,
+        galeria: [
+          { src: `${H}/admincar-02.webp`, t: "Cualquier vehículo del servidor, con buscador y filtros por tipo" },
+          { src: `${H}/admincar-03.webp`, t: "Ajuste rápido: plantillas y barras sobre el de fábrica" },
+          { src: `${H}/admincar-04.webp`, t: "Guardado por modelo: se aplica a todos al momento" },
+          { src: `${H}/admincar-05.webp`, t: "Plantillas: Confort, Deportivo, Drift, Rally, Todoterreno y Blindado" },
+          { src: `${H}/admincar-06.webp`, t: "Modo avanzado: todos los valores por apartados y con buscador" },
+          { src: `${H}/admincar-07.webp`, t: "Registro de versiones: quién guardó qué y cuándo" },
+        ],
+        demo: {
+          url: "/fivem/menu-handling/live/admincar/",
+          titulo: "Ajusta un coche",
+          pasos: ["Toca una plantilla o mueve las barras del ajuste rápido", "Pasa a «Avanzado» para ver todos los valores, o elige otro coche con la casita", "Guarda y mira la lista de cambios y el historial"],
+          nota: "Es el modo prueba: en la web no se conduce ni se guarda nada de verdad. Con «Ampliar» ves el editor en grande.",
+        },
+      },
+    ],
+    encajan: [
+      { t: "Solo para el staff", icono: "lock", d: "Lo abren los grupos de ESX que configures (admin, superadmin…) o quien tenga el permiso ACE del recurso." },
+      { t: "Para todos los jugadores", icono: "users", d: "El handling guardado se aplica a cualquiera que conduzca ese modelo, aunque ya estuviera dentro del coche." },
+      { t: "Varios admins a la vez", icono: "refresh", d: "Si otro admin guarda el mismo modelo mientras lo editas, te avisa y no te pisa el borrador." },
+      { t: "Todo queda registrado", icono: "document", d: "Cada guardado va al historial del modelo y al registro de acciones de admin, con quién lo hizo." },
+    ],
+    tecnico: [
+      { t: "ESX Legacy + oxmysql", icono: "layers", d: "Usa los grupos de ESX para los permisos y guarda en MySQL. Crea sus tablas solo al arrancar." },
+      { t: "Validación en servidor", icono: "shield", d: "Solo se aceptan los campos conocidos y dentro de rango; el cliente no puede colar valores raros." },
+      { t: "Reparto con GlobalState", icono: "server", d: "El servidor publica el handling de cada modelo y los clientes lo aplican al subir de versión." },
+      { t: "Interfaz NUI propia", icono: "monitor", d: "HTML, CSS y JavaScript sin librerías, con varios estilos para elegir y modo prueba (/prueba)." },
+      { t: "Configurable", icono: "sliders", d: "Comando, grupos, teclas, distancia al coche y frecuencia de comprobación en config.lua." },
+      { t: "En español", icono: "message", d: "Cada valor con su nombre y una explicación de qué hace, para que lo entienda cualquier admin." },
+    ],
+    faq: [
+      { q: "¿Lo que pruebo en la web es el script de verdad?", a: "La interfaz sí: es la misma del juego, en su modo prueba. Los coches de ejemplo y sus valores están simulados, y en la web no se conduce ni se guarda nada." },
+      { q: "¿Funciona con coches addon?", a: "Sí. El selector lee los vehículos que tiene el servidor, también los que has añadido tú, y el botón «Sincronizar» vuelve a leerlos si metes uno nuevo." },
+      { q: "¿Hay que reiniciar el servidor al guardar?", a: "No. El cambio se reparte al momento a todos los jugadores y se mantiene después de reiniciar, porque queda en la base de datos." },
+      { q: "¿Puedo volver al handling de fábrica?", a: "Sí, con «Reiniciar ajustes», o recuperando cualquier versión anterior del historial." },
+      { q: "¿Funciona con QBCore?", a: "Está hecho para ESX Legacy. La adaptación a QBCore u otro framework se presupuesta aparte." },
     ],
   },
 ];
