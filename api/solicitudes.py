@@ -36,6 +36,7 @@ ESPERA = 300                                        # segundos entre solicitudes
 COLOR = 0x2B2D31
 VERDE = 0x3BA55D
 ROJO = 0xED4245
+BLANCO = 0xFFFFFF
 ID_BOTON = "aj:solicitud_rol"
 
 _ultima: dict[int, float] = {}
@@ -44,9 +45,9 @@ _ultima: dict[int, float] = {}
 def panel() -> tuple[discord.Embed, "Panel"]:
     """Embed con los pasos + vista con el botón (para publicarlo en el canal de solicitudes)."""
     e = discord.Embed(
-        title="🎭 Solicitud de rango",
-        color=COLOR,
+        color=VERDE,
         description=(
+            "__**SOLICITUD DE RANGO**__\n\n"
             "Para obtener tu rango dentro de la **IAA**, sigue estos pasos:\n\n"
             "**1.** Pulsa el botón **Solicitar rango** de abajo.\n"
             "**2.** Escribe el **nombre y apellido de tu personaje** (será tu apodo en el servidor).\n"
@@ -54,7 +55,7 @@ def panel() -> tuple[discord.Embed, "Panel"]:
             "**4.** Elige en el desplegable el **rango** que solicitas.\n"
             "**5.** Envía el formulario y espera: jefatura revisará tu solicitud y, si se acepta, "
             "recibirás tu rol automáticamente y un aviso por MD.\n\n"
-            "⚠️ No envíes varias solicitudes seguidas ni pidas un rango que no te corresponde."
+            "*⚠️ No envíes varias solicitudes seguidas ni pidas un rango que no te corresponde.*"
         ),
     )
     e.set_footer(text="Nación | IAA · Solicitudes de rango")
@@ -124,14 +125,15 @@ class Formulario(discord.ui.Modal, title="Solicitud de rango"):
 
         ahora = discord.utils.utcnow()
         ts = int(ahora.timestamp())
-        e = discord.Embed(title="📥 Nueva solicitud de rango", color=COLOR, timestamp=ahora)
+        # Valores en `código`: en el móvil se copian con un toque; en el PC, doble clic y copiar
+        e = discord.Embed(description="__**NUEVA SOLICITUD DE RANGO**__", color=BLANCO, timestamp=ahora)
         e.set_thumbnail(url=u.display_avatar.replace(size=256).url)
-        e.add_field(name="Usuario", value=f"{u.mention}\n{u.global_name or u.name} (@{u.name})", inline=True)
+        e.add_field(name="Usuario", value=f"{u.mention}\n`{u.name}`", inline=True)
         e.add_field(name="ID de Discord", value=f"`{u.id}`", inline=True)
         e.add_field(name="Apodo", value=apodo, inline=True)
-        e.add_field(name="Nombre del personaje", value=discord.utils.escape_markdown(personaje), inline=True)
+        e.add_field(name="Nombre del personaje", value=f"`{personaje.replace('`', '')}`", inline=True)
         e.add_field(name="Placa", value=f"`{placa}`", inline=True)
-        e.add_field(name="Rango solicitado", value=rango, inline=True)
+        e.add_field(name="Rango solicitado", value=f"`{rango}`", inline=True)
         e.add_field(name="Fecha y hora", value=f"<t:{ts}:F> (<t:{ts}:R>)", inline=False)
         e.add_field(name="Estado", value="🕓 Pendiente de revisión", inline=False)
         e.set_footer(text="Solicitud de rango")
@@ -165,7 +167,7 @@ class Revisar(discord.ui.DynamicItem[discord.ui.Button],
     def __init__(self, accion: str, uid: int, rango: int):
         self.accion, self.uid, self.rango = accion, uid, rango
         super().__init__(discord.ui.Button(
-            label="Aceptar" if accion == "si" else "Rechazar",
+            label="Entregar roles" if accion == "si" else "Rechazar solicitud",
             emoji="✅" if accion == "si" else "✖️",
             style=discord.ButtonStyle.success if accion == "si" else discord.ButtonStyle.danger,
             custom_id=f"aj:sol:{accion}:{uid}:{rango}",
