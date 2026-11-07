@@ -28,6 +28,7 @@ SERVIDORES: dict[int, dict] = {
             "Miembro IAA": 1568741591684747396,
             "En prácticas IAA": 1568741592817209416,
         },
+        "sin_verificar": 1568745135393476628,       # se quita al entregar el rango
     },
 }
 
@@ -194,11 +195,13 @@ class Revisar(discord.ui.DynamicItem[discord.ui.Button],
                 estado, color = "⚠️ La persona ya no está en el servidor", ROJO
             else:
                 rol = g.get_role(roles_ids[rango])
-                quitar = [r for r in miembro.roles if r.id in roles_ids.values() and r.id != roles_ids[rango]]
+                sin_verificar = SERVIDORES[g.id].get("sin_verificar")
+                quitar = [r for r in miembro.roles
+                          if (r.id in roles_ids.values() and r.id != roles_ids[rango]) or r.id == sin_verificar]
                 try:
                     if rol is None:
                         raise LookupError(f"no existe el rol de {rango}")
-                    if quitar:                      # un solo rango IAA a la vez (ascensos/descensos)
+                    if quitar:                      # un solo rango IAA a la vez + fuera «Sin verificar»
                         await miembro.remove_roles(*quitar, reason=f"Nuevo rango: {rango}")
                     await miembro.add_roles(rol, reason=f"Solicitud aceptada por {revisor}")
                 except (discord.HTTPException, LookupError) as err:

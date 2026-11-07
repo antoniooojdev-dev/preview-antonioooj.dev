@@ -18,6 +18,7 @@ SERVIDORES: dict[int, dict] = {
     1568736656264142999: {                          # Nación | IAA
         "bienvenida": 1568739056412663909,          # 👋┃bienvenida
         "roles": 1568739056999997666,               # 🎭┃solicitud-roles
+        "sin_verificar": 1568745135393476628,       # rol al entrar (se quita al aceptar su solicitud)
     },
 }
 
@@ -52,6 +53,12 @@ async def dar(m: discord.Member) -> None:
     conf = SERVIDORES.get(m.guild.id)
     if not conf or m.bot:
         return
+    rol = m.guild.get_role(conf.get("sin_verificar", 0))
+    if rol:
+        try:
+            await m.add_roles(rol, reason="Nuevo miembro: sin verificar")
+        except discord.HTTPException as e:
+            log.warning("bienvenida: no se pudo dar «Sin verificar» a %s: %s", m, e)
     try:
         canal = m.guild.get_channel(conf["bienvenida"])
         if not isinstance(canal, discord.TextChannel):
