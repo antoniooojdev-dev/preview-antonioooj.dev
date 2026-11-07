@@ -121,14 +121,14 @@ class Formulario(discord.ui.Modal, title="Solicitud de rango"):
         def bloque(texto) -> str:
             return f"```{str(texto).replace('`', '')}```"
 
-        e = discord.Embed(description="# __**NUEVA SOLICITUD DE RANGO**__", color=BLANCO, timestamp=ahora)
+        e = discord.Embed(description="## __**NUEVA SOLICITUD DE RANGO**__", color=BLANCO, timestamp=ahora)
         e.set_thumbnail(url=u.display_avatar.replace(size=256).url)
-        e.add_field(name="Usuario", value=f"{u.mention}\n{bloque(u.name)}", inline=True)
-        e.add_field(name="ID de Discord", value=bloque(u.id), inline=True)
-        e.add_field(name="Apodo", value=apodo, inline=True)
-        e.add_field(name="Nombre del personaje", value=bloque(personaje), inline=True)
-        e.add_field(name="Placa", value=bloque(placa), inline=True)
-        e.add_field(name="Rango solicitado", value=bloque(rango), inline=True)
+        e.add_field(name="Usuario", value=f"{u.mention}\n{bloque(u.name)}", inline=False)
+        e.add_field(name="ID de Discord", value=bloque(u.id), inline=False)
+        e.add_field(name="Apodo", value=apodo, inline=False)
+        e.add_field(name="Nombre del personaje", value=bloque(personaje), inline=False)
+        e.add_field(name="Placa", value=bloque(placa), inline=False)
+        e.add_field(name="Rango solicitado", value=bloque(rango), inline=False)
         e.add_field(name="Fecha y hora", value=f"<t:{ts}:F> (<t:{ts}:R>)", inline=False)
         e.add_field(name="Estado", value="🕓 Pendiente de revisión", inline=False)
         e.set_footer(text="Solicitud de rango")

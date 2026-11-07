@@ -20,6 +20,7 @@ import time
 import discord
 
 import bienvenida
+import comandos
 import solicitudes
 
 log = logging.getLogger("presencia")
@@ -93,6 +94,7 @@ def _guardar(m: discord.Member) -> None:
 class Cliente(discord.Client):
     async def setup_hook(self):
         solicitudes.registrar(self)                 # botón persistente del panel de solicitudes
+        await comandos.registrar(self)              # /clear
 
     async def on_ready(self):
         _estado["conectado"] = True
