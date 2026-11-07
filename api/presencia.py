@@ -21,7 +21,12 @@ import discord
 
 log = logging.getLogger("presencia")
 
-TOKEN = (os.getenv("DISCORD_BOT_TOKEN") or "").strip()
+# El bot de la web: DISCORD_BOT_TOKEN o, si está vacío, el mismo de los MD (DISCORD_NOTIFY_BOT_TOKEN)
+TOKEN = (os.getenv("DISCORD_BOT_TOKEN") or os.getenv("DISCORD_NOTIFY_BOT_TOKEN") or "").strip()
+if TOKEN.lower().startswith("bot "):
+    TOKEN = TOKEN[4:].strip()
+# Lo que muestra el bot en Discord: «Jugando a antonioooj.dev»
+ACTIVIDAD = (os.getenv("DISCORD_BOT_ACTIVIDAD") or "antonioooj.dev").strip()
 _admins = [x.strip() for x in (os.getenv("ADMIN_DISCORD_IDS") or "").split(",") if x.strip()]
 OBJETIVO = int(_admins[0]) if _admins and _admins[0].isdigit() else None
 
@@ -85,7 +90,11 @@ def _guardar(m: discord.Member) -> None:
 class Cliente(discord.Client):
     async def on_ready(self):
         _estado["conectado"] = True
-        _estado["error"] = None
+        if self.intents.members:
+            _estado["error"] = None
+        log.info("presencia: bot conectado como %s (jugando a %s)", self.user, ACTIVIDAD)
+        if not OBJETIVO or not self.intents.members:
+            return
         miembro = next((g.get_member(OBJETIVO) for g in self.guilds if g.get_member(OBJETIVO)), None)
         if miembro:
             _guardar(miembro)
@@ -110,39 +119,63 @@ class Cliente(discord.Client):
         _estado["conectado"] = False
 
 
-async def _conectar() -> None:
-    global _cliente
+def _nuevo_cliente(privilegiados: bool) -> "Cliente":
     intents = discord.Intents.none()
     intents.guilds = True
-    intents.members = True
-    intents.presences = True
-    _cliente = Cliente(intents=intents, chunk_guilds_at_startup=True)
-    try:
-        await _cliente.start(TOKEN)
-    except discord.LoginFailure:
-        _estado["error"] = "El token del bot (DISCORD_BOT_TOKEN) no es válido."
-    except discord.PrivilegedIntentsRequired:
-        _estado["error"] = ("Activa «Presence Intent» y «Server Members Intent» en el Developer Portal "
-                            "(tu app → Bot) y reinicia la API.")
-    except asyncio.CancelledError:
-        raise
-    except Exception as e:  # noqa: BLE001 (que un fallo de Discord no tumbe la API)
-        _estado["error"] = f"No se pudo conectar con Discord: {e.__class__.__name__}"
-    finally:
-        _estado["conectado"] = False
-    if _estado["error"]:
-        log.warning("presencia: %s", _estado["error"])
+    if privilegiados:                               # para seguir tu presencia (hacen falta en el Portal)
+        intents.members = True
+        intents.presences = True
+    # La actividad va en el constructor: discord.py la vuelve a poner sola en cada reconexión
+    return Cliente(intents=intents, chunk_guilds_at_startup=privilegiados,
+                   activity=discord.Game(name=ACTIVIDAD), status=discord.Status.online)
+
+
+async def _conectar() -> None:
+    """Mantiene el bot conectado para siempre. discord.py ya reconecta solo si se corta la red;
+    si aun así se cae del todo, se vuelve a intentar con espera creciente (5 s → 5 min)."""
+    global _cliente
+    privilegiados = True
+    espera = 5
+    while True:
+        _cliente = _nuevo_cliente(privilegiados)
+        inicio = time.monotonic()
+        try:
+            await _cliente.start(TOKEN)
+            _estado["error"] = "Discord cerró la conexión; reconectando."
+        except discord.LoginFailure:
+            _estado["error"] = "El token del bot no es válido (DISCORD_BOT_TOKEN / DISCORD_NOTIFY_BOT_TOKEN)."
+            log.error("presencia: %s", _estado["error"])
+            return                                  # reintentar no sirve: hay que cambiar el token
+        except discord.PrivilegedIntentsRequired:
+            # Sin esos permisos el bot sigue en línea y «jugando», pero sin poder leer tu estado
+            _estado["error"] = ("Activa «Presence Intent» y «Server Members Intent» en el Developer Portal "
+                                "(tu app → Bot) y reinicia la API para que la web vea tu estado.")
+            log.warning("presencia: %s", _estado["error"])
+            privilegiados = False
+            espera = 0
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:  # noqa: BLE001 (que un fallo de Discord no tumbe la API)
+            _estado["error"] = f"No se pudo conectar con Discord: {e.__class__.__name__}"
+            log.warning("presencia: %s", _estado["error"])
+        finally:
+            _estado["conectado"] = False
+            if not _cliente.is_closed():
+                await _cliente.close()
+        if time.monotonic() - inicio > 300:          # llevaba un rato conectado: empezar de cero
+            espera = 5
+        await asyncio.sleep(espera)
+        espera = min(max(espera * 2, 5), 300)
 
 
 def arrancar() -> None:
-    """Se llama al arrancar la API. Sin token o sin ID de admin no hace nada."""
+    """Se llama al arrancar la API. Sin token no hace nada; sin tu ID el bot sale en línea igual."""
     global _tarea
     if not TOKEN:
-        _estado["error"] = "Falta DISCORD_BOT_TOKEN en api/.env"
+        _estado["error"] = "Falta DISCORD_BOT_TOKEN (o DISCORD_NOTIFY_BOT_TOKEN) en api/.env"
         return
     if not OBJETIVO:
         _estado["error"] = "Falta tu ID en ADMIN_DISCORD_IDS"
-        return
     _tarea = asyncio.get_running_loop().create_task(_conectar())
 
 
