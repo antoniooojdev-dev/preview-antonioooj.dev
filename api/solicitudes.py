@@ -32,14 +32,11 @@ SERVIDORES: dict[int, dict] = {
 }
 
 RANGOS = ["Coordinador IAA", "Supervisor IAA", "Miembro IAA", "En prácticas IAA"]
-ESPERA = 300                                        # segundos entre solicitudes de la misma persona
 COLOR = 0x2B2D31
 VERDE = 0x3BA55D
 ROJO = 0xED4245
 BLANCO = 0xFFFFFF
 ID_BOTON = "aj:solicitud_rol"
-
-_ultima: dict[int, float] = {}
 
 
 def panel() -> tuple[discord.Embed, "Panel"]:
@@ -70,11 +67,6 @@ class Panel(discord.ui.View):
     async def solicitar(self, interaction: discord.Interaction, _boton: discord.ui.Button):
         if not interaction.guild or interaction.guild.id not in SERVIDORES:
             await interaction.response.send_message("Este botón no está activo en este servidor.", ephemeral=True)
-            return
-        falta = int(_ultima.get(interaction.user.id, 0) + ESPERA - time.time())
-        if falta > 0:
-            await interaction.response.send_message(
-                f"Ya has enviado una solicitud. Podrás enviar otra en {falta // 60 + 1} min.", ephemeral=True)
             return
         await interaction.response.send_modal(Formulario())
 
@@ -148,7 +140,6 @@ class Formulario(discord.ui.Modal, title="Solicitud de rango"):
                 "❌ No se ha podido registrar la solicitud. Avisa a jefatura.", ephemeral=True)
             return
 
-        _ultima[u.id] = time.time()
         await interaction.response.send_message(
             f"✅ Solicitud enviada: **{rango}** · placa **{placa}**. Jefatura la revisará pronto y "
             f"te avisaremos por MD.", ephemeral=True)
