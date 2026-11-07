@@ -19,6 +19,8 @@ import time
 
 import discord
 
+import bienvenida
+
 log = logging.getLogger("presencia")
 
 # El bot de la web: DISCORD_BOT_TOKEN o, si está vacío, el mismo de los MD (DISCORD_NOTIFY_BOT_TOKEN)
@@ -114,6 +116,7 @@ class Cliente(discord.Client):
     async def on_member_join(self, m: discord.Member):
         if m.id == OBJETIVO:
             _guardar(m)
+        await bienvenida.dar(m)
 
     async def on_disconnect(self):
         _estado["conectado"] = False
