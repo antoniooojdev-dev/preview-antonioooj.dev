@@ -61,9 +61,9 @@ export const casos: Caso[] = [
     // Web estática aparte (Developer/peluqueria-web), servicio antonioooj-peluqueria en la VM, ver DESPLIEGUE-TUNEL.md
     id: "peluqueria",
     servicio: "web",
-    nombre: "Mateo Ríos Peluqueros",
+    nombre: "Navaja & Peine",
     sector: "Peluquería · caballeros y niños",
-    resumen: "Web de peluquería de caballeros y niños con estilo motion graphics: entrada con tijeras que cortan la pantalla, carta con buscador, guía de cortes interactiva, ficha de cada peluquero y reserva en tres pasos.",
+    resumen: "Web de peluquería de caballeros y niños con estilo motion graphics: entrada con un poste de barbero que se abre a toda la pantalla y una navaja que corta el cartel en diagonal, carta con buscador, guía de cortes interactiva, ficha de cada peluquero y reserva en tres pasos.",
     funciones: ["Guía de cortes", "Buscador de servicios", "Ficha de cada peluquero", "Confirmación de cita por código", "Alta en el Club con pago"],
     color: "#c8102e",
     fondo: "#101114",

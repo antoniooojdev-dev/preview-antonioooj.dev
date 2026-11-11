@@ -15,7 +15,7 @@
 >   empezar a diario. «Entrar como visitante» (`/auth/visitante`) solo existe con `DEMO_PUBLICA=1`, y en
 >   la demo no se pueden subir imágenes. Para actualizarla: copiar el código (sin `.env` ni `data/`) y
 >   `sudo systemctl restart antonioooj-fivem`.
-> - **Web «Mateo Ríos Peluqueros» (caballeros y niños)** en <https://peluqueria.antonioooj.dev> (misma VM y mismo túnel):
+> - **Web «Navaja & Peine» (caballeros y niños)** en <https://peluqueria.antonioooj.dev> (misma VM y mismo túnel):
 >   estática, código en `Desktop/Developer/peluqueria-web` → `/opt/antonioooj/peluqueria`, servicio systemd
 >   `antonioooj-peluqueria` (`python3 server.py 8005`, máx. 80 MB, sin dependencias). Para actualizarla basta
 >   copiar `index.html`, `assets/` y `server.py` (no hace falta reiniciar; sí si cambia `server.py`).
