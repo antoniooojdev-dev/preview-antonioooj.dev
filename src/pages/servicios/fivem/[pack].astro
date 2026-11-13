@@ -7,6 +7,7 @@ import type { GetStaticPaths } from "astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Icono from "@/components/servicios/Icono.astro";
 import VideoProximamente from "@/components/servicios/VideoProximamente.astro";
+import VideoYoutube from "@/components/servicios/VideoYoutube.astro";
 import { fivemPacks, type Pack } from "@/data/packs";
 
 export const getStaticPaths = (() => fivemPacks.map((pack) => ({ params: { pack: pack.id }, props: { pack } }))) satisfies GetStaticPaths;
@@ -24,6 +25,8 @@ const conDemo = pack.scripts.filter((s) => s.demo);
 const heroDemo = conDemo[0];
 const incluye = pack.incluyeTitulo ?? ["Tres scripts, ", "un mismo coche"];
 const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
+// vídeo de cabecera: YouTube (si hay id), si no el vídeo propio, si no «próximamente»
+const conVideo = Boolean(pack.youtube || pack.video);
 ---
 
 <BaseLayout title={`${pack.titulo} · Scripts FiveM`} description={pack.lead} image={hero.poster}>
@@ -34,7 +37,7 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
 
       <!-- ── cabecera ── -->
       <header class="head">
-        <span class="eyebrow mono"><span class="pill"><i aria-hidden="true"></i> pack</span> scripts fivem · {pack.scripts.length} {uno ? "recurso" : "recursos"}</span>
+        <span class="eyebrow mono"><span class="pill"><i aria-hidden="true"></i> pack</span> scripts fivem · {pack.etiqueta ?? `${pack.scripts.length} ${uno ? "recurso" : "recursos"}`}</span>
         <h1>
           <span class="h1-icon" aria-hidden="true"><Icono nombre={pack.icono} size={34} /></span>
           {pack.titulo}
@@ -57,13 +60,17 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
           <div class="screen-bar mono">
             <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
             <span>FiveM · {pack.id}.mp4</span>
-            <span class="rec"><i aria-hidden="true"></i> {pack.video ? "vídeo del pack" : "próximamente"}</span>
+            <span class="rec"><i aria-hidden="true"></i> {conVideo ? "vídeo del pack" : "próximamente"}</span>
           </div>
           <div class="hero-video__player">
-            <VideoProximamente src={pack.video} capitulos={pack.scripts.map((s) => s.nombre)} />
+            {pack.youtube ? (
+              <VideoYoutube id={pack.youtube} portada={pack.youtubePortada ?? hero.poster} titulo={pack.titulo} />
+            ) : (
+              <VideoProximamente src={pack.video} capitulos={pack.scripts.map((s) => s.nombre)} />
+            )}
           </div>
         </div>
-        <figcaption class="mono">{pack.video ? (pack.videoTexto ?? "El pack completo en el juego.") : "Estoy grabando el vídeo del pack completo en el juego. Muy pronto, aquí."}</figcaption>
+        <figcaption class="mono">{conVideo ? (pack.videoTexto ?? "El pack completo en el juego.") : "Estoy grabando el vídeo del pack completo en el juego. Muy pronto, aquí."}</figcaption>
       </figure>
 
       <!-- ── qué incluye ── -->
@@ -193,7 +200,7 @@ const encajan = pack.encajanTitulo ?? ["Se hablan ", "entre ellos"];
               <div class="dev__main">
                 <div class="dev__media" data-reveal>
                   <div class="screen-frame">
-                    {s.video === pack.video ? (
+                    {!s.video || s.video === pack.video ? (
                       <img class="vid" src={s.poster} alt={`${s.nombre} en el juego`} loading="lazy" width="1920" height="1080" />
                     ) : (
                       <video class="vid" src={s.video} poster={s.poster} muted loop playsinline preload="none" data-autoplay aria-label={`Vídeo: ${s.nombre}`}></video>

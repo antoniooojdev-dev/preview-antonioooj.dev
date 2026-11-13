@@ -35,6 +35,8 @@ const demos = {
   discord: DemoDiscord,
 } as const;
 const Demo = demos[service.id as keyof typeof demos];
+// Título de «qué incluye»: en FiveM son las características comunes a todos los scripts
+const incluyeTitulo = service.id === "fivem" ? ["Características ", "de los scripts"] : ["Todo lo necesario, ", "sin sorpresas"];
 
 // Cada servicio ordena y distribuye sus secciones a su manera, para que no todas las
 // páginas sean iguales:
@@ -120,11 +122,12 @@ const video = detail.demo.video;
 
             if (seccion === "incluye")
               return (
+                <>
                 <section class="block">
                   <div class="block-head">
-                    <h2 class="kicker mono">// qué incluye</h2>
+                    <h2 class="kicker mono">{service.id === "fivem" ? "// características" : "// qué incluye"}</h2>
                     <p class="block-title">
-                      Todo lo necesario, <span>sin sorpresas</span>
+                      {incluyeTitulo[0]}<span>{incluyeTitulo[1]}</span>
                     </p>
                   </div>
                   <ul role="list" class:list={["incluye", `incluye--${dist.incluye}`]} data-spotlight>
@@ -161,6 +164,40 @@ const video = detail.demo.video;
                     ))}
                   </ul>
                 </section>
+                {detail.scripts && detail.scripts.length > 0 && (
+                  <section class="block" id="scripts">
+                    <div class="block-head">
+                      <h2 class="kicker mono">// scripts disponibles</h2>
+                      <p class="block-title">
+                        Scripts <span>disponibles</span>
+                      </p>
+                    </div>
+                    <ul role="list" class="incluye incluye--grid scripts-disp" data-spotlight>
+                      {detail.scripts.map((x, i) => (
+                        <li class:list={["inc", "inc--demo", { "inc--dev": x.desarrollo }]} data-reveal style={`--i:${i}`}>
+                          <span class="inc__icon">
+                            <Icono nombre={x.icono} size={22} />
+                          </span>
+                          <span class:list={["inc__estado", "mono", { "inc__estado--dev": x.desarrollo }]}>
+                            {x.desarrollo ? "en desarrollo" : "disponible"}
+                          </span>
+                          <span class="inc__body">
+                            <strong>
+                              <a href={x.href} class="inc__link">
+                                {x.t}
+                              </a>
+                            </strong>
+                            <p>{x.d}</p>
+                          </span>
+                          <span class="inc__check inc__try mono" aria-hidden="true">
+                            {x.desarrollo ? "⏳ próximamente" : "▶ ver script"} <Icono nombre="arrow" size={13} />
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+                </>
               );
 
             if (seccion === "demo")
@@ -206,7 +243,7 @@ const video = detail.demo.video;
                   </div>
                   {video ? (
                     <p class="demo-note mono">
-                      Mientras tanto, puedes probar el <a href="/servicios/fivem/pack-vehiculos">Pack vehículos</a>, con demos jugables.
+                      Mientras tanto, echa un vistazo a los <a href="#scripts">scripts disponibles</a>.
                     </p>
                   ) : (
                     <p class="demo-note mono">Ejemplo de demostración: nada de lo que hagas aquí se guarda ni se envía.</p>
@@ -780,6 +817,46 @@ const video = detail.demo.video;
 
   .inc--demo:hover .inc__try :global(.icono) {
     transform: translateX(4px);
+  }
+
+  /* scripts disponibles: etiqueta de estado arriba a la derecha; los que están en desarrollo, más apagados */
+  .inc__estado {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    padding: 0.22rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    color: color-mix(in srgb, var(--acc) 75%, var(--fg));
+    background: color-mix(in srgb, var(--acc) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--acc) 30%, transparent);
+  }
+
+  .inc__estado--dev {
+    color: var(--fg-muted);
+    background: color-mix(in srgb, var(--fg) 6%, transparent);
+    border-color: var(--border);
+  }
+
+  .inc--dev .inc__icon {
+    color: var(--fg-muted);
+    background: color-mix(in srgb, var(--fg) 6%, var(--bg));
+    border-color: var(--border);
+  }
+
+  .inc--dev .inc__try {
+    color: var(--fg-muted);
+    background: color-mix(in srgb, var(--fg) 7%, transparent);
+  }
+
+  .inc--dev:hover .inc__icon {
+    background: color-mix(in srgb, var(--fg) 14%, var(--bg));
+    color: var(--fg);
+  }
+
+  .inc--dev:hover .inc__try {
+    background: color-mix(in srgb, var(--fg) 14%, transparent);
+    color: var(--fg);
   }
 
   /* bento: la primera tarjeta destacada y grande */

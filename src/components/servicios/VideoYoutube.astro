@@ -1,0 +1,156 @@
+---
+// Vídeo de YouTube con portada propia: no carga nada de YouTube hasta darle al play (sin cookies,
+// con youtube-nocookie.com). Al pulsar, el reproductor sustituye a la portada y empieza solo, y se
+// puede ver entero ahí mismo. Siempre oscuro (.ink), como una pantalla.
+interface Props {
+  id: string;
+  portada: string;
+  titulo: string;
+}
+
+const { id, portada, titulo } = Astro.props;
+---
+
+<div class="yt ink" data-yt={id} data-yt-titulo={titulo}>
+  <img class="yt__portada" src={portada} alt="" width="1920" height="1080" loading="eager" />
+  <div class="yt__velo" aria-hidden="true"></div>
+  <button class="yt__play" type="button" aria-label={`Reproducir el vídeo: ${titulo}`}>
+    <span class="yt__onda" aria-hidden="true"></span>
+    <svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true">
+      <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.6-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" fill="currentColor"></path>
+    </svg>
+  </button>
+  <span class="yt__pie mono" aria-hidden="true">▶ ver el vídeo completo</span>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-yt]").forEach((caja) => {
+    const boton = caja.querySelector<HTMLButtonElement>(".yt__play");
+    const arrancar = () => {
+      const id = caja.dataset.yt;
+      if (!id || caja.querySelector("iframe")) return;
+      const f = document.createElement("iframe");
+      f.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+      f.title = caja.dataset.ytTitulo || "Vídeo";
+      f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+      f.allowFullscreen = true;
+      f.className = "yt__frame";
+      caja.classList.add("yt--on");
+      caja.appendChild(f);
+    };
+    boton?.addEventListener("click", arrancar);
+  });
+</script>
+
+<style>
+  .yt {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: #000;
+  }
+
+  .yt__portada,
+  .yt__velo,
+  .yt :global(.yt__frame) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .yt__portada {
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .yt:hover .yt__portada {
+    transform: scale(1.025);
+  }
+
+  .yt__velo {
+    background: radial-gradient(circle at 50% 55%, transparent 30%, rgba(0, 0, 0, 0.55));
+  }
+
+  .yt :global(.yt__frame) {
+    border: 0;
+    z-index: 3;
+  }
+
+  .yt__play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 50%;
+    border: 0;
+    color: #fff;
+    background: var(--acc, #a855f7);
+    box-shadow: 0 18px 50px -12px color-mix(in srgb, var(--acc, #a855f7) 80%, transparent);
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .yt__play svg {
+    margin-left: 4px;
+  }
+
+  .yt__play:hover {
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+
+  .yt__play:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 4px;
+  }
+
+  .yt__onda {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--acc, #a855f7);
+    animation: yt-onda 2.2s ease-out infinite;
+  }
+
+  @keyframes yt-onda {
+    from {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    to {
+      transform: scale(1.7);
+      opacity: 0;
+    }
+  }
+
+  .yt__pie {
+    position: absolute;
+    left: 50%;
+    bottom: 1.2rem;
+    z-index: 2;
+    transform: translateX(-50%);
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.55);
+    white-space: nowrap;
+  }
+
+  .yt--on .yt__play,
+  .yt--on .yt__pie,
+  .yt--on .yt__velo {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .yt__onda {
+      animation: none;
+    }
+  }
+</style>

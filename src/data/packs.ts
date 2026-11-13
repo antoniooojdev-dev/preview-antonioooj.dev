@@ -23,6 +23,7 @@ export interface PackScript {
   funciones: string[];
   desarrollo: string[];
   cifras: { v: string; l: string }[];
+  /** vídeo del script; vacío = solo la captura (poster) */
   video: string;
   poster: string;
   galeria: PackShot[];
@@ -41,6 +42,12 @@ export interface Pack {
   scripts: PackScript[];
   /** vídeo grande de cabecera; sin él sale el reproductor «próximamente» */
   video?: string;
+  /** texto junto a «scripts fivem» en la cabecera; sin él, «N recursos» */
+  etiqueta?: string;
+  /** id de un vídeo de YouTube para la cabecera (al darle al play se ve ahí mismo, entero); va antes que video */
+  youtube?: string;
+  /** portada del vídeo de YouTube antes de darle al play */
+  youtubePortada?: string;
   encajan: { t: string; d: string; icono: string }[];
   tecnico: { t: string; d: string; icono: string }[];
   faq: { q: string; a: string }[];
@@ -55,6 +62,7 @@ export interface Pack {
 
 const M = "/fivem/pack-vehiculos/media";
 const H = "/fivem/menu-handling/media";
+const BD = "/fivem/sistema-bandas/media";
 
 export const fivemPacks: Pack[] = [
   {
@@ -287,6 +295,178 @@ export const fivemPacks: Pack[] = [
       { q: "¿Hay que reiniciar el servidor al guardar?", a: "No. El cambio se reparte al momento a todos los jugadores y se mantiene después de reiniciar, porque queda en la base de datos." },
       { q: "¿Puedo volver al handling de fábrica?", a: "Sí, con «Reiniciar ajustes», o recuperando cualquier versión anterior del historial." },
       { q: "¿Funciona con QBCore o Qbox?", a: "Sí. Está para ESX Legacy, QBCore y Qbox, y usa los permisos de admin de cada uno." },
+    ],
+  },
+  {
+    id: "sistema-bandas",
+    titulo: "Sistema de bandas",
+    icono: "users",
+    color: "#9b6bff",
+    lead: "Todo lo de las organizaciones criminales en un solo script: una tablet encriptada desde la que se gestiona la banda, sus bases, sus territorios, las misiones de armamento, el mercado negro y la solicitud de atracos.",
+    resumen: "Cada banda tiene su tablet encriptada: miembros con rangos y permisos a medida, chat cifrado, territorios, bases en el mundo (almacén, caja fuerte, taquilla y garaje), misiones con NPCs armados para preparar los golpes y un mercado negro con objetos y vehículos exclusivos.",
+    chips: ["Tablet encriptada", "ESX Legacy", "Rangos y permisos", "Misiones con NPCs", "Mercado negro", "Interfaz NUI propia", "En español"],
+    incluyeTitulo: ["Una tablet, ", "toda la banda"],
+    encajanTitulo: ["Pensado para ", "el rol de bandas"],
+    etiqueta: "1 recurso · 4 módulos",
+    youtube: "",
+    youtubePortada: `${BD}/portada.webp`,
+    videoTexto: "Sistema de bandas · recorrido completo, grabado en el juego.",
+    scripts: [
+      {
+        id: "tablet",
+        nombre: "Tablet encriptada",
+        recurso: "antoniooojdev_bandas",
+        icono: "monitor",
+        sub: "El centro de mando de la banda",
+        resumen:
+          "Se abre con una tarjeta codificada y desde ella se gestiona todo: el inicio con los datos de la banda, los miembros, el chat cifrado, los territorios, las misiones, el mercado negro y la configuración.",
+        claves: ["Acceso con tarjeta codificada", "Rangos y permisos que decide el jefe", "Chat cifrado de la banda y entre bandas", "Territorios con graffitis que dan ingresos"],
+        funciones: [
+          "Inicio con el nombre, la etiqueta y los colores de la banda, sus miembros y sus territorios activos, con accesos directos a cada apartado.",
+          "Mi banda: miembros conectados, su rango y las bases de la banda, con el mensaje del día.",
+          "Configuración: el jefe crea los rangos, les pone nombre y decide qué puede hacer cada uno (invitar, expulsar, entrar en cada base, sacar dinero o vehículos…). Todo queda en un registro con buscador.",
+          "Chat cifrado de la banda y chats entre organizaciones, que se abren compartiendo un código.",
+          "Territorios: mapa de la ciudad con las zonas de cada banda. Se ganan pintando graffitis y dan dinero negro cada cierto tiempo.",
+          "Sin banda, la tablet solo enseña las invitaciones: las organizaciones las da de alta el staff con /crear-banda (nombre, jefe y colores).",
+        ],
+        desarrollo: [
+          "La tablet es una NUI propia en HTML, CSS y JavaScript, con el color de cada banda en toda la interfaz. Cada pantalla pide al servidor solo lo que necesita y el servidor comprueba el rango y los permisos de quien lo pide antes de responder.",
+          "Los permisos no son fijos: el jefe crea los rangos que quiera y marca uno a uno lo que puede hacer cada uno. Así cada banda se organiza a su manera sin tocar la configuración del servidor.",
+        ],
+        cifras: [
+          { v: "9", l: "apartados en la tablet" },
+          { v: "∞", l: "rangos a medida" },
+          { v: "1", l: "tarjeta para entrar" },
+        ],
+        video: "",
+        poster: `${BD}/inicio.webp`,
+        galeria: [
+          { src: `${BD}/chat.webp`, t: "Chat cifrado" },
+          { src: `${BD}/territorios.webp`, t: "Territorios" },
+          { src: `${BD}/graffiti.webp`, t: "Graffiti para ganar una zona" },
+          { src: `${BD}/crew.webp`, t: "La banda en el barrio" },
+        ],
+      },
+      {
+        id: "bases",
+        nombre: "Bases de la banda",
+        recurso: "antoniooojdev_bandas",
+        icono: "key",
+        sub: "Almacén, caja fuerte, taquilla y garaje",
+        resumen:
+          "Cada banda pone sus bases en el mundo: almacenes para objetos y armas, cajas fuertes con dinero negro, taquillas con los conjuntos de ropa de cada miembro y garajes para sus vehículos (también los personales).",
+        claves: ["Se colocan en el mundo con vista previa", "Inventario igual que el del jugador", "Caja fuerte con dinero negro", "Garaje para vehículos de la banda y personales"],
+        funciones: [
+          "El jefe coloca cada base donde quiere: el mueble sale en fantasma (sin chocar con nada), se mueve con la cámara, se gira y se confirma con Enter.",
+          "Almacén y caja fuerte con casillas como el inventario del jugador: arrastrar, pasar todo o la mitad, y cada objeto en su sitio.",
+          "La caja fuerte guarda también el dinero limpio y el negro; los ingresos de los territorios llegan solos a ella.",
+          "Taquilla de ropa: cada miembro guarda sus conjuntos y se los pone con su animación.",
+          "Garaje con los vehículos de la banda y los personales de cada miembro, con su estado (motor y carrocería).",
+          "Cada base tiene su permiso: el jefe decide qué rangos pueden entrar, meter o sacar.",
+        ],
+        desarrollo: [
+          "Los muebles son locales y solo aparecen cuando estás cerca, así que no cargan al servidor. Lo que hay dentro se guarda en la base de datos y cada movimiento se comprueba en el servidor: distancia, permiso, peso y que lo tengas de verdad.",
+          "Los vehículos personales que se guardan en la banda salen de tu garaje normal mientras están ahí, para que no se puedan duplicar, y vuelven solos a él si dejas la banda.",
+        ],
+        cifras: [
+          { v: "4", l: "tipos de base" },
+          { v: "1", l: "jugador a la vez en cada almacén" },
+          { v: "0", l: "duplicados de vehículos" },
+        ],
+        video: "",
+        poster: `${BD}/taquilla.webp`,
+        galeria: [
+          { src: `${BD}/almacen.webp`, t: "Almacén" },
+          { src: `${BD}/colocar.webp`, t: "Bases en Mi banda" },
+          { src: `${BD}/llegada.webp`, t: "Llegada al barrio" },
+        ],
+      },
+      {
+        id: "misiones",
+        nombre: "Misiones de armamento",
+        recurso: "antoniooojdev_bandas",
+        icono: "gamepad",
+        sub: "Robos medianos, grandes y finales",
+        resumen:
+          "Antes de cada golpe, la banda consigue el equipo en una misión: una zona con NPCs armados, refuerzos que llegan en coche y cajas que hay que hackear. El botín sale de cachear los cuerpos y abrir las cajas.",
+        claves: ["Tres niveles de dificultad", "NPCs armados y refuerzos en coche", "Hackeo de cajas con un minijuego", "Toda la banda participa a la vez"],
+        funciones: [
+          "Misiones por tipo de robo (medianos, grandes y finales), cada una con más guardias, mejores armas y más cajas.",
+          "La zona sale aproximada en el mapa: hay que encontrarla y acabar con los guardias.",
+          "Al fallar un hackeo salta la alarma y llegan refuerzos en coche, que se bajan y abren fuego.",
+          "Minijuego de hackeo: encadenar la secuencia eligiendo códigos de la fila o columna marcada, con tiempo.",
+          "El equipo del robo sale por probabilidad al cachear y al hackear; la última caja da lo que falte.",
+          "Tiempo límite y espera entre misiones por banda.",
+        ],
+        desarrollo: [
+          "Los NPCs los crea uno de los jugadores y el servidor lleva la cuenta de cuáles quedan vivos, de las cajas y del botín, así que nadie puede abrir una caja que no le toca ni repetir el botín.",
+          "Cada NPC va a por el miembro de la banda más cercano; el resto de jugadores no son su objetivo.",
+        ],
+        cifras: [
+          { v: "3", l: "niveles de misión" },
+          { v: "12", l: "guardias en las finales" },
+          { v: "5", l: "cajas que hackear" },
+        ],
+        video: "",
+        poster: `${BD}/mision.webp`,
+        galeria: [
+          { src: `${BD}/hackeo.webp`, t: "Hackeo de una caja" },
+          { src: `${BD}/tiroteo.webp`, t: "Tiroteo con los guardias" },
+        ],
+      },
+      {
+        id: "mercado",
+        nombre: "Mercado negro y atracos",
+        recurso: "antoniooojdev_bandas",
+        icono: "cart",
+        sub: "Objetos, vehículos y solicitud de golpes",
+        resumen:
+          "Desde la tablet se compran objetos y vehículos que no vende nadie más, con entrega en mano, y se piden los atracos grandes: el contacto llama para confirmarlo.",
+        claves: ["Objetos con entrega en mano", "Vehículos con mejoras y vista en 3D", "Solicitud de atraco con llamada", "Todo con dinero negro"],
+        funciones: [
+          "Mercado de objetos por categorías: se paga con dinero negro y un contacto lo entrega en un punto de la ciudad.",
+          "Mercado de vehículos con sus datos (velocidad, aceleración, frenada, agarre y plazas), mejoras de motor, frenos, transmisión, alerón y colores, y vista en 3D del coche de verdad.",
+          "Los vehículos comprados llegan al garaje de la banda.",
+          "Solicitud de atraco: cada golpe con lo que hace falta para hacerlo; al pedirlo, el contacto llama para confirmarlo.",
+          "El catálogo y los precios se cambian desde el panel de admin, sin tocar archivos.",
+        ],
+        desarrollo: [
+          "Los precios y el dinero se calculan en el servidor: el cliente solo dice qué quiere comprar. Las mejoras de los vehículos suman su porcentaje al precio igual en la tablet que en el servidor.",
+          "La vista 3D saca el coche de verdad solo para ti, dentro de un hangar, con una cámara que gira con el ratón.",
+        ],
+        cifras: [
+          { v: "2", l: "mercados" },
+          { v: "3D", l: "vista de cada vehículo" },
+          { v: "1", l: "llamada para confirmar" },
+        ],
+        video: "",
+        poster: `${BD}/vehiculos.webp`,
+        galeria: [
+          { src: `${BD}/items.webp`, t: "Mercado negro · objetos" },
+          { src: `${BD}/atraco.webp`, t: "Solicitud de atraco" },
+          { src: `${BD}/llamada.webp`, t: "Llamada del contacto" },
+        ],
+      },
+    ],
+    encajan: [
+      { t: "Las bandas las da de alta el staff", icono: "lock", d: "Con /crear-banda (nombre, jefe y colores principal y secundario) o desde el panel de admin. Los jugadores no pueden fundarlas por su cuenta." },
+      { t: "El jefe organiza la banda", icono: "users", d: "Invita, asciende, degrada y expulsa, crea rangos y reparte permisos. Para pasar el mando basta con ascender a otro." },
+      { t: "Todo deja rastro", icono: "document", d: "Cada movimiento de dinero, objetos, vehículos y miembros queda en el registro de la banda, con buscador y filtros." },
+      { t: "Se integra con el servidor", icono: "plug", d: "Usa el inventario, el dinero negro, los garajes y los vehículos de ESX, y los avisos del propio servidor." },
+    ],
+    tecnico: [
+      { t: "ESX Legacy + oxmysql", icono: "layers", d: "Usa el framework, las cuentas y el inventario de ESX. Crea sus tablas solo al arrancar." },
+      { t: "Validación en servidor", icono: "shield", d: "Permisos, distancias, dinero, objetos y botín se comprueban en el servidor, nunca en el cliente." },
+      { t: "Interfaz NUI propia", icono: "monitor", d: "HTML, CSS y JavaScript sin librerías, con el color de cada banda en toda la tablet." },
+      { t: "Ligero", icono: "zap", d: "Los muebles y los NPCs de ambiente solo existen cerca de ti; en reposo no gasta casi nada." },
+      { t: "Configurable", icono: "sliders", d: "Precios, bases, misiones, territorios, permisos, armas y textos en config.lua comentado." },
+      { t: "En español", icono: "message", d: "Textos, avisos y llamadas escritos para servidores de rol hispanohablantes." },
+    ],
+    faq: [
+      { q: "¿Funciona con QBCore?", a: "Está hecho para ESX Legacy. La adaptación a QBCore u otro framework se presupuesta aparte." },
+      { q: "¿Los jugadores pueden crear su propia banda?", a: "No: las da de alta el staff con /crear-banda o desde el panel de admin, para que las bandas sean parte del rol del servidor." },
+      { q: "¿Se puede cambiar el catálogo del mercado negro?", a: "Sí, desde el panel de admin: objetos, vehículos, precios y reputación necesaria, sin tocar archivos." },
+      { q: "¿Puedo cambiar el estilo de la tablet?", a: "Sí: la interfaz es HTML y CSS, y cada banda ya sale con sus colores." },
     ],
   },
 ];

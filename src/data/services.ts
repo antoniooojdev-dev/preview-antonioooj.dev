@@ -19,6 +19,8 @@ export interface ServiceDetail {
   /** demo: id de una demo propia (/servicios/<id>/<demo>), ver discordDemos */
   incluye: { t: string; d: string; icono: string; demo?: string; /** texto del enlace a la ficha; sin él, «probar demo» */ ver?: string }[];
   idealPara: string[];
+  /** Solo FiveM: tarjetas de «Scripts disponibles» bajo las características. desarrollo = aún no está (su página dice «próximamente») */
+  scripts?: { t: string; d: string; icono: string; href: string; desarrollo?: boolean }[];
   proceso: { t: string; d: string }[];
   /** video: en lugar del ejemplo interactivo va el vídeo (o «próximamente» si aún no hay src) */
   demo: { titulo: string; texto: string; video?: { src?: string; capitulos: string[] } };
@@ -210,8 +212,6 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       "Todo lo importante se valida en el servidor para que nadie pueda hacer trampas, y el código se optimiza para que el resmon marque 0.00 ms en reposo. Las interfaces NUI se hacen en HTML/JS con el estilo de tu servidor.",
     ],
     incluye: [
-      { t: "Pack vehículos", demo: "pack-vehiculos", icono: "car", d: "Concesionario con vendedor, gasolinera con manguera y velocímetro con cinturón. Con demos jugables y vídeos." },
-      { t: "Menú de handling", demo: "menu-handling", ver: "ver script", icono: "sliders", d: "Panel de admin para ajustar cualquier vehículo del servidor y aplicarlo a todos al momento. Para ESX Legacy, QBCore y Qbox." },
       { t: "ESX y QBCore", icono: "layers", d: "O standalone. Se integra con tu framework, inventario y target." },
       { t: "Anti-exploit", icono: "shield", d: "Validación en servidor de cada acción: dinero, objetos y distancias." },
       { t: "Interfaces NUI", icono: "monitor", d: "Menús y HUDs en HTML/CSS/JS con animaciones y tu identidad visual." },
@@ -220,6 +220,13 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       { t: "Soporte tras la entrega", icono: "headset", d: "Corrección de errores y ayuda con la instalación." },
     ],
     idealPara: ["Servidores de rol nuevos", "Servidores que quieren scripts únicos", "Sustituir recursos de pago con problemas", "Interfaces NUI personalizadas"],
+    scripts: [
+      { t: "Menú de handling", icono: "sliders", href: "/servicios/fivem/menu-handling", d: "Panel de admin para ajustar cualquier vehículo del servidor y aplicarlo a todos al momento. Para ESX Legacy, QBCore y Qbox." },
+      { t: "Sistema de bandas", icono: "users", href: "/servicios/fivem/sistema-bandas", d: "Tablet encriptada para las organizaciones: rangos, bases, territorios, misiones de armamento, mercado negro y atracos." },
+      { t: "Policía", icono: "siren", href: "/servicios/fivem/policia", desarrollo: true, d: "Trabajo de policía completo: MDT, multas, cacheos, esposas, radar y gestión del cuerpo." },
+      { t: "Inventario", icono: "bag", href: "/servicios/fivem/inventario", desarrollo: true, d: "Inventario por casillas con accesos rápidos, mochila, chaleco y objetos tirados en el suelo." },
+      { t: "Panel de admin", icono: "shield", href: "/servicios/fivem/panel-admin", desarrollo: true, d: "Panel para el staff: jugadores, sanciones, vehículos, objetos, bandas, registro y herramientas." },
+    ],
     proceso: [
       { t: "Idea y alcance", d: "Me cuentas qué quieres y defino las mecánicas y la configuración." },
       { t: "Desarrollo", d: "Programo cliente, servidor y NUI con pruebas en un servidor local." },
