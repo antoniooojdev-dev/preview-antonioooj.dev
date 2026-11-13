@@ -308,7 +308,7 @@ export const fivemPacks: Pack[] = [
     incluyeTitulo: ["Una tablet, ", "toda la banda"],
     encajanTitulo: ["Pensado para ", "el rol de bandas"],
     etiqueta: "1 recurso · 4 módulos",
-    youtube: "",
+    youtube: "SV2FrPFin5s",   // https://youtu.be/SV2FrPFin5s
     youtubePortada: `${BD}/portada.webp`,
     videoTexto: "Sistema de bandas · recorrido completo, grabado en el juego.",
     scripts: [
