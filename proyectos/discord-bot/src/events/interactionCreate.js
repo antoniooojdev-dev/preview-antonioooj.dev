@@ -3,15 +3,28 @@ import * as tickets from "../features/tickets.js";
 import * as verification from "../features/verification.js";
 import * as polls from "../features/polls.js";
 import * as giveaways from "../features/giveaways.js";
+import * as selfroles from "../features/selfroles.js";
+import * as announcements from "../features/announcements.js";
 import { fail } from "../lib/embeds.js";
 import { log } from "../lib/logger.js";
 
-// customId de los botones: "<función>:<acción>:<argumento>"
-const buttonHandlers = {
-  ticket: tickets.onButton,
-  verify: verification.onButton,
-  poll: polls.onButton,
-  giveaway: giveaways.onButton,
+// customId de botones, menús y formularios: "<función>:<acción>:<argumento>"
+const handlers = {
+  button: {
+    ticket: tickets.onButton,
+    verify: verification.onButton,
+    poll: polls.onButton,
+    giveaway: giveaways.onButton,
+    roles: selfroles.onButton,
+  },
+  select: {
+    ticket: tickets.onSelect,
+    roles: selfroles.onSelect,
+  },
+  modal: {
+    ticket: tickets.onModal,
+    anuncio: announcements.onModal,
+  },
 };
 
 async function replyError(interaction, text = "Ha ocurrido un error. Inténtalo de nuevo.") {
@@ -42,16 +55,17 @@ export default {
       return;
     }
 
-    if (interaction.isButton()) {
-      const [feature, action, arg] = interaction.customId.split(":");
-      const handler = buttonHandlers[feature];
-      if (!handler) return;
-      try {
-        await handler(interaction, action, arg);
-      } catch (err) {
-        log.error(`Botón ${interaction.customId}:`, err);
-        await replyError(interaction);
-      }
+    const kind = interaction.isButton() ? "button" : interaction.isStringSelectMenu() ? "select" : interaction.isModalSubmit() ? "modal" : null;
+    if (!kind) return;
+
+    const [feature, action, ...args] = interaction.customId.split(":");
+    const handler = handlers[kind][feature];
+    if (!handler) return;
+    try {
+      await handler(interaction, action, ...args);
+    } catch (err) {
+      log.error(`${kind} ${interaction.customId}:`, err);
+      await replyError(interaction);
     }
   },
 };

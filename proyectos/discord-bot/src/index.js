@@ -13,6 +13,7 @@ const client = new Client({
     GatewayIntentBits.GuildMembers, // privilegiado: bienvenidas y auto-rol
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent, // privilegiado: automod y niveles
+    GatewayIntentBits.GuildVoiceStates, // salas de voz temporales
   ],
   partials: [Partials.Message, Partials.Channel],
   // Sin roles: así nadie puede usar el bot (encuestas, recordatorios…) para mencionar a un rol

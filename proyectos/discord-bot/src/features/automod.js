@@ -77,6 +77,6 @@ export async function handleMessage(message) {
       { name: "Motivo", value: hit.reason + (hit.timeout ? ` · aislado ${config.automod.spam.timeoutMinutes} min` : "") },
       { name: "Mensaje", value: message.content.slice(0, 1000) || "(vacío)" },
     ],
-  });
+  }, [], "modLogs");
   return true;
 }

@@ -2,12 +2,14 @@ import { Events } from "discord.js";
 import config from "../config.js";
 import { discordTime } from "../lib/duration.js";
 import { sendLog } from "../lib/logger.js";
+import { updateStats } from "../features/stats.js";
 
 export default {
   name: Events.GuildMemberRemove,
 
   /** @param {import("discord.js").GuildMember | import("discord.js").PartialGuildMember} member */
   async execute(member) {
+    await updateStats(member.guild);
     await sendLog(member.guild, {
       title: "📤 Miembro ha salido",
       color: config.colors.neutral,

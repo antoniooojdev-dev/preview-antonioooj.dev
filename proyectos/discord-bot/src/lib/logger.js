@@ -14,10 +14,12 @@ export const log = {
  * @param {import("discord.js").Guild} guild
  * @param {{ title: string, description?: string, color?: number, fields?: {name:string,value:string,inline?:boolean}[] }} entry
  * @param {import("discord.js").AttachmentBuilder[]} [files]
+ * @param {"logs"|"modLogs"|"ticketLogs"} [target] canal de registro de config.channels
  */
-export async function sendLog(guild, { title, description, color = config.colors.neutral, fields = [] }, files = []) {
-  if (!config.channels.logs) return;
-  const channel = guild.channels.cache.get(config.channels.logs);
+export async function sendLog(guild, { title, description, color = config.colors.neutral, fields = [] }, files = [], target = "logs") {
+  const channelId = config.channels[target] || config.channels.logs;
+  if (!channelId) return;
+  const channel = guild.channels.cache.get(channelId);
   if (!channel?.isTextBased()) return;
 
   const embed = new EmbedBuilder().setTitle(title).setColor(color).setTimestamp();

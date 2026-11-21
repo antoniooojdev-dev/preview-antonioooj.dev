@@ -58,23 +58,57 @@ Los botones usan `customId` con el formato `función:acción:argumento` (p. ej. 
    npm install
    cp .env.example .env      # en Windows: copy .env.example .env
    ```
-   Rellena `.env` y los IDs de `src/config.js`.
-4. Registra los comandos y arranca:
+   Rellena `.env`.
+4. Monta el servidor, registra los comandos y arranca:
    ```bash
+   npm run setup
    npm run deploy
    npm start                 # o npm run dev para recargar al guardar
    ```
 
 > El rol del bot tiene que estar **por encima** de los roles que va a dar (auto-rol, verificado, recompensas).
 
+## Montar el servidor entero (`npm run setup`)
+
+`src/servidor/plan.js` describe el servidor completo y `npm run setup` lo aplica. Se puede ejecutar las veces que haga falta: **actualiza** lo que ya existe en vez de duplicarlo.
+
+| Qué | Detalle |
+| --- | --- |
+| 🎭 **35 roles** | Staff (Fundador, Admin, Moderador, Soporte), especiales, 5 de nivel, Miembro, avisos e intereses, con divisores |
+| 📁 **13 categorías** | Estadísticas, Inicio, Información, Contenido, Comunidad, Desarrollo, Proyectos AJ, Eventos, Voz, Soporte, Tickets, Staff y Registros |
+| 🔐 **Permisos** | Quien no se verifica solo ve Inicio; el resto se desbloquea con el rol Miembro. Staff y registros son privados |
+| 🌐 **Comunidad** | Activa la función Comunidad: canales de anuncios que otros servidores pueden seguir, normas oficiales y foros |
+| 💬 **Foros** | Ayuda con el código, tus proyectos, sugerencias (votación 👍/👎) y bugs, con etiquetas |
+| 🧾 **Paneles** | Guía, normas, verificación, auto-roles, redes, servicios, niveles, partners y tickets |
+| 🛡️ **AutoMod de Discord** | Contenido sexual, insultos, spam y spam de menciones (además del automod del bot) |
+| ⚙️ **Ajustes** | Icono, descripción, canal AFK, verificación media, notificaciones solo con menciones, apodo «AJ Bot» |
+
+```bash
+npm run revisar            # solo enseña lo que hay, no cambia nada
+npm run setup              # monta/actualiza el servidor
+npm run setup -- --limpiar # además borra canales y roles que no estén en el plano
+```
+
+Los IDs resultantes se guardan en `data/servidor.json` y el bot los usa solo (ya no hay que copiar IDs a mano en `config.js`).
+
+### Funciones nuevas
+- **Tickets con formulario**: tipos (soporte, presupuesto, reporte, partnership, otro), formulario, botón **Reclamar**, cierre con motivo, transcripción al canal de registros **y por privado** al usuario.
+- **Auto-roles** con menús desplegables (avisos e intereses).
+- **Avisos de redes**: YouTube (@antonioooj_dev) y GitHub por RSS/Atom; Instagram/TikTok con un feed de rss.app/RSSHub; directos de Twitch con su API. Mencionan al rol de avisos y se publican a los servidores que siguen el canal.
+- **`/anuncio`**: formulario con título, mensaje, imagen y botón; elige canal, mención y estilo.
+- **Salas de voz temporales**: entra en «➕ Crear sala» y tendrás una sala propia que se borra al vaciarse.
+- **Contadores** de miembros y mejoras en canales de voz.
+- **Foros**: votación automática en sugerencias, plantilla en bugs, recordatorio de «Resuelto» en ayuda.
+- **Mensajes programados** (lunes y viernes) y **registros separados** (general, moderación, tickets).
+
 ## Ejemplo de mensaje programado
 
 ```js
-// src/config.js
-scheduled: [
-  { time: "09:00", days: [1, 2, 3, 4, 5], channel: "123…", message: "☀️ ¡Buenos días!" },
-  { time: "20:00", days: [5], channel: "123…", message: "🎮 Noche de juegos en 1 hora" },
-],
+// src/servidor/plan.js — el canal se indica por su clave del plano
+export const scheduled = [
+  { time: "09:00", days: [1, 2, 3, 4, 5], channel: "general", message: "☀️ ¡Buenos días!" },
+  { time: "20:00", days: [5], channel: "gaming", message: "🎮 Noche de juegos en 1 hora" },
+];
 ```
 
 Requiere Node.js 20.6 o superior (usa `--env-file`, sin dependencia de dotenv).

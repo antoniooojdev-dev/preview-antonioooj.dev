@@ -1,13 +1,23 @@
 // ─────────────────────────────────────────────────────────────
-//  Configuración del bot. Los IDs vacíos desactivan esa función.
-//  (Discord → Ajustes → Avanzado → Modo desarrollador → clic derecho → Copiar ID)
+//  Configuración del bot.
+//  Los IDs de canales y roles salen solos de data/servidor.json,
+//  que genera `npm run setup` a partir de src/servidor/plan.js.
+//  Un ID vacío desactiva esa función.
 // ─────────────────────────────────────────────────────────────
+
+import { fillChannelKeys, loadServidor } from "./lib/servidor.js";
+import { roles as planRoles, scheduled as planScheduled, STAFF, SUPPORT } from "./servidor/plan.js";
+
+const ids = loadServidor();
+const ch = (key) => ids.channels[key] ?? "";
+const role = (key) => ids.roles[key] ?? "";
 
 export default {
   timezone: "Europe/Madrid",
+  ids,
 
   colors: {
-    primary: 0x5865f2,
+    primary: 0xf2f2f2, // blanco de la marca AJ (estilo monocromo de antonioooj.dev)
     success: 0x57f287,
     warning: 0xfee75c,
     danger: 0xed4245,
@@ -15,22 +25,29 @@ export default {
   },
 
   channels: {
-    welcome: "", // mensaje de bienvenida
-    logs: "", // registro de moderación, tickets, entradas/salidas, mensajes borrados
-    levelUp: "", // anuncios de subida de nivel (vacío = en el mismo canal)
-    ticketCategory: "", // categoría donde se crean los tickets
+    welcome: ch("bienvenidas"), // mensaje de bienvenida
+    logs: ch("logs"), // entradas/salidas, mensajes borrados, verificaciones
+    modLogs: ch("mod_logs") || ch("logs"), // automod, advertencias
+    ticketLogs: ch("ticket_logs") || ch("logs"), // tickets y transcripciones
+    levelUp: ch("niveles"), // subidas de nivel (vacío = en el mismo canal)
+    ticketCategory: ch("cat_tickets"), // categoría donde se crean los tickets
+    rules: ch("normas"),
+    roles: ch("roles"),
+    guide: ch("guia"),
   },
 
   roles: {
-    autoRole: "", // rol que se da al entrar
-    verified: "", // rol que se da al pulsar "Verificarme"
-    support: "", // equipo que ve los tickets
+    autoRole: "", // la entrada se hace con verificación, no con auto-rol
+    verified: role("miembro"),
+    support: role("soporte"),
+    staff: STAFF.map(role).filter(Boolean),
+    supportTeam: SUPPORT.map(role).filter(Boolean),
   },
 
   automod: {
     enabled: true,
-    exemptRoles: [], // IDs de roles que no pasan por el automod
-    bannedWords: ["palabrota1", "palabrota2"],
+    exemptRoles: STAFF.map(role).filter(Boolean),
+    bannedWords: ["gilipollas", "subnormal", "maricon", "retrasado", "hijoputa", "malparido"],
     blockInvites: true,
     maxMentions: 5,
     spam: { messages: 5, seconds: 6, timeoutMinutes: 5 },
@@ -41,27 +58,18 @@ export default {
     xpMin: 15,
     xpMax: 25,
     cooldownSeconds: 60,
-    // nivel → ID de rol que se entrega al alcanzarlo
-    rewards: {
-      // 5: "123456789012345678",
-      // 10: "123456789012345678",
-    },
+    // nivel → ID de rol (sale del plano: roles con `level`)
+    rewards: Object.fromEntries(planRoles.filter((r) => r.level && role(r.key)).map((r) => [r.level, role(r.key)])),
   },
 
   warns: {
-    // al llegar a N advertencias se aplica la sanción
     timeoutAt: 3,
     timeoutMinutes: 60,
     kickAt: 5,
   },
 
-  // Mensajes automáticos. days: 0 = domingo … 6 = sábado
-  scheduled: [
-    // {
-    //   time: "09:00",
-    //   days: [1, 2, 3, 4, 5],
-    //   channel: "123456789012345678",
-    //   message: "☀️ ¡Buenos días! Recordad leer las normas en #normas.",
-    // },
-  ],
+  // Mensajes automáticos del plano, con las claves de canal ya traducidas a IDs
+  scheduled: planScheduled
+    .filter((j) => j.message && ch(j.channel))
+    .map((j) => ({ ...j, channel: ch(j.channel), message: fillChannelKeys(j.message, ids) })),
 };

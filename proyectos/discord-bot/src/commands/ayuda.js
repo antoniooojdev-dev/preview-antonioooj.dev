@@ -15,7 +15,7 @@ export default {
       .setColor(config.colors.primary)
       .setTitle("📖 Comandos")
       .setDescription(visible.map(({ data }) => `**/${data.name}** — ${data.description}`).join("\n"))
-      .setFooter({ text: "Además: automod, niveles por actividad, bienvenidas y mensajes programados." });
+      .setFooter({ text: "Además: tickets, auto-roles, automod, niveles, avisos de redes, salas de voz temporales y mensajes programados." });
 
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   },

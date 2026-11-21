@@ -38,6 +38,6 @@ export default {
         { name: "Cantidad", value: String(deleted.size), inline: true },
         { name: "Moderador", value: interaction.user.toString(), inline: true },
       ],
-    });
+    }, [], "modLogs");
   },
 };

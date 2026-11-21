@@ -17,6 +17,8 @@ const DEFAULTS = {
   tickets: {}, // channelId → { ownerId, number, openedAt }
   counters: { ticket: 0 },
   scheduledRuns: {}, // jobKey → "YYYY-MM-DD" del último envío
+  tempVoice: {}, // channelId → { ownerId, guildId } (salas de voz temporales)
+  socialSeen: {}, // feedKey → [ids ya publicados]
 };
 
 function load() {

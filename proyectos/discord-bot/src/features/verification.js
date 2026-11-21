@@ -1,13 +1,21 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags } from "discord.js";
 import config from "../config.js";
+import { LOGO } from "../servidor/plan.js";
 import { fail, info, ok } from "../lib/embeds.js";
 import { sendLog } from "../lib/logger.js";
 
 export function panelMessage() {
+  const rules = config.channels.rules ? `<#${config.channels.rules}>` : "las normas";
   const embed = new EmbedBuilder()
-    .setColor(config.colors.success)
+    .setColor(config.colors.primary)
+    .setAuthor({ name: "AJ · DEV", iconURL: LOGO })
     .setTitle("✅ Verificación")
-    .setDescription("Lee las normas del servidor y pulsa el botón para acceder al resto de canales.");
+    .setDescription(
+      `Para ver el resto del servidor, lee ${rules} y pulsa **Verificarme**.
+
+` +
+        "Al hacerlo confirmas que las aceptas. Este paso frena bots y raids: ¡gracias por la paciencia! 🤝",
+    );
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId("verify:go").setLabel("Verificarme").setEmoji("✅").setStyle(ButtonStyle.Success),
   );
@@ -33,5 +41,6 @@ export async function onButton(interaction) {
     color: config.colors.success,
     description: `${interaction.user} (${interaction.user.id})`,
   });
-  return reply(ok("¡Verificado! Ya tienes acceso al servidor."));
+  const roles = config.channels.roles ? ` Elige tus avisos en <#${config.channels.roles}>.` : "";
+  return reply(ok(`¡Verificado! Ya tienes acceso al servidor.${roles}`));
 }

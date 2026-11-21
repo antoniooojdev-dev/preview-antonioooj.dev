@@ -68,6 +68,6 @@ export default {
         { name: "Motivo", value: reason },
         ...(sanction ? [{ name: "Sanción", value: sanction }] : []),
       ],
-    });
+    }, [], "modLogs");
   },
 };
