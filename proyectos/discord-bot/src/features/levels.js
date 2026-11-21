@@ -1,5 +1,4 @@
 import { randomInt } from "node:crypto";
-import { EmbedBuilder } from "discord.js";
 import config from "../config.js";
 import { guildBucket, save } from "../lib/store.js";
 import { log } from "../lib/logger.js";
@@ -54,25 +53,24 @@ export async function handleMessage(message) {
 }
 
 async function onLevelUp(message, level) {
-  const embed = new EmbedBuilder()
-    .setColor(config.colors.success)
-    .setDescription(`🎉 ${message.author} ha subido al **nivel ${level}**.`);
-
   // recompensas: todos los roles de niveles <= nivel actual
   const rewards = Object.entries(config.levels.rewards)
     .filter(([lvl]) => Number(lvl) <= level)
     .map(([, roleId]) => roleId)
     .filter((roleId) => !message.member.roles.cache.has(roleId));
 
+  let extra = "";
   if (rewards.length) {
     try {
       await message.member.roles.add(rewards, `Recompensa por nivel ${level}`);
-      embed.addFields({ name: "Nuevo rol", value: rewards.map((r) => `<@&${r}>`).join(" ") });
+      extra = ` · nuevo rol ${rewards.map((r) => `<@&${r}>`).join(" ")}`;
     } catch (err) {
       log.warn("No se pudo dar el rol de recompensa:", err.message);
     }
   }
 
   const channel = (config.channels.levelUp && message.guild.channels.cache.get(config.channels.levelUp)) || message.channel;
-  await channel.send({ embeds: [embed] }).catch(() => {});
+  await channel
+    .send({ content: `-# ⬆️ ${message.author} ha subido al **nivel ${level}**${extra}`, allowedMentions: { users: [message.author.id] } })
+    .catch(() => {});
 }

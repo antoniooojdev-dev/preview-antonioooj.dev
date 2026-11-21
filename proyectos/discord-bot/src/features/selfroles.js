@@ -1,37 +1,24 @@
 // Roles auto-asignables (avisos e intereses) con menús desplegables en #roles.
 
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags, StringSelectMenuBuilder } from "discord.js";
+import { ButtonStyle, MessageFlags, StringSelectMenuBuilder } from "discord.js";
+import { box, btn, row, v2 } from "../lib/ui.js";
 import config from "../config.js";
-import { LOGO, roles as planRoles } from "../servidor/plan.js";
+import { roles as planRoles } from "../servidor/plan.js";
 import { fail, ok } from "../lib/embeds.js";
 
 const GROUPS = {
-  avisos: { title: "🔔 Avisos", placeholder: "Elige qué avisos quieres recibir…" },
-  intereses: { title: "🧠 Intereses", placeholder: "¿Qué te interesa?" },
+  avisos: { placeholder: "Elige tus avisos…" },
+  intereses: { placeholder: "Elige tus intereses…" },
 };
 
 const groupRoles = (group) => planRoles.filter((r) => r.group === group && config.ids.roles[r.key]);
 
 export function panelMessage() {
-  const embed = new EmbedBuilder()
-    .setColor(config.colors.primary)
-    .setAuthor({ name: "AJ · DEV", iconURL: LOGO })
-    .setTitle("🎭 Elige tus roles")
-    .setDescription(
-      [
-        "Abre los menús y marca lo que quieras. Puedes cambiarlo cuando te apetezca: lo que desmarques se quita.",
-        "",
-        ...Object.entries(GROUPS).map(
-          ([g, { title }]) => `**${title}**\n${groupRoles(g).map((r) => `${r.emoji} <@&${config.ids.roles[r.key]}> — ${r.desc}`).join("\n")}`,
-        ),
-      ].join("\n"),
-    );
-
-  const rows = Object.entries(GROUPS)
+  const selects = Object.entries(GROUPS)
     .filter(([g]) => groupRoles(g).length)
     .map(([g, { placeholder }]) => {
       const list = groupRoles(g);
-      return new ActionRowBuilder().addComponents(
+      return row(
         new StringSelectMenuBuilder()
           .setCustomId(`roles:pick:${g}`)
           .setPlaceholder(placeholder)
@@ -40,13 +27,25 @@ export function panelMessage() {
           .addOptions(list.map((r) => ({ label: r.name.replace(/^\S+\s/, ""), value: r.key, emoji: r.emoji, description: r.desc }))),
       );
     });
-  rows.push(
-    new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId("roles:mine").setLabel("Ver mis roles").setEmoji("👤").setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder().setCustomId("roles:clear").setLabel("Quitar todos").setEmoji("🧹").setStyle(ButtonStyle.Danger),
-    ),
+
+  return v2(
+    box([
+      "# 🎭 Tus roles",
+      "*Marca lo que quieras en cada menú. Lo que desmarques, se quita.*",
+      "---",
+      "## 🔔 Avisos",
+      "-# Solo recibirás menciones de lo que elijas.",
+      selects[0],
+      "## 🧠 Intereses",
+      "-# Para que la comunidad sepa de qué te gusta hablar.",
+      selects[1],
+      "---",
+      row(
+        btn("roles:mine", "Ver mis roles", { emoji: "👤" }),
+        btn("roles:clear", "Quitar todos", { emoji: "🧹", style: ButtonStyle.Danger }),
+      ),
+    ]),
   );
-  return { embeds: [embed], components: rows };
 }
 
 const reply = (interaction, embed) => interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });

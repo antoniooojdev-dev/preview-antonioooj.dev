@@ -1,16 +1,13 @@
 import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
-import { paneles } from "../servidor/paneles.js";
+import { panelesSueltos as paneles } from "../servidor/paneles.js";
 import { ok } from "../lib/embeds.js";
 
 const NOMBRES = {
-  guia: "📖 Guía del servidor",
-  normas: "📜 Normas",
-  verificacion: "✅ Verificación",
-  roles: "🎭 Auto-roles",
-  redes: "🔗 Redes",
+  guia: "🧭 Guía + roles",
+  normas: "📜 Normas + verificación",
+  verificacion: "✅ Solo verificación",
+  roles: "🎭 Solo roles",
   servicios: "💼 Servicios",
-  niveles: "🏅 Niveles",
-  partners: "🤝 Partners",
   abrir_ticket: "🎫 Tickets",
 };
 
@@ -29,7 +26,7 @@ export default {
 
   async execute(interaction) {
     const build = paneles[interaction.options.getString("tipo")];
-    await interaction.channel.send(build());
+    for (const msg of [build()].flat()) await interaction.channel.send(msg);
     await interaction.reply({ embeds: [ok("Panel publicado.")], flags: MessageFlags.Ephemeral });
   },
 };

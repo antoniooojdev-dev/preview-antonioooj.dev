@@ -68,14 +68,31 @@ Los botones usan `customId` con el formato `función:acción:argumento` (p. ej. 
 
 > El rol del bot tiene que estar **por encima** de los roles que va a dar (auto-rol, verificado, recompensas).
 
+## Proyectos y novedades por categoría
+
+Cada proyecto (🎮 **Scripts de FiveM**, 🌐 **Páginas web**, 🧩 **Aplicaciones web**, 🤖 **Bots de Discord**) es un post del foro **📂・proyectos** con su ficha: estado, versión, tecnologías, enlace y botón de historial. Solo el staff publica; la comunidad comenta dentro.
+
+| Comando | Qué hace |
+| --- | --- |
+| `/proyecto nuevo` | Crea la ficha (categoría, estado, imagen + formulario con nombre, resumen, tecnologías, enlace y versión) |
+| `/proyecto editar` | Cambia estado, categoría, versión, enlace, tecnologías o nombre; actualiza la ficha y las etiquetas |
+| `/proyecto lista` | Proyectos agrupados por categoría |
+| `/novedad` | Publica un cambio: va al post del proyecto **y** a **🚀・novedades** como tarjeta, mencionando solo al rol de esa categoría (🎮/🌐/🧩/🤖). En los cambios: `+` nuevo · `~` mejora · `-` arreglo |
+
+`npm run semilla` crea las fichas iniciales con los proyectos públicos de antonioooj.dev (con el bot apagado; no duplica).
+
+## Diseño
+
+Todos los mensajes fijos y automáticos usan los **componentes v2** de Discord (`src/lib/ui.js`): contenedores con el acento blanco de la marca, títulos `#`/`##`, texto pequeño `-#`, separadores, secciones con miniatura y galerías. Servidor compacto: ~27 canales en 7 categorías.
+
 ## Montar el servidor entero (`npm run setup`)
 
 `src/servidor/plan.js` describe el servidor completo y `npm run setup` lo aplica. Se puede ejecutar las veces que haga falta: **actualiza** lo que ya existe en vez de duplicarlo.
 
 | Qué | Detalle |
 | --- | --- |
-| 🎭 **35 roles** | Staff (Fundador, Admin, Moderador, Soporte), especiales, 5 de nivel, Miembro, avisos e intereses, con divisores |
-| 📁 **13 categorías** | Estadísticas, Inicio, Información, Contenido, Comunidad, Desarrollo, Proyectos AJ, Eventos, Voz, Soporte, Tickets, Staff y Registros |
+| 🎭 **Roles** | Staff (Fundador, Admin, Moderador, Soporte), especiales, 5 de nivel, Miembro, avisos e intereses, con divisores |
+| 📁 **7 categorías** | Inicio, Información, Proyectos, Comunidad, Desarrollo, Voz y Staff (+ Tickets oculta) |
 | 🔐 **Permisos** | Quien no se verifica solo ve Inicio; el resto se desbloquea con el rol Miembro. Staff y registros son privados |
 | 🌐 **Comunidad** | Activa la función Comunidad: canales de anuncios que otros servidores pueden seguir, normas oficiales y foros |
 | 💬 **Foros** | Ayuda con el código, tus proyectos, sugerencias (votación 👍/👎) y bugs, con etiquetas |

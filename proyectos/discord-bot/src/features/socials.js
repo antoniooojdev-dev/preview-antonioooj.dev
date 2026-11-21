@@ -3,7 +3,7 @@
 //  · Directos de Twitch (opcional, con TWITCH_CLIENT_ID / TWITCH_CLIENT_SECRET / TWITCH_USER)
 // La primera lectura de cada feed solo memoriza lo que ya existe: no inunda el canal con lo antiguo.
 
-import { EmbedBuilder } from "discord.js";
+import { box, gallery, linkBtn, row, v2 } from "../lib/ui.js";
 import config from "../config.js";
 import { db, save } from "../lib/store.js";
 import { log } from "../lib/logger.js";
@@ -49,17 +49,38 @@ export function parseFeed(xml) {
 
 const roleId = (key) => (key ? config.ids.roles[key] : "");
 
-async function post(client, { channelKey, pingKey, content, embed }) {
+/** Publica un mensaje (payload completo) y lo difunde si el canal es de anuncios */
+async function post(client, channelKey, payload) {
   const channel = await client.channels.fetch(config.ids.channels[channelKey] ?? "").catch(() => null);
   if (!channel?.isTextBased()) return;
-  const ping = roleId(pingKey);
-  const message = await channel.send({
-    content: [ping && `<@&${ping}>`, content].filter(Boolean).join(" ") || undefined,
-    allowedMentions: { roles: ping ? [ping] : [] },
-    embeds: embed ? [embed] : [],
-  });
-  // en canales de anuncios, publicar para los servidores que lo siguen
+  const message = await channel.send(payload);
   if (message.crosspostable) await message.crosspost().catch(() => {});
+}
+
+const pingText = (ping) => (ping ? `  ·  <@&${ping}>` : "");
+const when = (date) => `<t:${Math.floor((date ? new Date(date) : new Date()).getTime() / 1000)}:R>`;
+
+/** Vídeo: texto con el enlace suelto para que Discord muestre el reproductor */
+function videoPayload(feed, item, ping) {
+  return {
+    content: [`-# ${feed.emoji} ${feed.name}${pingText(ping)}  ·  ${when(item.date)}`, `### ${item.title}`, item.link].join("\n"),
+    allowedMentions: { roles: ping ? [ping] : [] },
+  };
+}
+
+/** Resto: tarjeta minimalista */
+function cardPayload(feed, item, ping) {
+  return {
+    ...v2(
+      box([
+        `-# ${feed.emoji} ${feed.name}${pingText(ping)}  ·  ${when(item.date)}`,
+        `### ${item.link ? `[${item.title}](${item.link})` : item.title}`,
+        item.summary && `*${item.summary}*`,
+        item.image && gallery(item.image),
+      ]),
+    ),
+    allowedMentions: { roles: ping ? [ping] : [] },
+  };
 }
 
 async function checkFeed(client, feed) {
@@ -84,23 +105,8 @@ async function checkFeed(client, feed) {
 
   const fresh = items.filter((i) => !seen.includes(i.id)).reverse(); // de más antigua a más nueva
   for (const item of fresh.slice(-5)) {
-    const embed = new EmbedBuilder()
-      .setColor(feed.color ?? config.colors.primary)
-      .setAuthor({ name: feed.name })
-      .setTitle(item.title.slice(0, 256))
-      .setURL(item.link || null)
-      .setTimestamp(item.date ? new Date(item.date) : new Date());
-    if (item.summary) embed.setDescription(item.summary);
-    if (item.image) embed.setImage(item.image);
-
-    const content = feed.message ? feed.message.replace("{title}", `**${item.title}**`).replace("{link}", item.link ?? "") : undefined;
-    // YouTube: el enlace suelto genera el reproductor de Discord, mejor que el embed
-    await post(client, {
-      channelKey: feed.channel,
-      pingKey: firstRun ? null : feed.ping,
-      content,
-      embed: feed.message?.includes("{link}") ? null : embed,
-    });
+    const ping = firstRun ? null : roleId(feed.ping); // lo antiguo se publica sin mencionar
+    await post(client, feed.channel, feed.video ? videoPayload(feed, item, ping) : cardPayload(feed, item, ping));
   }
   db.socialSeen[feed.key] = [...fresh.map((i) => i.id), ...seen].slice(0, KEEP);
   if (fresh.length || firstRun) save();
@@ -134,15 +140,22 @@ async function checkTwitch(client) {
     db.socialSeen.twitchLive = stream.id;
     save();
     const url = `https://twitch.tv/${TWITCH_USER}`;
-    const embed = new EmbedBuilder()
-      .setColor(0x9146ff)
-      .setAuthor({ name: `${stream.user_name} está en directo` })
-      .setTitle(stream.title.slice(0, 256))
-      .setURL(url)
-      .addFields({ name: "Juego", value: stream.game_name || "—", inline: true })
-      .setImage(`${stream.thumbnail_url.replace("{width}", "1280").replace("{height}", "720")}?t=${Date.now()}`)
-      .setTimestamp(new Date(stream.started_at));
-    await post(client, { channelKey: socials.twitch.channel, pingKey: socials.twitch.ping, content: `🔴 **¡En directo!** ${url}`, embed });
+    const ping = roleId(socials.twitch.ping);
+    await post(client, socials.twitch.channel, {
+      ...v2(
+        box(
+          [
+            `-# 🔴 Twitch · en directo${pingText(ping)}`,
+            `## [${stream.title}](${url})`,
+            `*${stream.game_name || "Sin categoría"}*`,
+            gallery(`${stream.thumbnail_url.replace("{width}", "1280").replace("{height}", "720")}?t=${Date.now()}`),
+            row(linkBtn("Ver directo", url, "🔴")),
+          ],
+          0x9146ff,
+        ),
+      ),
+      allowedMentions: { roles: ping ? [ping] : [] },
+    });
   } else if (!stream && wasLive) {
     db.socialSeen.twitchLive = null;
     save();

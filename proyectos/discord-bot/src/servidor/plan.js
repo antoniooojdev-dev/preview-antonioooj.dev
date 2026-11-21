@@ -3,14 +3,16 @@
 //  crea lo que falta y actualiza lo que ya existe (no duplica).
 //  Cada elemento tiene una `key` fija: puedes cambiar nombres
 //  aquí y al volver a ejecutar el setup se renombra en Discord.
+//  `aliases`: claves antiguas cuyo canal se reaprovecha.
 // ─────────────────────────────────────────────────────────────
 
 export const SITE = "https://antonioooj.dev";
 export const LOGO = "https://antonioooj.dev/logo.png";
+export const DISCORD_INVITE = "https://discord.gg/FufV5PJxC";
 
 /** Ajustes generales del servidor */
 export const guildSettings = {
-  description: "Comunidad de AntonioooJ · desarrollo web, scripts de FiveM, bots y proyectos. Aprende, comparte y pide tu proyecto.",
+  description: "Comunidad de AntonioooJ · webs, aplicaciones web, scripts de FiveM y bots de Discord. Aprende, comparte y sigue los proyectos.",
   verificationLevel: "Medium", // cuenta registrada hace más de 5 min
   explicitContentFilter: "AllMembers",
   defaultMessageNotifications: "OnlyMentions",
@@ -18,8 +20,29 @@ export const guildSettings = {
   community: true, // canales de anuncios seguibles, foros, normas oficiales
 };
 
+// ── Categorías de proyectos (novedades, foro de proyectos, avisos) ──
+export const projectCategories = {
+  fivem: { label: "Scripts de FiveM", short: "FiveM", emoji: "🎮", role: "ping_fivem" },
+  web: { label: "Páginas web", short: "Web", emoji: "🌐", role: "ping_web" },
+  app: { label: "Aplicaciones web", short: "App web", emoji: "🧩", role: "ping_apps" },
+  bot: { label: "Bots de Discord", short: "Bot", emoji: "🤖", role: "ping_bots" },
+};
+
+export const updateTypes = {
+  lanzamiento: { label: "Lanzamiento", emoji: "🚀" },
+  funcion: { label: "Nueva función", emoji: "✨" },
+  mejora: { label: "Mejora", emoji: "🛠️" },
+  correccion: { label: "Corrección", emoji: "🐛" },
+};
+
+export const projectStatus = {
+  activo: { label: "Activo", emoji: "🟢" },
+  desarrollo: { label: "En desarrollo", emoji: "🧪" },
+  pausado: { label: "Pausado", emoji: "⏸️" },
+};
+
 // ── Roles (de arriba abajo) ──────────────────────────────────
-// separator: rol divisor decorativo · group: rol auto-asignable desde #roles
+// separator: rol divisor decorativo · group: rol auto-asignable desde #guía
 export const roles = [
   { key: "fundador", name: "👑 Fundador", color: 0xffffff, hoist: true, perms: ["Administrator"] },
   { key: "administrador", name: "🛡️ Administrador", color: 0xe0e0e0, hoist: true, perms: ["Administrator"] },
@@ -51,12 +74,13 @@ export const roles = [
   { key: "miembro", name: "✅ Miembro", color: 0x7a7a7a, hoist: true },
 
   { key: "sep_avisos", name: "━━━━━ AVISOS ━━━━━", separator: true },
-  { key: "ping_anuncios", name: "🔔 Anuncios", group: "avisos", emoji: "🔔", desc: "Novedades importantes del servidor" },
-  { key: "ping_videos", name: "🎬 Vídeos", group: "avisos", emoji: "🎬", desc: "Cuando sale un vídeo nuevo" },
-  { key: "ping_directos", name: "🔴 Directos", group: "avisos", emoji: "🔴", desc: "Cuando empieza un directo" },
-  { key: "ping_proyectos", name: "🚀 Proyectos", group: "avisos", emoji: "🚀", desc: "Changelog y lanzamientos de scripts/webs" },
-  { key: "ping_sorteos", name: "🎉 Sorteos", group: "avisos", emoji: "🎉", desc: "Sorteos y regalos" },
-  { key: "ping_eventos", name: "📅 Eventos", group: "avisos", emoji: "📅", desc: "Eventos, encuestas y quedadas" },
+  { key: "ping_anuncios", name: "🔔 Anuncios", group: "avisos", emoji: "🔔", desc: "Anuncios importantes del servidor" },
+  { key: "ping_fivem", name: "🎮 Novedades FiveM", group: "avisos", emoji: "🎮", desc: "Scripts de FiveM nuevos y actualizados" },
+  { key: "ping_web", name: "🌐 Novedades Web", group: "avisos", emoji: "🌐", desc: "Páginas web nuevas y cambios" },
+  { key: "ping_apps", name: "🧩 Novedades Apps", group: "avisos", emoji: "🧩", desc: "Aplicaciones web nuevas y cambios" },
+  { key: "ping_bots", name: "🤖 Novedades Bots", group: "avisos", emoji: "🤖", desc: "Bots de Discord nuevos y cambios" },
+  { key: "ping_videos", name: "🎬 Vídeos y directos", group: "avisos", emoji: "🎬", desc: "Vídeos nuevos y directos" },
+  { key: "ping_eventos", name: "📅 Eventos y sorteos", group: "avisos", emoji: "📅", desc: "Eventos, sorteos y encuestas" },
 
   { key: "sep_intereses", name: "━━━━━ INTERESES ━━━━━", separator: true },
   { key: "int_web", name: "🌐 Desarrollo web", group: "intereses", emoji: "🌐", desc: "HTML, CSS, Astro, React…" },
@@ -72,26 +96,17 @@ export const STAFF = ["fundador", "administrador", "moderador"];
 export const SUPPORT = [...STAFF, "soporte"];
 
 // ── Categorías y canales ─────────────────────────────────────
-// access: inicio · verificacion · lectura · chat · voz · stats · staff · soporte · registros
+// access: inicio · lectura · chat · escaparate · voz · stats · staff · soporte · registros
 // type: text (por defecto) · announcement · forum · voice
 export const categories = [
-  {
-    key: "cat_stats",
-    name: "📊 ESTADÍSTICAS",
-    access: "stats",
-    channels: [
-      { key: "stat_miembros", name: "👥 Miembros: …", type: "voice", stat: "miembros" },
-      { key: "stat_boosts", name: "🚀 Mejoras: …", type: "voice", stat: "boosts" },
-    ],
-  },
   {
     key: "cat_inicio",
     name: "🏠 INICIO",
     access: "inicio",
     channels: [
-      { key: "guia", name: "📖・guía", topic: "Qué es este servidor y cómo moverte por él." },
-      { key: "normas", name: "📜・normas", topic: "Normas de la comunidad. Leerlas es obligatorio." },
-      { key: "verificacion", name: "✅・verificación", access: "verificacion", topic: "Pulsa el botón para entrar al servidor." },
+      { key: "stat_miembros", name: "👥 Miembros: …", type: "voice", stat: "miembros", access: "stats" },
+      { key: "normas", name: "📜・normas", topic: "Normas de la comunidad y verificación." },
+      { key: "guia", name: "🧭・guía", access: "lectura", aliases: ["roles"], topic: "Cómo funciona el servidor y elección de roles." },
       { key: "bienvenidas", name: "👋・bienvenidas", topic: "Cada persona nueva que llega a la comunidad." },
     ],
   },
@@ -101,79 +116,33 @@ export const categories = [
     access: "lectura",
     channels: [
       { key: "anuncios", name: "📢・anuncios", type: "announcement", topic: "Anuncios oficiales. Puedes seguir este canal desde tu servidor." },
-      { key: "novedades", name: "📰・novedades", type: "announcement", topic: "Novedades de la web, el servidor y los proyectos." },
-      { key: "roles", name: "🎭・roles", topic: "Elige qué avisos quieres recibir y tus intereses." },
-      { key: "redes", name: "🔗・redes", topic: "Todas las redes de AntonioooJ." },
-      { key: "servicios", name: "💼・servicios", topic: "Webs, scripts de FiveM y bots a medida. Pide presupuesto." },
-      { key: "niveles", name: "🏅・niveles", topic: "Subidas de nivel y recompensas por actividad." },
-      { key: "partners", name: "🤝・partners", topic: "Comunidades aliadas." },
-    ],
-  },
-  {
-    key: "cat_contenido",
-    name: "📺 CONTENIDO",
-    access: "lectura",
-    channels: [
-      { key: "youtube", name: "🎬・youtube", topic: "Cada vídeo nuevo del canal, al momento." },
-      { key: "directos", name: "🔴・directos", topic: "Aviso cuando empieza un directo." },
-      { key: "instagram", name: "📸・instagram", topic: "Publicaciones de @antonioooj.dev." },
-      { key: "tiktok", name: "🎵・tiktok", topic: "Nuevos TikToks." },
-      { key: "github", name: "💻・github", topic: "Actividad pública en github.com/antonioooj." },
-    ],
-  },
-  {
-    key: "cat_comunidad",
-    name: "💬 COMUNIDAD",
-    access: "chat",
-    channels: [
-      { key: "general", name: "💬・general", topic: "Charla general. Sé buena gente." },
-      { key: "presentaciones", name: "🙋・presentaciones", topic: "Preséntate: quién eres, qué haces y qué te gusta.", slowmode: 300 },
-      { key: "media", name: "🖼️・media", topic: "Capturas, clips y vídeos." },
-      { key: "memes", name: "😂・memes", topic: "Memes (de programación, mejor)." },
-      { key: "gaming", name: "🕹️・gaming", topic: "Busca grupo, comparte partidas." },
-      { key: "comandos", name: "🤖・comandos", topic: "Usa aquí los comandos del bot: /nivel, /ranking, /recordatorio…" },
-    ],
-  },
-  {
-    key: "cat_dev",
-    name: "💻 DESARROLLO",
-    access: "chat",
-    channels: [
-      { key: "programacion", name: "💻・programación", topic: "Programación en general." },
-      { key: "web", name: "🌐・desarrollo-web", topic: "Frontend, backend, despliegues, hosting." },
-      { key: "fivem_dev", name: "🎮・fivem-dev", topic: "Lua, ESX, QBCore, MLOs y servidores RP." },
-      { key: "recursos", name: "📚・recursos", topic: "Tutoriales, herramientas y enlaces útiles. Solo contenido de calidad." },
-      {
-        key: "ayuda",
-        name: "🆘・ayuda-código",
-        type: "forum",
-        topic: "Abre un post por duda. Pega el código (con ```), el error completo y qué has probado. Marca la etiqueta ✅ Resuelto cuando esté.",
-        tags: ["🌐 Web", "⚛️ JavaScript", "🐍 Python", "🐘 PHP", "🎮 FiveM / Lua", "🗄️ Bases de datos", "✅ Resuelto"],
-        reaction: "👍",
-      },
-      {
-        key: "tus_proyectos",
-        name: "🚀・tus-proyectos",
-        type: "forum",
-        topic: "Enseña lo que estás construyendo: capturas, enlace y qué tecnologías usas. Se valora el feedback constructivo.",
-        tags: ["🌐 Web", "🎮 FiveM", "🤖 Bot", "📱 App", "🎨 Diseño", "🧪 En desarrollo", "✅ Terminado"],
-        reaction: "🔥",
-      },
+      { key: "novedades", name: "🚀・novedades", type: "announcement", topic: "Novedades de scripts de FiveM, webs, apps web y bots. Elige de qué categorías recibir aviso en #guía." },
+      { key: "contenido", name: "📺・contenido", aliases: ["youtube"], topic: "Vídeos, directos y publicaciones en redes, al momento." },
+      { key: "servicios", name: "💼・servicios", topic: "Webs, apps, scripts de FiveM y bots a medida." },
+      { key: "abrir_ticket", name: "🎫・soporte", topic: "Abre un ticket privado con el equipo." },
     ],
   },
   {
     key: "cat_proyectos",
-    name: "🧩 PROYECTOS AJ",
+    name: "🧩 PROYECTOS",
     access: "chat",
     channels: [
-      { key: "changelog", name: "📋・changelog", type: "announcement", access: "lectura", topic: "Cambios de la web, los scripts y el bot." },
-      { key: "scripts_fivem", name: "🧩・scripts-fivem", topic: "Scripts antoniooojdev_* para FiveM: dudas, ideas y vídeos." },
+      {
+        key: "proyectos",
+        name: "📂・proyectos",
+        type: "forum",
+        access: "escaparate",
+        topic: "Un post por proyecto con su ficha y todo su historial de cambios. Filtra por categoría con las etiquetas. Puedes comentar dentro de cada post.",
+        tags: ["🎮 FiveM", "🌐 Web", "🧩 App web", "🤖 Bot", "🟢 Activo", "🧪 En desarrollo", "⏸️ Pausado"],
+        moderatedAll: true,
+        reaction: "🔥",
+      },
       {
         key: "sugerencias",
         name: "💡・sugerencias",
         type: "forum",
         topic: "Una sugerencia por post. Explica la idea y por qué mejoraría el servidor o los proyectos. Vota con 👍 / 👎.",
-        tags: ["🌐 Web", "🎮 FiveM", "🤖 Bot", "💬 Discord", "🟡 En revisión", "✅ Aceptada", "❌ Rechazada"],
+        tags: ["🎮 FiveM", "🌐 Web", "🧩 App web", "🤖 Bot", "💬 Discord", "🟡 En revisión", "✅ Aceptada", "❌ Rechazada"],
         reaction: "👍",
         suggestions: true,
       },
@@ -182,19 +151,44 @@ export const categories = [
         name: "🐛・bugs",
         type: "forum",
         topic: "Reporta un fallo: qué hacías, qué esperabas, qué pasó y capturas. Un bug por post.",
-        tags: ["🌐 Web", "🎮 FiveM", "🤖 Bot", "🔴 Crítico", "🟡 Confirmado", "✅ Arreglado"],
+        tags: ["🎮 FiveM", "🌐 Web", "🧩 App web", "🤖 Bot", "🔴 Crítico", "🟡 Confirmado", "✅ Arreglado"],
         bugs: true,
       },
     ],
   },
   {
-    key: "cat_eventos",
-    name: "🎉 EVENTOS",
-    access: "lectura",
+    key: "cat_comunidad",
+    name: "💬 COMUNIDAD",
+    access: "chat",
     channels: [
-      { key: "eventos", name: "📅・eventos", topic: "Eventos de la comunidad." },
-      { key: "sorteos", name: "🎉・sorteos", topic: "Sorteos activos. Pulsa el botón para participar." },
-      { key: "encuestas", name: "📊・encuestas", topic: "Vota y decide el rumbo del servidor." },
+      { key: "general", name: "💬・general", topic: "Charla general. Preséntate, comenta y sé buena gente." },
+      { key: "media", name: "🖼️・media", aliases: ["memes"], topic: "Capturas, clips y memes." },
+      { key: "comandos", name: "🤖・comandos", topic: "Comandos del bot (/nivel, /ranking, /recordatorio…) y subidas de nivel." },
+      { key: "eventos", name: "🎉・eventos", access: "lectura", aliases: ["sorteos"], topic: "Eventos, sorteos y encuestas." },
+    ],
+  },
+  {
+    key: "cat_dev",
+    name: "💻 DESARROLLO",
+    access: "chat",
+    channels: [
+      { key: "programacion", name: "💻・programación", topic: "Webs, FiveM, bots… cualquier tema de desarrollo. Recursos útiles también aquí." },
+      {
+        key: "ayuda",
+        name: "🆘・ayuda",
+        type: "forum",
+        topic: "Abre un post por duda. Pega el código (con ```), el error completo y qué has probado. Marca ✅ Resuelto cuando esté.",
+        tags: ["🌐 Web", "⚛️ JavaScript", "🐍 Python", "🐘 PHP", "🎮 FiveM / Lua", "🗄️ Bases de datos", "✅ Resuelto"],
+        reaction: "👍",
+      },
+      {
+        key: "tus_proyectos",
+        name: "✨・tus-proyectos",
+        type: "forum",
+        topic: "Enseña lo que estás construyendo: capturas, enlace y tecnologías. Se valora el feedback constructivo.",
+        tags: ["🎮 FiveM", "🌐 Web", "🧩 App web", "🤖 Bot", "🎨 Diseño", "🧪 En desarrollo", "✅ Terminado"],
+        reaction: "🔥",
+      },
     ],
   },
   {
@@ -204,17 +198,8 @@ export const categories = [
     channels: [
       { key: "crear_sala", name: "➕ Crear sala", type: "voice", tempVoice: true },
       { key: "voz_general", name: "🔊 General", type: "voice" },
-      { key: "voz_programando", name: "💻 Programando", type: "voice" },
-      { key: "voz_gaming", name: "🎮 Gaming", type: "voice" },
-      { key: "voz_musica", name: "🎵 Música", type: "voice" },
       { key: "voz_afk", name: "💤 AFK", type: "voice", afk: true },
     ],
-  },
-  {
-    key: "cat_soporte",
-    name: "🎫 SOPORTE",
-    access: "chat",
-    channels: [{ key: "abrir_ticket", name: "🎫・abrir-ticket", access: "lectura", topic: "Abre un ticket privado con el equipo." }],
   },
   { key: "cat_tickets", name: "📂 TICKETS", access: "soporte", channels: [] },
   {
@@ -222,20 +207,11 @@ export const categories = [
     name: "🛡️ STAFF",
     access: "staff",
     channels: [
-      { key: "staff_chat", name: "💬・staff", topic: "Chat interno del equipo." },
+      { key: "staff_chat", name: "💬・staff", topic: "Chat interno del equipo. /anuncio, /novedad, /proyecto…" },
       { key: "staff_avisos", name: "📣・avisos-discord", topic: "Avisos oficiales de Discord para administradores de comunidades." },
-      { key: "staff_comandos", name: "🤖・comandos-staff", topic: "/anuncio, /panel, /sorteo…" },
+      { key: "logs", name: "📋・registro", access: "registros", topic: "Entradas, salidas, mensajes borrados, verificaciones, automod y sanciones." },
+      { key: "ticket_logs", name: "🎫・transcripciones", access: "registros", topic: "Tickets cerrados con su transcripción." },
       { key: "staff_voz", name: "🔊 Staff", type: "voice" },
-    ],
-  },
-  {
-    key: "cat_registros",
-    name: "📁 REGISTROS",
-    access: "registros",
-    channels: [
-      { key: "logs", name: "📋・registro", topic: "Entradas, salidas, mensajes borrados y verificaciones." },
-      { key: "mod_logs", name: "🛡️・moderación", topic: "Automod, advertencias y sanciones." },
-      { key: "ticket_logs", name: "🎫・transcripciones", topic: "Tickets cerrados con su transcripción." },
     ],
   },
 ];
@@ -246,38 +222,37 @@ export const categories = [
 export const socials = {
   links: [
     { label: "Web", emoji: "🌐", url: SITE },
-    { label: "GitHub", emoji: "💻", url: "https://github.com/antonioooj" },
-    { label: "Instagram", emoji: "📸", url: "https://instagram.com/antonioooj.dev" },
-    { label: "LinkedIn", emoji: "💼", url: "https://www.linkedin.com/in/antonioooj" },
     { label: "YouTube", emoji: "🎬", url: "https://www.youtube.com/@antonioooj_dev" },
-    // { label: "TikTok", emoji: "🎵", url: "https://tiktok.com/@tu-usuario" },
+    { label: "Instagram", emoji: "📸", url: "https://instagram.com/antonioooj.dev" },
+    { label: "GitHub", emoji: "💻", url: "https://github.com/antonioooj" },
+    { label: "LinkedIn", emoji: "💼", url: "https://www.linkedin.com/in/antonioooj" },
   ],
   feeds: [
     {
       key: "github",
       name: "GitHub",
+      emoji: "💻",
       url: "https://github.com/antonioooj.atom",
-      channel: "github",
-      color: 0xf0f0f0,
+      channel: "contenido",
       // solo publicaciones interesantes: repos nuevos, releases y pushes
       include: /(created a repository|released|published|pushed)/i,
     },
     {
       key: "youtube",
       name: "YouTube",
+      emoji: "🎬",
       // canal @antonioooj_dev (se puede cambiar con YOUTUBE_FEED en .env)
       url: process.env.YOUTUBE_FEED || "https://www.youtube.com/feeds/videos.xml?channel_id=UCHjQUn1elIj-QlJkvYov_yA",
-      channel: "youtube",
+      channel: "contenido",
       ping: "ping_videos",
-      color: 0xff0033,
+      video: true, // enlace suelto para que Discord muestre el reproductor
       backfill: 5, // al estrenar el canal, publica los 5 últimos vídeos (sin mencionar)
-      message: "🎬 **¡Vídeo nuevo!** {title}\n{link}",
     },
-    { key: "instagram", name: "Instagram", url: process.env.INSTAGRAM_FEED || "", channel: "instagram", color: 0xe1306c },
-    { key: "tiktok", name: "TikTok", url: process.env.TIKTOK_FEED || "", channel: "tiktok", color: 0x25f4ee, ping: "ping_videos" },
+    { key: "instagram", name: "Instagram", emoji: "📸", url: process.env.INSTAGRAM_FEED || "", channel: "contenido" },
+    { key: "tiktok", name: "TikTok", emoji: "🎵", url: process.env.TIKTOK_FEED || "", channel: "contenido", ping: "ping_videos", video: true },
   ],
   // Directos de Twitch: TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET y TWITCH_USER en .env
-  twitch: { channel: "directos", ping: "ping_directos" },
+  twitch: { channel: "contenido", ping: "ping_videos" },
 };
 
 // ── Tipos de ticket ──────────────────────────────────────────
@@ -285,7 +260,7 @@ export const ticketTypes = {
   soporte: {
     label: "Soporte",
     emoji: "🛠️",
-    desc: "Problemas con un script, la web o el servidor",
+    desc: "Problemas con un script, una web o el servidor",
     fields: [
       { id: "asunto", label: "Asunto", style: "short", max: 100 },
       { id: "detalle", label: "Explica el problema", style: "paragraph", max: 1500, placeholder: "Qué hacías, qué esperabas y qué ha pasado" },
@@ -294,9 +269,9 @@ export const ticketTypes = {
   presupuesto: {
     label: "Pedir presupuesto",
     emoji: "💼",
-    desc: "Web, script de FiveM, bot o app a medida",
+    desc: "Web, app web, script de FiveM o bot a medida",
     fields: [
-      { id: "tipo", label: "¿Qué necesitas?", style: "short", max: 100, placeholder: "Web, script de FiveM, bot de Discord…" },
+      { id: "tipo", label: "¿Qué necesitas?", style: "short", max: 100, placeholder: "Web, app web, script de FiveM, bot de Discord…" },
       { id: "detalle", label: "Cuéntame la idea", style: "paragraph", max: 1500 },
       { id: "presupuesto", label: "Presupuesto aproximado", style: "short", max: 60, required: false, placeholder: "Opcional" },
       { id: "plazo", label: "¿Para cuándo?", style: "short", max: 60, required: false, placeholder: "Opcional" },
@@ -334,5 +309,5 @@ export const ticketTypes = {
 // ── Mensajes programados (días: 0 domingo … 6 sábado) ────────
 export const scheduled = [
   { time: "09:30", days: [1], channel: "programacion", message: "☕ **¡Buen lunes!** ¿En qué estáis trabajando esta semana? Contadlo aquí 👇" },
-  { time: "18:00", days: [5], channel: "general", message: "🚀 **Viernes de proyectos**: enseñad lo que habéis hecho esta semana en <#{tus_proyectos}>. ¡El feedback es gratis!" },
+  { time: "18:00", days: [5], channel: "general", message: "✨ **Viernes de proyectos** — enseñad lo que habéis hecho esta semana en <#{tus_proyectos}>." },
 ];

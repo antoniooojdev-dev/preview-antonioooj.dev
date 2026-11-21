@@ -5,10 +5,8 @@
 import {
   ActionRowBuilder,
   AttachmentBuilder,
-  ButtonBuilder,
   ButtonStyle,
   ChannelType,
-  EmbedBuilder,
   MessageFlags,
   ModalBuilder,
   PermissionFlagsBits,
@@ -21,36 +19,54 @@ import { db, save } from "../lib/store.js";
 import { discordTime } from "../lib/duration.js";
 import { fail, ok } from "../lib/embeds.js";
 import { sendLog } from "../lib/logger.js";
-import { LOGO, ticketTypes } from "../servidor/plan.js";
+import { ticketTypes } from "../servidor/plan.js";
+import { box, btn, row, v2 } from "../lib/ui.js";
 
 const pad = (n) => String(n).padStart(4, "0");
 
 /** Mensaje del panel con el menú de tipos de ticket */
 export function panelMessage() {
-  const embed = new EmbedBuilder()
-    .setColor(config.colors.primary)
-    .setAuthor({ name: "AJ · DEV", iconURL: LOGO })
-    .setTitle("🎫 Centro de soporte")
-    .setDescription(
-      [
-        "Elige el tipo de ticket en el menú, rellena el formulario y se abrirá un **canal privado** solo para ti y el equipo.",
-        "",
-        ...Object.values(ticketTypes).map((t) => `${t.emoji} **${t.label}** — ${t.desc}`),
-        "",
-        "• Un ticket abierto a la vez por persona",
-        "• Cuanto más detalle des, antes se resuelve",
-        "• Al cerrarlo recibirás la conversación por privado",
-      ].join("\n"),
-    )
-    .setFooter({ text: "El staff nunca te pedirá pagos ni contraseñas fuera de un ticket." });
-
-  const row = new ActionRowBuilder().addComponents(
-    new StringSelectMenuBuilder()
-      .setCustomId("ticket:menu")
-      .setPlaceholder("📩 Abrir un ticket…")
-      .addOptions(Object.entries(ticketTypes).map(([value, t]) => ({ value, label: t.label, emoji: t.emoji, description: t.desc }))),
+  return v2(
+    box([
+      "# 🎫 Soporte",
+      "*Elige el tipo, rellena el formulario y se abrirá un canal __privado__ con el equipo.*",
+      "---",
+      Object.values(ticketTypes)
+        .map((t) => `${t.emoji} **${t.label}** — ${t.desc}`)
+        .join("\n"),
+      row(
+        new StringSelectMenuBuilder()
+          .setCustomId("ticket:menu")
+          .setPlaceholder("📩 Abrir un ticket…")
+          .addOptions(Object.entries(ticketTypes).map(([value, t]) => ({ value, label: t.label, emoji: t.emoji, description: t.desc }))),
+      ),
+      "---",
+      "-# Un ticket a la vez · Al cerrarlo recibes la conversación por privado · El staff __nunca__ pide pagos ni contraseñas fuera de un ticket",
+    ]),
   );
-  return { embeds: [embed], components: [row] };
+}
+
+/** Mensaje de bienvenida dentro del ticket (se reconstruye al reclamarlo) */
+function ticketMessage(t, type, { claimedName = null } = {}) {
+  return v2(
+    box([
+      `-# ${type.emoji} ${type.label}  ·  #${pad(t.number)}  ·  ${discordTime(t.openedAt)}`,
+      `## Hola <@${t.ownerId}> 👋`,
+      "*El equipo te responderá lo antes posible. Mientras tanto, añade capturas o cualquier detalle útil.*",
+      "---",
+      t.answers.map((a) => `**${a.name}**\n${a.value}`).join("\n\n"),
+      "---",
+      row(
+        btn("ticket:claim", claimedName ? `Atendido por ${claimedName}`.slice(0, 80) : "Reclamar", {
+          emoji: "🙋",
+          style: ButtonStyle.Success,
+          disabled: !!claimedName,
+        }),
+        btn("ticket:close", "Cerrar", { emoji: "🔒", style: ButtonStyle.Danger }),
+      ),
+      t.pings?.length && `-# Aviso al equipo: ${t.pings.map((r) => `<@&${r}>`).join(" ")}`,
+    ]),
+  );
 }
 
 const isSupport = (member) =>
@@ -138,40 +154,25 @@ async function create(interaction, typeKey) {
     permissionOverwrites: overwrites,
   });
 
-  db.tickets[channel.id] = { guildId: guild.id, ownerId: user.id, number, type: typeKey, openedAt: Date.now() };
-  save();
-
   const answers = type.fields.map((f) => ({
     name: f.label,
-    value: (interaction.fields.getTextInputValue(f.id)?.trim() || "—").slice(0, 1024),
+    value: (interaction.fields.getTextInputValue(f.id)?.trim() || "—").slice(0, 1000),
   }));
-
-  const embed = new EmbedBuilder()
-    .setColor(config.colors.primary)
-    .setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
-    .setTitle(`${type.emoji} ${type.label} · #${pad(number)}`)
-    .setDescription(`Hola ${user}, gracias por escribir. El equipo te responderá lo antes posible.\nMientras tanto, añade capturas o cualquier detalle útil.`)
-    .addFields(answers)
-    .setFooter({ text: "Pulsa «Cerrar» cuando esté resuelto." })
-    .setTimestamp();
-
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId("ticket:claim").setLabel("Reclamar").setEmoji("🙋").setStyle(ButtonStyle.Success),
-    new ButtonBuilder().setCustomId("ticket:close").setLabel("Cerrar").setEmoji("🔒").setStyle(ButtonStyle.Danger),
-  );
-
   // presupuestos y partners → fundador; el resto → soporte
   const pings = ["presupuesto", "partner"].includes(typeKey)
     ? config.roles.staff.slice(0, 1)
     : config.roles.support
       ? [config.roles.support]
       : [];
+
+  const ticket = { guildId: guild.id, ownerId: user.id, number, type: typeKey, openedAt: Date.now(), answers, pings };
+  db.tickets[channel.id] = ticket;
+  save();
+
   await channel.send({
-    content: [user.toString(), ...pings.map((r) => `<@&${r}>`)].join(" "),
+    ...ticketMessage(ticket, type),
     // el resto del bot no menciona roles (index.js); aquí solo los del equipo
     allowedMentions: { users: [user.id], roles: pings },
-    embeds: [embed],
-    components: [row],
   });
 
   await sendLog(
@@ -206,17 +207,10 @@ async function claim(interaction) {
   ticket.claimedBy = interaction.user.id;
   save();
 
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("ticket:claim")
-      .setLabel(`Atendido por ${interaction.member.displayName}`.slice(0, 80))
-      .setEmoji("🙋")
-      .setStyle(ButtonStyle.Success)
-      .setDisabled(true),
-    new ButtonBuilder().setCustomId("ticket:close").setLabel("Cerrar").setEmoji("🔒").setStyle(ButtonStyle.Danger),
-  );
-  await interaction.update({ components: [row] });
-  await interaction.channel.send({ embeds: [ok(`${interaction.user} se encarga de este ticket.`)] });
+  const type = ticketTypes[ticket.type] ?? ticketTypes.otro;
+  if (ticket.answers) await interaction.update({ ...ticketMessage(ticket, type, { claimedName: interaction.member.displayName }), allowedMentions: { parse: [] } });
+  else await interaction.deferUpdate();
+  await interaction.channel.send({ content: `-# 🙋 ${interaction.user} se encarga de este ticket.`, allowedMentions: { parse: [] } });
 }
 
 // ── Cerrar ───────────────────────────────────────────────────
@@ -253,7 +247,7 @@ async function close(interaction) {
   delete db.tickets[channel.id];
   save();
 
-  await interaction.reply({ embeds: [ok(`Ticket cerrado por ${member}. El canal se borrará en 5 segundos…`)] });
+  await interaction.reply({ content: `-# 🔒 Cerrado por ${member} · el canal se borrará en 5 segundos…`, allowedMentions: { parse: [] } });
 
   const type = ticketTypes[ticket.type] ?? { label: "Ticket", emoji: "🎫" };
   const transcript = await buildTranscript(channel);
@@ -278,14 +272,17 @@ async function close(interaction) {
   const owner = await interaction.client.users.fetch(ticket.ownerId).catch(() => null);
   await owner
     ?.send({
-      embeds: [
-        new EmbedBuilder()
-          .setColor(config.colors.primary)
-          .setAuthor({ name: guild.name, iconURL: guild.iconURL() ?? LOGO })
-          .setTitle("🔒 Tu ticket se ha cerrado")
-          .setDescription("Te dejamos la conversación completa adjunta. Si necesitas algo más, abre otro ticket cuando quieras.")
-          .addFields(summary.filter((f) => f.name !== "Abierto por")),
-      ],
+      ...v2(
+        box([
+          `-# ${guild.name}`,
+          "## 🔒 Tu ticket se ha cerrado",
+          `*${type.emoji} ${type.label} · #${pad(ticket.number)}*`,
+          "---",
+          `**Motivo** — ${reason}`,
+          `**Atendido por** — ${ticket.claimedBy ? `<@${ticket.claimedBy}>` : "el equipo"}`,
+          "-# Tienes la conversación completa adjunta. Si necesitas algo más, abre otro ticket cuando quieras.",
+        ]),
+      ),
       files: [new AttachmentBuilder(Buffer.from(transcript, "utf8"), { name: fileName })],
     })
     .catch(() => {});

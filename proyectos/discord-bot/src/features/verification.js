@@ -1,25 +1,18 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags } from "discord.js";
+import { ButtonStyle, MessageFlags } from "discord.js";
+import { box, btn, row, v2 } from "../lib/ui.js";
 import config from "../config.js";
-import { LOGO } from "../servidor/plan.js";
 import { fail, info, ok } from "../lib/embeds.js";
 import { sendLog } from "../lib/logger.js";
 
 export function panelMessage() {
   const rules = config.channels.rules ? `<#${config.channels.rules}>` : "las normas";
-  const embed = new EmbedBuilder()
-    .setColor(config.colors.primary)
-    .setAuthor({ name: "AJ · DEV", iconURL: LOGO })
-    .setTitle("✅ Verificación")
-    .setDescription(
-      `Para ver el resto del servidor, lee ${rules} y pulsa **Verificarme**.
-
-` +
-        "Al hacerlo confirmas que las aceptas. Este paso frena bots y raids: ¡gracias por la paciencia! 🤝",
-    );
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId("verify:go").setLabel("Verificarme").setEmoji("✅").setStyle(ButtonStyle.Success),
+  return v2(
+    box([
+      "## ✅ Verificación",
+      `Lee ${rules} y pulsa el botón para __desbloquear el servidor__.`,
+      row(btn("verify:go", "Acepto, verificarme", { emoji: "✅", style: ButtonStyle.Success })),
+    ]),
   );
-  return { embeds: [embed], components: [row] };
 }
 
 /** @param {import("discord.js").ButtonInteraction} interaction */
@@ -41,6 +34,6 @@ export async function onButton(interaction) {
     color: config.colors.success,
     description: `${interaction.user} (${interaction.user.id})`,
   });
-  const roles = config.channels.roles ? ` Elige tus avisos en <#${config.channels.roles}>.` : "";
+  const roles = config.channels.guide ? ` Empieza por <#${config.channels.guide}> y elige tus avisos.` : "";
   return reply(ok(`¡Verificado! Ya tienes acceso al servidor.${roles}`));
 }

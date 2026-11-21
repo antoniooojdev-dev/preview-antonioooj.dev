@@ -18,6 +18,7 @@ export default {
 
   colors: {
     primary: 0xf2f2f2, // blanco de la marca AJ (estilo monocromo de antonioooj.dev)
+    // embeds efímeros de confirmación/error: discretos
     success: 0x57f287,
     warning: 0xfee75c,
     danger: 0xed4245,
@@ -26,14 +27,16 @@ export default {
 
   channels: {
     welcome: ch("bienvenidas"), // mensaje de bienvenida
-    logs: ch("logs"), // entradas/salidas, mensajes borrados, verificaciones
-    modLogs: ch("mod_logs") || ch("logs"), // automod, advertencias
+    logs: ch("logs"), // entradas/salidas, mensajes borrados, verificaciones, automod, sanciones
+    modLogs: ch("logs"),
     ticketLogs: ch("ticket_logs") || ch("logs"), // tickets y transcripciones
-    levelUp: ch("niveles"), // subidas de nivel (vacío = en el mismo canal)
+    levelUp: ch("comandos"), // subidas de nivel (vacío = en el mismo canal)
     ticketCategory: ch("cat_tickets"), // categoría donde se crean los tickets
     rules: ch("normas"),
-    roles: ch("roles"),
+    roles: ch("guia"), // los roles se eligen en la guía
     guide: ch("guia"),
+    projects: ch("proyectos"), // foro de proyectos
+    news: ch("novedades"), // canal de novedades
   },
 
   roles: {

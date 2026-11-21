@@ -19,6 +19,7 @@ const DEFAULTS = {
   scheduledRuns: {}, // jobKey → "YYYY-MM-DD" del último envío
   tempVoice: {}, // channelId → { ownerId, guildId } (salas de voz temporales)
   socialSeen: {}, // feedKey → [ids ya publicados]
+  projects: {}, // threadId → { name, category, status, version, link, image, summary, createdAt, updates: [] }
 };
 
 function load() {

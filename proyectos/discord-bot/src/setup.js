@@ -52,6 +52,11 @@ await ready;
 
 // ── Servidor ─────────────────────────────────────────────────
 const ids = loadServidor();
+// mapas nuevos solo con lo que está en el plano; los IDs antiguos sirven para reaprovechar
+const old = { channels: { ...ids.channels }, roles: { ...ids.roles }, messages: { ...ids.messages } };
+ids.channels = {};
+ids.roles = {};
+ids.messages = {};
 const guildId = process.env.GUILD_ID || ids.guildId;
 let guild = guildId ? client.guilds.cache.get(guildId) : null;
 if (!guild) {
@@ -96,7 +101,7 @@ if (DRY) {
 // ── 1. Roles ─────────────────────────────────────────────────
 say("🎭", "Roles…");
 const findRole = (def) =>
-  guild.roles.cache.get(ids.roles[def.key]) ?? guild.roles.cache.find((r) => !r.managed && norm(r.name) === norm(def.name));
+  guild.roles.cache.get(old.roles[def.key]) ?? guild.roles.cache.find((r) => !r.managed && norm(r.name) === norm(def.name));
 
 for (const def of planRoles) {
   const data = {
@@ -169,6 +174,12 @@ function overwrites(access, def = {}) {
     verificacion: [role(everyone, READ, [...NOWRITE, P.AddReactions]), role(member, [], [P.ViewChannel]), ...team(STAFF, [P.ViewChannel, P.SendMessages])],
     lectura: [role(everyone, [], [P.ViewChannel]), role(member, [...READ, P.AddReactions], NOWRITE), ...team(STAFF, [...READ, P.SendMessages, P.SendMessagesInThreads])],
     chat: [role(everyone, [], [P.ViewChannel]), role(member, [...READ, ...WRITE]), ...team(STAFF, READ)],
+    // foro escaparate: el staff publica, los miembros comentan dentro de cada post
+    escaparate: [
+      role(everyone, [], [P.ViewChannel]),
+      role(member, [...READ, P.AddReactions, P.SendMessagesInThreads], [P.SendMessages, P.CreatePublicThreads, P.CreatePrivateThreads]),
+      ...team(STAFF, [...READ, ...WRITE, P.ManageThreads]),
+    ],
     voz: [role(everyone, [], [P.ViewChannel]), role(member, VOICE, def.afk ? [P.Speak, P.Stream] : [])],
     stats: [role(everyone, [P.ViewChannel], [P.Connect])],
     staff: [role(everyone, [], [P.ViewChannel]), ...team(STAFF, [...READ, ...WRITE, ...VOICE])],
@@ -202,8 +213,10 @@ const isCommunity = () => guild.features.includes(GuildFeature.Community);
 const sameFamily = (a, b) => a === b || ([ChannelType.GuildText, ChannelType.GuildAnnouncement].includes(a) && [ChannelType.GuildText, ChannelType.GuildAnnouncement].includes(b));
 
 function findChannel(def, type) {
-  const byId = guild.channels.cache.get(ids.channels[def.key]);
-  if (byId) return byId;
+  for (const key of [def.key, ...(def.aliases ?? [])]) {
+    const byId = guild.channels.cache.get(ids.channels[key] ?? old.channels[key]);
+    if (byId && sameFamily(byId.type, type)) return byId;
+  }
   // los contadores cambian de nombre: se buscan por su prefijo
   const target = def.stat ? norm(def.name.split(":")[0]) : norm(def.name);
   return guild.channels.cache.find((c) => sameFamily(c.type, type) && (def.stat ? norm(c.name).startsWith(target) : norm(c.name) === target));
@@ -217,7 +230,7 @@ function forumTags(def, existing) {
     const [emoji, ...rest] = t.split(" ");
     const name = rest.join(" ").slice(0, 20);
     const prev = existing?.availableTags?.find((x) => x.name === name);
-    return { ...(prev?.id ? { id: prev.id } : {}), name, emoji: { id: null, name: emoji }, moderated: MODERATED_TAGS.has(name) };
+    return { ...(prev?.id ? { id: prev.id } : {}), name, emoji: { id: null, name: emoji }, moderated: !!def.moderatedAll || MODERATED_TAGS.has(name) };
   });
 }
 
@@ -279,7 +292,7 @@ if (guildSettings.community && !isCommunity()) {
       features: [...guild.features, GuildFeature.Community],
       rulesChannel: ids.channels.normas,
       publicUpdatesChannel: ids.channels.staff_avisos,
-      safetyAlertsChannel: ids.channels.mod_logs,
+      safetyAlertsChannel: ids.channels.logs,
       reason: "Setup AJ",
     });
     // segunda pasada: canales de anuncios y foros que antes no se podían
@@ -289,7 +302,7 @@ if (guildSettings.community && !isCommunity()) {
   }
 } else if (isCommunity()) {
   await guild
-    .edit({ rulesChannel: ids.channels.normas, publicUpdatesChannel: ids.channels.staff_avisos, safetyAlertsChannel: ids.channels.mod_logs })
+    .edit({ rulesChannel: ids.channels.normas, publicUpdatesChannel: ids.channels.staff_avisos, safetyAlertsChannel: ids.channels.logs })
     .catch(() => {});
 }
 
@@ -326,7 +339,7 @@ await me.setNickname("AJ Bot").catch(() => {});
 
 // ── 8. AutoMod nativo de Discord ─────────────────────────────
 say("🛡️", "AutoMod de Discord…");
-const alert = ids.channels.mod_logs;
+const alert = ids.channels.logs;
 const exemptRoles = STAFF.map(R).filter(Boolean);
 const automodRules = [
   {
@@ -416,17 +429,25 @@ saveServidor(ids);
 // ── 10. Paneles (se importan ahora para que lean los IDs nuevos) ──
 say("🧾", "Paneles…");
 const { paneles } = await import("./servidor/paneles.js");
+const V2 = 1 << 15; // MessageFlags.IsComponentsV2
 for (const [key, build] of Object.entries(paneles)) {
   const channel = guild.channels.cache.get(ids.channels[key]);
   if (!channel?.isTextBased()) continue;
-  const payload = build();
-  const prev = ids.messages[key] && (await channel.messages.fetch(ids.messages[key]).catch(() => null));
-  if (prev) {
-    await prev.edit(payload);
+  const payloads = [build()].flat();
+  const prevIds = [old.messages[key]].flat().filter(Boolean);
+  const prevMsgs = [];
+  for (const id of prevIds) prevMsgs.push(await channel.messages.fetch(id).catch(() => null));
+
+  // si cambia el número de mensajes o alguno es del diseño antiguo (embeds), se vuelven a publicar
+  const reusable = prevMsgs.length === payloads.length && prevMsgs.every((m) => m && m.flags.has(V2));
+  if (reusable) {
+    for (const [i, payload] of payloads.entries()) await prevMsgs[i].edit(payload);
+    ids.messages[key] = prevIds;
   } else {
-    const msg = await channel.send(payload);
-    ids.messages[key] = msg.id;
-    say("  ➕", `panel ${key}`);
+    for (const m of prevMsgs) await m?.delete().catch(() => {});
+    ids.messages[key] = [];
+    for (const payload of payloads) ids.messages[key].push((await channel.send(payload)).id);
+    say("  ➕", `panel ${key}${payloads.length > 1 ? ` (${payloads.length} mensajes)` : ""}`);
   }
 }
 saveServidor(ids);

@@ -3,9 +3,6 @@
 
 import {
   ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
   MessageFlags,
   ModalBuilder,
   PermissionFlagsBits,
@@ -14,15 +11,13 @@ import {
 } from "discord.js";
 import config from "../config.js";
 import { fail, ok } from "../lib/embeds.js";
-import { LOGO } from "../servidor/plan.js";
+import { box, gallery, linkBtn, row as uiRow, v2 } from "../lib/ui.js";
 
 export const DESTINOS = {
   anuncios: { label: "📢 Anuncios", ping: "ping_anuncios" },
-  novedades: { label: "📰 Novedades", ping: "ping_anuncios" },
-  changelog: { label: "📋 Changelog", ping: "ping_proyectos" },
-  eventos: { label: "📅 Eventos", ping: "ping_eventos" },
-  sorteos: { label: "🎉 Sorteos", ping: "ping_sorteos" },
+  eventos: { label: "🎉 Eventos", ping: "ping_eventos" },
   general: { label: "💬 General", ping: null },
+  // las novedades de proyectos van con /novedad (avisan por categoría)
 };
 
 export const ESTILOS = {
@@ -68,39 +63,41 @@ export async function onModal(interaction, action, destino, mencion, estilo) {
 
   const get = (id) => interaction.fields.getTextInputValue(id)?.trim() ?? "";
   const style = ESTILOS[estilo] ?? ESTILOS.marca;
-  const embed = new EmbedBuilder()
-    .setColor(style.color)
-    .setAuthor({ name: "AJ · DEV", iconURL: LOGO, url: "https://antonioooj.dev" })
-    .setTitle(`${style.prefix}${get("titulo")}`.slice(0, 256))
-    .setDescription(get("mensaje"))
-    .setFooter({ text: `Publicado por ${interaction.member.displayName}`, iconURL: interaction.user.displayAvatarURL() })
-    .setTimestamp();
 
   const image = get("imagen");
-  if (image) {
-    if (!isUrl(image)) return interaction.reply({ embeds: [fail("La imagen tiene que ser una URL (https://…).")], flags: MessageFlags.Ephemeral });
-    embed.setImage(image);
+  if (image && !isUrl(image)) {
+    return interaction.reply({ embeds: [fail("La imagen tiene que ser una URL (https://…).")], flags: MessageFlags.Ephemeral });
   }
-
-  const components = [];
   const button = get("boton");
+  let link = null;
   if (button) {
-    const [text, url] = button.split("|").map((s) => s.trim());
-    if (!text || !isUrl(url ?? "")) {
+    const [label, url] = button.split("|").map((x) => x.trim());
+    if (!label || !isUrl(url ?? "")) {
       return interaction.reply({ embeds: [fail("El botón va así: `Texto | https://enlace`")], flags: MessageFlags.Ephemeral });
     }
-    components.push(new ActionRowBuilder().addComponents(new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel(text.slice(0, 80)).setURL(url)));
+    link = linkBtn(label.slice(0, 80), url);
   }
 
   // mención: ninguna · rol de avisos del canal · @everyone
   const pingRole = mencion === "rol" ? config.ids.roles[DESTINOS[destino].ping ?? ""] : null;
-  const content = mencion === "everyone" ? "@everyone" : pingRole ? `<@&${pingRole}>` : undefined;
+  const mentionText = mencion === "everyone" ? "@everyone" : pingRole ? `<@&${pingRole}>` : null;
 
   const message = await channel.send({
-    content,
+    ...v2(
+      box(
+        [
+          `-# ${DESTINOS[destino].label}${mentionText ? `  ·  ${mentionText}` : ""}`,
+          `# ${style.prefix}${get("titulo")}`,
+          get("mensaje"),
+          image && gallery(image),
+          link && uiRow(link),
+          "---",
+          `-# ${interaction.member.displayName}  ·  <t:${Math.floor(Date.now() / 1000)}:f>`,
+        ],
+        style.color,
+      ),
+    ),
     allowedMentions: { parse: mencion === "everyone" ? ["everyone"] : [], roles: pingRole ? [pingRole] : [] },
-    embeds: [embed],
-    components,
   });
   if (message.crosspostable) await message.crosspost().catch(() => {});
 

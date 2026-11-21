@@ -13,7 +13,8 @@
     "dev": "node --watch --env-file=.env src/index.js",
     "deploy": "node --env-file=.env src/deploy-commands.js",
     "setup": "node --env-file=.env src/setup.js",
-    "revisar": "node --env-file=.env src/setup.js --revisar"
+    "revisar": "node --env-file=.env src/setup.js --revisar",
+    "semilla": "node --env-file=.env src/servidor/semilla.js"
   },
   "dependencies": {
     "discord.js": "^14.19.0"

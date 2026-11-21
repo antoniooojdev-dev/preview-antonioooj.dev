@@ -1,4 +1,5 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Events } from "discord.js";
+import { Events } from "discord.js";
+import { box, v2, withThumb } from "../lib/ui.js";
 import config from "../config.js";
 import { discordTime } from "../lib/duration.js";
 import { log, sendLog } from "../lib/logger.js";
@@ -25,38 +26,24 @@ export default {
     const welcome = config.channels.welcome && guild.channels.cache.get(config.channels.welcome);
     if (welcome?.isTextBased()) {
       const greet = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
-      const embed = new EmbedBuilder()
-        .setColor(config.colors.primary)
-        .setAuthor({ name: `${member.displayName} ${greet}`, iconURL: user.displayAvatarURL() })
-        .setTitle(`¡Bienvenido/a a ${guild.name}!`)
-        .setDescription(
-          [
-            `Hola ${user}, eres el miembro **#${guild.memberCount}** 🎉`,
-            "",
-            config.channels.rules && `📜 Lee las <#${config.channels.rules}>`,
-            config.ids.channels.verificacion && `✅ Verifícate en <#${config.ids.channels.verificacion}>`,
-            config.channels.roles && `🎭 Elige tus roles en <#${config.channels.roles}>`,
-          ]
-            .filter((l) => l !== false && l !== undefined && l !== "")
-            .join("\n"),
-        )
-        .setThumbnail(user.displayAvatarURL({ size: 256 }))
-        .setFooter({ text: guild.name, iconURL: guild.iconURL() ?? undefined })
-        .setTimestamp();
-
-      const components = [];
-      if (config.channels.guide) {
-        components.push(
-          new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-              .setStyle(ButtonStyle.Link)
-              .setLabel("Guía del servidor")
-              .setEmoji("📖")
-              .setURL(`https://discord.com/channels/${guild.id}/${config.channels.guide}`),
+      const ch = (k) => config.ids.channels[k] && `<#${config.ids.channels[k]}>`;
+      await welcome
+        .send({
+          ...v2(
+            box([
+              withThumb(
+                user.displayAvatarURL({ size: 256 }),
+                `-# Miembro #${guild.memberCount}`,
+                `## 👋 ¡Hola, ${member.displayName}!`,
+                `${user} *${greet}*`,
+              ),
+              "---",
+              `-# Verifícate en ${ch("normas") ?? "las normas"} · después pásate por ${ch("guia") ?? "la guía"}`,
+            ]),
           ),
-        );
-      }
-      await welcome.send({ content: user.toString(), embeds: [embed], components }).catch(() => {});
+          allowedMentions: { users: [user.id] },
+        })
+        .catch(() => {});
     }
 
     // rol automático

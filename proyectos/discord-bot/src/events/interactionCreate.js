@@ -5,6 +5,9 @@ import * as polls from "../features/polls.js";
 import * as giveaways from "../features/giveaways.js";
 import * as selfroles from "../features/selfroles.js";
 import * as announcements from "../features/announcements.js";
+import * as projects from "../features/projects.js";
+import { onModal as proyectoModal } from "../commands/proyecto.js";
+import { onModal as novedadModal } from "../commands/novedad.js";
 import { fail } from "../lib/embeds.js";
 import { log } from "../lib/logger.js";
 
@@ -16,6 +19,7 @@ const handlers = {
     poll: polls.onButton,
     giveaway: giveaways.onButton,
     roles: selfroles.onButton,
+    proyecto: projects.onButton,
   },
   select: {
     ticket: tickets.onSelect,
@@ -24,6 +28,8 @@ const handlers = {
   modal: {
     ticket: tickets.onModal,
     anuncio: announcements.onModal,
+    proyecto: proyectoModal,
+    novedad: novedadModal,
   },
 };
 
@@ -40,6 +46,12 @@ export default {
   async execute(interaction) {
     if (!interaction.inCachedGuild()) {
       if (interaction.isRepliable()) await replyError(interaction, "Este bot solo funciona dentro de un servidor.");
+      return;
+    }
+
+    if (interaction.isAutocomplete()) {
+      const command = interaction.client.commands.get(interaction.commandName);
+      await command?.autocomplete?.(interaction).catch((err) => log.warn(`Autocompletar /${interaction.commandName}:`, err.message));
       return;
     }
 
