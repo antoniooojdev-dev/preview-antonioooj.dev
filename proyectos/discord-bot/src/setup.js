@@ -101,7 +101,7 @@ const findRole = (def) =>
 for (const def of planRoles) {
   const data = {
     name: def.name,
-    color: def.separator ? 0 : (def.color ?? 0),
+    colors: { primaryColor: def.separator ? 0 : (def.color ?? 0) },
     hoist: !!def.hoist,
     mentionable: false,
     permissions: new PermissionsBitField((def.perms ?? []).map((p) => P[p])),
@@ -120,9 +120,12 @@ for (const def of planRoles) {
 
 // orden: justo debajo del rol del bot, en el orden del plano
 {
+  await me.fetch(true);
   let pos = me.roles.highest.position - 1;
   const positions = planRoles.map((def) => ({ role: ids.roles[def.key], position: pos-- })).filter((p) => p.position > 0);
-  await guild.roles.setPositions(positions).catch((err) => say("  ⚠️", `No pude ordenar los roles: ${err.message}`));
+  const current = planRoles.map((def) => guild.roles.cache.get(ids.roles[def.key])?.position ?? 0);
+  const ordered = current.every((p, i) => i === 0 || p < current[i - 1]);
+  if (!ordered) await guild.roles.setPositions(positions).catch((err) => say("  ⚠️", `No pude ordenar los roles: ${err.message}`));
 }
 
 // permisos base de @everyone (lo que se ve lo controlan los canales)
@@ -294,7 +297,8 @@ if (guildSettings.community && !isCommunity()) {
 say("↕️", "Ordenando…");
 await guild.channels.setPositions(categories.map((cat, i) => ({ channel: ids.channels[cat.key], position: i }))).catch((e) => say("  ⚠️", e.message));
 for (const cat of categories) {
-  const pos = cat.channels.map((def, i) => ({ channel: ids.channels[def.key], position: i, parent: ids.channels[cat.key] })).filter((p) => p.channel);
+  // el padre ya se fija al crear/editar cada canal; aquí solo el orden
+  const pos = cat.channels.map((def, i) => ({ channel: ids.channels[def.key], position: i })).filter((p) => p.channel);
   if (pos.length) await guild.channels.setPositions(pos).catch((e) => say("  ⚠️", e.message));
 }
 
@@ -366,7 +370,9 @@ for (const rule of automodRules) {
     reason: "Setup AJ",
   };
   try {
-    const prev = [...existingRules.values()].find((r) => r.name === rule.name || (r.triggerType === rule.triggerType && rule.triggerType !== AutoModerationRuleTriggerType.Keyword));
+    // solo reglas creadas por el bot (las predeterminadas de Discord no se pueden editar)
+    const mine = [...existingRules.values()].filter((r) => r.creatorId === client.user.id);
+    const prev = mine.find((r) => r.name === rule.name) ?? mine.find((r) => r.triggerType === rule.triggerType && rule.triggerType !== AutoModerationRuleTriggerType.Keyword);
     if (prev) {
       const { triggerType, ...edit } = data;
       await prev.edit(edit);
@@ -375,7 +381,7 @@ for (const rule of automodRules) {
       say("  ➕", rule.name);
     }
   } catch (err) {
-    say("  ⚠️", `${rule.name}: ${err.message}`);
+    say("  ⚠️", `${rule.name}: ${err.message} ${JSON.stringify(err.rawError?.errors ?? "")}`);
   }
 }
 
