@@ -37,7 +37,7 @@ export const scriptsFivem: ScriptFivem[] = [
     estado: "disponible",
     resumen: "Tablet encriptada para las organizaciones: rangos, bases, territorios, misiones de armamento, mercado negro y atracos.",
     claves: ["Rangos y permisos que decide el jefe", "Bases con almacén, caja fuerte y garaje", "Misiones con NPCs armados y hackeo"],
-    frameworks: ["ESX Legacy"],
+    frameworks: ["ESX Legacy", "QBCore", "Qbox"],
     portada: "/fivem/sistema-bandas/media/inicio.webp",
     datos: [
       { v: "4", l: "módulos" },

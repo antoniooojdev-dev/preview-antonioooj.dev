@@ -58,6 +58,8 @@ export interface Pack {
   videoTexto?: string;
   playSub?: string;
   portadaDemo?: string;
+  /** sin los iconos junto al título del pack y de cada script */
+  sinIconos?: boolean;
 }
 
 const M = "/fivem/pack-vehiculos/media";
@@ -304,10 +306,11 @@ export const fivemPacks: Pack[] = [
     color: "#9b6bff",
     lead: "Todo lo de las organizaciones criminales en un solo script: una tablet encriptada desde la que se gestiona la banda, sus bases, sus territorios, las misiones de armamento, el mercado negro y la solicitud de atracos.",
     resumen: "Cada banda tiene su tablet encriptada: miembros con rangos y permisos a medida, chat cifrado, territorios, bases en el mundo (almacén, caja fuerte, taquilla y garaje), misiones con NPCs armados para preparar los golpes y un mercado negro con objetos y vehículos exclusivos.",
-    chips: ["Tablet encriptada", "ESX Legacy", "Rangos y permisos", "Misiones con NPCs", "Mercado negro", "Interfaz NUI propia", "En español"],
+    chips: ["Tablet encriptada", "ESX Legacy", "QBCore", "Qbox", "Rangos y permisos", "Misiones con NPCs", "Mercado negro", "Interfaz NUI propia", "En español"],
     incluyeTitulo: ["Una tablet, ", "toda la banda"],
     encajanTitulo: ["Pensado para ", "el rol de bandas"],
     etiqueta: "1 recurso · 4 módulos",
+    sinIconos: true,
     youtube: "SV2FrPFin5s",   // https://youtu.be/SV2FrPFin5s
     youtubePortada: `${BD}/portada.webp`,
     videoTexto: "Sistema de bandas · recorrido completo, grabado en el juego.",
@@ -331,7 +334,10 @@ export const fivemPacks: Pack[] = [
         ],
         desarrollo: [
           "La tablet es una NUI propia en HTML, CSS y JavaScript, con el color de cada banda en toda la interfaz. Cada pantalla pide al servidor solo lo que necesita y el servidor comprueba el rango y los permisos de quien lo pide antes de responder.",
+          "Antes de atender cualquier petición, el servidor comprueba que el jugador lleve encima la tablet y que siga siendo miembro de la banda. Si le quitan la tablet o le expulsan con ella abierta, la siguiente acción ya no pasa. Los textos que escriben los jugadores (nombres de rangos, mensajes del día o del chat) se limpian en el servidor antes de guardarse, para que nadie pueda colar código en la interfaz de los demás.",
           "Los permisos no son fijos: el jefe crea los rangos que quiera y marca uno a uno lo que puede hacer cada uno. Así cada banda se organiza a su manera sin tocar la configuración del servidor.",
+          "Los permisos de las bases van por capas: para abrir la caja fuerte hace falta el permiso de esa base y, además, el de la acción concreta (meter, sacar o mover dinero). Los rangos de cada banda se guardan en caché en el servidor, así que comprobarlos en cada clic no cuesta nada.",
+          "Todo va en tiempo real: cuando alguien cambia un rango, invita a un miembro o escribe en el chat, la tablet de los demás miembros conectados se actualiza al momento, sin cerrarla ni volver a abrirla.",
         ],
         cifras: [
           { v: "9", l: "apartados en la tablet" },
@@ -366,7 +372,10 @@ export const fivemPacks: Pack[] = [
         ],
         desarrollo: [
           "Los muebles son locales y solo aparecen cuando estás cerca, así que no cargan al servidor. Lo que hay dentro se guarda en la base de datos y cada movimiento se comprueba en el servidor: distancia, permiso, peso y que lo tengas de verdad.",
+          "Cada almacén lo usa una sola persona a la vez: mientras lo tienes abierto queda reservado para ti, y se libera solo si lo cierras, te alejas o te desconectas. Así dos miembros no pueden sacar el mismo objeto a la vez y duplicarlo. Las armas se guardan con su peso, como cualquier otro objeto, y hay objetos que el servidor no deja meter en una base.",
+          "Colocar una base también pasa por el servidor: comprueba que no esté pegada a otra base de la banda, que no tengáis ya el máximo de ese tipo y que el precio sea el de verdad. Las primeras salen gratis y las siguientes se pagan con dinero negro; si el precio cambia mientras la colocas, te avisa en lugar de cobrarte otro.",
           "Los vehículos personales que se guardan en la banda salen de tu garaje normal mientras están ahí, para que no se puedan duplicar, y vuelven solos a él si dejas la banda.",
+          "Cada garaje tiene un límite de vehículos, y la matrícula de los que compra la banda se genera en el servidor comprobando que no la tenga ningún otro coche. Poner, mover o quitar una base, y lo que entra y sale de ella, queda apuntado en el registro de la banda.",
         ],
         cifras: [
           { v: "4", l: "tipos de base" },
@@ -432,7 +441,11 @@ export const fivemPacks: Pack[] = [
         ],
         desarrollo: [
           "Los precios y el dinero se calculan en el servidor: el cliente solo dice qué quiere comprar. Las mejoras de los vehículos suman su porcentaje al precio igual en la tablet que en el servidor.",
+          "Las mejoras que llegan de la tablet se recortan a los niveles que existen de verdad (motor, frenos, transmisión, alerón y colores) antes de calcular nada, y el extra se redondea a cientos para que el precio sea limpio. Si alguien manda un nivel que no existe, simplemente no cuenta.",
+          "El catálogo vive en la base de datos y se edita desde el panel de admin: precio, categoría, si está a la venta y la reputación que necesita la banda para comprar cada objeto. Los que todavía no puede comprar salen bloqueados en la tablet, y el servidor lo vuelve a comprobar al pagar.",
+          "Los pedidos de objetos no llegan al inventario por arte de magia: un contacto los entrega en un punto de la ciudad. Para recogerlos hay que estar allí de verdad (el servidor mira la distancia) y, si nadie pasa a por ellos, el pedido caduca. Cada compra queda en el registro de la banda con quién la hizo y por cuánto.",
           "La vista 3D saca el coche de verdad solo para ti, dentro de un hangar, con una cámara que gira con el ratón.",
+          "El hangar siempre es el mismo (el del aeropuerto) y la zona se carga aunque estés en la otra punta del mapa, así que la vista funciona desde cualquier sitio. Al cerrarla, el coche desaparece y vuelves a donde estabas.",
         ],
         cifras: [
           { v: "2", l: "mercados" },
@@ -452,10 +465,10 @@ export const fivemPacks: Pack[] = [
       { t: "Las bandas las da de alta el staff", icono: "lock", d: "Con /crear-banda (nombre, jefe y colores principal y secundario) o desde el panel de admin. Los jugadores no pueden fundarlas por su cuenta." },
       { t: "El jefe organiza la banda", icono: "users", d: "Invita, asciende, degrada y expulsa, crea rangos y reparte permisos. Para pasar el mando basta con ascender a otro." },
       { t: "Todo deja rastro", icono: "document", d: "Cada movimiento de dinero, objetos, vehículos y miembros queda en el registro de la banda, con buscador y filtros." },
-      { t: "Se integra con el servidor", icono: "plug", d: "Usa el inventario, el dinero negro, los garajes y los vehículos de ESX, y los avisos del propio servidor." },
+      { t: "Se integra con el servidor", icono: "plug", d: "Usa el inventario, el dinero negro, los garajes y los vehículos de tu framework, y los avisos del propio servidor." },
     ],
     tecnico: [
-      { t: "ESX Legacy + oxmysql", icono: "layers", d: "Usa el framework, las cuentas y el inventario de ESX. Crea sus tablas solo al arrancar." },
+      { t: "ESX Legacy, QBCore y Qbox", icono: "layers", d: "Funciona con los tres frameworks: usa sus cuentas, su inventario y sus garajes, y guarda en MySQL con oxmysql. Crea sus tablas solo al arrancar." },
       { t: "Validación en servidor", icono: "shield", d: "Permisos, distancias, dinero, objetos y botín se comprueban en el servidor, nunca en el cliente." },
       { t: "Interfaz NUI propia", icono: "monitor", d: "HTML, CSS y JavaScript sin librerías, con el color de cada banda en toda la tablet." },
       { t: "Ligero", icono: "zap", d: "Los muebles y los NPCs de ambiente solo existen cerca de ti; en reposo no gasta casi nada." },
@@ -463,7 +476,7 @@ export const fivemPacks: Pack[] = [
       { t: "En español", icono: "message", d: "Textos, avisos y llamadas escritos para servidores de rol hispanohablantes." },
     ],
     faq: [
-      { q: "¿Funciona con QBCore?", a: "Está hecho para ESX Legacy. La adaptación a QBCore u otro framework se presupuesta aparte." },
+      { q: "¿Funciona con QBCore o Qbox?", a: "Sí. Está para ESX Legacy, QBCore y Qbox. Para otros frameworks, la adaptación se presupuesta aparte." },
       { q: "¿Los jugadores pueden crear su propia banda?", a: "No: las da de alta el staff con /crear-banda o desde el panel de admin, para que las bandas sean parte del rol del servidor." },
       { q: "¿Se puede cambiar el catálogo del mercado negro?", a: "Sí, desde el panel de admin: objetos, vehículos, precios y reputación necesaria, sin tocar archivos." },
       { q: "¿Puedo cambiar el estilo de la tablet?", a: "Sí: la interfaz es HTML y CSS, y cada banda ya sale con sus colores." },

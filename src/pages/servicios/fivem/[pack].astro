@@ -40,7 +40,7 @@ const conVideo = Boolean(pack.youtube || pack.video);
       <header class="head">
         <span class="eyebrow mono"><span class="pill"><i aria-hidden="true"></i> pack</span> scripts fivem · {pack.etiqueta ?? `${pack.scripts.length} ${uno ? "recurso" : "recursos"}`}</span>
         <h1>
-          <span class="h1-icon" aria-hidden="true"><Icono nombre={pack.icono} size={34} /></span>
+          {!pack.sinIconos && <span class="h1-icon" aria-hidden="true"><Icono nombre={pack.icono} size={34} /></span>}
           {pack.titulo}
         </h1>
         <p class="lead">{pack.lead}</p>
@@ -90,7 +90,7 @@ const conVideo = Boolean(pack.youtube || pack.video);
                   <span class="script__num mono">{String(i + 1).padStart(2, "0")}</span>
                 </a>
                 <div class="script__body">
-                  <span class="script__icon" aria-hidden="true"><Icono nombre={s.icono} size={22} /></span>
+                  {!pack.sinIconos && <span class="script__icon" aria-hidden="true"><Icono nombre={s.icono} size={22} /></span>}
                   <div>
                     <h3>{s.nombre}</h3>
                     <span class="mono script__res">{s.recurso}</span>
@@ -191,7 +191,7 @@ const conVideo = Boolean(pack.youtube || pack.video);
             <section class:list={["dev", { "dev--rev": i % 2 === 1 }]} id={s.id}>
               <header class="dev__head" data-reveal>
                 <span class="dev__num mono">{String(i + 1).padStart(2, "0")}</span>
-                <span class="dev__icon" aria-hidden="true"><Icono nombre={s.icono} size={24} /></span>
+                {!pack.sinIconos && <span class="dev__icon" aria-hidden="true"><Icono nombre={s.icono} size={24} /></span>}
                 <div>
                   <h3>{s.nombre}</h3>
                   <p class="mono">{s.recurso} · {s.sub}</p>
