@@ -8,6 +8,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import Icono from "@/components/servicios/Icono.astro";
 import VideoProximamente from "@/components/servicios/VideoProximamente.astro";
 import VideoYoutube from "@/components/servicios/VideoYoutube.astro";
+import OtrosScripts from "@/components/servicios/OtrosScripts.astro";
 import { fivemPacks, type Pack } from "@/data/packs";
 
 export const getStaticPaths = (() => fivemPacks.map((pack) => ({ params: { pack: pack.id }, props: { pack } }))) satisfies GetStaticPaths;
@@ -33,7 +34,7 @@ const conVideo = Boolean(pack.youtube || pack.video);
   <article class="page" style={`--acc:${pack.color}`}>
     <div class="glow" aria-hidden="true"></div>
     <div class="container">
-      <a href="/servicios/fivem" class="back mono">← cd ../scripts-fivem</a>
+      <a href="/servicios/fivem#scripts" class="back mono">← cd ../scripts-fivem</a>
 
       <!-- ── cabecera ── -->
       <header class="head">
@@ -321,6 +322,8 @@ const conVideo = Boolean(pack.youtube || pack.video);
         </div>
         <a href={contacto} class="btn btn-primary">Pedir presupuesto</a>
       </aside>
+
+      <OtrosScripts />
     </div>
 
     <!-- visor de capturas -->

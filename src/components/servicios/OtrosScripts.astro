@@ -1,0 +1,142 @@
+---
+// Pie de la ficha de cada script FiveM: el resto del catálogo en pequeño, para saltar de
+// un script a otro sin volver a /servicios/fivem. Saca el script actual de la URL.
+import Icono from "@/components/servicios/Icono.astro";
+import { scriptsFivem } from "@/data/scripts-fivem";
+
+const actual = Astro.url.pathname.replace(/\/$/, "").split("/").pop();
+const otros = scriptsFivem.filter((s) => s.id !== actual);
+---
+
+{
+  otros.length > 0 && (
+    <nav class="otros" aria-label="Más scripts">
+      <div class="otros__head">
+        <h2 class="mono">// más scripts</h2>
+        <a href="/servicios/fivem#scripts" class="mono otros__todos">
+          ver todos <Icono nombre="arrow" size={13} />
+        </a>
+      </div>
+      <ul role="list">
+        {otros.map((s) => (
+          <li>
+            <a href={`/servicios/fivem/${s.id}`} class:list={["otro", { "otro--dev": s.estado === "desarrollo" }]}>
+              <span class="otro__icon" aria-hidden="true">
+                <Icono nombre={s.icono} size={18} />
+              </span>
+              <span class="otro__txt">
+                <strong>{s.nombre}</strong>
+                <span class="mono">{s.recurso}</span>
+              </span>
+              <i class="otro__punto" title={s.estado === "desarrollo" ? "en desarrollo" : "disponible"} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<style>
+  .otros {
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border);
+  }
+
+  .otros__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .otros__head h2 {
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--fg-subtle);
+  }
+
+  .otros__todos {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+  }
+
+  .otros__todos:hover {
+    color: var(--acc, var(--fg));
+  }
+
+  .otros ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-3);
+  }
+
+  .otro {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    height: 100%;
+    padding: var(--space-3) var(--space-4);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: inherit;
+    transition: border-color 0.25s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .otro:hover {
+    border-color: color-mix(in srgb, var(--acc, var(--fg)) 55%, var(--border));
+    transform: translateY(-3px);
+  }
+
+  .otro__icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 10px;
+    color: var(--acc, var(--fg));
+    background: color-mix(in srgb, var(--acc, var(--fg)) 12%, var(--bg));
+  }
+
+  .otro--dev .otro__icon {
+    color: var(--fg-muted);
+    background: color-mix(in srgb, var(--fg) 6%, var(--bg));
+  }
+
+  .otro__txt {
+    display: grid;
+    min-width: 0;
+  }
+
+  .otro__txt strong {
+    font-size: var(--fs-sm);
+  }
+
+  .otro__txt span {
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .otro__punto {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin-left: auto;
+    border-radius: 50%;
+    background: #22c55e;
+  }
+
+  .otro--dev .otro__punto {
+    background: #f59e0b;
+  }
+</style>

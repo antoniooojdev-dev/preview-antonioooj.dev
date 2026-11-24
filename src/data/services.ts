@@ -19,11 +19,10 @@ export interface ServiceDetail {
   /** demo: id de una demo propia (/servicios/<id>/<demo>), ver discordDemos */
   incluye: { t: string; d: string; icono: string; demo?: string; /** texto del enlace a la ficha; sin él, «probar demo» */ ver?: string }[];
   idealPara: string[];
-  /** Solo FiveM: tarjetas de «Scripts disponibles» bajo las características. desarrollo = aún no está (su página dice «próximamente») */
-  scripts?: { t: string; d: string; icono: string; href: string; desarrollo?: boolean }[];
   proceso: { t: string; d: string }[];
   /** video: en lugar del ejemplo interactivo va el vídeo (o «próximamente» si aún no hay src) */
-  demo: { titulo: string; texto: string; video?: { src?: string; capitulos: string[] } };
+  /** sin demo, la sección no sale (FiveM enseña su catálogo de scripts, src/data/scripts-fivem.ts) */
+  demo?: { titulo: string; texto: string; video?: { src?: string; capitulos: string[] } };
   faq: { q: string; a: string }[];
 }
 
@@ -220,24 +219,12 @@ export const serviceDetails: Record<string, ServiceDetail> = {
       { t: "Soporte tras la entrega", icono: "headset", d: "Corrección de errores y ayuda con la instalación." },
     ],
     idealPara: ["Servidores de rol nuevos", "Servidores que quieren scripts únicos", "Sustituir recursos de pago con problemas", "Interfaces NUI personalizadas"],
-    scripts: [
-      { t: "Menú de handling", icono: "sliders", href: "/servicios/fivem/menu-handling", d: "Panel de admin para ajustar cualquier vehículo del servidor y aplicarlo a todos al momento. Para ESX Legacy, QBCore y Qbox." },
-      { t: "Sistema de bandas", icono: "users", href: "/servicios/fivem/sistema-bandas", d: "Tablet encriptada para las organizaciones: rangos, bases, territorios, misiones de armamento, mercado negro y atracos." },
-      { t: "Policía", icono: "siren", href: "/servicios/fivem/policia", desarrollo: true, d: "Trabajo de policía completo: MDT, multas, cacheos, esposas, radar y gestión del cuerpo." },
-      { t: "Inventario", icono: "bag", href: "/servicios/fivem/inventario", desarrollo: true, d: "Inventario por casillas con accesos rápidos, mochila, chaleco y objetos tirados en el suelo." },
-      { t: "Panel de admin", icono: "shield", href: "/servicios/fivem/panel-admin", desarrollo: true, d: "Panel para el staff: jugadores, sanciones, vehículos, objetos, bandas, registro y herramientas." },
-    ],
     proceso: [
       { t: "Idea y alcance", d: "Me cuentas qué quieres y defino las mecánicas y la configuración." },
       { t: "Desarrollo", d: "Programo cliente, servidor y NUI con pruebas en un servidor local." },
       { t: "Pruebas en tu servidor", d: "Lo instalamos y lo probamos con tu equipo de staff." },
       { t: "Entrega", d: "Código limpio, config documentada y soporte post-entrega." },
     ],
-    demo: {
-      titulo: "PRÓXIMAMENTE",
-      texto: "Estoy grabando un vídeo con los scripts funcionando dentro del juego: el garaje, el HUD y las interfaces NUI en acción. Muy pronto, aquí.",
-      video: { capitulos: ["Garaje", "HUD", "Interfaces NUI", "Resmon"] },
-    },
     faq: [
       { q: "¿El código está ofuscado?", a: "No, es tuyo y legible. Si quieres protegerlo para revenderlo, se puede usar escrow." },
       { q: "¿Funciona con mi inventario?", a: "Sí: ox_inventory, qb-inventory, qs-inventory u otros con exports." },

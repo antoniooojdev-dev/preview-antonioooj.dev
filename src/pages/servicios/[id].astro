@@ -13,6 +13,7 @@ import DemoMantenimiento from "@/components/servicios/DemoMantenimiento.astro";
 import DemoFivem from "@/components/servicios/DemoFivem.astro";
 import DemoDiscord from "@/components/servicios/DemoDiscord.astro";
 import VideoProximamente from "@/components/servicios/VideoProximamente.astro";
+import CatalogoFivem from "@/components/servicios/CatalogoFivem.astro";
 import { services, serviceDetails, type Service, type ServiceDetail } from "@/data/services";
 import { casosDe } from "@/data/casos";
 
@@ -46,7 +47,8 @@ const incluyeTitulo = service.id === "fivem" ? ["Características ", "de los scr
 //                tarjetas) o «filas» (checklist a una columna)
 //   proceso   -> «vertical» o «horizontal» (línea de tiempo)
 //   casos     -> webs/apps completas de ejemplo (src/data/casos.ts), solo en web y app
-type Seccion = "consiste" | "incluye" | "demo" | "casos" | "proceso" | "faq";
+//   scripts   -> catálogo de scripts FiveM (src/components/servicios/CatalogoFivem.astro)
+type Seccion = "consiste" | "incluye" | "demo" | "casos" | "scripts" | "proceso" | "faq";
 interface Distribucion {
   orden: Seccion[];
   cabecera: "izquierda" | "centrada";
@@ -57,7 +59,7 @@ const DISTRIBUCIONES: Record<string, Distribucion> = {
   web: { orden: ["casos", "consiste", "incluye", "proceso", "faq"], cabecera: "centrada", incluye: "lista", proceso: "horizontal" },
   app: { orden: ["consiste", "incluye", "demo", "casos", "proceso", "faq"], cabecera: "izquierda", incluye: "bento", proceso: "horizontal" },
   mantenimiento: { orden: ["consiste", "demo", "proceso", "incluye", "faq"], cabecera: "centrada", incluye: "bento", proceso: "horizontal" },
-  fivem: { orden: ["demo", "incluye", "consiste", "proceso", "faq"], cabecera: "centrada", incluye: "grid", proceso: "vertical" },
+  fivem: { orden: ["scripts", "incluye", "consiste", "proceso", "faq"], cabecera: "centrada", incluye: "grid", proceso: "vertical" },
   discord: { orden: ["consiste", "demo", "incluye", "faq", "proceso"], cabecera: "izquierda", incluye: "grid", proceso: "horizontal" },
 };
 const dist = DISTRIBUCIONES[service.id] ?? DISTRIBUCIONES.app;
@@ -66,7 +68,9 @@ const contacto = `/contacto?tipo=${encodeURIComponent(detail.tipo)}`;
 const casos = service.id === "web" || service.id === "app" ? casosDe(service.id) : [];
 // «Web online» va sin la demo de citas: el botón del ejemplo lleva a las webs de ejemplo
 const esWeb = service.id === "web";
-const video = detail.demo.video;
+const video = detail.demo?.video;
+// FiveM no lleva vídeo ni demo: el botón de la cabecera baja al catálogo de scripts
+const esFivem = service.id === "fivem";
 ---
 
 <BaseLayout title={service.title} description={detail.lead}>
@@ -84,9 +88,15 @@ const video = detail.demo.video;
         <p class="lead">{detail.lead}</p>
         <div class="head-actions">
           <a href={contacto} class="btn btn-primary">Pedir presupuesto</a>
-          <a href={esWeb ? "#casos" : "#ejemplo"} class="btn btn-ghost">
-            <Icono nombre="play" size={14} /> {video ? "Ver el adelanto" : "Ver ejemplo interactivo"}
-          </a>
+          {esFivem ? (
+            <a href="#scripts" class="btn btn-ghost">
+              <Icono nombre="folder" size={14} /> Ver los scripts
+            </a>
+          ) : (
+            <a href={esWeb ? "#casos" : "#ejemplo"} class="btn btn-ghost">
+              <Icono nombre="play" size={14} /> {video ? "Ver el adelanto" : "Ver ejemplo interactivo"}
+            </a>
+          )}
         </div>
       </header>
 
@@ -164,44 +174,13 @@ const video = detail.demo.video;
                     ))}
                   </ul>
                 </section>
-                {detail.scripts && detail.scripts.length > 0 && (
-                  <section class="block" id="scripts">
-                    <div class="block-head">
-                      <h2 class="kicker mono">// scripts disponibles</h2>
-                      <p class="block-title">
-                        Scripts <span>disponibles</span>
-                      </p>
-                    </div>
-                    <ul role="list" class="incluye incluye--grid scripts-disp" data-spotlight>
-                      {detail.scripts.map((x, i) => (
-                        <li class:list={["inc", "inc--demo", { "inc--dev": x.desarrollo }]} data-reveal style={`--i:${i}`}>
-                          <span class="inc__icon">
-                            <Icono nombre={x.icono} size={22} />
-                          </span>
-                          <span class:list={["inc__estado", "mono", { "inc__estado--dev": x.desarrollo }]}>
-                            {x.desarrollo ? "en desarrollo" : "disponible"}
-                          </span>
-                          <span class="inc__body">
-                            <strong>
-                              <a href={x.href} class="inc__link">
-                                {x.t}
-                              </a>
-                            </strong>
-                            <p>{x.d}</p>
-                          </span>
-                          <span class="inc__check inc__try mono" aria-hidden="true">
-                            {x.desarrollo ? "⏳ próximamente" : "▶ ver script"} <Icono nombre="arrow" size={13} />
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                )}
                 </>
               );
 
+            if (seccion === "scripts") return <CatalogoFivem />;
+
             if (seccion === "demo")
-              return (
+              return detail.demo && (
                 <section class="block demo-block" id="ejemplo">
                   <div class="demo-bg" aria-hidden="true" />
                   <div class="demo-head">
@@ -209,8 +188,8 @@ const video = detail.demo.video;
                       <i aria-hidden="true" /> {video ? "en producción" : "demo en vivo"}
                     </span>
                     <h2 class="kicker mono">{video ? "// vídeo" : "// ejemplo interactivo"}</h2>
-                    <h3 class:list={{ "h3--grande": video }}>{detail.demo.titulo}</h3>
-                    <p>{detail.demo.texto}</p>
+                    <h3 class:list={{ "h3--grande": video }}>{detail.demo!.titulo}</h3>
+                    <p>{detail.demo!.texto}</p>
                     <ul role="list" class="demo-chips mono">
                       {video ? (
                         <>
@@ -817,46 +796,6 @@ const video = detail.demo.video;
 
   .inc--demo:hover .inc__try :global(.icono) {
     transform: translateX(4px);
-  }
-
-  /* scripts disponibles: etiqueta de estado arriba a la derecha; los que están en desarrollo, más apagados */
-  .inc__estado {
-    position: absolute;
-    top: var(--space-4);
-    right: var(--space-4);
-    padding: 0.22rem 0.6rem;
-    border-radius: 999px;
-    font-size: 0.6875rem;
-    color: color-mix(in srgb, var(--acc) 75%, var(--fg));
-    background: color-mix(in srgb, var(--acc) 14%, transparent);
-    border: 1px solid color-mix(in srgb, var(--acc) 30%, transparent);
-  }
-
-  .inc__estado--dev {
-    color: var(--fg-muted);
-    background: color-mix(in srgb, var(--fg) 6%, transparent);
-    border-color: var(--border);
-  }
-
-  .inc--dev .inc__icon {
-    color: var(--fg-muted);
-    background: color-mix(in srgb, var(--fg) 6%, var(--bg));
-    border-color: var(--border);
-  }
-
-  .inc--dev .inc__try {
-    color: var(--fg-muted);
-    background: color-mix(in srgb, var(--fg) 7%, transparent);
-  }
-
-  .inc--dev:hover .inc__icon {
-    background: color-mix(in srgb, var(--fg) 14%, var(--bg));
-    color: var(--fg);
-  }
-
-  .inc--dev:hover .inc__try {
-    background: color-mix(in srgb, var(--fg) 14%, transparent);
-    color: var(--fg);
   }
 
   /* bento: la primera tarjeta destacada y grande */

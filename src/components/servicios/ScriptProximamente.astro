@@ -4,6 +4,7 @@
 // Lo usan src/pages/servicios/fivem/policia.astro, inventario.astro y panel-admin.astro.
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Icono from "@/components/servicios/Icono.astro";
+import OtrosScripts from "@/components/servicios/OtrosScripts.astro";
 
 interface Props {
   titulo: string;
@@ -39,7 +40,7 @@ const contacto = `/contacto?tipo=${encodeURIComponent("Script FiveM")}`;
         <h2 id="soon-t" class="soon__title">
           {"PRÓXIMAMENTE".split("").map((c, i) => <span style={`--i:${i}`}>{c}</span>)}
         </h2>
-        <p class="soon__text">Este script todavía está en desarrollo. Estoy terminándolo y probándolo en un servidor real antes de enseñarlo aquí con su vídeo y sus capturas.</p>
+        <p class="soon__text">Este script todavía está en desarrollo. Estoy terminándolo y probándolo en un servidor real antes de enseñarlo aquí con toda su información y sus capturas.</p>
         <div class="soon__bar" role="progressbar" aria-label="En desarrollo" aria-valuetext="En desarrollo"><i></i></div>
       </section>
 
@@ -63,9 +64,11 @@ const contacto = `/contacto?tipo=${encodeURIComponent("Script FiveM")}`;
       </section>
 
       <div class="actions">
-        <a href="/servicios/fivem#scripts" class="btn btn-ghost">Ver los scripts disponibles</a>
+        <a href="/servicios/fivem#scripts" class="btn btn-ghost">Ver todos los scripts</a>
         <a href={contacto} class="btn btn-primary">Pedir presupuesto</a>
       </div>
+
+      <OtrosScripts />
     </div>
   </article>
 </BaseLayout>
