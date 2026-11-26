@@ -11,7 +11,12 @@ import VideoYoutube from "@/components/servicios/VideoYoutube.astro";
 import OtrosScripts from "@/components/servicios/OtrosScripts.astro";
 import { fivemPacks, type Pack } from "@/data/packs";
 
-export const getStaticPaths = (() => fivemPacks.map((pack) => ({ params: { pack: pack.id }, props: { pack } }))) satisfies GetStaticPaths;
+// Los packs con ficha de venta propia (su .astro en esta carpeta) no se generan aquí.
+// La lista va dentro: getStaticPaths no ve las variables de fuera.
+export const getStaticPaths = (() => {
+  const conFichaPropia = ["sistema-bandas"];
+  return fivemPacks.filter((p) => !conFichaPropia.includes(p.id)).map((pack) => ({ params: { pack: pack.id }, props: { pack } }));
+}) satisfies GetStaticPaths;
 
 interface Props {
   pack: Pack;

@@ -42,7 +42,7 @@ export const scriptsFivem: ScriptFivem[] = [
     frameworks: ["ESX Legacy", "QBCore", "Qbox"],
     portada: "/fivem/sistema-bandas/media/inicio.webp",
     datos: [
-      { v: "4", l: "módulos" },
+      { v: "5", l: "módulos" },
       { v: "9", l: "apartados" },
     ],
   },
