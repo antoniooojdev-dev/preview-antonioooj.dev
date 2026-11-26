@@ -13,7 +13,10 @@ export const bandas: Ficha = {
   lema: "Tablet encriptada, bases, territorios y golpes en un solo recurso",
   lead:
     "Todo lo de las organizaciones criminales: una tablet encriptada con rangos y permisos a medida, chat cifrado y territorios que se ganan con graffitis; bases en el mundo con almacén, caja fuerte, taquilla y garaje; misiones con NPCs armados para preparar los golpes, y un mercado negro con objetos y vehículos que no vende nadie más.",
-  precio: 34.99,
+  // oferta: 60 € tachado → 40 € (-33 %)
+  precio: 40,
+  precioAntes: 60,
+  descuento: 33,
   version: "1.0.0",
   frameworks: ["ESX Legacy", "QBCore", "Qbox"],
   cifras: [
