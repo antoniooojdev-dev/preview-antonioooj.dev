@@ -7,7 +7,8 @@ import Icono from "@/components/servicios/Icono.astro";
 import { scriptsFivem } from "@/data/scripts-fivem";
 
 // primero los disponibles, luego los que están en desarrollo
-const lista = [...scriptsFivem].sort((a, b) => Number(a.estado === "desarrollo") - Number(b.estado === "desarrollo"));
+// disponibles primero y, dentro de ellos, los nuevos delante
+const lista = [...scriptsFivem].sort((a, b) => Number(a.estado === "desarrollo") - Number(b.estado === "desarrollo") || Number(!!b.nuevo) - Number(!!a.nuevo));
 const total = lista.length;
 const disponibles = lista.filter((s) => s.estado === "disponible").length;
 const desarrollo = total - disponibles;
@@ -86,6 +87,7 @@ const filtros = [
                     <i aria-hidden="true" />
                     {dev ? "en desarrollo" : "disponible"}
                   </span>
+                  {s.nuevo && <span class="sc__nuevo mono">nuevo</span>}
                 </div>
 
                 <div class="sc__body">
@@ -570,6 +572,37 @@ const filtros = [
   .sc__estado--dev i {
     background: #f59e0b;
     box-shadow: 0 0 8px #f59e0b;
+  }
+
+  .sc__nuevo {
+    position: absolute;
+    z-index: 1;
+    left: var(--space-3);
+    bottom: var(--space-3);
+    overflow: hidden;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #0a0a0e;
+    background: #fff;
+    box-shadow: 0 4px 18px rgb(0 0 0 / 0.35);
+  }
+
+  .sc__nuevo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgb(0 0 0 / 0.14) 50%, transparent 70%);
+    transform: translateX(-120%);
+    animation: sc-brillo 3.2s 1s ease-in-out infinite;
+  }
+
+  @keyframes sc-brillo {
+    0%, 60% { transform: translateX(-120%); }
+    100% { transform: translateX(120%); }
   }
 
   @keyframes latido {

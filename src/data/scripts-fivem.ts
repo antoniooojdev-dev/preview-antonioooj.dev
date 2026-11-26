@@ -23,6 +23,8 @@ export interface ScriptFivem {
   frameworks: string[];
   /** captura de cabecera de la tarjeta; sin ella sale la portada «compilando» */
   portada?: string;
+  /** etiqueta «nuevo» en la tarjeta (recién publicado) */
+  nuevo?: boolean;
   /** cifras pequeñas del pie de la tarjeta */
   datos: { v: string; l: string }[];
 }
@@ -66,10 +68,12 @@ export const scriptsFivem: ScriptFivem[] = [
     recurso: "antoniooojdev_police",
     icono: "siren",
     categoria: "Empleos",
-    estado: "desarrollo",
+    estado: "disponible",
+    nuevo: true,
     resumen: "Trabajo de policía completo: MDT, multas, cacheos, esposas, radar y gestión del cuerpo.",
     claves: ["MDT con fichas y antecedentes", "Rangos, servicio y divisiones", "Avisos y aviso de agente herido"],
-    frameworks: ["ESX Legacy"],
+    frameworks: ["ESX Legacy", "QBCore", "Qbox"],
+    portada: "/fivem/policia/media/sapd-home.webp",
     datos: [{ v: "MDT", l: "propio" }],
   },
   {

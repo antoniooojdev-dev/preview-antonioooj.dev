@@ -1,4 +1,4 @@
-// Ficha de venta del script de policía (antoniooojdev_police) para /pruebas-fivem.
+// Ficha de venta del script de policía (antoniooojdev_police) para /servicios/fivem/policia y /pruebas-fivem.
 // Los datos salen de la copia de venta (Developer\tebex\antoniooojdev_police): config, comandos,
 // permisos y tablas. Vídeo y capturas de la app SAPD grabados de sapd.html?demo=1; los módulos
 // sin vídeo todavía llevan video: "" y la página enseña el hueco «vídeo en grabación».
@@ -34,7 +34,10 @@ export const policia = {
   lema: "MDT, central, calle y comisaría en un solo recurso",
   lead:
     "Todo lo que necesita una policía de rol: una tablet MDT con fichas, informes, multas y órdenes; la central con mapa en vivo, radio y avisos; un menú F7 para la calle; comisarías con recepción, armería y prisión; y una app SAPD para que los ciudadanos paguen multas y vean sus documentos.",
-  precio: 69.99,
+  // oferta de lanzamiento: -30 % sobre el precio de antes (sale tachado)
+  precio: 50,
+  precioAntes: 71.43,
+  descuento: 30,
   version: "2.0.4",
   frameworks: ["ESX Legacy", "QBCore", "Qbox"],
   fuertes: ["Tablet MDT completa", "17 rangos y 10 divisiones", "Central con mapa en vivo", "App SAPD para ciudadanos"],
@@ -232,7 +235,7 @@ export const policia = {
     { q: "¿Funciona con mi framework?", a: "Sí: está disponible para ESX Legacy, QBCore y Qbox." },
     { q: "¿Cómo lo recibo?", a: "Al comprar, el recurso aparece en tu cuenta de Cfx.re (portal.cfx.re › Assets). Lo descargas de ahí y lo instalas en tu servidor." },
     { q: "¿Puedo cambiar textos, rangos y precios?", a: "Sí. La configuración está abierta y comentada, y rangos, divisiones, código penal y comisarías se cambian desde la propia tablet." },
-    { q: "¿Necesito un MLO de comisaría?", a: "No. Viene preparado para la comisaría de Mission Row del juego base; si tienes otra, colocas los puntos desde la tablet." },
+    { q: "¿Viene con mapeado? ¿Es solo para Mission Row?", a: "No trae mapeado ni está atado a Mission Row: se adapta a cualquier comisaría de tu servidor, sea del juego base o un MLO. Colocas recepción, armería, vestuario y celdas desde la tablet, sin tocar código." },
     { q: "¿Y si algo no funciona?", a: "Escríbeme por el chat de la web o por Discord con el error de la consola y lo miramos." },
   ],
 };

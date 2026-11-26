@@ -678,6 +678,7 @@ export const servicios: Record<string, Trad> = {
   "disponibles": { en: "available", pt: "disponíveis" },
   "disponible": { en: "available", pt: "disponível" },
   "en desarrollo": { en: "in development", pt: "em desenvolvimento" },
+  "nuevo": { en: "new", pt: "novo" },
   "▶ ver script": { en: "▶ see script", pt: "▶ ver script" },
   "⏳ próximamente": { en: "⏳ coming soon", pt: "⏳ em breve" },
   "Menú de handling": { en: "Handling menu", pt: "Menu de handling" },
