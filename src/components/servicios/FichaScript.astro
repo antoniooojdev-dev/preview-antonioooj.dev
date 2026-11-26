@@ -1,45 +1,49 @@
 ---
-// Ficha de venta del script de policía (antoniooojdev_police). La usan
-// /servicios/fivem/policia (la real) y /pruebas-fivem (copia noindex). Estética
+// Ficha de venta de un script FiveM. La usan /servicios/fivem/policia (real),
+// /pruebas-fivem (police, noindex) y /pruebas-bandas (bandas, noindex). Estética
 // de la web: visor de vídeo y capturas + caja de compra, cifras, un bloque por módulo (cada uno
 // con su vídeo; si aún no hay, el hueco «vídeo en grabación»), documentación tipo README y
-// preguntas. Datos en src/data/policia.ts.
+// preguntas. Datos en src/data/<script>.ts (tipos en src/data/fichas.ts).
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { policia as p } from "@/data/policia";
+import type { Ficha } from "@/data/fichas";
 import { fivemPacks } from "@/data/packs";
 
-interface Props { pruebas?: boolean }
-const { pruebas = false } = Astro.props;
+interface Props { ficha: Ficha; pruebas?: boolean }
+const { ficha: p, pruebas = false } = Astro.props;
 const euros = (n: number) => n.toLocaleString("es-ES", { minimumFractionDigits: 2 }) + " €";
 const precio = euros(p.precio);
-const precioAntes = euros(p.precioAntes);
+const precioAntes = p.precioAntes ? euros(p.precioAntes) : "";
 const n2 = (i: number) => String(i + 1).padStart(2, "0");
 
-type Medio = { tipo: "video" | "img" | "hueco"; src?: string; poster?: string; t: string; mod: string };
-const medios: Medio[] = p.modulos.flatMap((m) => [
-  m.video
-    ? { tipo: "video" as const, src: m.video, poster: m.poster, t: `${m.nombre} en vídeo`, mod: m.nombre }
-    : { tipo: "hueco" as const, t: `${m.nombre} · vídeo en grabación`, mod: m.nombre },
+type Medio = { tipo: "video" | "img" | "hueco" | "yt"; src?: string; poster?: string; t: string; mod: string };
+const yt: Medio[] = p.youtube ? [{ tipo: "yt", src: p.youtube.id, poster: p.youtube.portada, t: p.youtube.t, mod: p.titulo }] : [];
+const medios: Medio[] = [...yt, ...p.modulos.flatMap((m) => [
+  // sin vídeo: el hueco «vídeo en grabación» solo si tampoco hay capturas
+  ...(m.video
+    ? [{ tipo: "video" as const, src: m.video, poster: m.poster, t: `${m.nombre} en vídeo`, mod: m.nombre }]
+    : m.galeria.length ? [] : [{ tipo: "hueco" as const, t: `${m.nombre} · vídeo en grabación`, mod: m.nombre }]),
   ...m.galeria.map((g) => ({ tipo: "img" as const, src: g.src, t: g.t, mod: m.nombre })),
-]);
-// la app SAPD tiene vídeo de verdad: que el visor empiece por él
-const primero = Math.max(0, medios.findIndex((m) => m.tipo === "video"));
+])];
+// el visor empieza por el primer vídeo de verdad (YouTube o .webm)
+const primero = Math.max(0, medios.findIndex((m) => m.tipo === "yt" || m.tipo === "video"));
 const ordenados = [...medios.slice(primero), ...medios.slice(0, primero)];
 ---
 
 <BaseLayout
-  title={pruebas ? "Pruebas · Sistema de Policía SAPD" : "Sistema de Policía SAPD · Script FiveM"}
+  title={pruebas ? `Pruebas · ${p.titulo}` : `${p.titulo} · Script FiveM`}
   description={pruebas ? undefined : `${p.lema}. ${p.lead}`}
   noindex={pruebas}
   intro={false}
 >
   <div class="pf" data-no-i18n>
     <div class="container">
-      <a href="#modulos" class="pf-nuevo">
-        <span class="pf-nuevo__tag mono">Nuevo</span>
-        <span class="pf-nuevo__t">Acaba de salir el Sistema de Policía SAPD · <b>-{p.descuento}% de lanzamiento</b></span>
-        <span class="pf-nuevo__ir" aria-hidden="true">→</span>
-      </a>
+      {p.nuevo && (
+        <a href="#modulos" class="pf-nuevo">
+          <span class="pf-nuevo__tag mono">Nuevo</span>
+          <span class="pf-nuevo__t">Acaba de salir el {p.titulo}{p.descuento && <> · <b>-{p.descuento}% de lanzamiento</b></>}</span>
+          <span class="pf-nuevo__ir" aria-hidden="true">→</span>
+        </a>
+      )}
 
       <nav class="pf-migas mono" aria-label="Migas">
         <a href="/servicios/fivem">scripts-fivem</a><span>/</span><b>{p.recurso}</b>
@@ -59,6 +63,12 @@ const ordenados = [...medios.slice(primero), ...medios.slice(0, primero)];
                 <figure class:list={["pf-medio", { "is-on": i === 0 }]} data-i={i} data-t={m.t}>
                   {m.tipo === "video" && <video src={m.src} poster={m.poster} muted playsinline preload="metadata"></video>}
                   {m.tipo === "img" && <img src={m.src} alt={m.t} loading={i < 2 ? "eager" : "lazy"} />}
+                  {m.tipo === "yt" && (
+                    <button type="button" class="pf-yt" data-yt={m.src} aria-label={`Reproducir: ${m.t}`}>
+                      <img src={m.poster} alt="" loading="eager" />
+                      <span class="pf-yt__play" aria-hidden="true"><i><svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg></i>Ver el recorrido completo</span>
+                    </button>
+                  )}
                   {m.tipo === "hueco" && (
                     <div class="pf-hueco">
                       <span class="pf-hueco__ruido" aria-hidden="true"></span>
@@ -82,7 +92,7 @@ const ordenados = [...medios.slice(primero), ...medios.slice(0, primero)];
             {ordenados.map((m, i) => (
               <button type="button" class:list={["pf-mini", { "is-on": i === 0 }]} data-ir={i} aria-label={m.t}>
                 {m.tipo === "img" && <img src={m.src} alt="" loading="lazy" />}
-                {m.tipo === "video" && <img src={m.poster} alt="" loading="lazy" />}
+                {(m.tipo === "video" || m.tipo === "yt") && <img src={m.poster} alt="" loading="lazy" />}
                 {m.tipo === "hueco" && <span class="pf-mini__hueco mono">{m.mod}</span>}
                 {m.tipo !== "img" && (
                   <span class="pf-mini__play" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg></span>
@@ -93,7 +103,7 @@ const ordenados = [...medios.slice(primero), ...medios.slice(0, primero)];
         </div>
 
         <aside class="pf-info">
-          <p class="mono pf-kicker"><span class="pf-badge">Nuevo</span> Script FiveM · v{p.version}</p>
+          <p class="mono pf-kicker">{p.nuevo && <span class="pf-badge">Nuevo</span>} Script FiveM · v{p.version}</p>
           <h1 class="pf-h1">{p.titulo}</h1>
           <p class="pf-lema">{p.lema}</p>
           <p class="pf-lead">{p.lead}</p>
@@ -106,10 +116,10 @@ const ordenados = [...medios.slice(primero), ...medios.slice(0, primero)];
             <div class="pf-precio">
               <div class="pf-precio__fila">
                 <b data-precio>{precio}</b>
-                <s class="pf-precio__antes" aria-label={`Antes ${precioAntes}`}>{precioAntes}</s>
-                <span class="pf-precio__dto mono">-{p.descuento}%</span>
+                {precioAntes && <s class="pf-precio__antes" aria-label={`Antes ${precioAntes}`}>{precioAntes}</s>}
+                {p.descuento && <span class="pf-precio__dto mono">-{p.descuento}%</span>}
               </div>
-              <span>Oferta de lanzamiento · pago único · licencia en tu cuenta de Cfx.re</span>
+              <span>{p.descuento ? "Oferta de lanzamiento · pago único" : "Pago único"} · licencia en tu cuenta de Cfx.re</span>
             </div>
             <button type="button" class="btn btn-primary pf-comprar" data-comprar>
               Comprar ahora
@@ -141,8 +151,8 @@ const ordenados = [...medios.slice(primero), ...medios.slice(0, primero)];
       <section class="pf-bloque" id="modulos">
         <header class="pf-cab" data-rv>
           <p class="mono pf-kicker">Qué incluye</p>
-          <h2 class="pf-h2">Cinco partes, <span>un solo recurso</span></h2>
-          <p class="pf-sub">Todo comparte datos: la multa que pones en la calle aparece en la tablet y en el móvil del ciudadano.</p>
+          <h2 class="pf-h2">{p.modulosTitulo[0]}<span>{p.modulosTitulo[1]}</span></h2>
+          <p class="pf-sub">{p.modulosSub}</p>
         </header>
 
         <div class="pf-mods">
@@ -152,6 +162,11 @@ const ordenados = [...medios.slice(primero), ...medios.slice(0, primero)];
                 <div class="pf-marco pf-marco--s">
                   {m.video ? (
                     <video class="pf-mod__vid" src={m.video} poster={m.poster} muted loop playsinline preload="none" data-auto></video>
+                  ) : m.galeria.length ? (
+                    <div class="pf-mod__cap">
+                      <img src={m.galeria[0].src} alt={m.galeria[0].t} loading="lazy" />
+                      <span class="pf-rec pf-mod__aviso mono" aria-hidden="true"><i></i>Vídeo en grabación</span>
+                    </div>
                   ) : (
                     <div class="pf-hueco pf-hueco--mod">
                       <span class="pf-hueco__ruido" aria-hidden="true"></span>
@@ -242,7 +257,7 @@ const ordenados = [...medios.slice(primero), ...medios.slice(0, primero)];
           <h2 class="pf-h2">También te puede interesar</h2>
         </header>
         <div class="pf-otros">
-          {fivemPacks.map((o, i) => (
+          {fivemPacks.filter((o) => o.id !== p.id).map((o, i) => (
             <a class="pf-otro" href={`/servicios/fivem/${o.id}`} data-rv style={`--i:${i}`}>
               <span class="pf-otro__img"><img src={o.scripts[0].poster} alt="" loading="lazy" /></span>
               <span class="mono pf-otro__k">{o.scripts.length} {o.scripts.length === 1 ? "script" : "scripts"}</span>
@@ -283,7 +298,23 @@ const ordenados = [...medios.slice(primero), ...medios.slice(0, primero)];
   let pausa = false;
   let visible = true;
 
+  // YouTube: portada + play; al darle se mete el iframe y el visor deja de avanzar solo
+  const quitarYt = () => visor.querySelectorAll(".pf-yt__frame").forEach((f) => f.remove());
+  const enYt = () => !!medios[actual].querySelector(".pf-yt__frame");
+  visor.querySelectorAll<HTMLButtonElement>("[data-yt]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const f = document.createElement("iframe");
+      f.className = "pf-yt__frame";
+      f.src = `https://www.youtube-nocookie.com/embed/${b.dataset.yt}?autoplay=1&rel=0&modestbranding=1`;
+      f.title = b.getAttribute("aria-label") ?? "Vídeo";
+      f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+      f.allowFullscreen = true;
+      b.after(f);
+    }),
+  );
+
   const ir = (i: number) => {
+    quitarYt();
     actual = (i + medios.length) % medios.length;
     medios.forEach((m, k) => {
       m.classList.toggle("is-on", k === actual);
@@ -313,7 +344,7 @@ const ordenados = [...medios.slice(primero), ...medios.slice(0, primero)];
     let prog: number;
     if (v && v.duration) prog = v.currentTime / v.duration;
     else {
-      if (pausa || !visible) t0 = now - Number(barra.dataset.p ?? 0) * DUR;
+      if (pausa || !visible || enYt()) t0 = now - Number(barra.dataset.p ?? 0) * DUR;
       prog = Math.min(1, (now - t0) / DUR);
       if (prog >= 1 && !reducido) ir(actual + 1);
     }
@@ -471,6 +502,38 @@ const ordenados = [...medios.slice(primero), ...medios.slice(0, primero)];
   }
   .pf-medio.is-on { opacity: 1; transform: none; pointer-events: auto; }
   .pf-medio img, .pf-medio video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* módulo sin vídeo pero con capturas: la primera, con el aviso de que el vídeo viene */
+  .pf-mod__cap { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 15px; background: #0b0b0b; }
+  .pf-mod__cap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+  .pf-mod:hover .pf-mod__cap img { transform: scale(1.04); }
+  .pf-mod__aviso {
+    position: absolute; right: 12px; top: 12px; padding: 0.3rem 0.65rem; border-radius: 999px;
+    background: rgb(10 10 14 / 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    color: #fff; font-size: 0.6875rem;
+  }
+
+  /* YouTube: portada con play; el iframe se pone encima al pulsar */
+  .pf-yt { position: relative; display: block; width: 100%; height: 100%; padding: 0; border: 0; background: #000; cursor: pointer; color: #000; }
+  .pf-yt img { transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s; filter: brightness(0.8); }
+  .pf-yt:hover img { transform: scale(1.03); filter: brightness(0.65); }
+  /* botón en forma de pastilla abajo, para no tapar la portada */
+  .pf-yt__play {
+    position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+    display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.45rem 1.1rem 0.45rem 0.45rem; border-radius: 999px;
+    background: #fff; color: #000; font-size: 0.8125rem; font-weight: 600; white-space: nowrap;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.45);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .pf-yt__play i {
+    width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #000; color: #fff;
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 0.35); animation: pf-latido 2.2s ease-out infinite;
+  }
+  .pf-yt__play svg { margin-left: 2px; }
+  .pf-yt:hover .pf-yt__play { transform: translateX(-50%) scale(1.05); }
+  @keyframes pf-latido { 0% { box-shadow: 0 0 0 0 rgb(255 255 255 / 0.5); } 100% { box-shadow: 0 0 0 14px rgb(255 255 255 / 0); } }
+  .pf-medio :global(.pf-yt__frame) { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; z-index: 3; background: #000; }
+  @media (prefers-reduced-motion: reduce) { .pf-yt__play i { animation: none; } }
 
   .pf-hueco {
     position: relative; width: 100%; height: 100%; display: grid; place-content: center; justify-items: center; gap: 0.4rem;

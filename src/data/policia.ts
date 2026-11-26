@@ -1,4 +1,4 @@
-// Ficha de venta del script de policía (antoniooojdev_police) para /servicios/fivem/policia y /pruebas-fivem.
+// Ficha de venta del script de policía (antoniooojdev_police) para /servicios/fivem/policia y /pruebas-fivem (FichaScript.astro).
 // Los datos salen de la copia de venta (Developer\tebex\antoniooojdev_police): config, comandos,
 // permisos y tablas. Vídeo y capturas de la app SAPD grabados de sapd.html?demo=1; los módulos
 // sin vídeo todavía llevan video: "" y la página enseña el hueco «vídeo en grabación».
@@ -6,28 +6,9 @@
 
 const M = "/fivem/policia/media";
 
-export interface PoliciaModulo {
-  id: string;
-  nombre: string;
-  sub: string;
-  resumen: string;
-  funciones: string[];
-  video: string;
-  poster?: string;
-  galeria: { src: string; t: string }[];
-}
+import type { Ficha, FichaModulo, DocSeccion } from "./fichas";
 
-export interface DocSeccion {
-  id: string;
-  t: string;
-  intro?: string;
-  pasos?: string[];
-  tabla?: { cols: string[]; filas: string[][] };
-  codigo?: { lang: string; txt: string };
-  nota?: string;
-}
-
-export const policia = {
+export const policia: Ficha = {
   id: "policia-sapd",
   recurso: "antoniooojdev_police",
   titulo: "Sistema de Policía SAPD",
@@ -38,9 +19,12 @@ export const policia = {
   precio: 50,
   precioAntes: 71.43,
   descuento: 30,
+  nuevo: true,
   version: "2.0.4",
   frameworks: ["ESX Legacy", "QBCore", "Qbox"],
   fuertes: ["Tablet MDT completa", "17 rangos y 10 divisiones", "Central con mapa en vivo", "App SAPD para ciudadanos"],
+  modulosTitulo: ["Cinco partes, ", "un solo recurso"],
+  modulosSub: "Todo comparte datos: la multa que pones en la calle aparece en la tablet y en el móvil del ciudadano.",
   cifras: [
     { v: 17, l: "rangos de serie" },
     { v: 10, l: "divisiones" },
@@ -142,7 +126,7 @@ export const policia = {
         { src: `${M}/sapd-notifs.webp`, t: "Avisos de la policía al ciudadano" },
       ],
     },
-  ] as PoliciaModulo[],
+  ] as FichaModulo[],
   docs: [
     {
       id: "requisitos",

@@ -1,6 +1,7 @@
 ---
 // /pruebas-fivem: copia noindex de la ficha del police (la real está en /servicios/fivem/policia).
-import FichaPolicia from "@/components/servicios/FichaPolicia.astro";
+import FichaScript from "@/components/servicios/FichaScript.astro";
+import { policia } from "@/data/policia";
 ---
 
-<FichaPolicia pruebas />
+<FichaScript ficha={policia} pruebas />
