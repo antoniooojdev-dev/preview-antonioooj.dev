@@ -1,1758 +1,482 @@
 ---
-// /pruebas-fivem — propuestas de diseño para el apartado de cada script de las fichas
-// /servicios/fivem/<pack> (hoy: el bloque «desarrollo» de [pack].astro). Seis maneras
-// distintas de organizar lo mismo (captura/vídeo, cifras, cómo está hecho, funciones y
-// capturas), con los datos reales de src/data/packs.ts. Arriba se elige diseño y pack
-// (?d=1..6&pack=<id>). Cuando se elija uno, se pasa a [pack].astro y esta página se borra.
+// /pruebas-fivem — propuesta de ficha de pack FiveM al estilo de una tienda de scripts:
+// visor de vídeo/capturas con miniaturas a la izquierda, caja de compra a la derecha,
+// tira de puntos fuertes, pestañas (descripción, scripts, técnico, preguntas) y otros packs
+// abajo. Monocromo como el resto de la web. Datos reales de src/data/packs.ts; arriba se
+// elige el pack (?pack=<id>). Cuando guste, se pasa a /servicios/fivem/[pack].astro.
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import Icono from "@/components/servicios/Icono.astro";
-import { fivemPacks, type Pack, type PackScript } from "@/data/packs";
+import { fivemPacks, type Pack } from "@/data/packs";
 
-const disenos = [
-  { n: 1, t: "Portada", d: "Cada script abre con una captura a todo el ancho y el nombre encima, como la portada de una revista. Debajo, cifras grandes, el texto y las funciones a dos columnas y una tira de capturas que se desliza." },
-  { n: 2, t: "Pestañas", d: "Una tarjeta por script: a la izquierda un visor con miniaturas, a la derecha pestañas (qué hace, cómo está hecho, funciones). Corto de alto y todo a mano." },
-  { n: 3, t: "Columna fija", d: "La captura, el nombre y las cifras se quedan fijos a la izquierda mientras a la derecha bajas por el texto, las funciones en tarjetas y las capturas." },
-  { n: 4, t: "Bento", d: "Todo el script en una cuadrícula de bloques de distintos tamaños: vídeo, cifras sueltas, texto, funciones y capturas encajadas." },
-  { n: 5, t: "Línea de tiempo", d: "El desarrollo contado por pasos en una línea vertical, cada paso con su captura al lado. Las funciones cierran como lista compacta." },
-  { n: 6, t: "Navegador", d: "Un solo panel para todo el pack: lista de scripts a la izquierda y, al elegir uno, su visor, texto, funciones y cifras a la derecha. Sin scroll largo." },
-];
+const FW = ["ESX Legacy", "QBCore", "Qbox"];
+const corto: Record<string, string> = { "ESX Legacy": "ESX", QBCore: "QB", Qbox: "QBOX" };
+const frameworks = (p: Pack) => FW.filter((f) => p.chips.includes(f));
+// puntos fuertes: los chips que no son frameworks ni el número de scripts
+const fuertes = (p: Pack) => p.chips.filter((c) => !FW.includes(c) && !/^\d+ scripts?$/.test(c)).slice(0, 4);
 
-const n2 = (i: number) => String(i + 1).padStart(2, "0");
-const conVideo = (p: Pack, s: PackScript) => Boolean(s.video && s.video !== p.video);
-const fichaDe = (p: Pack) => `/servicios/fivem/${p.id}`;
+type Medio = { tipo: "video" | "img"; src: string; poster?: string; t: string };
+const medios = (p: Pack): Medio[] => {
+  const out: Medio[] = [];
+  const vistos = new Set<string>();
+  for (const s of p.scripts) {
+    if (s.video && !vistos.has(s.video)) {
+      vistos.add(s.video);
+      out.push({ tipo: "video", src: s.video, poster: s.poster, t: `${s.nombre} en vídeo` });
+    }
+    for (const g of s.galeria) {
+      if (vistos.has(g.src)) continue;
+      vistos.add(g.src);
+      out.push({ tipo: "img", src: g.src, t: g.t });
+    }
+  }
+  return out;
+};
+const ficha = (p: Pack) => `/servicios/fivem/${p.id}`;
+const contacto = `/contacto?tipo=${encodeURIComponent("Script FiveM")}`;
+const pestanas = ["Descripción", "Scripts incluidos", "Detalles técnicos", "Preguntas frecuentes"];
 ---
 
-<BaseLayout title="Pruebas · fichas FiveM" noindex intro={false}>
-  <div class="pf" data-no-i18n>
-    <!-- ── selector ── -->
-    <div class="pf-bar">
-      <div class="container pf-bar__in">
-        <div class="pf-grupo" role="group" aria-label="Diseño">
-          <span class="pf-grupo__t mono">Diseño</span>
-          {disenos.map((d, i) => (
-            <button type="button" class:list={["pf-btn", { "is-on": i === 0 }]} data-elige-d={d.n}>
-              <b class="mono">{d.n}</b> {d.t}
-            </button>
-          ))}
-        </div>
-        <div class="pf-grupo" role="group" aria-label="Pack">
-          <span class="pf-grupo__t mono">Pack</span>
-          {fivemPacks.map((p, i) => (
-            <button type="button" class:list={["pf-btn", { "is-on": i === 0 }]} data-elige-pack={p.id}>
-              {p.titulo}
-            </button>
-          ))}
-        </div>
+<BaseLayout title="Pruebas · ficha FiveM" noindex intro={false}>
+  <div class="tf" data-no-i18n>
+    <div class="tf-bar">
+      <div class="container tf-bar__in">
+        <span class="mono tf-bar__t">Pack</span>
+        {fivemPacks.map((p, i) => (
+          <button type="button" class:list={["tf-chip", { "is-on": i === 0 }]} data-elige={p.id}>{p.titulo}</button>
+        ))}
       </div>
     </div>
 
-    <div class="container">
-      <header class="pf-head">
-        {disenos.map((d, i) => (
-          <div data-desc={d.n} hidden={i !== 0}>
-            <p class="pf-head__n mono">Propuesta {d.n} de {disenos.length}</p>
-            <h1>{d.t}</h1>
-            <p class="pf-head__d">{d.d}</p>
-          </div>
-        ))}
-      </header>
+    {fivemPacks.map((p, ip) => {
+      const ms = medios(p);
+      const fws = frameworks(p);
+      const otros = fivemPacks.filter((o) => o.id !== p.id);
+      const demo = p.scripts.some((s) => s.demo);
+      return (
+        <article class="container tf-pack" data-pack={p.id} hidden={ip !== 0}>
+          <nav class="tf-migas mono" aria-label="Migas">
+            <a href="/servicios/fivem">Scripts FiveM</a><span>›</span><a href="/servicios/fivem#scripts">Packs</a><span>›</span><b>{p.titulo}</b>
+          </nav>
 
-      {fivemPacks.map((p, ip) => (
-        <>
-          <!-- ════════ 1 · PORTADA ════════ -->
-          <section class="d1" data-d="1" data-pack={p.id} hidden={ip !== 0}>
-            {p.scripts.map((s, i) => (
-              <article class="d1-s">
-                <figure class="d1-hero">
-                  {conVideo(p, s) ? (
-                    <video src={s.video} poster={s.poster} muted loop playsinline preload="none" data-autoplay />
-                  ) : (
-                    <img src={s.poster} alt="" loading="lazy" width="1920" height="1080" />
-                  )}
-                  <span class="d1-num" aria-hidden="true">{n2(i)}</span>
-                  <figcaption>
-                    <span class="mono">{s.recurso}</span>
-                    <h2>{s.nombre}</h2>
-                    <p>{s.sub}</p>
-                  </figcaption>
-                </figure>
-
-                <dl class="d1-cifras">
-                  {s.cifras.map((c) => (
-                    <div>
-                      <dd>{c.v}</dd>
-                      <dt>{c.l}</dt>
-                    </div>
-                  ))}
-                </dl>
-
-                <div class="d1-cols">
-                  <div class="d1-texto">
-                    <p class="d1-lead">{s.resumen}</p>
-                    {s.desarrollo.map((t) => <p>{t}</p>)}
-                    <div class="d1-acc">
-                      {s.demo && <a class="btn btn-primary" href={`${fichaDe(p)}#probar`}><Icono nombre="play" size={14} /> Probar la demo</a>}
-                    </div>
-                  </div>
-                  <div>
-                    <p class="pf-label mono">Lo que hace</p>
-                    <ol class="d1-fun" role="list">
-                      {s.funciones.map((f, j) => (
-                        <li><span class="mono">{n2(j)}</span>{f}</li>
-                      ))}
-                    </ol>
-                  </div>
-                </div>
-
-                {s.galeria.length > 0 && (
-                  <ul class="d1-tira" role="list">
-                    {s.galeria.map((g) => (
-                      <li>
-                        <button type="button" data-shot={g.src} data-caption={g.t}>
-                          <img src={g.src} alt={g.t} loading="lazy" width="1920" height="1080" />
-                          <span>{g.t}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </article>
-            ))}
-          </section>
-
-          <!-- ════════ 2 · PESTAÑAS ════════ -->
-          <section class="d2" data-d="2" data-pack={p.id} hidden>
-            {p.scripts.map((s, i) => {
-              const fotos = s.galeria.length ? s.galeria : [{ src: s.poster, t: s.nombre }];
-              return (
-                <article class="d2-s">
-                  <div class="d2-visor" data-visor>
-                    <button type="button" class="d2-main" data-shot={fotos[0].src} data-caption={fotos[0].t} data-visor-main>
-                      <img src={fotos[0].src} alt={fotos[0].t} loading="lazy" width="1920" height="1080" data-visor-img />
-                    </button>
-                    <p class="d2-cap" data-visor-cap>{fotos[0].t}</p>
-                    {fotos.length > 1 && (
-                      <ul class="d2-thumbs" role="list">
-                        {fotos.map((g, j) => (
-                          <li>
-                            <button type="button" class:list={{ "is-on": j === 0 }} data-thumb={g.src} data-caption={g.t} aria-label={g.t}>
-                              <img src={g.src} alt="" loading="lazy" width="1920" height="1080" />
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-
-                  <div class="d2-info" data-tabs>
-                    <header class="d2-head">
-                      <span class="d2-num mono">{n2(i)}</span>
-                      <div>
-                        <h2>{s.nombre}</h2>
-                        <p class="mono">{s.recurso} · {s.sub}</p>
-                      </div>
-                    </header>
-                    <div class="d2-tabs" role="tablist">
-                      <button type="button" role="tab" class="is-on" data-tab="que">Qué hace</button>
-                      <button type="button" role="tab" data-tab="como">Cómo está hecho</button>
-                      <button type="button" role="tab" data-tab="fun">Funciones <span class="mono">{s.funciones.length}</span></button>
-                    </div>
-                    <div class="d2-panel" data-panel="que">
-                      <p class="d2-res">{s.resumen}</p>
-                      <ul role="list" class="d2-claves">
-                        {s.claves.map((k) => <li><Icono nombre="check" size={16} />{k}</li>)}
-                      </ul>
-                    </div>
-                    <div class="d2-panel" data-panel="como" hidden>
-                      {s.desarrollo.map((t) => <p>{t}</p>)}
-                    </div>
-                    <div class="d2-panel d2-panel--fun" data-panel="fun" hidden data-lenis-prevent>
-                      <ul role="list">
-                        {s.funciones.map((f) => <li><Icono nombre="check" size={16} />{f}</li>)}
-                      </ul>
-                    </div>
-                    <dl class="d2-cifras">
-                      {s.cifras.map((c) => (
-                        <div><dd>{c.v}</dd><dt>{c.l}</dt></div>
-                      ))}
-                    </dl>
-                    {s.demo && <a class="d2-probar mono" href={`${fichaDe(p)}#probar`}>Probar la demo →</a>}
-                  </div>
-                </article>
-              );
-            })}
-          </section>
-
-          <!-- ════════ 3 · COLUMNA FIJA ════════ -->
-          <section class="d3" data-d="3" data-pack={p.id} hidden>
-            {p.scripts.map((s, i) => (
-              <article class="d3-s">
-                <aside class="d3-fija">
-                  <div class="d3-fija__in">
-                    {conVideo(p, s) ? (
-                      <video src={s.video} poster={s.poster} muted loop playsinline preload="none" data-autoplay />
-                    ) : (
-                      <img src={s.poster} alt="" loading="lazy" width="1920" height="1080" />
-                    )}
-                    <p class="mono d3-n">{n2(i)} / {n2(p.scripts.length - 1)}</p>
-                    <h2>{s.nombre}</h2>
-                    <p class="d3-sub">{s.sub}</p>
-                    <dl class="d3-cifras">
-                      {s.cifras.map((c) => (
-                        <div><dt>{c.l}</dt><span aria-hidden="true"></span><dd>{c.v}</dd></div>
-                      ))}
-                    </dl>
-                    <div class="d3-acc">
-                      {s.demo && <a class="btn btn-primary" href={`${fichaDe(p)}#probar`}><Icono nombre="play" size={14} /> Probar</a>}
-                      <span class="mono d3-rec">{s.recurso}</span>
-                    </div>
-                  </div>
-                </aside>
-
-                <div class="d3-flujo">
-                  <p class="d3-res">{s.resumen}</p>
-
-                  <p class="pf-label mono">Cómo está hecho</p>
-                  <div class="d3-dev">
-                    {s.desarrollo.map((t, j) => (
-                      <div><span class="mono">{n2(j)}</span><p>{t}</p></div>
-                    ))}
-                  </div>
-
-                  <p class="pf-label mono">Funciones</p>
-                  <ul role="list" class="d3-fun">
-                    {s.funciones.map((f) => <li>{f}</li>)}
-                  </ul>
-
-                  {s.galeria.length > 0 && (
-                    <>
-                      <p class="pf-label mono">Capturas</p>
-                      <ul role="list" class="d3-gal">
-                        {s.galeria.map((g) => (
-                          <li>
-                            <button type="button" data-shot={g.src} data-caption={g.t}>
-                              <img src={g.src} alt={g.t} loading="lazy" width="1920" height="1080" />
-                              <span>{g.t}</span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
-                </div>
-              </article>
-            ))}
-          </section>
-
-          <!-- ════════ 4 · BENTO ════════ -->
-          <section class="d4" data-d="4" data-pack={p.id} hidden>
-            {p.scripts.map((s, i) => (
-              <article class="d4-s">
-                <div class="d4-t d4-media">
-                  {conVideo(p, s) ? (
-                    <video src={s.video} poster={s.poster} muted loop playsinline preload="none" data-autoplay />
-                  ) : (
-                    <img src={s.poster} alt="" loading="lazy" width="1920" height="1080" />
-                  )}
-                </div>
-                <div class="d4-t d4-tit">
-                  <span class="mono">{n2(i)} · {s.recurso}</span>
-                  <h2>{s.nombre}</h2>
-                  <p>{s.resumen}</p>
-                </div>
-                {s.cifras.map((c) => (
-                  <div class="d4-t d4-cifra">
-                    <b>{c.v}</b>
-                    <span>{c.l}</span>
-                  </div>
+          <div class="tf-top">
+            <div class="tf-visor caja">
+              <div class="tf-visor__esc">
+                {ms.map((m, i) => (
+                  <figure class="tf-medio" data-i={i} hidden={i !== 0}>
+                    {m.tipo === "video"
+                      ? <video src={m.src} poster={m.poster} muted loop playsinline controls preload="none"></video>
+                      : <img src={m.src} alt={m.t} loading={i === 0 ? "eager" : "lazy"} />}
+                    <figcaption>{m.t}</figcaption>
+                  </figure>
                 ))}
-                <div class="d4-t d4-dev">
-                  <p class="pf-label mono">Cómo está hecho</p>
-                  {s.desarrollo.map((t) => <p>{t}</p>)}
-                </div>
-                <div class="d4-t d4-fun">
-                  <p class="pf-label mono">Funciones · {s.funciones.length}</p>
-                  <ul role="list">
-                    {s.funciones.map((f) => <li>{f}</li>)}
-                  </ul>
-                </div>
-                {s.galeria.slice(0, 3).map((g) => (
-                  <button type="button" class="d4-t d4-foto" data-shot={g.src} data-caption={g.t}>
-                    <img src={g.src} alt={g.t} loading="lazy" width="1920" height="1080" />
-                    <span>{g.t}</span>
+                <button class="tf-flecha tf-flecha--a" type="button" data-paso="-1" aria-label="Anterior">‹</button>
+                <button class="tf-flecha tf-flecha--s" type="button" data-paso="1" aria-label="Siguiente">›</button>
+                <span class="tf-cont mono"><b data-n>1</b> / {ms.length}</span>
+              </div>
+              <div class="tf-minis">
+                {ms.map((m, i) => (
+                  <button type="button" class:list={["tf-mini", { "is-on": i === 0 }]} data-ir={i} aria-label={m.t}>
+                    <img src={m.tipo === "video" ? m.poster : m.src} alt="" loading="lazy" />
+                    {m.tipo === "video" && <span class="tf-mini__play">▶</span>}
                   </button>
                 ))}
-                <a class="d4-t d4-cta" href={s.demo ? `${fichaDe(p)}#probar` : `/contacto?tipo=${encodeURIComponent("Script FiveM")}`}>
-                  <span class="mono">{s.demo ? "demo jugable" : "a medida"}</span>
-                  <b>{s.demo ? "Pruébalo en el navegador" : "Pedir presupuesto"}</b>
-                  <Icono nombre="arrow" size={22} />
-                </a>
-              </article>
-            ))}
-          </section>
+              </div>
+            </div>
 
-          <!-- ════════ 5 · LÍNEA DE TIEMPO ════════ -->
-          <section class="d5" data-d="5" data-pack={p.id} hidden>
-            {p.scripts.map((s, i) => (
-              <article class="d5-s">
-                <header class="d5-head">
-                  <span class="d5-num">{n2(i)}</span>
-                  <div>
-                    <h2>{s.nombre}</h2>
-                    <p>{s.resumen}</p>
-                    <ul role="list" class="d5-cifras mono">
-                      {s.cifras.map((c) => <li><b>{c.v}</b> {c.l}</li>)}
-                    </ul>
-                  </div>
-                </header>
+            <aside class="tf-info">
+              <div class="tf-tags">
+                <span class="tag">Scripts</span>
+                <span class="tag">{p.scripts.length > 1 ? "Pack" : "Script"}</span>
+                <span class="tag tag--neg">{p.etiqueta ?? `${p.scripts.length} ${p.scripts.length === 1 ? "script" : "scripts"}`}</span>
+              </div>
+              <h1 class="tf-h1">{p.titulo}</h1>
+              <p class="tf-lead">{p.resumen}</p>
+              <div class="tf-fw">{fws.map((f) => <span class="fw" title={f}>{corto[f]}</span>)}</div>
 
-                <ol role="list" class="d5-linea">
-                  {s.desarrollo.map((t, j) => {
-                    const g = s.galeria[j] ?? (j === 0 ? { src: s.poster, t: s.nombre } : null);
-                    return (
-                      <li class="d5-paso">
-                        <span class="d5-punto mono" aria-hidden="true">{j + 1}</span>
-                        <p>{t}</p>
-                        {g && (
-                          <button type="button" data-shot={g.src} data-caption={g.t}>
-                            <img src={g.src} alt={g.t} loading="lazy" width="1920" height="1080" />
-                            <span>{g.t}</span>
-                          </button>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ol>
-
-                {s.galeria.length > s.desarrollo.length && (
-                  <ul role="list" class="d5-mas">
-                    {s.galeria.slice(s.desarrollo.length).map((g) => (
-                      <li>
-                        <button type="button" data-shot={g.src} data-caption={g.t}>
-                          <img src={g.src} alt={g.t} loading="lazy" width="1920" height="1080" />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                <div class="d5-fun">
-                  <p class="pf-label mono">Todo lo que hace</p>
-                  <ul role="list">
-                    {s.funciones.map((f) => <li>{f}</li>)}
-                  </ul>
+              <div class="caja tf-compra">
+                <p class="tf-precio">A medida</p>
+                <p class="tf-precio__sub">Lo adapto a tu servidor: framework, textos, precios y estilo.</p>
+                <a href={contacto} class="tf-cta">Pedir presupuesto</a>
+                <div class="tf-sec">
+                  {demo && <a href={`${ficha(p)}#probar`} class="tf-mini-btn">▶ Probar la demo</a>}
+                  <button type="button" class="tf-mini-btn" data-copiar={ficha(p)}>Copiar enlace</button>
+                  <a href={ficha(p)} class="tf-mini-btn">Ficha actual</a>
                 </div>
-              </article>
-            ))}
-          </section>
+                <p class="tf-nota">Validado en servidor real · Interfaces propias · En español</p>
+              </div>
 
-          <!-- ════════ 6 · NAVEGADOR ════════ -->
-          <section class="d6" data-d="6" data-pack={p.id} hidden data-nav>
-            <nav class="d6-lista" aria-label="Scripts del pack">
-              <p class="mono d6-ruta">resources / {p.id}</p>
-              {p.scripts.map((s, i) => (
-                <button type="button" class:list={["d6-item", { "is-on": i === 0 }]} data-nav-btn={s.id}>
-                  <span class="mono">{n2(i)}</span>
-                  <span>
-                    <b>{s.nombre}</b>
-                    <small class="mono">{s.recurso}</small>
-                  </span>
+              <div class="caja tf-incluye">
+                <p class="tf-incluye__t">Incluye</p>
+                <ul>
+                  {p.scripts.map((s) => (
+                    <li><b>{s.nombre}</b><span>{s.sub}</span></li>
+                  ))}
+                </ul>
+              </div>
+            </aside>
+          </div>
+
+          <ul class="tf-fuertes">
+            {fuertes(p).map((f) => (
+              <li class="caja"><span class="tf-check" aria-hidden="true">✓</span>{f}</li>
+            ))}
+          </ul>
+
+          <div class="tf-tabs" role="tablist">
+            {pestanas.map((t, i) => (
+              <button type="button" role="tab" class:list={["tf-tab", { "is-on": i === 0 }]} data-tab={i}>{t}</button>
+            ))}
+          </div>
+
+          <div class="caja tf-panel" data-panel="0">
+            <div class="tf-cols">
+              <p class="tf-intro">{p.lead}</p>
+              {p.scripts.map((s) => (
+                <section class="tf-grupo">
+                  <h3>{s.nombre}</h3>
+                  <ul class="tf-lista">{s.funciones.map((f) => <li>{f}</li>)}</ul>
+                </section>
+              ))}
+              <section class="tf-grupo">
+                <h3>Compatibilidad</h3>
+                <ul class="tf-lista">
+                  <li>Frameworks: {fws.join(", ")}</li>
+                  {[...new Set(p.scripts.map((s) => s.recurso))].map((r) => <li>Recurso <code>{r}</code></li>)}
+                </ul>
+              </section>
+            </div>
+          </div>
+
+          <div class="caja tf-panel" data-panel="1" hidden>
+            <div class="tf-scripts">
+              {p.scripts.map((s) => (
+                <section class="tf-script">
+                  <img src={s.poster} alt="" loading="lazy" />
+                  <div>
+                    <p class="mono tf-script__r">{s.recurso}</p>
+                    <h3>{s.nombre}</h3>
+                    <p class="tf-script__sub">{s.sub}</p>
+                    <p>{s.resumen}</p>
+                    <dl class="tf-cifras">
+                      {s.cifras.map((c) => <div><dt>{c.v}</dt><dd>{c.l}</dd></div>)}
+                    </dl>
+                    <details class="tf-dev">
+                      <summary>Cómo está hecho</summary>
+                      {s.desarrollo.map((d) => <p>{d}</p>)}
+                    </details>
+                  </div>
+                </section>
+              ))}
+            </div>
+          </div>
+
+          <div class="caja tf-panel" data-panel="2" hidden>
+            <div class="tf-tec">
+              {[...p.tecnico, ...p.encajan].map((t) => (
+                <div class="tf-tec__i"><h3>{t.t}</h3><p>{t.d}</p></div>
+              ))}
+            </div>
+          </div>
+
+          <div class="caja tf-panel" data-panel="3" hidden>
+            <div class="tf-faq">
+              {p.faq.map((f, i) => (
+                <details open={i === 0}><summary>{f.q}</summary><p>{f.a}</p></details>
+              ))}
+            </div>
+          </div>
+
+          <div class="tf-otros">
+            <h2 class="tf-h2">También te puede interesar</h2>
+            <div class="tf-cards">
+              {otros.map((o) => (
+                <button type="button" class="caja tf-card" data-elige={o.id}>
+                  <span class="tf-card__img"><img src={o.scripts[0].poster} alt="" loading="lazy" /><span class="tag tag--neg">{o.scripts.length} {o.scripts.length === 1 ? "script" : "scripts"}</span></span>
+                  <span class="mono tf-card__k">Scripts</span>
+                  <b>{o.titulo}</b>
+                  <span class="tf-card__d">{o.resumen}</span>
+                  <span class="tf-fw">{frameworks(o).map((f) => <span class="fw">{corto[f]}</span>)}</span>
+                  <span class="tf-card__pie"><span>A medida</span><span class="tf-card__ir" aria-hidden="true">→</span></span>
                 </button>
               ))}
-              <a class="btn btn-primary d6-pres" href={`/contacto?tipo=${encodeURIComponent("Script FiveM")}`}>Pedir presupuesto</a>
-            </nav>
-
-            <div class="d6-paneles">
-              {p.scripts.map((s, i) => {
-                const fotos = s.galeria.length ? s.galeria : [{ src: s.poster, t: s.nombre }];
-                return (
-                  <div class="d6-panel" data-nav-panel={s.id} hidden={i !== 0}>
-                    <div class="d6-visor" data-visor>
-                      <button type="button" class="d6-main" data-shot={fotos[0].src} data-caption={fotos[0].t} data-visor-main>
-                        <img src={fotos[0].src} alt={fotos[0].t} loading="lazy" width="1920" height="1080" data-visor-img />
-                        <span class="d6-cap" data-visor-cap>{fotos[0].t}</span>
-                      </button>
-                      {fotos.length > 1 && (
-                        <ul class="d6-thumbs" role="list">
-                          {fotos.map((g, j) => (
-                            <li>
-                              <button type="button" class:list={{ "is-on": j === 0 }} data-thumb={g.src} data-caption={g.t} aria-label={g.t}>
-                                <img src={g.src} alt="" loading="lazy" width="1920" height="1080" />
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                    <header class="d6-head">
-                      <h2>{s.nombre}</h2>
-                      <p>{s.sub}</p>
-                      {s.demo && <a class="mono d6-probar" href={`${fichaDe(p)}#probar`}>▶ probar</a>}
-                    </header>
-                    <div class="d6-cols">
-                      <div class="d6-dev">
-                        <p class="pf-label mono">Cómo está hecho</p>
-                        {s.desarrollo.map((t) => <p>{t}</p>)}
-                      </div>
-                      <div>
-                        <p class="pf-label mono">Funciones</p>
-                        <ul role="list" class="d6-fun">
-                          {s.funciones.map((f) => <li>{f}</li>)}
-                        </ul>
-                      </div>
-                      <dl class="d6-cifras">
-                        {s.cifras.map((c) => (
-                          <div><dd>{c.v}</dd><dt>{c.l}</dt></div>
-                        ))}
-                      </dl>
-                    </div>
-                  </div>
-                );
-              })}
             </div>
-          </section>
-        </>
-      ))}
-    </div>
-
-    <!-- visor de capturas (común a todos los diseños) -->
-    <dialog class="pf-lb" data-lb aria-label="Captura">
-      <button type="button" class="pf-lb__x" data-lb-x aria-label="Cerrar">✕</button>
-      <button type="button" class="pf-lb__nav pf-lb__prev" data-lb-prev aria-label="Anterior">‹</button>
-      <figure>
-        <img alt="" data-lb-img />
-        <figcaption data-lb-cap></figcaption>
-      </figure>
-      <button type="button" class="pf-lb__nav pf-lb__next" data-lb-next aria-label="Siguiente">›</button>
-    </dialog>
+          </div>
+        </article>
+      );
+    })}
   </div>
 </BaseLayout>
 
 <script>
-  // ── Selector de diseño y pack (se guarda en la URL: ?d=3&pack=sistema-bandas) ──
-  const q = new URLSearchParams(location.search);
-  let d = q.get("d") ?? "1";
-  let pack = q.get("pack") ?? document.querySelector<HTMLElement>("[data-elige-pack]")!.dataset.eligePack!;
+  const packs = [...document.querySelectorAll<HTMLElement>(".tf-pack")];
+  const chips = [...document.querySelectorAll<HTMLButtonElement>(".tf-chip")];
 
-  const vids = document.querySelectorAll<HTMLVideoElement>("video[data-autoplay]");
-  const io = new IntersectionObserver(
-    (es) => es.forEach((e) => {
-      const v = e.target as HTMLVideoElement;
-      if (e.isIntersecting) { v.preload = "auto"; v.play().catch(() => {}); } else v.pause();
-    }),
-    { threshold: 0.3 },
-  );
-  vids.forEach((v) => io.observe(v));
-
-  function pintar() {
-    document.querySelectorAll<HTMLElement>("[data-d][data-pack]").forEach((s) => (s.hidden = !(s.dataset.d === d && s.dataset.pack === pack)));
-    document.querySelectorAll<HTMLElement>("[data-desc]").forEach((s) => (s.hidden = s.dataset.desc !== d));
-    document.querySelectorAll<HTMLElement>("[data-elige-d]").forEach((b) => b.classList.toggle("is-on", b.dataset.eligeD === d));
-    document.querySelectorAll<HTMLElement>("[data-elige-pack]").forEach((b) => b.classList.toggle("is-on", b.dataset.eligePack === pack));
-    history.replaceState(null, "", `?d=${d}&pack=${pack}`);
+  function mostrar(id: string, subir = false) {
+    if (!packs.some((p) => p.dataset.pack === id)) return;
+    packs.forEach((p) => {
+      p.hidden = p.dataset.pack !== id;
+      if (p.hidden) p.querySelectorAll("video").forEach((v) => v.pause());
+    });
+    chips.forEach((c) => c.classList.toggle("is-on", c.dataset.elige === id));
+    const u = new URL(location.href);
+    u.searchParams.set("pack", id);
+    history.replaceState(null, "", u);
+    if (subir) window.scrollTo({ top: 0, behavior: "smooth" });
   }
-  document.querySelectorAll<HTMLElement>("[data-elige-d]").forEach((b) =>
-    b.addEventListener("click", () => { d = b.dataset.eligeD!; pintar(); scrollTo({ top: 0, behavior: "smooth" }); }),
+  document.querySelectorAll<HTMLElement>("[data-elige]").forEach((b) =>
+    b.addEventListener("click", () => mostrar(b.dataset.elige!, b.classList.contains("tf-card"))),
   );
-  document.querySelectorAll<HTMLElement>("[data-elige-pack]").forEach((b) =>
-    b.addEventListener("click", () => { pack = b.dataset.eligePack!; pintar(); }),
-  );
-  pintar();
+  const ini = new URLSearchParams(location.search).get("pack");
+  if (ini) mostrar(ini);
 
-  // ── Pestañas (diseño 2) ──
-  document.querySelectorAll<HTMLElement>("[data-tabs]").forEach((c) => {
-    const tabs = [...c.querySelectorAll<HTMLElement>("[data-tab]")];
+  packs.forEach((pack) => {
+    // visor
+    const medios = [...pack.querySelectorAll<HTMLElement>(".tf-medio")];
+    const minis = [...pack.querySelectorAll<HTMLButtonElement>(".tf-mini")];
+    const n = pack.querySelector<HTMLElement>("[data-n]")!;
+    let actual = 0;
+    const ir = (i: number) => {
+      actual = (i + medios.length) % medios.length;
+      medios.forEach((m, k) => {
+        m.hidden = k !== actual;
+        const v = m.querySelector("video");
+        if (v) {
+          if (k === actual) v.play().catch(() => {});
+          else v.pause();
+        }
+      });
+      minis.forEach((m, k) => m.classList.toggle("is-on", k === actual));
+      const fila = minis[actual]?.parentElement;
+      if (fila && minis[actual]) fila.scrollTo({ left: minis[actual].offsetLeft - fila.clientWidth / 2 + 52, behavior: "smooth" });
+      n.textContent = String(actual + 1);
+    };
+    minis.forEach((m) => m.addEventListener("click", () => ir(Number(m.dataset.ir))));
+    pack.querySelectorAll<HTMLButtonElement>("[data-paso]").forEach((b) =>
+      b.addEventListener("click", () => ir(actual + Number(b.dataset.paso))),
+    );
+
+    // pestañas
+    const tabs = [...pack.querySelectorAll<HTMLButtonElement>(".tf-tab")];
+    const paneles = [...pack.querySelectorAll<HTMLElement>(".tf-panel")];
     tabs.forEach((t) =>
       t.addEventListener("click", () => {
         tabs.forEach((x) => x.classList.toggle("is-on", x === t));
-        c.querySelectorAll<HTMLElement>("[data-panel]").forEach((p) => (p.hidden = p.dataset.panel !== t.dataset.tab));
+        paneles.forEach((p) => (p.hidden = p.dataset.panel !== t.dataset.tab));
       }),
     );
-  });
 
-  // ── Visor con miniaturas (diseños 2 y 6) ──
-  document.querySelectorAll<HTMLElement>("[data-visor]").forEach((v) => {
-    const main = v.querySelector<HTMLElement>("[data-visor-main]")!;
-    const img = v.querySelector<HTMLImageElement>("[data-visor-img]")!;
-    const cap = v.querySelector<HTMLElement>("[data-visor-cap]");
-    const th = [...v.querySelectorAll<HTMLElement>("[data-thumb]")];
-    th.forEach((b) =>
-      b.addEventListener("click", () => {
-        th.forEach((x) => x.classList.toggle("is-on", x === b));
-        img.src = b.dataset.thumb!;
-        img.alt = b.dataset.caption!;
-        main.dataset.shot = b.dataset.thumb!;
-        main.dataset.caption = b.dataset.caption!;
-        if (cap) cap.textContent = b.dataset.caption!;
-        img.animate([{ opacity: 0.3 }, { opacity: 1 }], { duration: 250 });
+    // copiar enlace
+    pack.querySelectorAll<HTMLButtonElement>("[data-copiar]").forEach((b) =>
+      b.addEventListener("click", async () => {
+        const txt = b.textContent;
+        try {
+          await navigator.clipboard.writeText(new URL(b.dataset.copiar!, location.origin).href);
+          b.textContent = "Copiado ✓";
+        } catch {
+          b.textContent = "No se pudo copiar";
+        }
+        setTimeout(() => (b.textContent = txt), 1600);
       }),
     );
-  });
-
-  // ── Navegador (diseño 6) ──
-  document.querySelectorAll<HTMLElement>("[data-nav]").forEach((n) => {
-    const bs = [...n.querySelectorAll<HTMLElement>("[data-nav-btn]")];
-    bs.forEach((b) =>
-      b.addEventListener("click", () => {
-        bs.forEach((x) => x.classList.toggle("is-on", x === b));
-        n.querySelectorAll<HTMLElement>("[data-nav-panel]").forEach((p) => (p.hidden = p.dataset.navPanel !== b.dataset.navBtn));
-      }),
-    );
-  });
-
-  // ── Visor de capturas: recorre las capturas del diseño y pack que se ven ──
-  const lb = document.querySelector<HTMLDialogElement>("[data-lb]")!;
-  const lbImg = lb.querySelector<HTMLImageElement>("[data-lb-img]")!;
-  const lbCap = lb.querySelector<HTMLElement>("[data-lb-cap]")!;
-  let lista: HTMLElement[] = [];
-  let idx = 0;
-  const ver = (i: number) => {
-    idx = (i + lista.length) % lista.length;
-    lbImg.src = lista[idx].dataset.shot!;
-    lbCap.textContent = `${idx + 1} / ${lista.length} · ${lista[idx].dataset.caption}`;
-  };
-  document.addEventListener("click", (e) => {
-    const b = (e.target as HTMLElement).closest<HTMLElement>("[data-shot]");
-    if (!b) return;
-    const sec = b.closest<HTMLElement>("[data-d]")!;
-    lista = [...sec.querySelectorAll<HTMLElement>("[data-shot]")].filter((x) => !x.closest("[hidden]"));
-    ver(lista.indexOf(b));
-    lb.showModal();
-  });
-  lb.querySelector("[data-lb-x]")!.addEventListener("click", () => lb.close());
-  lb.querySelector("[data-lb-prev]")!.addEventListener("click", () => ver(idx - 1));
-  lb.querySelector("[data-lb-next]")!.addEventListener("click", () => ver(idx + 1));
-  lb.addEventListener("click", (e) => { if (e.target === lb) lb.close(); });
-  lb.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowLeft") ver(idx - 1);
-    if (e.key === "ArrowRight") ver(idx + 1);
   });
 </script>
 
 <style>
-  .pf {
-    padding-bottom: var(--section);
+  .tf {
+    --b: 2px solid var(--fg);
+    --sombra: 4px 4px 0 var(--fg);
+    --r: 12px;
+    padding-bottom: var(--space-9);
+    background:
+      repeating-linear-gradient(115deg, transparent 0 90px, color-mix(in srgb, var(--fg) 3%, transparent) 90px 180px),
+      var(--bg);
   }
-
-  .pf img,
-  .pf video {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
+  .caja {
+    border: var(--b);
+    border-radius: var(--r);
+    background: var(--bg-elev, var(--bg));
+    box-shadow: var(--sombra);
   }
+  [hidden] { display: none !important; }
 
-  .pf h2 {
-    letter-spacing: -0.035em;
-    line-height: 1.02;
-  }
-
-  .pf-label {
-    margin-bottom: var(--space-3);
-    font-size: var(--fs-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--fg-subtle);
-  }
-
-  /* ── selector ── */
-  .pf-bar {
+  .tf-bar {
     position: sticky;
     top: var(--header-h);
-    z-index: 20;
-    border-bottom: 1px solid var(--border);
+    z-index: 5;
     background: color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter: blur(12px);
-  }
-
-  .pf-bar__in {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3) var(--space-6);
-    padding-block: var(--space-3);
-  }
-
-  .pf-grupo {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2);
-  }
-
-  .pf-grupo__t {
-    margin-right: var(--space-1);
-    font-size: var(--fs-xs);
-    color: var(--fg-subtle);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .pf-btn {
-    padding: 0.4rem 0.8rem;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    font-size: var(--fs-sm);
-    color: var(--fg-muted);
-    transition: background var(--dur), color var(--dur), border-color var(--dur);
-  }
-
-  .pf-btn b {
-    margin-right: 0.2rem;
-    opacity: 0.6;
-  }
-
-  .pf-btn:hover {
-    color: var(--fg);
-    border-color: var(--fg-subtle);
-  }
-
-  .pf-btn.is-on {
-    background: var(--fg);
-    border-color: var(--fg);
-    color: var(--bg);
-  }
-
-  .pf-head {
-    max-width: 46rem;
-    margin-block: var(--space-8) var(--space-8);
-  }
-
-  .pf-head h1 {
-    margin-block: var(--space-2) var(--space-3);
-    font-size: var(--fs-xl);
-    letter-spacing: -0.05em;
-    line-height: 1;
-  }
-
-  .pf-head__n {
-    font-size: var(--fs-xs);
-    color: var(--fg-subtle);
-  }
-
-  .pf-head__d {
-    font-size: var(--fs-md);
-    color: var(--fg-muted);
-  }
-
-  [hidden] {
-    display: none !important;
-  }
-
-  /* ════════ 1 · PORTADA ════════ */
-  .d1-s + .d1-s {
-    margin-top: var(--space-9);
-  }
-
-  .d1-hero {
-    position: relative;
-    overflow: hidden;
-    border-radius: var(--radius-tile);
-    background: #000;
-  }
-
-  .d1-hero img,
-  .d1-hero video {
-    aspect-ratio: 21 / 9;
-    opacity: 0.85;
-  }
-
-  .d1-hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgb(0 0 0 / 0.85), transparent 60%);
-    pointer-events: none;
-  }
-
-  .d1-hero figcaption {
-    position: absolute;
-    left: clamp(1.25rem, 4vw, 3rem);
-    right: 1.25rem;
-    bottom: clamp(1.25rem, 4vw, 3rem);
-    z-index: 1;
-    color: #fff;
-  }
-
-  .d1-hero figcaption .mono {
-    font-size: var(--fs-xs);
-    opacity: 0.7;
-  }
-
-  .d1-hero h2 {
-    margin-block: var(--space-2);
-    font-size: clamp(2.2rem, 1rem + 5vw, 5.5rem);
-    font-stretch: 112%;
-    font-weight: 800;
-  }
-
-  .d1-hero p {
-    opacity: 0.8;
-  }
-
-  .d1-num {
-    position: absolute;
-    top: 1rem;
-    right: 1.5rem;
-    z-index: 1;
-    font-size: clamp(3rem, 2rem + 5vw, 7rem);
-    font-weight: 800;
-    line-height: 1;
-    color: transparent;
-    -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.6);
-  }
-
-  .d1-cifras {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
   }
-
-  .d1-cifras div {
-    padding: var(--space-6) var(--space-4);
-    text-align: center;
-  }
-
-  .d1-cifras div + div {
-    border-left: 1px solid var(--border);
-  }
-
-  .d1-cifras dd {
-    margin: 0;
-    font-size: clamp(1.8rem, 1rem + 3vw, 3.5rem);
-    font-weight: 800;
-    letter-spacing: -0.05em;
-    line-height: 1;
-  }
-
-  .d1-cifras dt {
-    margin-top: var(--space-2);
-    font-size: var(--fs-sm);
-    color: var(--fg-subtle);
-  }
-
-  .d1-cols {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    gap: var(--space-8);
-    margin-top: var(--space-7);
-  }
-
-  .d1-texto {
-    display: grid;
-    align-content: start;
-    gap: var(--space-4);
-    color: var(--fg-muted);
-  }
-
-  .d1-lead {
-    font-size: var(--fs-lg);
-    line-height: 1.35;
-    color: var(--fg);
-  }
-
-  .d1-acc {
-    margin-top: var(--space-2);
-  }
-
-  .d1-fun li {
-    display: grid;
-    grid-template-columns: 2.2rem 1fr;
-    padding-block: var(--space-3);
-    border-top: 1px solid var(--border);
-    font-size: var(--fs-sm);
-    color: var(--fg-muted);
-  }
-
-  .d1-fun .mono {
-    font-size: var(--fs-xs);
-    color: var(--fg-subtle);
-    padding-top: 0.15em;
-  }
-
-  .d1-tira {
-    display: flex;
-    gap: var(--space-3);
-    margin-top: var(--space-7);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    padding-bottom: var(--space-3);
-  }
-
-  .d1-tira li {
-    flex: 0 0 min(80%, 24rem);
-    scroll-snap-align: start;
-  }
-
-  .d1-tira button,
-  .d3-gal button,
-  .d5-paso button {
-    display: grid;
-    gap: var(--space-2);
-    width: 100%;
-    text-align: left;
-  }
-
-  .d1-tira img,
-  .d3-gal img,
-  .d5-paso img,
-  .d5-mas img {
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    transition: transform 0.4s var(--ease), filter 0.3s;
-  }
-
-  .d1-tira button:hover img,
-  .d3-gal button:hover img,
-  .d5-paso button:hover img,
-  .d5-mas button:hover img {
-    transform: translateY(-3px);
-    filter: brightness(1.08);
-  }
-
-  .d1-tira span,
-  .d3-gal span,
-  .d5-paso button span {
-    font-size: var(--fs-xs);
-    color: var(--fg-subtle);
-  }
-
-  /* ════════ 2 · PESTAÑAS ════════ */
-  .d2 {
-    display: grid;
-    gap: var(--space-6);
-  }
-
-  .d2-s {
-    display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-    gap: var(--space-6);
-    padding: var(--space-5);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-tile);
-    background: var(--bg-elev);
-  }
-
-  .d2-main {
-    display: block;
-    width: 100%;
-    overflow: hidden;
-    border-radius: var(--radius);
-  }
-
-  .d2-cap {
-    margin-top: var(--space-2);
-    font-size: var(--fs-xs);
-    color: var(--fg-subtle);
-  }
-
-  .d2-thumbs,
-  .d6-thumbs {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
-    gap: var(--space-2);
-    margin-top: var(--space-3);
-  }
-
-  .d2-thumbs button,
-  .d6-thumbs button {
-    display: block;
-    width: 100%;
-    overflow: hidden;
-    border-radius: 8px;
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-    opacity: 0.5;
-    transition: opacity var(--dur), outline-color var(--dur);
-  }
-
-  .d2-thumbs button:hover,
-  .d6-thumbs button:hover {
-    opacity: 0.85;
-  }
-
-  .d2-thumbs button.is-on,
-  .d6-thumbs button.is-on {
-    opacity: 1;
-    outline-color: var(--fg);
-  }
-
-  .d2-info {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .d2-head {
-    display: flex;
-    gap: var(--space-4);
-    align-items: flex-start;
-  }
-
-  .d2-num {
-    padding: 0.3rem 0.55rem;
-    border-radius: 8px;
-    background: var(--fg);
-    color: var(--bg);
-    font-size: var(--fs-xs);
-  }
-
-  .d2-head h2 {
-    font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.4rem);
-  }
-
-  .d2-head p {
-    margin-top: var(--space-1);
-    font-size: var(--fs-xs);
-    color: var(--fg-subtle);
-  }
-
-  .d2-tabs {
-    display: flex;
-    gap: var(--space-1);
-    margin-block: var(--space-5) var(--space-4);
-    padding: 4px;
-    border-radius: 999px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-  }
-
-  .d2-tabs button {
-    flex: 1;
-    padding: 0.45rem 0.6rem;
-    border-radius: 999px;
-    font-size: var(--fs-sm);
-    color: var(--fg-muted);
-    white-space: nowrap;
-    transition: background var(--dur), color var(--dur);
-  }
-
-  .d2-tabs button .mono {
-    font-size: 0.7em;
-    opacity: 0.6;
-  }
-
-  .d2-tabs button.is-on {
-    background: var(--fg);
-    color: var(--bg);
-  }
-
-  .d2-panel {
-    display: grid;
-    gap: var(--space-3);
-    align-content: start;
-    min-height: 14rem;
-    font-size: var(--fs-sm);
-    color: var(--fg-muted);
-    animation: pf-in 0.35s var(--ease);
-  }
-
-  .d2-res {
-    font-size: var(--fs-md);
-    color: var(--fg);
-  }
-
-  .d2-claves li,
-  .d2-panel--fun li {
-    display: flex;
-    gap: var(--space-2);
-    padding-block: var(--space-2);
-  }
-
-  .d2-claves :global(.icono),
-  .d2-panel--fun :global(.icono) {
-    flex-shrink: 0;
-    margin-top: 0.15em;
-    color: var(--fg);
-  }
-
-  .d2-panel--fun {
-    max-height: 18rem;
-    overflow-y: auto;
-    padding-right: var(--space-2);
-  }
-
-  .d2-cifras {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-2);
-    margin-top: auto;
-    padding-top: var(--space-5);
-  }
-
-  .d2-cifras div,
-  .d6-cifras div {
-    display: flex;
-    flex-direction: column;
-    padding: var(--space-3);
-    border-radius: var(--radius-sm);
-    background: var(--bg);
-    border: 1px solid var(--border);
-  }
-
-  .d2-cifras dd,
-  .d6-cifras dd {
-    margin: 0;
-    font-size: var(--fs-md);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-  }
-
-  .d2-cifras dt,
-  .d6-cifras dt {
-    font-size: var(--fs-xs);
-    color: var(--fg-subtle);
-  }
-
-  .d2-probar {
-    margin-top: var(--space-4);
-    font-size: var(--fs-sm);
-  }
-
-  /* ════════ 3 · COLUMNA FIJA ════════ */
-  .d3-s {
-    display: grid;
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-    gap: var(--space-8);
-    padding-block: var(--space-8);
-    border-top: var(--rule) solid var(--fg);
-  }
-
-  .d3-fija__in {
-    position: sticky;
-    top: calc(var(--header-h) + 5rem);
-  }
-
-  .d3-fija img,
-  .d3-fija video {
-    border-radius: var(--radius);
-  }
-
-  .d3-n {
-    margin-top: var(--space-5);
-    font-size: var(--fs-xs);
-    color: var(--fg-subtle);
-  }
-
-  .d3-fija h2 {
-    margin-top: var(--space-2);
-    font-size: clamp(2rem, 1.3rem + 2.5vw, 3.4rem);
-    font-weight: 800;
-  }
-
-  .d3-sub {
-    margin-top: var(--space-2);
-    color: var(--fg-muted);
-  }
-
-  .d3-cifras {
-    margin-top: var(--space-5);
-  }
-
-  .d3-cifras div {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-2);
-    padding-block: var(--space-2);
-    font-size: var(--fs-sm);
-  }
-
-  .d3-cifras dt {
-    color: var(--fg-muted);
-  }
-
-  .d3-cifras span {
-    flex: 1;
-    border-bottom: 1px dotted var(--fg-subtle);
-    transform: translateY(-0.25em);
-  }
-
-  .d3-cifras dd {
-    margin: 0;
-    font-weight: 700;
-  }
-
-  .d3-acc {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    margin-top: var(--space-5);
-  }
-
-  .d3-rec {
-    font-size: var(--fs-xs);
-    color: var(--fg-subtle);
-  }
-
-  .d3-flujo {
-    min-width: 0;
-  }
-
-  .d3-res {
-    margin-bottom: var(--space-7);
-    font-size: clamp(1.3rem, 1rem + 1vw, 1.9rem);
-    line-height: 1.3;
-    letter-spacing: -0.02em;
-  }
-
-  .d3-dev {
-    display: grid;
-    gap: var(--space-5);
-    margin-bottom: var(--space-7);
-  }
-
-  .d3-dev div {
-    display: grid;
-    grid-template-columns: 2.5rem 1fr;
-    color: var(--fg-muted);
-  }
-
-  .d3-dev .mono {
-    font-size: var(--fs-xs);
-    color: var(--fg-subtle);
-    padding-top: 0.2em;
-  }
-
-  .d3-fun {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-3);
-    margin-bottom: var(--space-7);
-  }
-
-  .d3-fun li {
-    padding: var(--space-4);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    background: var(--bg-elev);
-    font-size: var(--fs-sm);
-    color: var(--fg-muted);
-    transition: border-color var(--dur), transform 0.3s var(--ease);
-  }
-
-  .d3-fun li:hover {
-    border-color: var(--fg-subtle);
-    transform: translateY(-2px);
-  }
-
-  .d3-gal {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-4);
-  }
-
-  /* ════════ 4 · BENTO ════════ */
-  .d4-s {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-auto-flow: dense;
-    gap: var(--space-3);
-  }
-
-  .d4-s + .d4-s {
-    margin-top: var(--space-8);
-  }
-
-  .d4-t {
-    overflow: hidden;
-    border-radius: var(--radius-tile);
-    border: 1px solid var(--border);
-    background: var(--bg-elev);
-    padding: var(--space-5);
-  }
-
-  .d4-media {
-    grid-column: span 2;
-    grid-row: span 2;
-    padding: 0;
-    background: #000;
-  }
-
-  .d4-media img,
-  .d4-media video {
-    height: 100%;
-    aspect-ratio: auto;
-  }
-
-  .d4-tit {
-    grid-column: span 2;
-    display: grid;
-    align-content: end;
-    gap: var(--space-2);
-    background: var(--fg);
-    color: var(--bg);
-    border-color: var(--fg);
-  }
-
-  .d4-tit .mono {
-    font-size: var(--fs-xs);
-    opacity: 0.6;
-  }
-
-  .d4-tit h2 {
-    font-size: clamp(1.8rem, 1.2rem + 2vw, 3rem);
-    font-weight: 800;
-  }
-
-  .d4-tit p {
-    font-size: var(--fs-sm);
-    opacity: 0.75;
-  }
-
-  .d4-cifra {
-    display: grid;
-    align-content: space-between;
-    gap: var(--space-4);
-    min-height: 9rem;
-  }
-
-  .d4-cifra b {
-    font-size: clamp(1.8rem, 1.2rem + 2vw, 3rem);
-    letter-spacing: -0.05em;
-    line-height: 1;
-  }
-
-  .d4-cifra span {
-    font-size: var(--fs-sm);
-    color: var(--fg-subtle);
-  }
-
-  .d4-dev {
-    grid-column: span 2;
-    grid-row: span 2;
-    display: grid;
-    align-content: start;
-    gap: var(--space-3);
-    font-size: var(--fs-sm);
-    color: var(--fg-muted);
-  }
-
-  .d4-fun {
-    grid-column: span 2;
-    grid-row: span 2;
-  }
-
-  .d4-fun li {
-    padding-block: var(--space-2);
-    border-top: 1px solid var(--border);
-    font-size: var(--fs-sm);
-    color: var(--fg-muted);
-  }
-
-  .d4-foto {
-    position: relative;
-    padding: 0;
-    text-align: left;
-  }
-
-  .d4-foto img {
-    height: 100%;
-    min-height: 9rem;
-    transition: transform 0.5s var(--ease);
-  }
-
-  .d4-foto:hover img {
-    transform: scale(1.05);
-  }
-
-  .d4-foto span {
-    position: absolute;
-    inset: auto 0 0;
-    padding: var(--space-5) var(--space-3) var(--space-3);
-    background: linear-gradient(to top, rgb(0 0 0 / 0.8), transparent);
-    color: #fff;
-    font-size: var(--fs-xs);
-    opacity: 0;
-    transition: opacity var(--dur);
-  }
-
-  .d4-foto:hover span {
-    opacity: 1;
-  }
-
-  .d4-cta {
-    grid-column: span 2;
-    grid-row: span 2;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: end;
-    gap: var(--space-2);
-    background: var(--fg);
-    color: var(--bg);
-    border-color: var(--fg);
-    transition: transform 0.3s var(--ease);
-  }
-
-  .d4-cta .mono {
-    grid-column: 1 / -1;
-    font-size: var(--fs-xs);
-    opacity: 0.6;
-  }
-
-  .d4-cta b {
-    font-size: var(--fs-lg);
-    letter-spacing: -0.02em;
-  }
-
-  .d4-cta:hover {
-    transform: translateY(-3px);
-  }
-
-  /* ════════ 5 · LÍNEA DE TIEMPO ════════ */
-  .d5-s + .d5-s {
-    margin-top: var(--space-9);
-  }
-
-  .d5-head {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: var(--space-6);
-    align-items: start;
-    margin-bottom: var(--space-7);
-  }
-
-  .d5-num {
-    font-size: clamp(4rem, 2rem + 8vw, 9rem);
-    font-weight: 800;
-    letter-spacing: -0.06em;
-    line-height: 0.8;
-  }
-
-  .d5-head h2 {
-    font-size: var(--fs-xl);
-    font-weight: 800;
-  }
-
-  .d5-head p {
-    max-width: 44rem;
-    margin-top: var(--space-3);
-    color: var(--fg-muted);
-  }
-
-  .d5-cifras {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-top: var(--space-4);
-    font-size: var(--fs-xs);
-  }
-
-  .d5-cifras li {
-    padding: 0.3rem 0.75rem;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    color: var(--fg-muted);
-  }
-
-  .d5-cifras b {
-    color: var(--fg);
-  }
-
-  .d5-linea {
-    position: relative;
-    display: grid;
-    gap: var(--space-7);
-    padding-left: 3.5rem;
-  }
-
-  .d5-linea::before {
-    content: "";
-    position: absolute;
-    left: 1.05rem;
-    top: 0.5rem;
-    bottom: 0.5rem;
-    width: 1px;
-    background: linear-gradient(var(--fg), var(--border));
-  }
-
-  .d5-paso {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: var(--space-6);
-    align-items: start;
-    color: var(--fg-muted);
-  }
-
-  .d5-punto {
-    position: absolute;
-    left: -3.5rem;
-    top: 0;
-    display: grid;
-    place-items: center;
-    width: 2.1rem;
-    height: 2.1rem;
-    border-radius: 50%;
-    background: var(--fg);
-    color: var(--bg);
-    font-size: var(--fs-xs);
-  }
-
-  .d5-paso:nth-child(even) > p {
-    order: 2;
-  }
-
-  .d5-mas {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
-    gap: var(--space-3);
-    margin-top: var(--space-7);
-    padding-left: 3.5rem;
-  }
-
-  .d5-mas button {
-    display: block;
-    width: 100%;
-  }
-
-  .d5-fun {
-    margin-top: var(--space-7);
-    padding: var(--space-6);
-    border-radius: var(--radius-tile);
-    background: var(--fg);
-    color: var(--bg);
-  }
-
-  .d5-fun .pf-label {
-    color: inherit;
-    opacity: 0.6;
-  }
-
-  .d5-fun ul {
-    columns: 2 18rem;
-    column-gap: var(--space-7);
-  }
-
-  .d5-fun li {
-    break-inside: avoid;
-    padding-block: var(--space-2);
-    border-bottom: 1px solid color-mix(in srgb, var(--bg) 18%, transparent);
-    font-size: var(--fs-sm);
-    opacity: 0.85;
-  }
-
-  /* ════════ 6 · NAVEGADOR ════════ */
-  .d6 {
-    display: grid;
-    grid-template-columns: 17rem minmax(0, 1fr);
-    min-height: 40rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-tile);
-    overflow: hidden;
-    background: var(--bg-elev);
-  }
-
-  .d6-lista {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    padding: var(--space-4);
-    border-right: 1px solid var(--border);
-    background: var(--bg);
-  }
-
-  .d6-ruta {
-    padding: var(--space-2) var(--space-3) var(--space-3);
-    font-size: var(--fs-xs);
-    color: var(--fg-subtle);
-  }
-
-  .d6-item {
-    display: flex;
-    gap: var(--space-3);
-    padding: var(--space-3);
-    border-radius: var(--radius-sm);
-    text-align: left;
-    color: var(--fg-muted);
-    transition: background var(--dur), color var(--dur);
-  }
-
-  .d6-item > .mono {
-    font-size: var(--fs-xs);
-    padding-top: 0.2em;
-    opacity: 0.6;
-  }
-
-  .d6-item b {
-    display: block;
-    font-weight: 600;
-  }
-
-  .d6-item small {
-    font-size: 0.68rem;
-    opacity: 0.6;
-  }
-
-  .d6-item:hover {
-    background: var(--bg-elev);
-    color: var(--fg);
-  }
-
-  .d6-item.is-on {
-    background: var(--fg);
-    color: var(--bg);
-  }
-
-  .d6-pres {
-    margin-top: auto;
-  }
-
-  .d6-paneles {
-    min-width: 0;
-  }
-
-  .d6-panel {
-    padding: var(--space-5);
-    animation: pf-in 0.4s var(--ease);
-  }
-
-  .d6-main {
-    position: relative;
-    display: block;
-    width: 100%;
-    overflow: hidden;
-    border-radius: var(--radius);
-  }
-
-  .d6-cap {
-    position: absolute;
-    left: var(--space-3);
-    bottom: var(--space-3);
-    max-width: calc(100% - 2 * var(--space-3));
-    padding: 0.3rem 0.7rem;
-    border-radius: 999px;
-    background: rgb(0 0 0 / 0.65);
-    backdrop-filter: blur(6px);
-    color: #fff;
-    font-size: var(--fs-xs);
-    text-align: left;
-  }
-
-  .d6-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--space-2) var(--space-4);
-    margin-block: var(--space-5);
-  }
-
-  .d6-head h2 {
-    font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.4rem);
-    font-weight: 800;
-  }
-
-  .d6-head p {
-    color: var(--fg-subtle);
-  }
-
-  .d6-probar {
-    margin-left: auto;
-    font-size: var(--fs-sm);
-  }
-
-  .d6-cols {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 11rem;
-    gap: var(--space-6);
-  }
-
-  .d6-dev {
-    display: grid;
-    align-content: start;
-    gap: var(--space-3);
-    font-size: var(--fs-sm);
-    color: var(--fg-muted);
-  }
-
-  .d6-fun li {
-    padding-block: var(--space-2);
-    border-top: 1px solid var(--border);
-    font-size: var(--fs-sm);
-    color: var(--fg-muted);
-  }
-
-  .d6-cifras {
-    display: grid;
-    align-content: start;
-    gap: var(--space-2);
-  }
-
-  /* ── visor ── */
-  .pf-lb {
-    width: 100vw;
-    height: 100vh;
-    max-width: none;
-    max-height: none;
-    margin: 0;
-    padding: var(--space-6);
-    border: 0;
-    background: rgb(0 0 0 / 0.92);
-    color: #fff;
-  }
-
-  .pf-lb[open] {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: var(--space-4);
-    animation: pf-in 0.25s ease;
-  }
-
-  .pf-lb figure {
-    display: grid;
-    gap: var(--space-3);
-    justify-items: center;
-  }
-
-  .pf-lb img {
-    width: auto;
-    max-width: 100%;
-    max-height: 80vh;
-    border-radius: var(--radius);
-    aspect-ratio: auto;
-  }
-
-  .pf-lb figcaption {
-    font-size: var(--fs-sm);
-    opacity: 0.75;
-  }
-
-  .pf-lb__x {
-    position: absolute;
-    top: var(--space-4);
-    right: var(--space-4);
-    font-size: 1.4rem;
-  }
-
-  .pf-lb__nav {
-    font-size: 2.6rem;
-    padding: var(--space-3);
-    opacity: 0.6;
-  }
-
-  .pf-lb__nav:hover,
-  .pf-lb__x:hover {
-    opacity: 1;
-  }
-
-  @keyframes pf-in {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-  }
-
-  /* ── responsive ── */
-  @media (max-width: 64rem) {
-    .d6-cols {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    }
-
-    .d6-cifras {
-      grid-column: 1 / -1;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 52rem) {
-    .d1-cols,
-    .d2-s,
-    .d3-s,
-    .d5-paso,
-    .d6,
-    .d6-cols {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .d1-cols {
-      gap: var(--space-6);
-    }
-
-    .d3-fija__in {
-      position: static;
-    }
-
-    .d4-s {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .d5-paso:nth-child(even) > p {
-      order: 0;
-    }
-
-    .d6-lista {
-      flex-direction: row;
-      overflow-x: auto;
-      border-right: 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .d6-ruta,
-    .d6-pres {
-      display: none;
-    }
-
-    .d6-item {
-      flex-shrink: 0;
-    }
-  }
-
-  @media (max-width: 36rem) {
-    .d1-hero img,
-    .d1-hero video {
-      aspect-ratio: 4 / 5;
-    }
-
-    .d1-cifras dd {
-      font-size: 1.5rem;
-    }
-
-    .d2-s {
-      padding: var(--space-3);
-    }
-
-    .d2-tabs {
-      overflow-x: auto;
-    }
-
-    .d3-fun,
-    .d3-gal {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .d4-media,
-    .d4-tit,
-    .d4-dev,
-    .d4-fun,
-    .d4-cta {
-      grid-column: 1 / -1;
-    }
-
-    .d4-media {
-      grid-row: auto;
-    }
-
-    .d4-media img,
-    .d4-media video {
-      aspect-ratio: 16 / 9;
-    }
-
-    .d5-head {
-      grid-template-columns: minmax(0, 1fr);
-      gap: var(--space-3);
-    }
-
-    .d5-linea,
-    .d5-mas {
-      padding-left: 2.8rem;
-    }
-
-    .d5-punto {
-      left: -2.8rem;
-    }
-
-    .d5-linea::before {
-      left: 1.05rem;
-    }
+  .tf-bar__in { display: flex; gap: 8px; align-items: center; padding-block: 10px; overflow-x: auto; }
+  .tf-bar__t { font-size: var(--fs-xs); color: var(--fg-muted); text-transform: uppercase; margin-right: 4px; }
+  .tf-chip {
+    white-space: nowrap; border: 1.5px solid var(--border-strong); border-radius: 999px;
+    padding: 6px 14px; font-size: var(--fs-sm); background: none; color: var(--fg); cursor: pointer;
+  }
+  .tf-chip.is-on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+  .tf-pack { padding-top: var(--space-5); }
+  .tf-migas { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: var(--fs-xs); margin-bottom: var(--space-4); }
+  .tf-migas a, .tf-migas b {
+    border: 1.5px solid var(--fg); border-radius: 6px; padding: 3px 9px; color: var(--fg);
+    text-decoration: none; box-shadow: 2px 2px 0 var(--fg); font-weight: 600; background: var(--bg);
+  }
+  .tf-migas span { color: var(--fg-muted); }
+
+  .tf-top { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(300px, 1fr); gap: var(--space-5); align-items: start; }
+  .tf-visor { padding: 10px; min-width: 0; }
+  .tf-visor__esc { position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #0b0b0b; }
+  .tf-medio { position: absolute; inset: 0; margin: 0; }
+  .tf-medio img, .tf-medio video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tf-medio figcaption {
+    position: absolute; left: 12px; bottom: 12px; max-width: 70%; padding: 5px 10px; border-radius: 6px;
+    background: rgb(0 0 0 / .7); color: #fff; font-size: var(--fs-xs); pointer-events: none;
+  }
+  .tf-medio:has(video) figcaption { bottom: 56px; }
+  .tf-flecha {
+    position: absolute; top: 50%; translate: 0 -50%; width: 40px; height: 40px; border-radius: 50%;
+    border: 2px solid #fff; background: rgb(0 0 0 / .55); color: #fff; font-size: 24px; line-height: 1;
+    cursor: pointer; transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .tf-flecha:hover { background: #fff; color: #000; }
+  .tf-flecha--a { left: 12px; }
+  .tf-flecha--s { right: 12px; }
+  .tf-cont {
+    position: absolute; right: 12px; top: 12px; padding: 3px 9px; border-radius: 6px;
+    background: #fff; color: #000; font-size: var(--fs-xs);
+  }
+  .tf-minis { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; padding: 2px 4px 6px 2px; scrollbar-width: thin; }
+  .tf-mini {
+    position: relative; flex: 0 0 104px; aspect-ratio: 16 / 9; padding: 0; border-radius: 6px; overflow: hidden;
+    border: 2px solid var(--border-strong); background: #000; cursor: pointer; opacity: .55;
+    transition: opacity var(--dur) var(--ease);
+  }
+  .tf-mini:hover { opacity: 1; }
+  .tf-mini.is-on { opacity: 1; border-color: var(--fg); box-shadow: 2px 2px 0 var(--fg); }
+  .tf-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tf-mini__play {
+    position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 14px;
+    background: rgb(0 0 0 / .35);
+  }
+
+  .tf-info { display: grid; gap: var(--space-3); }
+  .tf-tags, .tf-fw { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag, .fw {
+    border: 1.5px solid var(--fg); border-radius: 6px; padding: 2px 8px; font-size: var(--fs-xs);
+    font-weight: 700; text-transform: uppercase; letter-spacing: .02em; color: var(--fg); background: var(--bg);
+  }
+  .tag--neg { background: var(--fg); color: var(--bg); }
+  .fw { font-family: var(--font-mono); font-size: 11px; padding: 1px 6px; }
+  .tf-h1 {
+    font-family: var(--font-display); font-stretch: 75%; font-weight: 800; text-transform: uppercase;
+    font-size: clamp(2rem, 3.4vw, 2.9rem); line-height: .95; margin: 0;
+  }
+  .tf-lead { color: var(--fg-muted); margin: 0; font-size: var(--fs-sm); line-height: 1.55; }
+
+  .tf-compra { padding: var(--space-4); display: grid; gap: 10px; }
+  .tf-precio { margin: 0; font-family: var(--font-display); font-stretch: 75%; font-weight: 800; font-size: 2rem; line-height: 1; text-transform: uppercase; }
+  .tf-precio__sub { margin: 0; font-size: var(--fs-sm); color: var(--fg-muted); }
+  .tf-cta {
+    display: block; text-align: center; padding: 13px; border-radius: 8px; border: var(--b);
+    background: var(--fg); color: var(--bg); font-weight: 800; text-transform: uppercase; letter-spacing: .03em;
+    text-decoration: none; box-shadow: 3px 3px 0 var(--fg-muted);
+    transition: translate var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .tf-cta:hover { translate: -2px -2px; box-shadow: 5px 5px 0 var(--fg-muted); }
+  .tf-cta:active { translate: 2px 2px; box-shadow: 0 0 0 var(--fg-muted); }
+  .tf-sec { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tf-mini-btn {
+    border: 1.5px solid var(--fg); border-radius: 7px; padding: 6px 10px; font-size: var(--fs-xs); font-weight: 700;
+    text-transform: uppercase; background: var(--bg); color: var(--fg); text-decoration: none; cursor: pointer;
+    box-shadow: 2px 2px 0 var(--fg); font-family: inherit;
+  }
+  .tf-mini-btn:hover { background: var(--fg); color: var(--bg); }
+  .tf-nota { margin: 0; font-size: 12px; color: var(--fg-subtle); }
+
+  .tf-incluye { padding: var(--space-3) var(--space-4); }
+  .tf-incluye__t { margin: 0 0 8px; font-weight: 800; text-transform: uppercase; font-size: var(--fs-sm); }
+  .tf-incluye ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .tf-incluye li { display: grid; font-size: var(--fs-sm); padding-left: 16px; position: relative; }
+  .tf-incluye li::before { content: ""; position: absolute; left: 0; top: .45em; width: 8px; height: 8px; border-radius: 2px; background: var(--fg); }
+  .tf-incluye li span { color: var(--fg-muted); font-size: var(--fs-xs); }
+
+  .tf-fuertes { list-style: none; padding: 0; margin: var(--space-6) 0 var(--space-5); display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
+  .tf-fuertes li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; font-size: var(--fs-sm); font-weight: 600; }
+  .tf-check { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 7px; background: var(--fg); color: var(--bg); font-size: 14px; }
+
+  .tf-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: var(--space-3); }
+  .tf-tab {
+    border: var(--b); border-radius: 8px; padding: 8px 14px; background: var(--bg); color: var(--fg);
+    font-weight: 800; text-transform: uppercase; font-size: var(--fs-xs); letter-spacing: .03em; cursor: pointer;
+    box-shadow: 2px 2px 0 var(--fg); font-family: inherit;
+  }
+  .tf-tab.is-on { background: var(--fg); color: var(--bg); }
+  .tf-panel { padding: var(--space-5); }
+  .tf-cols { columns: 2; column-gap: var(--space-6); }
+  .tf-intro { margin: 0 0 var(--space-4); color: var(--fg-muted); line-height: 1.6; break-inside: avoid; }
+  .tf-grupo { break-inside: avoid; margin-bottom: var(--space-4); }
+  .tf-grupo h3, .tf-script h3, .tf-tec h3 {
+    font-family: var(--font-display); font-stretch: 75%; font-weight: 800; text-transform: uppercase;
+    font-size: var(--fs-md); margin: 0 0 8px;
+  }
+  .tf-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+  .tf-lista li { position: relative; padding-left: 20px; font-size: var(--fs-sm); color: var(--fg-muted); line-height: 1.5; }
+  .tf-lista li::before { content: ""; position: absolute; left: 0; top: .42em; width: 9px; height: 9px; border-radius: 2px; background: var(--fg); }
+  .tf-lista code { font-family: var(--font-mono); font-size: .92em; color: var(--fg); }
+
+  .tf-scripts { display: grid; gap: var(--space-5); }
+  .tf-script { display: grid; grid-template-columns: minmax(0, 320px) 1fr; gap: var(--space-5); align-items: start; }
+  .tf-script + .tf-script { border-top: 1px solid var(--border); padding-top: var(--space-5); }
+  .tf-script img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; border: var(--b); }
+  .tf-script p { margin: 0 0 10px; font-size: var(--fs-sm); line-height: 1.6; color: var(--fg-muted); }
+  .tf-script .tf-script__r { font-size: var(--fs-xs); margin-bottom: 4px; }
+  .tf-script .tf-script__sub { color: var(--fg); font-weight: 600; }
+  .tf-cifras { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .tf-cifras div { border: 1.5px solid var(--fg); border-radius: 8px; padding: 6px 12px; }
+  .tf-cifras dt { font-family: var(--font-display); font-stretch: 75%; font-weight: 800; font-size: 1.4rem; line-height: 1; }
+  .tf-cifras dd { margin: 2px 0 0; font-size: 11px; color: var(--fg-muted); }
+  .tf-dev summary, .tf-faq summary { cursor: pointer; font-weight: 700; font-size: var(--fs-sm); }
+  .tf-dev p:first-of-type { margin-top: 10px; }
+
+  .tf-tec { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-3); }
+  .tf-tec__i { border: 1.5px solid var(--border-strong); border-radius: 10px; padding: var(--space-3); }
+  .tf-tec__i p { margin: 0; font-size: var(--fs-sm); color: var(--fg-muted); line-height: 1.55; }
+
+  .tf-faq { display: grid; gap: 10px; max-width: 820px; }
+  .tf-faq details { border: 1.5px solid var(--border-strong); border-radius: 10px; padding: 12px 16px; }
+  .tf-faq details[open] { border-color: var(--fg); }
+  .tf-faq p { margin: 10px 0 0; font-size: var(--fs-sm); color: var(--fg-muted); line-height: 1.6; }
+
+  .tf-otros { margin-top: var(--space-8); }
+  .tf-h2 {
+    display: flex; align-items: center; gap: var(--space-4); margin: 0 0 var(--space-4);
+    font-family: var(--font-display); font-stretch: 75%; font-weight: 800; text-transform: uppercase;
+    font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  }
+  .tf-h2::after { content: ""; flex: 1; height: 4px; border-radius: 2px; background: var(--fg); }
+  .tf-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-4); }
+  .tf-card {
+    display: flex; flex-direction: column; gap: 6px; padding: 10px; text-align: left; color: var(--fg);
+    font: inherit; cursor: pointer; transition: translate var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .tf-card:hover { translate: -3px -3px; box-shadow: 7px 7px 0 var(--fg); }
+  .tf-card__img { position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 7px; overflow: hidden; border: 1.5px solid var(--fg); margin-bottom: 4px; }
+  .tf-card__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tf-card__img .tag { position: absolute; left: 8px; top: 8px; }
+  .tf-card__k { font-size: 11px; color: var(--fg-muted); text-transform: uppercase; }
+  .tf-card b { font-size: var(--fs-md); }
+  .tf-card__d { font-size: var(--fs-xs); color: var(--fg-muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .tf-card__pie { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); font-weight: 800; }
+  .tf-card__ir { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; background: var(--fg); color: var(--bg); }
+
+  @media (max-width: 980px) {
+    .tf-top { grid-template-columns: 1fr; }
+    .tf-fuertes { grid-template-columns: repeat(2, 1fr); }
+    .tf-cols { columns: 1; }
+    .tf-script { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .tf-fuertes { grid-template-columns: 1fr; }
+    .tf-panel { padding: var(--space-4); }
+    .tf-mini { flex-basis: 84px; }
   }
 </style>
