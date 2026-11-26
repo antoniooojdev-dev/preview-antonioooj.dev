@@ -1,8 +1,8 @@
 ---
-// /pruebas-bandas: propuesta de ficha de venta del sistema de bandas, con el mismo diseño
-// que la del police. Datos en src/data/bandas.ts. La ficha publicada sigue en /servicios/fivem/sistema-bandas.
-import FichaScript from "@/components/servicios/FichaScript.astro";
-import { bandas } from "@/data/bandas";
+// /pruebas-bandas: propuesta de ficha de venta del sistema de bandas con diseño propio
+// (FichaBandas.astro, distinto del police). Datos en src/data/bandas.ts.
+// La ficha publicada sigue en /servicios/fivem/sistema-bandas.
+import FichaBandas from "@/components/servicios/FichaBandas.astro";
 ---
 
-<FichaScript ficha={bandas} pruebas />
+<FichaBandas pruebas />

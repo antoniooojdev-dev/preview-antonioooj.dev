@@ -226,3 +226,25 @@ export const bandas: Ficha = {
     { q: "¿Y si algo no funciona?", a: "Escríbeme por el chat de la web o por Discord con el error de la consola y lo miramos." },
   ],
 };
+
+// ── solo para el diseño propio de bandas (FichaBandas.astro) ──
+
+/** «El ciclo de una banda»: cómo encajan las partes, de la tarjeta al atraco */
+export const bandasCiclo = [
+  { t: "Tarjeta de acceso", d: "El staff da de alta la banda y el jefe entra en la tablet con la tarjeta y el descifrado.", img: `${M}/inicio.webp` },
+  { t: "Graffiti", d: "Con el spray se pinta una pared y los 80 metros de alrededor pasan a ser de la banda.", img: `${M}/graffiti.webp` },
+  { t: "Territorio", d: "Cada media hora la zona deja dinero negro y reputación en la caja fuerte.", img: `${M}/territorios.webp` },
+  { t: "Bases", d: "Almacén, caja fuerte, taquilla y garaje, colocados donde quiera el jefe.", img: `${M}/almacen.webp` },
+  { t: "Misión de armamento", d: "Guardias armados, cajas que hackear y refuerzos si salta la alarma.", img: `${M}/tiroteo.webp` },
+  { t: "Mercado negro", d: "Objetos con entrega en mano y vehículos que no vende nadie más.", img: `${M}/vehiculos.webp` },
+  { t: "Atraco", d: "Se pide desde la tablet y el contacto llama para confirmarlo.", img: `${M}/llamada.webp` },
+];
+
+/** Escalera de rangos de partida con lo que desbloquea cada uno (Config.Perms) */
+export const bandasRangos = [
+  { n: 1, r: "Novato", p: ["Mercado negro", "Meter en almacén y caja", "Entrar en las bases", "Sacar del almacén"] },
+  { n: 2, r: "Miembro", p: ["Pintar graffitis", "Sacar vehículos del garaje"] },
+  { n: 3, r: "Veterano", p: ["Invitar", "Misiones y atracos", "Mensaje del día", "Ver el registro", "Guardar conjuntos"] },
+  { n: 4, r: "Mano derecha", p: ["Expulsar y ascender", "Sacar dinero", "Chats con otras bandas"] },
+  { n: 5, r: "Jefe", p: ["Cambiar el logo", "Crear rangos y repartir permisos"] },
+];
