@@ -20,15 +20,6 @@ const precio = euros(b.precio);
 const precioAntes = b.precioAntes ? euros(b.precioAntes) : "";
 const n2 = (i: number) => String(i + 1).padStart(2, "0");
 const yt = b.youtube!;
-// archivos de la documentación (los permisos ya salen en la escalera)
-const archivos: Record<string, string> = {
-  requisitos: "requisitos.md",
-  instalacion: "instalacion.md",
-  configuracion: "config.lua",
-  comandos: "comandos.md",
-  actualizar: "actualizar.md",
-};
-const docs = b.docs.filter((d) => archivos[d.id]);
 // capturas para el fondo de algunas cifras del bento
 const fondos = ["/fivem/sistema-bandas/media/tiroteo.webp", "/fivem/sistema-bandas/media/mision.webp", "/fivem/sistema-bandas/media/taquilla.webp"];
 ---
@@ -71,15 +62,29 @@ const fondos = ["/fivem/sistema-bandas/media/tiroteo.webp", "/fivem/sistema-band
           </div>
         </div>
 
-        <aside class="fb-caja">
-          <p class="mono fb-caja__k">Oferta de lanzamiento</p>
-          <div class="fb-caja__precio">
-            <b>{precio}</b>
-            {precioAntes && <s>{precioAntes}</s>}
-            {b.descuento && <span class="mono">-{b.descuento}%</span>}
+        <aside class="fb-hero__compra">
+          <div class="pf-compra">
+            <div class="pf-precio">
+              <div class="pf-precio__fila">
+                <b>{precio}</b>
+                {precioAntes && <s class="pf-precio__antes" aria-label={`Antes ${precioAntes}`}>{precioAntes}</s>}
+                {b.descuento && <span class="pf-precio__dto mono">-{b.descuento}%</span>}
+              </div>
+              <span>{b.descuento ? "Oferta de lanzamiento · pago único" : "Pago único"} · licencia en tu cuenta de Cfx.re</span>
+            </div>
+            <button type="button" class="btn btn-primary pf-comprar" data-comprar>
+              Comprar ahora
+            </button>
+            <div class="pf-sec">
+              <a href="#documentacion" class="btn btn-ghost">Documentación</a>
+              <a href="#modulos" class="btn btn-ghost">Ver módulos</a>
+            </div>
+            <ul class="pf-garantias">
+              <li>Configuración abierta y comentada en español</li>
+              <li>Base de datos que se crea y actualiza sola</li>
+              <li>Soporte por chat y Discord</li>
+            </ul>
           </div>
-          <button type="button" class="btn btn-primary fb-comprar" data-comprar>Comprar ahora</button>
-          <p class="fb-caja__pie">Pago único · licencia en tu cuenta de Cfx.re</p>
         </aside>
       </section>
 
@@ -185,39 +190,26 @@ const fondos = ["/fivem/sistema-bandas/media/tiroteo.webp", "/fivem/sistema-band
       <!-- ── 6. documentación como editor ── -->
       <section class="fb-sec" id="documentacion">
         <header class="fb-cab" data-rv>
-          <p class="mono fb-k">Documentación</p>
-          <h2 class="fb-h2">Instalado <span>en cinco minutos</span></h2>
-          <p class="fb-sub">Lo mismo que viene dentro del recurso.</p>
+          <p class="mono fb-k">README.md</p>
+          <h2 class="fb-h2">Documentación</h2>
+          <p class="fb-sub">Instalación, configuración y comandos. Lo mismo que viene dentro del recurso.</p>
         </header>
-        <div class="fb-editor" data-editor data-rv>
-          <div class="fb-editor__barra">
-            <span class="fb-editor__puntos" aria-hidden="true"><i></i><i></i><i></i></span>
-            <div class="fb-editor__tabs" role="tablist" aria-label="Archivos">
-              {docs.map((d, i) => (
-                <button type="button" role="tab" class:list={["mono", { "is-on": i === 0 }]} aria-selected={i === 0 ? "true" : "false"} data-archivo={i}>
-                  {archivos[d.id]}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div class="fb-editor__cuerpo">
-            <aside class="fb-editor__arbol mono" aria-hidden="true">
-              <p>{b.recurso}/</p>
-              <span>├ client/</span>
-              <span>├ server/</span>
-              <span>├ web/</span>
-              <span>├ data/</span>
-              <span class="is-on">├ config.lua</span>
-              <span>├ kits.lua</span>
-              <span>└ fxmanifest.lua</span>
-            </aside>
-            {docs.map((d, i) => (
-              <section class:list={["fb-doc", { "is-on": i === 0 }]} data-doc={i} role="tabpanel">
-                <h3>{d.t}</h3>
+        <div class="pf-docs" data-rv>
+          <nav class="pf-docs__nav" aria-label="Índice">
+            <p class="mono">Índice</p>
+            {b.docs.map((d, i) => (
+              <a href={`#doc-${d.id}`} class:list={{ "is-on": i === 0 }} data-doc={d.id}><span class="mono">{n2(i)}</span>{d.t}</a>
+            ))}
+          </nav>
+          <div class="pf-docs__cuerpo">
+            <div class="pf-readme mono"><span>{b.recurso}</span><span>/</span><b>README.md</b></div>
+            {b.docs.map((d) => (
+              <section class="pf-doc" id={`doc-${d.id}`}>
+                <h3><span aria-hidden="true">#</span> {d.t}</h3>
                 {d.intro && <p>{d.intro}</p>}
                 {d.pasos && <ol>{d.pasos.map((s) => <li>{s}</li>)}</ol>}
                 {d.tabla && (
-                  <div class="fb-tabla">
+                  <div class="pf-tabla">
                     <table>
                       <thead><tr>{d.tabla.cols.map((c) => <th>{c}</th>)}</tr></thead>
                       <tbody>{d.tabla.filas.map((f) => <tr>{f.map((c, k) => k === 0 ? <td><code>{c}</code></td> : <td>{c}</td>)}</tr>)}</tbody>
@@ -225,12 +217,12 @@ const fondos = ["/fivem/sistema-bandas/media/tiroteo.webp", "/fivem/sistema-band
                   </div>
                 )}
                 {d.codigo && (
-                  <div class="fb-code">
-                    <button type="button" class="mono" data-copiar>Copiar</button>
-                    <pre><code>{d.codigo.txt.split("\n").map((l, k) => <span class="fb-ln"><i>{k + 1}</i>{l}</span>)}</code></pre>
+                  <div class="pf-code">
+                    <div class="pf-code__bar mono"><span>{d.codigo.lang}</span><button type="button" data-copiar-code>Copiar</button></div>
+                    <pre><code>{d.codigo.txt}</code></pre>
                   </div>
                 )}
-                {d.nota && <p class="fb-nota">{d.nota}</p>}
+                {d.nota && <p class="pf-nota">{d.nota}</p>}
               </section>
             ))}
           </div>
@@ -435,21 +427,20 @@ const fondos = ["/fivem/sistema-bandas/media/tiroteo.webp", "/fivem/sistema-band
   };
   requestAnimationFrame(tickMods);
 
-  // ── documentación: pestañas de archivos ──
-  const ed = $("[data-editor]");
-  const archivos = $$<HTMLButtonElement>("[data-archivo]", ed);
-  const secciones = $$("[data-doc]", ed);
-  archivos.forEach((a) =>
-    a.addEventListener("click", () => {
-      const i = Number(a.dataset.archivo);
-      archivos.forEach((x, j) => { x.classList.toggle("is-on", j === i); x.setAttribute("aria-selected", j === i ? "true" : "false"); });
-      secciones.forEach((s, j) => s.classList.toggle("is-on", j === i));
+  // ── documentación: el índice marca la sección que estás leyendo ──
+  const enlacesDoc = $$<HTMLAnchorElement>("[data-doc]");
+  const ioDoc = new IntersectionObserver(
+    (ents) => ents.forEach((e) => {
+      if (!e.isIntersecting) return;
+      enlacesDoc.forEach((a) => a.classList.toggle("is-on", a.dataset.doc === e.target.id.slice(4)));
     }),
+    { rootMargin: "-30% 0px -60% 0px" },
   );
-  $$<HTMLButtonElement>("[data-copiar]", ed).forEach((btn) =>
+  $$(".pf-doc").forEach((x) => ioDoc.observe(x));
+  $$<HTMLButtonElement>("[data-copiar-code]").forEach((btn) =>
     btn.addEventListener("click", async () => {
-      const lineas = $$(".fb-ln", btn.parentElement!).map((l) => l.lastChild?.textContent ?? "");
-      try { await navigator.clipboard.writeText(lineas.join("\n")); btn.textContent = "Copiado"; } catch { btn.textContent = "Error"; }
+      const code = btn.closest(".pf-code")?.querySelector("code")?.textContent ?? "";
+      try { await navigator.clipboard.writeText(code); btn.textContent = "Copiado"; } catch { btn.textContent = "Error"; }
       setTimeout(() => (btn.textContent = "Copiar"), 1500);
     }),
   );
@@ -501,7 +492,7 @@ const fondos = ["/fivem/sistema-bandas/media/tiroteo.webp", "/fivem/sistema-band
   .fb-hero {
     position: relative; isolation: isolate; overflow: hidden;
     margin-top: var(--space-5); min-height: min(78vh, 720px);
-    display: grid; grid-template-columns: minmax(0, 1fr) 320px; align-items: end; gap: var(--space-6);
+    display: grid; grid-template-columns: minmax(0, 1fr) 360px; align-items: end; gap: var(--space-6);
     padding: clamp(1.5rem, 4vw, 3.5rem); border-radius: 28px; color: #fff; background: #050505;
   }
   .fb-hero__fondo { position: absolute; inset: 0; z-index: -2; }
@@ -537,12 +528,11 @@ const fondos = ["/fivem/sistema-bandas/media/tiroteo.webp", "/fivem/sistema-band
   .fb-lema { margin: 0; font-size: var(--fs-md); color: rgb(255 255 255 / 0.78); max-width: 32rem; }
   .fb-fw { display: flex; flex-wrap: wrap; gap: 0.4rem; }
   .fb-fw span { padding: 0.25rem 0.65rem; border-radius: 999px; font-size: 0.72rem; border: 1px solid rgb(255 255 255 / 0.22); background: rgb(255 255 255 / 0.06); }
-  .fb-lema, .fb-fw, .fb-hero__acc, .fb-migas, .fb-caja { animation: fb-in 1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .fb-lema, .fb-fw, .fb-hero__acc, .fb-migas { animation: fb-in 1s cubic-bezier(0.16, 1, 0.3, 1) both; }
   .fb-migas { animation-delay: 0.05s; }
   .fb-lema { animation-delay: 0.45s; }
   .fb-fw { animation-delay: 0.55s; }
   .fb-hero__acc { animation-delay: 0.65s; }
-  .fb-caja { animation-delay: 0.75s; }
   @keyframes fb-in { from { opacity: 0; transform: translateY(16px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
 
   .fb-play {
@@ -557,12 +547,6 @@ const fondos = ["/fivem/sistema-bandas/media/tiroteo.webp", "/fivem/sistema-band
   .fb-play small { font-weight: 400; font-size: 0.68rem; color: rgb(255 255 255 / 0.6); }
   @keyframes fb-latido { 0% { box-shadow: 0 0 0 0 rgb(255 255 255 / 0.5); } 100% { box-shadow: 0 0 0 16px rgb(255 255 255 / 0); } }
 
-  .fb-caja {
-    display: grid; gap: var(--space-3); padding: var(--space-5); border-radius: 22px;
-    background: rgb(12 12 14 / 0.6); border: 1px solid rgb(255 255 255 / 0.14);
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  }
-  .fb-caja__k { margin: 0; font-size: 0.68rem; color: rgb(255 255 255 / 0.6); }
   .fb-caja__precio { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.6rem; }
   .fb-caja__precio b { font-size: clamp(2.4rem, 1.8rem + 1.6vw, 3.2rem); font-weight: 600; letter-spacing: -0.05em; line-height: 1; }
   .fb-caja__precio s { position: relative; text-decoration: none; opacity: 0.55; font-size: 1.1rem; }
@@ -572,9 +556,62 @@ const fondos = ["/fivem/sistema-bandas/media/tiroteo.webp", "/fivem/sistema-band
   }
   @keyframes fb-tacha { to { transform: rotate(-8deg) scaleX(1); } }
   .fb-caja__precio span { align-self: center; padding: 0.18rem 0.5rem; border-radius: 999px; background: #fff; color: #000; font-size: 0.72rem; font-weight: 700; }
-  .fb-hero .btn-primary { background: #fff; color: #000; border-color: #fff; }
-  .fb-comprar { width: 100%; justify-content: center; }
-  .fb-caja__pie { margin: 0; font-size: 0.7rem; color: rgb(255 255 255 / 0.55); }
+
+  /* caja de compra (igual que la del police) */
+  .fb-hero__compra { color: var(--fg); animation: fb-in 1s cubic-bezier(0.16, 1, 0.3, 1) 0.75s both; }
+  .pf-compra {
+    display: grid; gap: var(--space-3); padding: var(--space-5);
+    border-radius: var(--radius-tile); border: 1px solid var(--border); background: var(--bg-elev);
+  }
+  .pf-precio { display: grid; gap: 0.2rem; }
+  .pf-precio b { font-size: clamp(2.2rem, 1.6rem + 1.6vw, 3rem); font-weight: 600; letter-spacing: -0.05em; line-height: 1; }
+  .pf-precio > span { font-size: var(--fs-xs); color: var(--fg-subtle); }
+  .pf-precio__fila { display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap; }
+  .pf-precio__antes {
+    position: relative;
+    font-size: 1.15rem;
+    color: var(--fg-subtle);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  /* tachado que se dibuja al entrar */
+  .pf-precio__antes::after {
+    content: "";
+    position: absolute;
+    left: -3px;
+    right: -3px;
+    top: 52%;
+    height: 2px;
+    background: currentColor;
+    transform-origin: left;
+    transform: rotate(-8deg) scaleX(0);
+    animation: pf-tacha 0.6s 0.9s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+  @keyframes pf-tacha { to { transform: rotate(-8deg) scaleX(1); } }
+  .pf-precio__dto {
+    align-self: center;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .pf-comprar { width: 100%; justify-content: center; position: relative; overflow: hidden; }
+  .pf-comprar::after {
+    content: ""; position: absolute; inset: 0; transform: translateX(-120%);
+    background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--bg) 35%, transparent), transparent 70%);
+    animation: pf-brillo 3.6s ease-in-out 1.2s infinite;
+  }
+  @keyframes pf-brillo { 40%, 100% { transform: translateX(120%); } }
+  .pf-sec { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+  .pf-sec .btn { justify-content: center; }
+  .pf-garantias { list-style: none; margin: var(--space-2) 0 0; padding: var(--space-3) 0 0; border-top: 1px solid var(--border); display: grid; gap: 0.45rem; }
+  .pf-garantias li { display: flex; gap: 0.6rem; align-items: baseline; font-size: var(--fs-xs); color: var(--fg-muted); }
+  .pf-garantias li::before { content: "✓"; color: var(--fg); font-weight: 700; }
+
+  @media (prefers-reduced-motion: reduce) { .pf-precio__antes::after { animation: none; transform: rotate(-8deg); } .pf-comprar::after { animation: none; } }
 
   /* ── 2. ciclo ── */
   .fb-ciclo {
@@ -670,39 +707,46 @@ const fondos = ["/fivem/sistema-bandas/media/tiroteo.webp", "/fivem/sistema-band
   .fb-escalon__p span { padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.72rem; border: 1px solid var(--border); color: var(--fg-muted); }
   .fb-escalon:last-child .fb-escalon__p span { border-color: color-mix(in srgb, var(--bg) 30%, transparent); color: var(--bg); }
 
-  /* ── 6. editor ── */
-  .fb-editor { border-radius: 20px; border: 1px solid var(--border); background: var(--bg-code, #0d0d0d); overflow: hidden; }
-  .fb-editor__barra { display: flex; align-items: center; gap: var(--space-4); padding: 0 0.9rem; border-bottom: 1px solid var(--border); }
-  .fb-editor__puntos { display: flex; gap: 6px; flex: none; }
-  .fb-editor__puntos i { width: 10px; height: 10px; border-radius: 50%; background: var(--border-strong); }
-  .fb-editor__tabs { display: flex; overflow-x: auto; scrollbar-width: none; }
-  .fb-editor__tabs button {
-    flex: none; padding: 0.85rem 1rem; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--fg-subtle);
-    font-size: 0.75rem; cursor: pointer; transition: color 0.2s, border-color 0.2s;
+  /* ── 6. documentación (igual que la del police) ── */
+  .pf-docs { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: var(--space-7); align-items: start; }
+  .pf-docs__nav { position: sticky; top: calc(var(--header-h) + var(--space-5)); display: grid; gap: 2px; }
+  .pf-docs__nav p { margin: 0 0 var(--space-2); font-size: var(--fs-xs); color: var(--fg-subtle); }
+  .pf-docs__nav a {
+    display: flex; gap: 0.7rem; align-items: baseline; padding: 0.5rem 0.75rem; border-radius: 10px;
+    color: var(--fg-muted); text-decoration: none; font-size: var(--fs-sm); transition: background 0.25s, color 0.25s;
   }
-  .fb-editor__tabs button:hover { color: var(--fg); }
-  .fb-editor__tabs button.is-on { color: var(--fg); border-bottom-color: var(--fg); }
-  .fb-editor__cuerpo { display: grid; grid-template-columns: 200px minmax(0, 1fr); min-height: 380px; }
-  .fb-editor__arbol { display: grid; align-content: start; gap: 0.35rem; padding: var(--space-4); border-right: 1px solid var(--border); font-size: 0.72rem; color: var(--fg-subtle); }
-  .fb-editor__arbol p { margin: 0 0 0.3rem; color: var(--fg); }
-  .fb-editor__arbol .is-on { color: var(--fg); }
-  .fb-doc { display: none; gap: var(--space-3); align-content: start; padding: var(--space-5) var(--space-6); }
-  .fb-doc.is-on { display: grid; animation: fb-in 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-  .fb-doc h3 { margin: 0; font-size: var(--fs-lg); font-weight: 600; letter-spacing: -0.02em; }
-  .fb-doc p { margin: 0; color: var(--fg-muted); font-size: var(--fs-sm); }
-  .fb-doc ol { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.45rem; color: var(--fg-muted); font-size: var(--fs-sm); }
-  .fb-tabla { overflow-x: auto; }
-  .fb-tabla table { width: 100%; border-collapse: collapse; font-size: var(--fs-xs); }
-  .fb-tabla th { text-align: left; font-weight: 500; color: var(--fg-subtle); padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
-  .fb-tabla td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--fg-muted); vertical-align: top; }
-  .fb-tabla code { color: var(--fg); font-family: var(--font-mono); white-space: nowrap; }
-  .fb-code { position: relative; border-radius: 12px; border: 1px solid var(--border); background: color-mix(in srgb, var(--fg) 3%, transparent); }
-  .fb-code button { position: absolute; right: 8px; top: 8px; padding: 0.25rem 0.6rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--fg-subtle); font-size: 0.68rem; cursor: pointer; }
-  .fb-code button:hover { color: var(--fg); }
-  .fb-code pre { margin: 0; padding: 0.9rem 0; overflow-x: auto; font-size: 0.78rem; line-height: 1.7; }
-  .fb-ln { display: block; padding-right: 1rem; white-space: pre; }
-  .fb-ln i { display: inline-block; width: 2.6rem; padding-right: 1rem; text-align: right; font-style: normal; color: var(--fg-subtle); opacity: 0.6; user-select: none; }
-  .fb-nota { padding: 0.75rem 1rem; border-radius: 10px; border-left: 2px solid var(--fg); background: color-mix(in srgb, var(--fg) 4%, transparent); }
+  .pf-docs__nav a span { font-size: 0.6875rem; color: var(--fg-subtle); }
+  .pf-docs__nav a:hover { color: var(--fg); }
+  .pf-docs__nav a.is-on { background: var(--bg-elev); color: var(--fg); box-shadow: inset 0 0 0 1px var(--border); }
+
+  .pf-docs__cuerpo { border: 1px solid var(--border); border-radius: var(--radius-tile); background: var(--bg-elev); overflow: hidden; }
+  .pf-readme { display: flex; gap: 0.5rem; padding: 0.85rem var(--space-5); border-bottom: 1px solid var(--border); font-size: var(--fs-xs); color: var(--fg-subtle); }
+  .pf-readme b { color: var(--fg); font-weight: 500; }
+  .pf-doc { padding: var(--space-6) var(--space-6) 0; scroll-margin-top: calc(var(--header-h) + var(--space-5)); }
+  .pf-doc:last-child { padding-bottom: var(--space-6); }
+  .pf-doc + .pf-doc { border-top: 1px solid var(--border); margin-top: var(--space-6); }
+  .pf-doc h3 { margin: 0 0 var(--space-3); font-size: var(--fs-lg); font-weight: 600; letter-spacing: -0.02em; }
+  .pf-doc h3 span { color: var(--fg-subtle); font-family: var(--font-mono); font-weight: 400; }
+  .pf-doc p, .pf-doc li { color: var(--fg-muted); font-size: var(--fs-sm); line-height: 1.65; }
+  .pf-doc p { margin: 0 0 var(--space-3); }
+  .pf-doc ol { margin: 0 0 var(--space-4); padding: 0; list-style: none; counter-reset: paso; display: grid; gap: 0.6rem; }
+  .pf-doc ol li { counter-increment: paso; display: grid; grid-template-columns: 1.8rem 1fr; gap: 0.5rem; }
+  .pf-doc ol li::before {
+    content: counter(paso); display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+    border: 1px solid var(--border-strong); font-family: var(--font-mono); font-size: 0.6875rem; color: var(--fg);
+  }
+  .pf-tabla { overflow-x: auto; margin-bottom: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+  .pf-tabla table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+  .pf-tabla th { text-align: left; font-weight: 500; font-size: var(--fs-xs); color: var(--fg-subtle); padding: 0.6rem 0.9rem; background: var(--bg); border-bottom: 1px solid var(--border); }
+  .pf-tabla td { padding: 0.65rem 0.9rem; color: var(--fg-muted); border-top: 1px solid var(--border); vertical-align: top; }
+  .pf-tabla tr:first-child td { border-top: 0; }
+  .pf-tabla code, .pf-tabla td:first-child { color: var(--fg); font-family: var(--font-mono); font-size: 0.8125rem; white-space: nowrap; }
+  .pf-code { border-radius: var(--radius-sm); overflow: hidden; margin-bottom: var(--space-4); background: #0b0b0b; color: #e8e8e8; }
+  .pf-code__bar { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.9rem; font-size: 0.6875rem; color: #8a8a8a; border-bottom: 1px solid #222; }
+  .pf-code__bar button { background: none; border: 1px solid #333; border-radius: 6px; padding: 0.15rem 0.55rem; color: #cfcfcf; font: inherit; cursor: pointer; }
+  .pf-code__bar button:hover { background: #fff; color: #000; }
+  .pf-code pre { margin: 0; padding: 0.9rem; overflow-x: auto; font-family: var(--font-mono); font-size: 0.8125rem; line-height: 1.6; }
+  .pf-nota { padding: 0.8rem 1rem; border-left: 2px solid var(--fg); background: var(--bg); border-radius: 0 10px 10px 0; }
 
   /* ── 7. preguntas ── */
   .fb-faq { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
@@ -795,13 +839,15 @@ const fondos = ["/fivem/sistema-bandas/media/tiroteo.webp", "/fivem/sistema-band
     .fb-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 140px; }
     .fb-cifra--3, .fb-cifra--4 { grid-column: span 1; }
     .fb-escalon { width: 100%; min-width: 0; grid-template-columns: 1fr; gap: 0.5rem; }
-    .fb-editor__cuerpo { grid-template-columns: 1fr; }
-    .fb-editor__arbol { display: none; }
-    .fb-doc { padding: var(--space-4); }
+    .pf-docs { grid-template-columns: 1fr; }
+    .pf-docs__nav { position: static; display: flex; overflow-x: auto; gap: 0.3rem; }
+    .pf-docs__nav p { display: none; }
+    .pf-docs__nav a { white-space: nowrap; }
     .fb-cierre { grid-template-columns: 1fr; }
     .fb-barra > b { display: none; }
   }
   @media (max-width: 600px) {
+    .pf-doc { padding-inline: var(--space-4); }
     .fb-ciclo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .fb-faq { grid-template-columns: 1fr; }
     .fb-otro { grid-template-columns: 96px minmax(0, 1fr); }
