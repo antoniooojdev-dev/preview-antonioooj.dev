@@ -57,7 +57,8 @@ export default {
 
     if (interaction.isChatInputCommand()) {
       const command = interaction.client.commands.get(interaction.commandName);
-      if (!command) return replyError(interaction, "Comando desconocido. ¿Has ejecutado `npm run deploy`?");
+      // comandos que no son de este bot (los atiende el bot de la web, que usa la misma app)
+      if (!command) return;
       try {
         await command.execute(interaction);
       } catch (err) {

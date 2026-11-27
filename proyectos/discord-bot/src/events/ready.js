@@ -12,7 +12,8 @@ export default {
   /** @param {import("discord.js").Client<true>} client */
   async execute(client) {
     log.info(`Conectado como ${client.user.tag} en ${client.guilds.cache.size} servidor(es)`);
-    client.user.setActivity("antonioooj.dev · /ayuda", { type: ActivityType.Watching });
+    // «Jugando a antonioooj.dev» (lo mismo que pone el bot de la web, que usa la misma app)
+    client.user.setActivity("antonioooj.dev", { type: ActivityType.Playing });
     startScheduler(client);
     startSocials(client);
     await sweep(client);

@@ -1,7 +1,7 @@
 import { ButtonStyle, MessageFlags } from "discord.js";
-import { box, btn, h2, row, v2 } from "../lib/ui.js";
+import { box, btn, h2, row, v2, v2Ephemeral } from "../lib/ui.js";
 import config from "../config.js";
-import { fail, info, ok } from "../lib/embeds.js";
+import { fail } from "../lib/embeds.js";
 import { sendLog } from "../lib/logger.js";
 
 export function panelMessage() {
@@ -21,7 +21,16 @@ export async function onButton(interaction) {
   const roleId = config.roles.verified;
 
   if (!roleId) return reply(fail("La verificación no está configurada (`roles.verified`)."));
-  if (interaction.member.roles.cache.has(roleId)) return reply(info("Ya estás verificado 👍"));
+  // el mensaje de #normas es el mismo para todos: a quien ya aceptó se le enseña (solo a él)
+  // el botón cambiado, desactivado
+  const confirmado = (texto) =>
+    interaction.reply(
+      v2Ephemeral(
+        box([texto]),
+        row(btn("verify:hecho", "Ya has confirmado la lectura de las normas", { emoji: "✅", style: ButtonStyle.Success, disabled: true })),
+      ),
+    );
+  if (interaction.member.roles.cache.has(roleId)) return confirmado("Las normas ya están **aceptadas**: tienes acceso a todo el servidor.");
 
   try {
     await interaction.member.roles.add(roleId, "Verificación por botón");
@@ -34,6 +43,7 @@ export async function onButton(interaction) {
     color: config.colors.success,
     description: `${interaction.user} (${interaction.user.id})`,
   });
-  const roles = config.channels.guide ? ` Empieza por <#${config.channels.guide}> y elige tus avisos.` : "";
-  return reply(ok(`¡Verificado! Ya tienes acceso al servidor.${roles}`));
+  const roles = config.channels.guide ? `
+-# En <#${config.channels.guide}> se eligen los avisos e intereses.` : "";
+  return confirmado(`**¡Listo!** Ya tienes acceso al servidor.${roles}`);
 }

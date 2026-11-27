@@ -31,9 +31,6 @@ function normas() {
       h1("Normas"),
       "---",
       rules.map(([t, d], i) => `**\`${String(i + 1).padStart(2, "0")}\`  ${MAYUS(t)}**\n${d}`).join("\n\n"),
-      "---",
-      h3("Sanciones", "⚖️"),
-      "**1–2** avisos → advertencia  ·  **3** → aislamiento *1 h*  ·  **5** → expulsión\n-# Las faltas graves pueden suponer **baneo directo**.",
     ]),
     row(
       btn("verify:go", "He leído y acepto las normas", { emoji: "✅", style: ButtonStyle.Success }),
