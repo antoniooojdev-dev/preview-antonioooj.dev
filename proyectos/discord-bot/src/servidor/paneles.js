@@ -33,7 +33,7 @@ function normas() {
       rules.map(([t, d], i) => `**\`${String(i + 1).padStart(2, "0")}\`  ${MAYUS(t)}**\n${d}`).join("\n\n"),
     ]),
     row(
-      btn("verify:go", "He leído y acepto las normas", { emoji: "✅", style: ButtonStyle.Success }),
+      btn("verify:normas", "He leído y acepto las normas", { emoji: "✅", style: ButtonStyle.Success }),
       linkBtn("Directrices de Discord", "https://discord.com/guidelines", "📘"),
     ),
   );
@@ -45,7 +45,7 @@ const GUIA_CATEGORIAS = [
   {
     t: "Inicio",
     canales: [
-      ["normas", "Cómo funciona la comunidad y la verificación."],
+      ["normas", "Cómo funciona la comunidad. Se aceptan con su botón."],
       ["anuncios", "Avisos **oficiales** del servidor."],
       ["novedades", "Proyectos nuevos y actualizados, **vídeos** y **directos**."],
     ],
@@ -161,7 +161,8 @@ export const paneles = {
   guia,
   servicios,
   abrir_ticket: ticketPanel,
+  verificacion: verificationPanel,
 };
 
 /** Paneles sueltos para /panel */
-export const panelesSueltos = { ...paneles, verificacion: verificationPanel, roles: rolesPanel };
+export const panelesSueltos = { ...paneles, roles: rolesPanel };

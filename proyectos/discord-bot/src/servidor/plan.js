@@ -107,7 +107,9 @@ export const categories = [
     name: "INICIO",
     access: "inicio",
     channels: [
-      { key: "normas", name: "📜・normas", topic: "Normas de la comunidad y verificación." },
+      { key: "normas", name: "📜・normas", topic: "Normas de la comunidad. Se aceptan con el botón de debajo." },
+      // solo lo ven quienes aún no están verificados (al verificarse desaparece)
+      { key: "verificacion", name: "✅・verificación", access: "verificacion", topic: "Con las normas aceptadas, un botón desbloquea el servidor." },
       { key: "guia", name: "🧭・guía", access: "lectura", aliases: ["roles"], topic: "Cómo funciona el servidor y elección de roles." },
       { key: "anuncios", name: "📢・anuncios", type: "announcement", access: "lectura", topic: "Anuncios oficiales. Puedes seguir este canal desde tu servidor." },
       {
