@@ -10,7 +10,7 @@ export function panelMessage() {
     box([
       h2("Verificación", "✅"),
       `Lee ${rules} y pulsa el botón para __desbloquear el servidor__.`,
-      row(btn("verify:go", "Acepto, verificarme", { emoji: "✅", style: ButtonStyle.Success })),
+      row(btn("verify:go", "He leído y acepto las normas", { emoji: "✅", style: ButtonStyle.Success })),
     ]),
   );
 }

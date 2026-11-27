@@ -7,42 +7,38 @@ import config from "../config.js";
 import { panelMessage as ticketPanel } from "../features/tickets.js";
 import { panelMessage as verificationPanel } from "../features/verification.js";
 import { panelMessage as rolesPanel } from "../features/selfroles.js";
-import { box, btn, h1, h2, h3, linkBtn, MAYUS, row, v2, withThumb } from "../lib/ui.js";
+import { box, btn, h1, h3, linkBtn, MAYUS, row, v2, withThumb } from "../lib/ui.js";
 import { LOGO, projectCategories, roles as planRoles, SITE, socials } from "./plan.js";
 
 const chan = (key) => (config.ids.channels[key] ? `<#${config.ids.channels[key]}>` : `#${key}`);
 const role = (key) => (config.ids.roles[key] ? `<@&${config.ids.roles[key]}>` : key);
 const levelRoles = () => planRoles.filter((r) => r.level).sort((a, b) => a.level - b.level);
 
-// ── #normas (con verificación al final) ──────────────────────
+// ── #normas (el botón de verificación va debajo, fuera del recuadro) ──
+// Redactadas en tono enunciativo: describen cómo funciona la comunidad, no dan órdenes.
 function normas() {
   const rules = [
-    ["Respeto", "Nada de insultos, acoso ni discriminación. Se puede discrepar *sin faltar*."],
-    ["Cero spam", "Sin flood, cadenas, menciones masivas ni **publicidad**."],
-    ["Contenido", "Nada NSFW, violento o ilegal. __Ni leaks, cracks ni recursos robados__."],
-    ["Cada cosa en su sitio", `Las dudas de código, en ${chan("ayuda")} con el **código** y el **error**.`],
-    ["Privacidad", "**Nunca** pidas ni des contraseñas, tokens o datos personales."],
-    ["Encargos por ticket", `Presupuestos y pagos __solo__ por ${chan("abrir_ticket")}.`],
-    ["Decide el staff", "Puede actuar ante cualquier conducta que perjudique a la comunidad."],
+    ["Respeto", "Se puede discrepar *sin faltar*. Los insultos, el acoso y la discriminación no tienen cabida."],
+    ["Cero spam", "El flood, las cadenas, las menciones masivas y la **publicidad** no están permitidos."],
+    ["Contenido", "El contenido NSFW, violento o ilegal no está permitido, __como tampoco los leaks, cracks o recursos robados__."],
+    ["Cada cosa en su sitio", `Las dudas de código van en ${chan("ayuda")}, con el **código** y el **error**.`],
+    ["Privacidad", "Las contraseñas, los tokens y los datos personales **nunca** se piden ni se comparten."],
+    ["Encargos por ticket", `Los presupuestos y los pagos se gestionan __solo__ por ${chan("abrir_ticket")}.`],
+    ["Decisión del equipo", "El equipo puede actuar ante cualquier conducta que perjudique a la comunidad."],
   ];
   return v2(
     box([
-      h1("Normas", "📜"),
-      "-# Pocas y claras. Al verificarte, las aceptas.",
+      h1("Normas"),
       "---",
-      rules.map(([t, d], i) => `**\`${String(i + 1).padStart(2, "0")}\`  ${MAYUS(t)}**
-${d}`).join("\n\n"),
+      rules.map(([t, d], i) => `**\`${String(i + 1).padStart(2, "0")}\`  ${MAYUS(t)}**\n${d}`).join("\n\n"),
       "---",
       h3("Sanciones", "⚖️"),
       "**1–2** avisos → advertencia  ·  **3** → aislamiento *1 h*  ·  **5** → expulsión\n-# Las faltas graves pueden suponer **baneo directo**.",
-      "===",
-      h2("Verificación", "✅"),
-      "Pulsa el botón para __desbloquear el servidor__.",
-      row(
-        btn("verify:go", "Acepto, verificarme", { emoji: "✅", style: ButtonStyle.Success }),
-        linkBtn("Directrices de Discord", "https://discord.com/guidelines", "📘"),
-      ),
     ]),
+    row(
+      btn("verify:go", "He leído y acepto las normas", { emoji: "✅", style: ButtonStyle.Success }),
+      linkBtn("Directrices de Discord", "https://discord.com/guidelines", "📘"),
+    ),
   );
 }
 
