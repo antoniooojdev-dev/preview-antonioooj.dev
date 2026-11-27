@@ -8,7 +8,7 @@
 //   (todos los scripts van en español e inglés: chips ES / EN)
 //   5. características como un «resmon» (monitor de recursos de FiveM)
 //   6. «hecho o a medida»: selector que cambia entre el escaparate y la ruta del encargo
-//   7. dudas: lista de preguntas + un chat que las va respondiendo, y cierre en color con botón «imán»
+//   7. dudas: lista de preguntas + un chat que las va respondiendo
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Icono from "@/components/servicios/Icono.astro";
 import { services, serviceDetails } from "@/data/services";
@@ -388,23 +388,6 @@ const resmon = detail.incluye.map((x, i) => ({
           </a>
         </div>
       </section>
-
-      <!-- cierre -->
-      <aside class="fx-fin">
-        <span class="fx-fin__fondo" aria-hidden="true">FIVEM</span>
-        <div class="fx-fin__txt">
-          <h2>¿Lo <em>arrancamos</em>?</h2>
-          <ul role="list" class="fx-fin__lista mono">
-            <li><Icono nombre="check" size={15} /> Presupuesto cerrado</li>
-            <li><Icono nombre="check" size={15} /> Código tuyo y legible</li>
-            <li><Icono nombre="check" size={15} /> Español e inglés</li>
-          </ul>
-        </div>
-        <a href={contacto} class="fx-fin__boton" data-iman>
-          <span>Cuéntame<br />tu script</span>
-          <Icono nombre="arrow" size={26} />
-        </a>
-      </aside>
     </div>
   </article>
 </BaseLayout>
@@ -489,21 +472,6 @@ const resmon = detail.incluye.map((x, i) => ({
     };
     botones.forEach((b) => b.addEventListener("click", () => mostrar(Number(b.dataset.preg), true)));
     mostrar(0, false);
-  }
-
-  // Botón redondo del cierre: se acerca un poco al cursor (solo con ratón).
-  const iman = document.querySelector<HTMLElement>("[data-iman]");
-  if (iman && matchMedia("(hover: hover) and (pointer: fine)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    const zona = iman.parentElement!;
-    zona.addEventListener("pointermove", (e) => {
-      const r = iman.getBoundingClientRect();
-      const dx = e.clientX - (r.left + r.width / 2);
-      const dy = e.clientY - (r.top + r.height / 2);
-      const dist = Math.hypot(dx, dy);
-      const k = dist < 260 ? 0.25 : 0;
-      iman.style.translate = `${dx * k}px ${dy * k}px`;
-    });
-    zona.addEventListener("pointerleave", () => (iman.style.translate = ""));
   }
 </script>
 
@@ -1521,6 +1489,7 @@ const resmon = detail.incluye.map((x, i) => ({
 
   /* ── 7. dudas: preguntas + chat ── */
   .fx-faq {
+    padding-bottom: var(--section);
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-8);
@@ -1764,103 +1733,6 @@ const resmon = detail.incluye.map((x, i) => ({
     transform: rotate(-20deg) scale(1.06);
   }
 
-  /* ── cierre ── */
-  .fx-fin {
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-7);
-    margin-block: var(--section);
-    padding: clamp(2.5rem, 2rem + 4vw, 6rem);
-    border-radius: var(--radius-tile);
-    background: var(--acc);
-    color: #fff;
-    overflow: hidden;
-    isolation: isolate;
-  }
-  .fx-fin::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background:
-      radial-gradient(circle at 85% 50%, rgb(255 255 255 / 0.22), transparent 45%),
-      linear-gradient(120deg, rgb(0 0 0 / 0.35), transparent 60%);
-  }
-  .fx-fin__fondo {
-    position: absolute;
-    z-index: -1;
-    right: -2%;
-    bottom: -18%;
-    font-size: clamp(6rem, 3rem + 16vw, 20rem);
-    font-weight: 900;
-    font-stretch: 125%;
-    letter-spacing: -0.06em;
-    line-height: 1;
-    color: transparent;
-    -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.18);
-    pointer-events: none;
-    user-select: none;
-  }
-  .fx-fin .fx-k {
-    color: rgb(255 255 255 / 0.75);
-  }
-  .fx-fin h2 {
-    font-size: clamp(2.8rem, 1.5rem + 6vw, 7rem);
-    font-weight: 850;
-    font-stretch: 118%;
-    letter-spacing: -0.05em;
-    line-height: 0.9;
-  }
-  .fx-fin h2 em {
-    font-style: italic;
-    font-weight: 300;
-  }
-  .fx-fin__lista {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.4rem;
-    margin-top: var(--space-6);
-    font-size: var(--fs-sm);
-  }
-  .fx-fin__lista li {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-  }
-  .fx-fin__boton {
-    flex: none;
-    display: grid;
-    place-items: center;
-    align-content: center;
-    gap: 0.6rem;
-    width: clamp(9.5rem, 7rem + 8vw, 13rem);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: #fff;
-    color: #0a0a0a;
-    text-align: center;
-    font-weight: 700;
-    line-height: 1.2;
-    box-shadow: 0 30px 60px -25px rgb(0 0 0 / 0.5);
-    transition:
-      background 0.3s ease,
-      color 0.3s ease,
-      translate 0.25s ease-out;
-  }
-  .fx-fin__boton :global(svg) {
-    transition: transform 0.35s var(--ease);
-  }
-  .fx-fin__boton:hover {
-    background: #0a0a0a;
-    color: #fff;
-  }
-  .fx-fin__boton:hover :global(svg) {
-    transform: rotate(-45deg);
-  }
-
   /* ── responsive ── */
   @media (max-width: 1000px) {
     .fx-hero__in,
@@ -1917,10 +1789,6 @@ const resmon = detail.incluye.map((x, i) => ({
     }
     .fx-burbuja {
       max-width: 92%;
-    }
-    .fx-fin {
-      flex-direction: column;
-      align-items: flex-start;
     }
     .fx-dest__a {
       padding: var(--space-5);
