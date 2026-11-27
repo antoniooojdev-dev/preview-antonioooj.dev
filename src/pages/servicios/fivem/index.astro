@@ -1,7 +1,7 @@
 ---
-// /pruebas-servicio-fivem — propuesta de diseño distinto para /servicios/fivem.
-// Mismos datos que la página real (services.ts, scripts-fivem.ts, policia.ts, bandas.ts),
-// otra forma de contarlo:
+// /servicios/fivem — página del servicio de Scripts FiveM (sale de [id].astro, que se salta «fivem»).
+// Datos: services.ts (texto del servicio), scripts-fivem.ts (catálogo), policia.ts y bandas.ts (precios).
+// Secciones:
 //   1. portada partida: titular grande + pila de capturas que va rotando sola
 //   3. «lo último»: el script nuevo a sangre, captura de fondo y caja de compra
 //   4. catálogo en tarjetas anchas con captura, alternando lado
@@ -40,6 +40,14 @@ const idiomas = [
 ];
 
 // pila de capturas de la portada: los disponibles con captura, el destacado delante
+// «a medida»: lo que se entrega con cada encargo
+const entregables = [
+  { icono: "document", t: "Código fuente", d: "Tuyo, legible y sin ofuscar" },
+  { icono: "sliders", t: "Config documentada", d: "Precios, zonas y textos sin tocar código" },
+  { icono: "message", t: "Español e inglés", d: "Todos los textos traducidos" },
+  { icono: "headset", t: "Soporte", d: "Instalación y errores tras la entrega" },
+];
+
 const pila = [destacado, ...lista.filter((s) => s.portada && s.id !== destacado.id)].slice(0, 3);
 
 // «resmon»: cada característica como un recurso del monitor
@@ -51,7 +59,7 @@ const resmon = detail.incluye.map((x, i) => ({
 
 ---
 
-<BaseLayout title="Pruebas · Scripts FiveM" description="Propuesta de diseño para la página de Scripts FiveM." noindex>
+<BaseLayout title={service.title} description={detail.lead}>
   <article class="fx" style={`--acc:${detail.color}`}>
     <!-- 1. portada -->
     <header class="fx-hero ink">
@@ -326,10 +334,16 @@ const resmon = detail.incluye.map((x, i) => ({
               ))
             }
           </ol>
-          <div class="fx-para">
-            <span class="mono">pensado para</span>
+          <div class="fx-entrega">
+            <p class="fx-entrega__t mono">Lo que te llevas</p>
             <ul role="list">
-              {detail.idealPara.map((x) => <li>{x}</li>)}
+              {entregables.map((e) => (
+                <li>
+                  <span aria-hidden="true"><Icono nombre={e.icono} size={18} /></span>
+                  <b>{e.t}</b>
+                  <small>{e.d}</small>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -1458,32 +1472,56 @@ const resmon = detail.incluye.map((x, i) => ({
     font-size: var(--fs-sm);
     line-height: 1.5;
   }
-  .fx-para {
+  /* «lo que te llevas»: 4 entregables del encargo */
+  .fx-entrega {
     grid-column: 1 / -1;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-3);
-    padding-top: var(--space-5);
+    padding-top: var(--space-6);
     border-top: 1px solid var(--border);
   }
-  .fx-para > span {
+  .fx-entrega__t {
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--acc);
-    margin-right: var(--space-2);
+    margin-bottom: var(--space-4);
   }
-  .fx-para ul {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+  .fx-entrega ul {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3);
   }
-  .fx-para li {
-    padding: 0.4rem 0.85rem;
-    border-radius: 99px;
-    border: 1px solid var(--border-strong);
+  .fx-entrega li {
+    display: grid;
+    gap: 0.3rem;
+    align-content: start;
+    padding: var(--space-4);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    transition:
+      border-color 0.3s ease,
+      transform 0.35s var(--ease);
+  }
+  .fx-entrega li:hover {
+    border-color: color-mix(in srgb, var(--acc) 50%, var(--border));
+    transform: translateY(-3px);
+  }
+  .fx-entrega li > span {
+    display: grid;
+    place-items: center;
+    width: 2.3rem;
+    height: 2.3rem;
+    margin-bottom: 0.4rem;
+    border-radius: 11px;
+    background: var(--acc);
+    color: #fff;
+  }
+  .fx-entrega b {
     font-size: var(--fs-sm);
+  }
+  .fx-entrega small {
+    font-size: 0.8125rem;
+    line-height: 1.45;
     color: var(--fg-muted);
   }
 
@@ -1760,6 +1798,9 @@ const resmon = detail.incluye.map((x, i) => ({
       min-height: 0;
       aspect-ratio: 16 / 9;
     }
+    .fx-entrega ul {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
     .fx-faq,
     .fx-panel {
       grid-template-columns: minmax(0, 1fr);
@@ -1767,6 +1808,9 @@ const resmon = detail.incluye.map((x, i) => ({
     }
   }
   @media (max-width: 720px) {
+    .fx-entrega ul {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
     .fx-modo__sel {
       width: 100%;
     }

@@ -19,7 +19,8 @@ import { casosDe } from "@/data/casos";
 
 export const getStaticPaths = (() =>
   services
-    .filter((s) => serviceDetails[s.id])
+    // FiveM tiene su propia página: src/pages/servicios/fivem/index.astro
+    .filter((s) => serviceDetails[s.id] && s.id !== "fivem")
     .map((service) => ({ params: { id: service.id }, props: { service, detail: serviceDetails[service.id] } }))) satisfies GetStaticPaths;
 
 interface Props {
