@@ -1,7 +1,7 @@
 // Roles auto-asignables (avisos e intereses) con menús desplegables en #roles.
 
 import { ButtonStyle, MessageFlags, StringSelectMenuBuilder } from "discord.js";
-import { box, btn, row, v2 } from "../lib/ui.js";
+import { box, btn, h1, h3, row, v2 } from "../lib/ui.js";
 import config from "../config.js";
 import { roles as planRoles } from "../servidor/plan.js";
 import { fail, ok } from "../lib/embeds.js";
@@ -30,14 +30,14 @@ export function panelMessage() {
 
   return v2(
     box([
-      "# 🎭 Tus roles",
-      "*Marca lo que quieras en cada menú. Lo que desmarques, se quita.*",
+      h1("Tus roles", "🎭"),
+      "-# Marca lo que quieras. Lo que **desmarques**, se quita.",
       "---",
-      "## 🔔 Avisos",
-      "-# Solo recibirás menciones de lo que elijas.",
+      h3("Avisos", "🔔"),
+      "-# Solo te mencionamos por lo que **elijas**.",
       selects[0],
-      "## 🧠 Intereses",
-      "-# Para que la comunidad sepa de qué te gusta hablar.",
+      h3("Intereses", "🧠"),
+      "-# Para que la comunidad sepa de **qué te gusta hablar**.",
       selects[1],
       "---",
       row(

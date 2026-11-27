@@ -10,7 +10,7 @@ import {
 import { allProjects, autocomplete, createProject, editProject } from "../features/projects.js";
 import { db } from "../lib/store.js";
 import { fail, ok } from "../lib/embeds.js";
-import { box, v2 } from "../lib/ui.js";
+import { box, h2, h3, v2 } from "../lib/ui.js";
 import { projectCategories, projectStatus } from "../servidor/plan.js";
 
 // datos elegidos en el comando que esperan al formulario (userId → datos)
@@ -97,14 +97,14 @@ export default {
     const sections = Object.entries(projectCategories).map(([key, c]) => {
       const items = list.filter((p) => p.category === key);
       return [
-        `### ${c.emoji} ${c.label}`,
+        h3(c.label, c.emoji),
         items.length
           ? items.map((p) => `- <#${p.threadId}> ${projectStatus[p.status]?.emoji ?? ""} ${p.version ? `\`${p.version}\`` : ""}`).join("\n")
           : "-# *Nada por aquí todavía*",
       ].join("\n");
     });
     return interaction.reply({
-      ...v2(box(["## 📂 Proyectos", ...sections.flatMap((s, i) => (i ? ["---", s] : [s]))])),
+      ...v2(box([h2("Proyectos", "📂"), ...sections.flatMap((s, i) => (i ? ["---", s] : [s]))])),
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
     });
   },

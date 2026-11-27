@@ -8,7 +8,7 @@ import { AttachmentBuilder, ChannelType, MessageFlags } from "discord.js";
 import config from "../config.js";
 import { db, save } from "../lib/store.js";
 import { log } from "../lib/logger.js";
-import { box, btn, gallery, linkBtn, row, v2 } from "../lib/ui.js";
+import { box, btn, etiqueta, gallery, h1, h2, linkBtn, row, v2 } from "../lib/ui.js";
 import { projectCategories, projectStatus, updateTypes } from "../servidor/plan.js";
 
 const ts = (ms, style = "R") => `<t:${Math.floor(ms / 1000)}:${style}>`;
@@ -70,20 +70,20 @@ export function projectCard(p) {
 
   return v2(
     box([
-      `-# ${cat.emoji} ${cat.label}  ·  ${st.emoji} ${st.label}`,
-      `# ${p.name}`,
+      etiqueta(`${cat.emoji} ${cat.label}`, `${st.emoji} **${st.label}**`),
+      h1(p.name),
       p.summary && `*${p.summary}*`,
       "---",
       [
-        `**Versión** \`${p.version || "—"}\``,
-        `**Novedades** ${p.updates.length}`,
-        `**Actualizado** ${ts(last?.at ?? p.createdAt)}`,
+        `**__VERSIÓN__** \`${p.version || "—"}\``,
+        `**__NOVEDADES__** ${p.updates.length}`,
+        `**__ACTUALIZADO__** ${ts(last?.at ?? p.createdAt)}`,
       ].join("  ·  "),
-      p.stack && `**Tecnologías** — ${p.stack}`,
+      p.stack && `**__TECNOLOGÍAS__** — ${p.stack}`,
       p.imageRef && gallery(p.imageRef),
       row(buttons),
       "---",
-      `-# Los cambios aparecen en este post ↓ · Avisos de ${cat.short} con ${roleMention(cat.role) || "su rol"} en <#${config.channels.guide}>`,
+      `-# Los **cambios** aparecen en este post ↓  ·  Avisos de ${cat.short} con ${roleMention(cat.role) || "su rol"} en <#${config.channels.guide}>`,
     ]),
   );
 }
@@ -151,7 +151,7 @@ export async function postUpdate(guild, threadId, { type, title, changes, versio
   const kind = updateTypes[type] ?? updateTypes.funcion;
   const at = Date.now();
   const body = formatChanges(changes);
-  const meta = [`${kind.emoji} ${kind.label}`, version && `\`${version}\``, ts(at, "D")].filter(Boolean).join("  ·  ");
+  const meta = [`${kind.emoji} **${kind.label}**`, version && `\`${version}\``, ts(at, "D")].filter(Boolean).join("  ·  ");
 
   const thread = await guild.channels.fetch(threadId);
 
@@ -161,11 +161,11 @@ export async function postUpdate(guild, threadId, { type, title, changes, versio
     ...v2(
       box([
         `-# ${meta}`,
-        `## ${title}`,
+        h2(title),
         body,
         imgThread && gallery(imgThread.ref),
         link && row(linkBtn("Ver cambios", link, "🔗")),
-        author && `-# Publicado por ${author}`,
+        author && `-# Publicado por **${author}**`,
       ]),
     ),
     files: imgThread ? [imgThread.file] : [],
@@ -181,8 +181,8 @@ export async function postUpdate(guild, threadId, { type, title, changes, versio
     newsMsg = await news.send({
       ...v2(
         box([
-          `-# ${cat.emoji} ${cat.label}  ·  **${p.name}**${ping ? `  ·  <@&${ping}>` : ""}`,
-          `## ${kind.emoji} ${title}`,
+          etiqueta(`${cat.emoji} ${cat.label}`, `**${p.name}**`, ping && `<@&${ping}>`),
+          h2(title, kind.emoji),
           body.length > 1400 ? `${body.slice(0, 1400)}\n- *…y más en el post del proyecto*` : body,
           imgNews && gallery(imgNews.ref),
           row([linkBtn("Ver proyecto", inThread.url, "📂"), link && linkBtn("Enlace", link, "🔗")].filter(Boolean)),
@@ -225,7 +225,7 @@ export function historyMessage(p) {
     .slice(-20)
     .reverse()
     .map((u) => `- ${kinds[u.type] ?? "•"} [${u.title}](${u.messageUrl})${u.version ? ` \`${u.version}\`` : ""} — ${ts(u.at, "d")}`);
-  return box([`## 📜 Historial · ${p.name}`, lines.length ? lines.join("\n") : "*Todavía no hay novedades.*", p.updates.length > 20 && `-# Mostrando las 20 últimas de ${p.updates.length}`]);
+  return box([h2(`Historial · ${p.name}`, "📜"), lines.length ? lines.join("\n") : "*Todavía no hay novedades.*", p.updates.length > 20 && `-# Mostrando las 20 últimas de ${p.updates.length}`]);
 }
 
 export async function onButton(interaction, action, threadId) {

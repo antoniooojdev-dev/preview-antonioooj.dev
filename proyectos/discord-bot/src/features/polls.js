@@ -20,10 +20,10 @@ function buildEmbed(poll, ended = false) {
 
   return new EmbedBuilder()
     .setColor(ended ? config.colors.neutral : config.colors.primary)
-    .setTitle(`📊 ${poll.question}`)
+    .setTitle(`📊 ${poll.question.toLocaleUpperCase("es-ES")}`)
     .setDescription(lines.join("\n\n"))
     .setFooter({ text: `${total} ${total === 1 ? "voto" : "votos"}${ended ? " · Encuesta cerrada" : ""}` })
-    .addFields(ended ? [] : [{ name: "Termina", value: discordTime(poll.endsAt) }]);
+    .addFields(ended ? [] : [{ name: "TERMINA", value: discordTime(poll.endsAt) }]);
 }
 
 function buildButtons(poll, disabled = false) {

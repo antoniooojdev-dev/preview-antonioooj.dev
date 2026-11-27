@@ -291,7 +291,7 @@ if (guildSettings.community && !isCommunity()) {
     guild = await guild.edit({
       features: [...guild.features, GuildFeature.Community],
       rulesChannel: ids.channels.normas,
-      publicUpdatesChannel: ids.channels.staff_avisos,
+      publicUpdatesChannel: ids.channels.logs,
       safetyAlertsChannel: ids.channels.logs,
       reason: "Setup AJ",
     });
@@ -302,7 +302,7 @@ if (guildSettings.community && !isCommunity()) {
   }
 } else if (isCommunity()) {
   await guild
-    .edit({ rulesChannel: ids.channels.normas, publicUpdatesChannel: ids.channels.staff_avisos, safetyAlertsChannel: ids.channels.logs })
+    .edit({ rulesChannel: ids.channels.normas, publicUpdatesChannel: ids.channels.logs, safetyAlertsChannel: ids.channels.logs })
     .catch(() => {});
 }
 
@@ -324,7 +324,7 @@ await guild
     description: guildSettings.description,
     afkChannel: afk ? ids.channels[afk.key] : null,
     afkTimeout: guildSettings.afkTimeout,
-    systemChannel: ids.channels.bienvenidas,
+    systemChannel: ids.channels.general,
     // la bienvenida la hace el bot; Discord solo avisa de las mejoras
     systemChannelFlags: [
       GuildSystemChannelFlags.SuppressJoinNotifications,

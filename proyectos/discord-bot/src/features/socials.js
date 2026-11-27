@@ -3,7 +3,7 @@
 //  · Directos de Twitch (opcional, con TWITCH_CLIENT_ID / TWITCH_CLIENT_SECRET / TWITCH_USER)
 // La primera lectura de cada feed solo memoriza lo que ya existe: no inunda el canal con lo antiguo.
 
-import { box, gallery, linkBtn, row, v2 } from "../lib/ui.js";
+import { box, etiqueta, gallery, h3, linkBtn, MAYUS, row, v2 } from "../lib/ui.js";
 import config from "../config.js";
 import { db, save } from "../lib/store.js";
 import { log } from "../lib/logger.js";
@@ -57,13 +57,12 @@ async function post(client, channelKey, payload) {
   if (message.crosspostable) await message.crosspost().catch(() => {});
 }
 
-const pingText = (ping) => (ping ? `  ·  <@&${ping}>` : "");
 const when = (date) => `<t:${Math.floor((date ? new Date(date) : new Date()).getTime() / 1000)}:R>`;
 
 /** Vídeo: texto con el enlace suelto para que Discord muestre el reproductor */
 function videoPayload(feed, item, ping) {
   return {
-    content: [`-# ${feed.emoji} ${feed.name}${pingText(ping)}  ·  ${when(item.date)}`, `### ${item.title}`, item.link].join("\n"),
+    content: [etiqueta(`${feed.emoji} ${feed.name}`, ping && `<@&${ping}>`, when(item.date)), h3(item.title), item.link].join("\n"),
     allowedMentions: { roles: ping ? [ping] : [] },
   };
 }
@@ -73,8 +72,8 @@ function cardPayload(feed, item, ping) {
   return {
     ...v2(
       box([
-        `-# ${feed.emoji} ${feed.name}${pingText(ping)}  ·  ${when(item.date)}`,
-        `### ${item.link ? `[${item.title}](${item.link})` : item.title}`,
+        etiqueta(`${feed.emoji} ${feed.name}`, ping && `<@&${ping}>`, when(item.date)),
+        item.link ? `### [__${MAYUS(item.title)}__](${item.link})` : h3(item.title),
         item.summary && `*${item.summary}*`,
         item.image && gallery(item.image),
       ]),
@@ -145,8 +144,8 @@ async function checkTwitch(client) {
       ...v2(
         box(
           [
-            `-# 🔴 Twitch · en directo${pingText(ping)}`,
-            `## [${stream.title}](${url})`,
+            etiqueta("🔴 Twitch", "**en directo**", ping && `<@&${ping}>`),
+            `## [__${MAYUS(stream.title)}__](${url})`,
             `*${stream.game_name || "Sin categoría"}*`,
             gallery(`${stream.thumbnail_url.replace("{width}", "1280").replace("{height}", "720")}?t=${Date.now()}`),
             row(linkBtn("Ver directo", url, "🔴")),

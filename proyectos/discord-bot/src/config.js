@@ -26,10 +26,10 @@ export default {
   },
 
   channels: {
-    welcome: ch("bienvenidas"), // mensaje de bienvenida
+    welcome: ch("general"), // mensaje de bienvenida (sin canal propio: servidor minimalista)
     logs: ch("logs"), // entradas/salidas, mensajes borrados, verificaciones, automod, sanciones
     modLogs: ch("logs"),
-    ticketLogs: ch("ticket_logs") || ch("logs"), // tickets y transcripciones
+    ticketLogs: ch("logs"), // tickets y transcripciones (todo en 📋・registro)
     levelUp: ch("comandos"), // subidas de nivel (vacío = en el mismo canal)
     ticketCategory: ch("cat_tickets"), // categoría donde se crean los tickets
     rules: ch("normas"),

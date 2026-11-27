@@ -22,7 +22,7 @@ export async function sendLog(guild, { title, description, color = config.colors
   const channel = guild.channels.cache.get(channelId);
   if (!channel?.isTextBased()) return;
 
-  const embed = new EmbedBuilder().setTitle(title).setColor(color).setTimestamp();
+  const embed = new EmbedBuilder().setTitle(String(title).toLocaleUpperCase("es-ES")).setColor(color).setTimestamp();
   if (description) embed.setDescription(description.slice(0, 4000));
   if (fields.length) embed.addFields(fields);
 

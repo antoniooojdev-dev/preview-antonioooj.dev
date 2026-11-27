@@ -1,5 +1,5 @@
 import { Events } from "discord.js";
-import { box, v2, withThumb } from "../lib/ui.js";
+import { box, etiqueta, h2, v2, withThumb } from "../lib/ui.js";
 import config from "../config.js";
 import { discordTime } from "../lib/duration.js";
 import { log, sendLog } from "../lib/logger.js";
@@ -33,12 +33,12 @@ export default {
             box([
               withThumb(
                 user.displayAvatarURL({ size: 256 }),
-                `-# Miembro #${guild.memberCount}`,
-                `## 👋 ¡Hola, ${member.displayName}!`,
+                etiqueta("Nuevo miembro", `**#${guild.memberCount}**`),
+                h2(`¡Hola, ${member.displayName}!`, "👋"),
                 `${user} *${greet}*`,
               ),
               "---",
-              `-# Verifícate en ${ch("normas") ?? "las normas"} · después pásate por ${ch("guia") ?? "la guía"}`,
+              `-# **Verifícate** en ${ch("normas") ?? "las normas"}  ·  después pásate por ${ch("guia") ?? "la guía"}`,
             ]),
           ),
           allowedMentions: { users: [user.id] },

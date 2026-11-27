@@ -17,12 +17,12 @@ export default {
 
     const embed = new EmbedBuilder()
       .setColor(config.colors.primary)
-      .setAuthor({ name: user.displayName, iconURL: user.displayAvatarURL() })
+      .setAuthor({ name: `NIVEL · ${user.displayName.toLocaleUpperCase("es-ES")}`, iconURL: user.displayAvatarURL() })
       .addFields(
-        { name: "Nivel", value: `**${profile.level}**`, inline: true },
-        { name: "Puesto", value: position ? `#${position}` : "—", inline: true },
-        { name: "XP total", value: profile.total.toLocaleString("es-ES"), inline: true },
-        { name: `Progreso · ${profile.xp}/${need} XP`, value: progressBar(profile.xp, need, 16) },
+        { name: "NIVEL", value: `**${profile.level}**`, inline: true },
+        { name: "PUESTO", value: position ? `**#${position}**` : "—", inline: true },
+        { name: "XP TOTAL", value: `**${profile.total.toLocaleString("es-ES")}**`, inline: true },
+        { name: `PROGRESO · ${profile.xp}/${need} XP`, value: progressBar(profile.xp, need, 16) },
       );
 
     await interaction.reply({ embeds: [embed] });

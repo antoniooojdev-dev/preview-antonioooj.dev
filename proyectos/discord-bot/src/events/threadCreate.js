@@ -42,7 +42,8 @@ export default {
           embeds: [
             new EmbedBuilder()
               .setColor(config.colors.primary)
-              .setDescription("💡 ¡Gracias por la sugerencia! Votad con 👍 / 👎 en el primer mensaje. El equipo la revisará y cambiará su etiqueta."),
+              .setTitle("💡 SUGERENCIA RECIBIDA")
+              .setDescription("**¡Gracias!** Votad con 👍 / 👎 en el primer mensaje. El equipo la __revisará__ y cambiará su etiqueta."),
           ],
         })
         .catch(() => {});
@@ -54,10 +55,10 @@ export default {
         .send({
           embeds: [
             new EmbedBuilder()
-              .setColor(config.colors.warning)
-              .setTitle("🐛 Bug recibido")
+              .setColor(config.colors.primary)
+              .setTitle("🐛 BUG RECIBIDO")
               .setDescription(
-                "Gracias por avisar. Si no lo has puesto ya, añade:\n• Pasos para reproducirlo\n• Qué esperabas que pasara\n• Capturas o el error de la consola (F8 en FiveM)",
+                "**Gracias por avisar.** Si no lo has puesto ya, añade:\n**`01`** Pasos para __reproducirlo__\n**`02`** Qué __esperabas__ que pasara\n**`03`** Capturas o el __error de la consola__ (F8 en FiveM)",
               ),
           ],
         })

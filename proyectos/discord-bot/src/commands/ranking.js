@@ -14,8 +14,8 @@ export default {
     );
 
     const embed = new EmbedBuilder()
-      .setColor(config.colors.warning)
-      .setTitle(`🏆 Ranking de ${interaction.guild.name}`)
+      .setColor(config.colors.primary)
+      .setTitle(`🏆 RANKING · ${interaction.guild.name.toLocaleUpperCase("es-ES")}`)
       .setDescription(lines.join("\n") || "Todavía nadie tiene XP. ¡Empezad a hablar!");
 
     await interaction.reply({ embeds: [embed], allowedMentions: { users: [] } });

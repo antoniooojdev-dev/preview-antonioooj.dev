@@ -50,13 +50,13 @@ export default {
 
     const embed = new EmbedBuilder()
       .setColor(config.colors.warning)
-      .setTitle("⚠️ Advertencia")
+      .setTitle("⚠️ ADVERTENCIA")
       .addFields(
-        { name: "Usuario", value: target.toString(), inline: true },
-        { name: "Total", value: String(count), inline: true },
-        { name: "Motivo", value: reason },
+        { name: "USUARIO", value: target.toString(), inline: true },
+        { name: "TOTAL", value: `**${count}**`, inline: true },
+        { name: "MOTIVO", value: `**${reason}**` },
       );
-    if (sanction) embed.addFields({ name: "Sanción automática", value: sanction });
+    if (sanction) embed.addFields({ name: "SANCIÓN AUTOMÁTICA", value: `__${sanction}__` });
 
     await interaction.reply({ embeds: [embed] });
     await sendLog(interaction.guild, {

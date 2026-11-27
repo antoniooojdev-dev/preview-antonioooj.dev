@@ -11,11 +11,10 @@ import {
 } from "discord.js";
 import config from "../config.js";
 import { fail, ok } from "../lib/embeds.js";
-import { box, gallery, linkBtn, row as uiRow, v2 } from "../lib/ui.js";
+import { box, etiqueta, gallery, h1, linkBtn, row as uiRow, v2 } from "../lib/ui.js";
 
 export const DESTINOS = {
   anuncios: { label: "📢 Anuncios", ping: "ping_anuncios" },
-  eventos: { label: "🎉 Eventos", ping: "ping_eventos" },
   general: { label: "💬 General", ping: null },
   // las novedades de proyectos van con /novedad (avisan por categoría)
 };
@@ -86,13 +85,13 @@ export async function onModal(interaction, action, destino, mencion, estilo) {
     ...v2(
       box(
         [
-          `-# ${DESTINOS[destino].label}${mentionText ? `  ·  ${mentionText}` : ""}`,
-          `# ${style.prefix}${get("titulo")}`,
+          etiqueta(DESTINOS[destino].label, mentionText),
+          h1(get("titulo"), style.prefix.trim()),
           get("mensaje"),
           image && gallery(image),
           link && uiRow(link),
           "---",
-          `-# ${interaction.member.displayName}  ·  <t:${Math.floor(Date.now() / 1000)}:f>`,
+          `-# **${interaction.member.displayName}**  ·  <t:${Math.floor(Date.now() / 1000)}:f>`,
         ],
         style.color,
       ),

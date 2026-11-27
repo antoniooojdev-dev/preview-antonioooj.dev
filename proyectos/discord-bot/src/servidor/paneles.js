@@ -7,7 +7,7 @@ import config from "../config.js";
 import { panelMessage as ticketPanel } from "../features/tickets.js";
 import { panelMessage as verificationPanel } from "../features/verification.js";
 import { panelMessage as rolesPanel } from "../features/selfroles.js";
-import { box, btn, linkBtn, row, v2, withThumb } from "../lib/ui.js";
+import { box, btn, h1, h2, h3, linkBtn, MAYUS, row, v2, withThumb } from "../lib/ui.js";
 import { LOGO, projectCategories, roles as planRoles, SITE, socials } from "./plan.js";
 
 const chan = (key) => (config.ids.channels[key] ? `<#${config.ids.channels[key]}>` : `#${key}`);
@@ -17,27 +17,27 @@ const levelRoles = () => planRoles.filter((r) => r.level).sort((a, b) => a.level
 // ── #normas (con verificación al final) ──────────────────────
 function normas() {
   const rules = [
-    ["Respeto ante todo", "Nada de insultos, acoso ni discriminación. Se puede discrepar *sin faltar*."],
-    ["Cero spam", "Sin flood, cadenas, menciones masivas ni publicidad. Las invitaciones a otros servidores se borran solas."],
-    ["Contenido apropiado", "Nada NSFW, violento o ilegal. __Tampoco leaks, cracks ni recursos robados__ (MLOs y scripts filtrados incluidos)."],
-    ["Cada cosa en su sitio", `Las dudas de código van a ${chan("ayuda")} con el código y el error completo.`],
-    ["Privacidad", "No compartas datos personales tuyos ni de otros. **Nunca** pidas ni des contraseñas o tokens."],
-    ["Encargos solo por ticket", `Presupuestos y pagos __únicamente__ por ${chan("abrir_ticket")}. Desconfía de quien te escriba por privado haciéndose pasar por el staff.`],
-    ["Perfil correcto", "Sin nombres ni avatares ofensivos o que imiten al staff."],
-    ["Decide el staff", "El equipo puede actuar ante cualquier conducta que perjudique a la comunidad, aunque no esté escrita aquí."],
+    ["Respeto", "Nada de insultos, acoso ni discriminación. Se puede discrepar *sin faltar*."],
+    ["Cero spam", "Sin flood, cadenas, menciones masivas ni **publicidad**."],
+    ["Contenido", "Nada NSFW, violento o ilegal. __Ni leaks, cracks ni recursos robados__."],
+    ["Cada cosa en su sitio", `Las dudas de código, en ${chan("ayuda")} con el **código** y el **error**.`],
+    ["Privacidad", "**Nunca** pidas ni des contraseñas, tokens o datos personales."],
+    ["Encargos por ticket", `Presupuestos y pagos __solo__ por ${chan("abrir_ticket")}.`],
+    ["Decide el staff", "Puede actuar ante cualquier conducta que perjudique a la comunidad."],
   ];
   return v2(
     box([
-      "# 📜 Normas",
-      "*Pocas y claras. Al verificarte las aceptas.*",
+      h1("Normas", "📜"),
+      "-# Pocas y claras. Al verificarte, las aceptas.",
       "---",
-      rules.map(([t, d], i) => `**${i + 1}. ${t}**\n${d}`).join("\n\n"),
+      rules.map(([t, d], i) => `**\`${String(i + 1).padStart(2, "0")}\`  ${MAYUS(t)}**
+${d}`).join("\n\n"),
       "---",
-      "## ⚖️ Sanciones",
-      "**1–2** advertencias → aviso  ·  **3** → aislamiento *1 h*  ·  **5** → expulsión\n-# Las faltas graves pueden suponer baneo directo.",
+      h3("Sanciones", "⚖️"),
+      "**1–2** avisos → advertencia  ·  **3** → aislamiento *1 h*  ·  **5** → expulsión\n-# Las faltas graves pueden suponer **baneo directo**.",
       "===",
-      "## ✅ Verificación",
-      "Pulsa el botón para __desbloquear el servidor__. Frena bots y raids: gracias por la paciencia.",
+      h2("Verificación", "✅"),
+      "Pulsa el botón para __desbloquear el servidor__.",
       row(
         btn("verify:go", "Acepto, verificarme", { emoji: "✅", style: ButtonStyle.Success }),
         linkBtn("Directrices de Discord", "https://discord.com/guidelines", "📘"),
@@ -53,36 +53,38 @@ function guia() {
     box([
       withThumb(
         LOGO,
-        "# AJ · DEV",
-        "*La comunidad de **AntonioooJ***",
-        `Webs, aplicaciones web, scripts de FiveM y bots de Discord. Aquí se __aprende__, se __comparte__ y se siguen los proyectos de [antonioooj.dev](${SITE}).`,
+        h1("AJ · Dev"),
+        "**Webs**, **aplicaciones web**, **scripts de FiveM** y **bots de Discord**.",
+        `-# La comunidad de [antonioooj.dev](${SITE})`,
       ),
       "---",
-      "## 🧭 Empieza aquí",
+      h3("Empieza aquí", "🧭"),
       [
-        "1. Elige tus **avisos** e **intereses** justo debajo ↓",
-        `2. Mira los proyectos en ${chan("proyectos")}`,
-        `3. Saluda en ${chan("general")} 👋`,
+        "**`01`**  Elige tus **avisos** e **intereses** aquí debajo",
+        `**\`02\`**  Mira los proyectos en ${chan("proyectos")}`,
+        `**\`03\`**  Saluda en ${chan("general")}`,
       ].join("\n"),
       "---",
-      "## 🗺️ Canales",
+      h3("Canales", "🗺️"),
       [
-        `**Información** — ${chan("anuncios")} · ${chan("novedades")} · ${chan("contenido")}`,
-        `**Proyectos** — ${chan("proyectos")} · ${chan("sugerencias")} · ${chan("bugs")}`,
-        `**Comunidad** — ${chan("general")} · ${chan("media")} · ${chan("comandos")} · ${chan("eventos")}`,
-        `**Desarrollo** — ${chan("programacion")} · ${chan("ayuda")} · ${chan("tus_proyectos")}`,
-        `**Voz** — entra en *➕ Crear sala* y tendrás una sala propia que se borra al vaciarse`,
-        `**Encargos y ayuda** — ${chan("servicios")} · ${chan("abrir_ticket")}`,
+        `**INICIO** — ${chan("anuncios")} ${chan("novedades")}`,
+        `**COMUNIDAD** — ${chan("general")} ${chan("media")} ${chan("comandos")}`,
+        `**PROYECTOS** — ${chan("proyectos")} ${chan("sugerencias")} ${chan("bugs")}`,
+        `**DESARROLLO** — ${chan("programacion")} ${chan("ayuda")} ${chan("tus_proyectos")}`,
+        `**SERVICIOS** — ${chan("servicios")} ${chan("abrir_ticket")}`,
+        "**VOZ** — entra en *➕ Crear sala* y tendrás una sala __solo tuya__",
       ].join("\n"),
       "---",
-      "## 🚀 Novedades por categoría",
-      `Cada proyecto tiene su post en ${chan("proyectos")} con __todo su historial__. Los cambios nuevos se anuncian en ${chan("novedades")} y solo te avisan de lo que elijas:`,
+      h3("Novedades", "🚀"),
+      `Cada proyecto tiene su post en ${chan("proyectos")} con __todo su historial__. Solo te avisamos de lo que elijas:`,
       cats.map((c) => `${c.emoji} **${c.label}** → ${role(c.role)}`).join("\n"),
       "---",
-      "## 🏅 Niveles",
-      `Hablar da XP *(una vez por minuto, el spam no cuenta)*. Al subir ganas rol:\n${levelRoles()
+      h3("Niveles", "🏅"),
+      `Hablar da **XP** y al subir ganas rol:
+${levelRoles()
         .map((r) => `**${r.level}** ${role(r.key)}`)
-        .join("  ·  ")}\n-# \`/nivel\` para tu progreso · \`/ranking\` para el top 10`,
+        .join("  ·  ")}
+-# \`/nivel\` tu progreso  ·  \`/ranking\` el top 10`,
       "---",
       row(socials.links.slice(0, 5).map((l) => linkBtn(l.label, l.url, l.emoji))),
     ]),
@@ -93,19 +95,20 @@ function guia() {
 // ── #servicios ───────────────────────────────────────────────
 function servicios() {
   const items = [
-    ["🌐", "Páginas web", "Negocios, portfolios, reservas y tiendas. *Rápidas, con SEO y fáciles de mantener.*"],
+    ["🌐", "Páginas web", "Negocios, portfolios, reservas y tiendas. **Rápidas** y con **SEO**."],
     ["🧩", "Aplicaciones web", "Paneles de gestión, agendas, áreas de clientes y herramientas internas."],
-    ["🎮", "Scripts de FiveM", "Lua para ESX con interfaz NUI: tablets, teléfonos, trabajos, policía, bandas… *optimizados*."],
-    ["🤖", "Bots de Discord", "Tickets, verificación, niveles, automod, avisos de redes… como el que gestiona este servidor."],
+    ["🎮", "Scripts de FiveM", "**ESX**, **QBCore** y **Qbox** con interfaz propia: tablets, trabajos, policía, bandas…"],
+    ["🤖", "Bots de Discord", "Tickets, verificación, niveles, automod… __como el de este servidor__."],
   ];
   return v2(
     box([
-      withThumb(LOGO, "# 💼 Servicios", "*Proyectos a medida, del diseño al despliegue.*", "Cada encargo incluye __seguimiento__ y __soporte__ tras la entrega."),
+      withThumb(LOGO, h1("Servicios", "💼"), "Proyectos **a medida**, del diseño al despliegue.", "-# Con __seguimiento__ y __soporte__ tras la entrega."),
       "---",
-      items.map(([e, t, d]) => `### ${e} ${t}\n${d}`).join("\n"),
+      items.map(([e, t, d]) => `${e} **${MAYUS(t)}**
+${d}`).join("\n\n"),
       "---",
-      "## 📋 Cómo funciona",
-      "**1.** Abres ticket con tu idea → **2.** presupuesto *sin compromiso* → **3.** desarrollo con avances → **4.** entrega y soporte",
+      h3("Cómo funciona", "📋"),
+      "**`01`** Ticket con tu idea  →  **`02`** Presupuesto *sin compromiso*  →  **`03`** Desarrollo  →  **`04`** Entrega y soporte",
       row(
         btn("ticket:quick:presupuesto", "Pedir presupuesto", { emoji: "💼", style: ButtonStyle.Primary }),
         btn("ticket:quick:partner", "Colaborar", { emoji: "🤝" }),

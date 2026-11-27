@@ -1,5 +1,5 @@
 import { ButtonStyle, MessageFlags } from "discord.js";
-import { box, btn, row, v2 } from "../lib/ui.js";
+import { box, btn, h2, row, v2 } from "../lib/ui.js";
 import config from "../config.js";
 import { fail, info, ok } from "../lib/embeds.js";
 import { sendLog } from "../lib/logger.js";
@@ -8,7 +8,7 @@ export function panelMessage() {
   const rules = config.channels.rules ? `<#${config.channels.rules}>` : "las normas";
   return v2(
     box([
-      "## ✅ Verificación",
+      h2("Verificación", "✅"),
       `Lee ${rules} y pulsa el botón para __desbloquear el servidor__.`,
       row(btn("verify:go", "Acepto, verificarme", { emoji: "✅", style: ButtonStyle.Success })),
     ]),

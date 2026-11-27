@@ -9,8 +9,8 @@ export default {
     const embed = new EmbedBuilder()
       .setColor(config.colors.primary)
       .setAuthor({ name: "AJ · DEV", iconURL: LOGO })
-      .setTitle("🔗 Redes")
-      .setDescription(socials.links.map((l) => `${l.emoji} [${l.label}](${l.url})`).join("\n"));
+      .setTitle("🔗 REDES")
+      .setDescription(socials.links.map((l) => `${l.emoji} **[${l.label}](${l.url})**`).join("\n"));
     const row = new ActionRowBuilder().addComponents(
       socials.links.slice(0, 5).map((l) => new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel(l.label).setEmoji(l.emoji).setURL(l.url)),
     );

@@ -25,16 +25,16 @@ export default {
 
     const embed = new EmbedBuilder()
       .setColor(config.colors.warning)
-      .setAuthor({ name: `Advertencias de ${user.displayName}`, iconURL: user.displayAvatarURL() })
+      .setAuthor({ name: `ADVERTENCIAS · ${user.displayName.toLocaleUpperCase("es-ES")}`, iconURL: user.displayAvatarURL() })
       .setDescription(
         warns.length
           ? warns
               .slice(-15)
-              .map((w, i) => `**${i + 1}.** ${w.reason}\n└ por <@${w.by}> ${discordTime(w.at)}`)
+              .map((w, i) => `**\`${String(i + 1).padStart(2, "0")}\`** **${w.reason}**\n-# por <@${w.by}>  ·  ${discordTime(w.at)}`)
               .join("\n")
-          : "Sin advertencias. 👌",
+          : "**Sin advertencias.** 👌",
       )
-      .setFooter({ text: `Total: ${warns.length}` });
+      .setFooter({ text: `TOTAL: ${warns.length}` });
 
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   },

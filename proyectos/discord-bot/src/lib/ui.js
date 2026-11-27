@@ -18,6 +18,23 @@ import {
 
 export const ACCENT = 0xf2f2f2; // blanco de la marca AJ
 
+// ── Estilo AJ de los títulos: en MAYÚSCULAS y __subrayados__, con un solo emoji delante ──
+// Las menciones (<@…> <#…> <t:…>) y los enlaces se dejan tal cual para no romperlos.
+export const MAYUS = (t) =>
+  String(t)
+    .split(/(<[^>]+>|\]\([^)]+\))/)
+    .map((x, i) => (i % 2 ? x : x.toLocaleUpperCase("es-ES")))
+    .join("");
+const titulo = (nivel) => (t, emoji) => `${nivel} ${emoji ? `${emoji} ` : ""}__${MAYUS(t)}__`;
+/** `# 📜 __NORMAS__` */
+export const h1 = titulo("#");
+/** `## ⚖️ __SANCIONES__` */
+export const h2 = titulo("##");
+/** `### __APARTADO__` */
+export const h3 = titulo("###");
+/** Línea pequeña de contexto: `-# **ETIQUETA** · resto` */
+export const etiqueta = (t, ...resto) => `-# **${MAYUS(t)}**${resto.filter(Boolean).length ? `  ·  ${resto.filter(Boolean).join("  ·  ")}` : ""}`;
+
 export const text = (...lines) => new TextDisplayBuilder().setContent(lines.flat().filter((l) => l !== null && l !== undefined && l !== false).join("\n"));
 
 export const sep = (large = false, divider = true) =>

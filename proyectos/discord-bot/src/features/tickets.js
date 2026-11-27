@@ -20,7 +20,7 @@ import { discordTime } from "../lib/duration.js";
 import { fail, ok } from "../lib/embeds.js";
 import { sendLog } from "../lib/logger.js";
 import { ticketTypes } from "../servidor/plan.js";
-import { box, btn, row, v2 } from "../lib/ui.js";
+import { box, btn, etiqueta, h1, h2, row, v2 } from "../lib/ui.js";
 
 const pad = (n) => String(n).padStart(4, "0");
 
@@ -28,11 +28,11 @@ const pad = (n) => String(n).padStart(4, "0");
 export function panelMessage() {
   return v2(
     box([
-      "# 🎫 Soporte",
-      "*Elige el tipo, rellena el formulario y se abrirá un canal __privado__ con el equipo.*",
+      h1("Soporte", "🎫"),
+      "Elige el tipo, rellena el formulario y se abre un canal __privado__ con el equipo.",
       "---",
       Object.values(ticketTypes)
-        .map((t) => `${t.emoji} **${t.label}** — ${t.desc}`)
+        .map((t) => `${t.emoji} **${t.label.toLocaleUpperCase("es-ES")}** — ${t.desc}`)
         .join("\n"),
       row(
         new StringSelectMenuBuilder()
@@ -41,7 +41,7 @@ export function panelMessage() {
           .addOptions(Object.entries(ticketTypes).map(([value, t]) => ({ value, label: t.label, emoji: t.emoji, description: t.desc }))),
       ),
       "---",
-      "-# Un ticket a la vez · Al cerrarlo recibes la conversación por privado · El staff __nunca__ pide pagos ni contraseñas fuera de un ticket",
+      "-# **Un ticket a la vez**  ·  Al cerrarlo recibes la conversación por privado  ·  El equipo __nunca__ pide pagos ni contraseñas fuera de un ticket",
     ]),
   );
 }
@@ -50,11 +50,11 @@ export function panelMessage() {
 function ticketMessage(t, type, { claimedName = null } = {}) {
   return v2(
     box([
-      `-# ${type.emoji} ${type.label}  ·  #${pad(t.number)}  ·  ${discordTime(t.openedAt)}`,
-      `## Hola <@${t.ownerId}> 👋`,
-      "*El equipo te responderá lo antes posible. Mientras tanto, añade capturas o cualquier detalle útil.*",
+      etiqueta(`${type.emoji} ${type.label}`, `**#${pad(t.number)}**`, discordTime(t.openedAt)),
+      h2(`Hola <@${t.ownerId}>`, "👋"),
+      "El equipo te responde **lo antes posible**. Mientras, añade capturas o cualquier detalle útil.",
       "---",
-      t.answers.map((a) => `**${a.name}**\n${a.value}`).join("\n\n"),
+      t.answers.map((a) => `**__${a.name.toLocaleUpperCase("es-ES")}__**\n${a.value}`).join("\n\n"),
       "---",
       row(
         btn("ticket:claim", claimedName ? `Atendido por ${claimedName}`.slice(0, 80) : "Reclamar", {
@@ -263,7 +263,7 @@ async function close(interaction) {
 
   await sendLog(
     guild,
-    { title: "🔒 Ticket cerrado", color: config.colors.warning, fields: summary },
+    { title: "🔒 TICKET CERRADO", color: config.colors.warning, fields: summary },
     [new AttachmentBuilder(Buffer.from(transcript, "utf8"), { name: fileName })],
     "ticketLogs",
   );
@@ -274,12 +274,12 @@ async function close(interaction) {
     ?.send({
       ...v2(
         box([
-          `-# ${guild.name}`,
-          "## 🔒 Tu ticket se ha cerrado",
-          `*${type.emoji} ${type.label} · #${pad(ticket.number)}*`,
+          etiqueta(guild.name),
+          h2("Tu ticket se ha cerrado", "🔒"),
+          `${type.emoji} **${type.label}**  ·  #${pad(ticket.number)}`,
           "---",
-          `**Motivo** — ${reason}`,
-          `**Atendido por** — ${ticket.claimedBy ? `<@${ticket.claimedBy}>` : "el equipo"}`,
+          `**__MOTIVO__** — ${reason}`,
+          `**__ATENDIDO POR__** — ${ticket.claimedBy ? `<@${ticket.claimedBy}>` : "el equipo"}`,
           "-# Tienes la conversación completa adjunta. Si necesitas algo más, abre otro ticket cuando quieras.",
         ]),
       ),

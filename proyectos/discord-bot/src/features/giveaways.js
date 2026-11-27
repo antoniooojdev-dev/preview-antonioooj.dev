@@ -9,14 +9,14 @@ import { log } from "../lib/logger.js";
 function buildEmbed(g, winners = null) {
   const embed = new EmbedBuilder()
     .setColor(winners ? config.colors.neutral : config.colors.warning)
-    .setTitle(`🎉 ${g.prize}`)
-    .addFields({ name: "Organiza", value: `<@${g.hostId}>`, inline: true }, { name: "Ganadores", value: String(g.winners), inline: true });
+    .setTitle(`🎉 ${g.prize.toLocaleUpperCase("es-ES")}`)
+    .addFields({ name: "ORGANIZA", value: `<@${g.hostId}>`, inline: true }, { name: "GANADORES", value: `**${g.winners}**`, inline: true });
 
   if (winners) {
     embed.setDescription(winners.length ? `**Ganador${winners.length > 1 ? "es" : ""}:** ${winners.map((id) => `<@${id}>`).join(", ")}` : "Nadie participó 😢");
     embed.setFooter({ text: `Sorteo terminado · ${g.entrants.length} participantes` });
   } else {
-    embed.setDescription(`Pulsa el botón para participar.\nTermina ${discordTime(g.endsAt)} (${discordTime(g.endsAt, "f")})`);
+    embed.setDescription(`Pulsa el botón para **participar**.\n-# Termina ${discordTime(g.endsAt)} (${discordTime(g.endsAt, "f")})`);
   }
   return embed;
 }

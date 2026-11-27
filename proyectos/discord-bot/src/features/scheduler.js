@@ -45,7 +45,7 @@ async function runReminders(client) {
   save();
 
   for (const r of due) {
-    const embed = new EmbedBuilder().setColor(0x5865f2).setTitle("⏰ Recordatorio").setDescription(r.text);
+    const embed = new EmbedBuilder().setColor(config.colors.primary).setTitle("⏰ RECORDATORIO").setDescription(`**${r.text}**`);
     try {
       const user = await client.users.fetch(r.userId);
       await user.send({ embeds: [embed] });
