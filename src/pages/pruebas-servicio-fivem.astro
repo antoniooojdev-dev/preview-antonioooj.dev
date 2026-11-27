@@ -7,8 +7,8 @@
 //   4. catálogo en tarjetas anchas con captura, alternando lado
 //   (todos los scripts van en español e inglés: chips ES / EN)
 //   5. características como un «resmon» (monitor de recursos de FiveM)
-//   6. dos caminos: comprar uno hecho o encargar uno a medida (con el proceso dentro)
-//   7. preguntas en dos columnas y cierre
+//   6. «hecho o a medida»: selector que cambia entre el escaparate y la ruta del encargo
+//   7. preguntas en acordeón con el título fijo al lado, y cierre en color con botón «imán»
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Icono from "@/components/servicios/Icono.astro";
 import { services, serviceDetails } from "@/data/services";
@@ -258,75 +258,132 @@ const resmon = detail.incluye.map((x, i) => ({
         </div>
       </section>
 
-      <!-- 6. dos caminos -->
-      <section class="fx-sec">
-        <div class="fx-sec__head">
-          <p class="fx-k mono">// cómo lo quieres</p>
-          <h2 class="fx-h2">Dos <span>caminos</span></h2>
-        </div>
-        <div class="fx-caminos">
-          <div class="fx-camino" data-reveal>
-            <span class="fx-camino__n mono">A</span>
-            <h3>Uno ya hecho</h3>
-            <p>Scripts probados en un servidor real, listos para instalar. Los compras en Tebex, los descargas y en minutos están en tu servidor.</p>
-            <ul role="list" class="fx-mini">
-              <li><Icono nombre="zap" size={15} /> Al momento, sin esperas</li>
-              <li><Icono nombre="sliders" size={15} /> Config abierta y comentada</li>
-              <li><Icono nombre="refresh" size={15} /> Actualizaciones incluidas</li>
-              <li><Icono nombre="message" size={15} /> En español y en inglés</li>
-            </ul>
-            <a href="#catalogo" class="btn btn-ghost">Ver el catálogo</a>
+      <!-- 6. cómo lo quieres: selector «ya hecho» / «a medida» -->
+      <section class="fx-sec fx-modo" data-modo>
+        <div class="fx-modo__head">
+          <div>
+            <p class="fx-k mono">// cómo lo quieres</p>
+            <h2 class="fx-h2">Hecho o <span>a medida</span></h2>
           </div>
-          <div class="fx-camino fx-camino--neg" data-reveal style="--i:1">
-            <span class="fx-camino__n mono">B</span>
-            <h3>A medida</h3>
-            <p>Me cuentas la idea y la hago para tu servidor, con tu estilo y tu framework. Plazo habitual: {service.timeline}.</p>
-            <ol role="list" class="fx-pasos">
-              {detail.proceso.map((p, i) => (
-                <li>
-                  <span class="mono">{i + 1}</span>
-                  <div>
-                    <strong>{p.t}</strong>
-                    <small>{p.d}</small>
-                  </div>
-                </li>
-              ))}
-            </ol>
+          <div class="fx-modo__sel" role="tablist" aria-label="Cómo quieres el script">
+            <span class="fx-modo__pildora" aria-hidden="true"></span>
+            <button type="button" role="tab" id="tab-hecho" aria-controls="panel-hecho" aria-selected="true" data-tab="hecho">
+              <Icono nombre="bag" size={16} /> Uno ya hecho
+            </button>
+            <button type="button" role="tab" id="tab-medida" aria-controls="panel-medida" aria-selected="false" data-tab="medida">
+              <Icono nombre="tool" size={16} /> A medida
+            </button>
+          </div>
+        </div>
+
+        <!-- ya hecho -->
+        <div class="fx-panel" id="panel-hecho" role="tabpanel" aria-labelledby="tab-hecho" data-panel="hecho">
+          <div class="fx-panel__txt">
+            <p class="fx-panel__big">Lo compras, lo descargas y <em>en minutos</em> está en tu servidor.</p>
+            <ul role="list" class="fx-ventajas">
+              <li><span><Icono nombre="zap" size={18} /></span><b>Al momento</b><small>Sin esperas ni reuniones</small></li>
+              <li><span><Icono nombre="sliders" size={18} /></span><b>Config abierta</b><small>Comentada línea a línea</small></li>
+              <li><span><Icono nombre="refresh" size={18} /></span><b>Actualizaciones</b><small>Incluidas, sin pagar más</small></li>
+              <li><span><Icono nombre="message" size={18} /></span><b>ES · EN</b><small>Textos en los dos idiomas</small></li>
+            </ul>
+            <a href="#catalogo" class="btn btn-ghost">Ver todo el catálogo</a>
+          </div>
+          <ul role="list" class="fx-tienda">
+            {
+              lista
+                .filter((s) => s.estado === "disponible" && s.portada)
+                .map((s) => (
+                  <li>
+                    <a href={`/servicios/fivem/${s.id}`}>
+                      <img src={s.portada} alt="" loading="lazy" width="1920" height="1080" />
+                      <span class="fx-tienda__pie">
+                        <b>{s.nombre}</b>
+                        <span class="mono">{precios[s.id] ? euros(precios[s.id].precio) : "ver ficha"}</span>
+                      </span>
+                    </a>
+                  </li>
+                ))
+            }
+          </ul>
+        </div>
+
+        <!-- a medida -->
+        <div class="fx-panel fx-panel--medida" id="panel-medida" role="tabpanel" aria-labelledby="tab-medida" data-panel="medida">
+          <div class="fx-panel__txt">
+            <p class="fx-panel__big">Me cuentas la idea y la hago <em>para tu servidor</em>, con tu estilo y tu framework.</p>
+            <p class="fx-plazo mono"><Icono nombre="clock" size={15} /> Plazo habitual: <b>{service.timeline}</b></p>
             <a href={contacto} class="btn btn-primary">Pedir presupuesto</a>
           </div>
+          <ol role="list" class="fx-ruta">
+            {
+              detail.proceso.map((p, i) => (
+                <li style={`--i:${i}`}>
+                  <span class="fx-ruta__n mono">{String(i + 1).padStart(2, "0")}</span>
+                  <strong>{p.t}</strong>
+                  <small>{p.d}</small>
+                </li>
+              ))
+            }
+          </ol>
+          <div class="fx-para">
+            <span class="mono">pensado para</span>
+            <ul role="list">
+              {detail.idealPara.map((x) => <li>{x}</li>)}
+            </ul>
+          </div>
         </div>
-        <ul role="list" class="fx-ideal mono">
-          <li>ideal para →</li>
-          {detail.idealPara.map((x) => <li>{x}</li>)}
-        </ul>
       </section>
 
-      <!-- 7. preguntas -->
+      <!-- 7. preguntas: acordeón con el título fijo a la izquierda -->
       <section class="fx-sec fx-faq">
-        <div class="fx-sec__head">
+        <div class="fx-faq__lado">
           <p class="fx-k mono">// dudas</p>
-          <h2 class="fx-h2">Preguntas <span>rápidas</span></h2>
+          <h2 class="fx-h2">Preguntas <span>frecuentes</span></h2>
+          <div class="fx-faq__otra">
+            <span class="fx-faq__otra-ico" aria-hidden="true"><Icono nombre="message" size={20} /></span>
+            <div>
+              <b>¿Tienes otra duda?</b>
+              <p>Escríbeme y te respondo en el día, en español o en inglés.</p>
+            </div>
+            <a href={contacto} class="fx-faq__otra-a" aria-label="Escribirme">
+              <Icono nombre="arrow" size={18} />
+            </a>
+          </div>
         </div>
-        <dl class="fx-faq__grid">
+        <div class="fx-acord">
           {
             detail.faq.map((f, i) => (
-              <div data-reveal style={`--i:${i}`}>
-                <dt>
-                  <span class="mono">Q{i + 1}</span> {f.q}
-                </dt>
-                <dd>{f.a}</dd>
-              </div>
+              <details class="fx-acord__i" open={i === 0}>
+                <summary>
+                  <span class="fx-acord__n mono">{String(i + 1).padStart(2, "0")}</span>
+                  <span class="fx-acord__q">{f.q}</span>
+                  <span class="fx-acord__mas" aria-hidden="true" />
+                </summary>
+                <div class="fx-acord__a">
+                  <p>{f.a}</p>
+                </div>
+              </details>
             ))
           }
-        </dl>
+        </div>
       </section>
 
       <!-- cierre -->
-      <aside class="fx-cierre ink">
-        <p class="mono">&gt; ensure tu_idea</p>
-        <h2>¿Lo arrancamos?</h2>
-        <p class="fx-cierre__sub">{service.timeline} · presupuesto cerrado · código tuyo y legible</p>
-        <a href={contacto} class="btn btn-primary">Cuéntame tu script</a>
+      <aside class="fx-fin">
+        <span class="fx-fin__fondo" aria-hidden="true">FIVEM</span>
+        <div class="fx-fin__txt">
+          <p class="fx-k mono">// siguiente paso</p>
+          <h2>¿Lo <em>arrancamos</em>?</h2>
+          <ul role="list" class="fx-fin__lista mono">
+            <li><Icono nombre="check" size={15} /> Presupuesto cerrado</li>
+            <li><Icono nombre="check" size={15} /> Código tuyo y legible</li>
+            <li><Icono nombre="check" size={15} /> Español e inglés</li>
+          </ul>
+        </div>
+        <a href={contacto} class="fx-fin__boton" data-iman>
+          <span>Cuéntame<br />tu script</span>
+          <Icono nombre="arrow" size={26} />
+        </a>
       </aside>
     </div>
   </article>
@@ -356,6 +413,47 @@ const resmon = detail.incluye.map((x, i) => ({
         frente = (frente + 1) % cartas.length;
         pintar();
       }, 4000);
+  }
+
+  // «Hecho o a medida»: sin JS se ven los dos paneles; con JS, uno cada vez.
+  const modo = document.querySelector<HTMLElement>("[data-modo]");
+  if (modo) {
+    const tabs = [...modo.querySelectorAll<HTMLButtonElement>("[data-tab]")];
+    const paneles = [...modo.querySelectorAll<HTMLElement>("[data-panel]")];
+    const elegir = (id: string, foco = false) => {
+      modo.dataset.activo = id;
+      tabs.forEach((t) => {
+        const on = t.dataset.tab === id;
+        t.setAttribute("aria-selected", String(on));
+        t.tabIndex = on ? 0 : -1;
+        if (on && foco) t.focus();
+      });
+      paneles.forEach((p) => (p.hidden = p.dataset.panel !== id));
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener("click", () => elegir(t.dataset.tab!));
+      t.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+        const sig = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+        elegir(sig.dataset.tab!, true);
+      });
+    });
+    elegir("hecho");
+  }
+
+  // Botón redondo del cierre: se acerca un poco al cursor (solo con ratón).
+  const iman = document.querySelector<HTMLElement>("[data-iman]");
+  if (iman && matchMedia("(hover: hover) and (pointer: fine)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const zona = iman.parentElement!;
+    zona.addEventListener("pointermove", (e) => {
+      const r = iman.getBoundingClientRect();
+      const dx = e.clientX - (r.left + r.width / 2);
+      const dy = e.clientY - (r.top + r.height / 2);
+      const dist = Math.hypot(dx, dy);
+      const k = dist < 260 ? 0.25 : 0;
+      iman.style.translate = `${dx * k}px ${dy * k}px`;
+    });
+    zona.addEventListener("pointerleave", () => (iman.style.translate = ""));
   }
 </script>
 
@@ -1097,182 +1195,501 @@ const resmon = detail.incluye.map((x, i) => ({
     color: var(--fg-subtle);
   }
 
-  /* ── 6. caminos ── */
-  .fx-caminos {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-4);
-  }
-  .fx-camino {
-    position: relative;
+  /* ── 6. hecho o a medida ── */
+  .fx-modo__head {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    padding: var(--space-7) var(--space-6) var(--space-6);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-tile);
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-5);
+    margin-bottom: var(--space-6);
+  }
+  .fx-modo__sel {
+    position: relative;
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 5px;
+    border-radius: 99px;
+    border: 1px solid var(--border-strong);
     background: var(--bg-elev);
   }
-  .fx-camino--neg {
+  .fx-modo__pildora {
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    left: 5px;
+    width: calc(50% - 5px);
+    border-radius: 99px;
     background: var(--fg);
-    color: var(--bg);
-    border-color: var(--fg);
-    --fg-muted: color-mix(in srgb, var(--bg) 65%, var(--fg));
-    --fg-subtle: color-mix(in srgb, var(--bg) 45%, var(--fg));
-    --border: color-mix(in srgb, var(--bg) 18%, var(--fg));
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .fx-camino--neg .btn-primary {
+  .fx-modo[data-activo="medida"] .fx-modo__pildora {
+    transform: translateX(100%);
     background: var(--acc);
-    border-color: var(--acc);
+  }
+  .fx-modo__sel button {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.3rem;
+    border: 0;
+    border-radius: 99px;
+    background: none;
+    color: var(--fg-muted);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+  .fx-modo__sel button[aria-selected="true"] {
+    color: var(--bg);
+  }
+  .fx-modo[data-activo="medida"] .fx-modo__sel button[aria-selected="true"] {
     color: #fff;
   }
-  .fx-camino__n {
-    position: absolute;
-    top: var(--space-5);
-    right: var(--space-6);
-    font-size: 4rem;
-    line-height: 1;
-    color: var(--fg-subtle);
-    opacity: 0.35;
+  .fx-modo__sel button:focus-visible {
+    outline: 2px solid var(--acc);
+    outline-offset: 2px;
   }
-  .fx-camino h3 {
-    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.3rem);
-    font-weight: 800;
-    font-stretch: 112%;
-    letter-spacing: -0.03em;
-  }
-  .fx-camino > p {
-    color: var(--fg-muted);
-    line-height: 1.6;
-    max-width: 30rem;
-  }
-  .fx-camino .btn {
-    margin-top: auto;
-    align-self: flex-start;
-  }
-  .fx-mini {
+
+  .fx-panel {
     display: grid;
-    gap: 0.6rem;
-    font-size: var(--fs-sm);
-    margin-bottom: var(--space-4);
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: var(--space-7);
+    padding: var(--space-7);
+    border-radius: var(--radius-tile);
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    animation: fx-entra 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .fx-mini li {
+  .fx-panel + .fx-panel {
+    margin-top: var(--space-4);
+  }
+  .fx-panel[hidden] {
+    display: none;
+  }
+  .fx-panel--medida {
+    background:
+      radial-gradient(ellipse at 100% 0%, var(--acc-soft), transparent 55%),
+      var(--bg-elev);
+    border-color: color-mix(in srgb, var(--acc) 35%, var(--border));
+  }
+  @keyframes fx-entra {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+  .fx-panel__txt {
     display: flex;
-    align-items: center;
-    gap: 0.6rem;
+    flex-direction: column;
+    gap: var(--space-5);
+    align-items: flex-start;
   }
-  .fx-mini :global(svg),
-  .fx-pasos span {
+  .fx-panel__big {
+    font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.3rem);
+    font-weight: 750;
+    font-stretch: 108%;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+  .fx-panel__big em {
+    font-style: italic;
+    font-weight: 300;
     color: var(--acc);
   }
-  .fx-pasos {
+  .fx-ventajas {
     display: grid;
-    gap: 0;
-    margin-bottom: var(--space-4);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4) var(--space-5);
+    width: 100%;
   }
-  .fx-pasos li {
+  .fx-ventajas li {
     display: grid;
-    grid-template-columns: 2rem minmax(0, 1fr);
-    gap: var(--space-3);
-    padding: 0.7rem 0;
-    border-top: 1px solid var(--border);
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 0.75rem;
+    align-items: center;
   }
-  .fx-pasos span {
+  .fx-ventajas li > span {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 12px;
+    background: var(--acc-soft);
+    color: var(--acc);
+  }
+  .fx-ventajas b {
     font-size: var(--fs-sm);
-    padding-top: 0.1rem;
   }
-  .fx-pasos div {
+  .fx-ventajas small {
+    font-size: 0.8125rem;
+    color: var(--fg-muted);
+  }
+
+  /* mini escaparate de los que ya se venden */
+  .fx-tienda {
     display: grid;
-    gap: 0.15rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    align-content: start;
   }
-  .fx-pasos small {
+  .fx-tienda li:first-child {
+    grid-column: 1 / -1;
+  }
+  .fx-tienda a {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #000;
+  }
+  .fx-tienda li:first-child a {
+    aspect-ratio: 21 / 9;
+  }
+  .fx-tienda img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s var(--ease);
+  }
+  .fx-tienda a:hover img {
+    transform: scale(1.06);
+  }
+  .fx-tienda__pie {
+    position: absolute;
+    inset: auto 0 0 0;
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 2rem 0.9rem 0.75rem;
+    color: #fff;
+    background: linear-gradient(0deg, rgb(0 0 0 / 0.85), transparent);
+    font-size: var(--fs-sm);
+  }
+  .fx-tienda__pie span {
+    flex: none;
+    padding: 0.2rem 0.55rem;
+    border-radius: 99px;
+    background: var(--acc);
+    font-size: 0.75rem;
+  }
+
+  /* ruta del encargo: pasos unidos por una línea */
+  .fx-plazo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+  .fx-plazo b {
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .fx-ruta {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    padding-left: 3.4rem;
+  }
+  .fx-ruta::before {
+    content: "";
+    position: absolute;
+    left: 1.2rem;
+    top: 0.6rem;
+    bottom: 0.6rem;
+    width: 2px;
+    background: linear-gradient(var(--acc), color-mix(in srgb, var(--acc) 10%, transparent));
+  }
+  .fx-ruta li {
+    position: relative;
+    display: grid;
+    gap: 0.25rem;
+    animation: fx-entra 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 90ms);
+  }
+  .fx-ruta__n {
+    position: absolute;
+    left: -3.4rem;
+    top: -0.2rem;
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    background: var(--bg-elev);
+    border: 2px solid var(--acc);
+    color: var(--acc);
+    font-size: 0.75rem;
+  }
+  .fx-ruta strong {
+    font-size: var(--fs-md);
+  }
+  .fx-ruta small {
     color: var(--fg-muted);
     font-size: var(--fs-sm);
+    line-height: 1.5;
   }
-  .fx-ideal {
+  .fx-para {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border);
+  }
+  .fx-para > span {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--acc);
+    margin-right: var(--space-2);
+  }
+  .fx-para ul {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-top: var(--space-5);
-    font-size: 0.75rem;
   }
-  .fx-ideal li {
-    padding: 0.4rem 0.8rem;
-    border: 1px solid var(--border-strong);
+  .fx-para li {
+    padding: 0.4rem 0.85rem;
     border-radius: 99px;
+    border: 1px solid var(--border-strong);
+    font-size: var(--fs-sm);
     color: var(--fg-muted);
-  }
-  .fx-ideal li:first-child {
-    border-color: transparent;
-    color: var(--acc);
-    padding-inline: 0;
   }
 
   /* ── 7. preguntas ── */
-  .fx-faq__grid {
+  .fx-faq {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  .fx-faq__lado {
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-6));
+  }
+  .fx-faq__otra {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     gap: var(--space-4);
-  }
-  .fx-faq__grid > div {
+    align-items: center;
+    margin-top: var(--space-7);
     padding: var(--space-5);
-    border-top: 2px solid var(--fg);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
   }
-  .fx-faq__grid dt {
-    font-weight: 700;
-    font-size: var(--fs-md);
-    line-height: 1.35;
-  }
-  .fx-faq__grid dt span {
-    display: block;
-    font-size: 0.75rem;
-    font-weight: 400;
+  .fx-faq__otra-ico {
+    display: grid;
+    place-items: center;
+    width: 2.8rem;
+    height: 2.8rem;
+    border-radius: 14px;
+    background: var(--acc-soft);
     color: var(--acc);
-    margin-bottom: 0.5rem;
   }
-  .fx-faq__grid dd {
-    margin-top: var(--space-3);
+  .fx-faq__otra p {
+    margin-top: 0.2rem;
+    font-size: var(--fs-sm);
     color: var(--fg-muted);
-    line-height: 1.6;
+  }
+  .fx-faq__otra-a {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    background: var(--fg);
+    color: var(--bg);
+    transition:
+      transform 0.35s var(--ease),
+      background 0.3s ease;
+  }
+  .fx-faq__otra-a:hover {
+    background: var(--acc);
+    color: #fff;
+    transform: rotate(-45deg);
+  }
+  .fx-acord {
+    border-top: 1px solid var(--border-strong);
+  }
+  .fx-acord__i {
+    border-bottom: 1px solid var(--border-strong);
+  }
+  .fx-acord__i summary {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 2rem;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-5) 0;
+    cursor: pointer;
+    list-style: none;
+  }
+  .fx-acord__i summary::-webkit-details-marker {
+    display: none;
+  }
+  .fx-acord__n {
+    font-size: 0.75rem;
+    color: var(--fg-subtle);
+    transition: color 0.3s ease;
+  }
+  .fx-acord__q {
+    font-size: clamp(1.1rem, 0.95rem + 0.6vw, 1.45rem);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    transition: transform 0.35s var(--ease);
+  }
+  .fx-acord__i summary:hover .fx-acord__q {
+    transform: translateX(4px);
+  }
+  .fx-acord__mas {
+    position: relative;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    transition:
+      background 0.3s ease,
+      border-color 0.3s ease,
+      transform 0.4s var(--ease);
+  }
+  .fx-acord__mas::before,
+  .fx-acord__mas::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 10px;
+    height: 1.5px;
+    background: currentColor;
+    translate: -50% -50%;
+  }
+  .fx-acord__mas::after {
+    rotate: 90deg;
+  }
+  .fx-acord__i[open] .fx-acord__mas {
+    background: var(--acc);
+    border-color: var(--acc);
+    color: #fff;
+    transform: rotate(45deg);
+  }
+  .fx-acord__i[open] .fx-acord__n {
+    color: var(--acc);
+  }
+  .fx-acord__a {
+    padding: 0 3rem var(--space-5) calc(2.5rem + var(--space-4));
+    color: var(--fg-muted);
+    line-height: 1.65;
+    animation: fx-entra 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   /* ── cierre ── */
-  .fx-cierre {
+  .fx-fin {
     position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-7);
     margin-block: var(--section);
-    padding: var(--space-9) var(--space-6);
+    padding: clamp(2.5rem, 2rem + 4vw, 6rem);
     border-radius: var(--radius-tile);
-    background: var(--bg);
-    color: var(--fg);
-    text-align: center;
+    background: var(--acc);
+    color: #fff;
     overflow: hidden;
+    isolation: isolate;
   }
-  .fx-cierre::before {
+  .fx-fin::before {
     content: "";
     position: absolute;
-    inset: auto -20% -60% -20%;
-    height: 120%;
-    background: radial-gradient(ellipse at center, var(--acc-soft), transparent 60%);
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(circle at 85% 50%, rgb(255 255 255 / 0.22), transparent 45%),
+      linear-gradient(120deg, rgb(0 0 0 / 0.35), transparent 60%);
+  }
+  .fx-fin__fondo {
+    position: absolute;
+    z-index: -1;
+    right: -2%;
+    bottom: -18%;
+    font-size: clamp(6rem, 3rem + 16vw, 20rem);
+    font-weight: 900;
+    font-stretch: 125%;
+    letter-spacing: -0.06em;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.18);
     pointer-events: none;
+    user-select: none;
   }
-  .fx-cierre > * {
-    position: relative;
+  .fx-fin .fx-k {
+    color: rgb(255 255 255 / 0.75);
   }
-  .fx-cierre > p.mono {
-    color: var(--acc);
-    font-size: var(--fs-sm);
-  }
-  .fx-cierre h2 {
-    margin-top: var(--space-3);
-    font-size: var(--fs-2xl);
+  .fx-fin h2 {
+    font-size: clamp(2.8rem, 1.5rem + 6vw, 7rem);
     font-weight: 850;
-    font-stretch: 120%;
+    font-stretch: 118%;
     letter-spacing: -0.05em;
     line-height: 0.9;
   }
-  .fx-cierre__sub {
-    margin: var(--space-5) 0 var(--space-6);
-    color: var(--fg-muted);
+  .fx-fin h2 em {
+    font-style: italic;
+    font-weight: 300;
+  }
+  .fx-fin__lista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+    margin-top: var(--space-6);
+    font-size: var(--fs-sm);
+  }
+  .fx-fin__lista li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .fx-fin__boton {
+    flex: none;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 0.6rem;
+    width: clamp(9.5rem, 7rem + 8vw, 13rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #fff;
+    color: #0a0a0a;
+    text-align: center;
+    font-weight: 700;
+    line-height: 1.2;
+    box-shadow: 0 30px 60px -25px rgb(0 0 0 / 0.5);
+    transition:
+      background 0.3s ease,
+      color 0.3s ease,
+      translate 0.25s ease-out;
+  }
+  .fx-fin__boton :global(svg) {
+    transition: transform 0.35s var(--ease);
+  }
+  .fx-fin__boton:hover {
+    background: #0a0a0a;
+    color: #fff;
+  }
+  .fx-fin__boton:hover :global(svg) {
+    transform: rotate(-45deg);
   }
 
   /* ── responsive ── */
@@ -1302,13 +1719,41 @@ const resmon = detail.incluye.map((x, i) => ({
       min-height: 0;
       aspect-ratio: 16 / 9;
     }
-    .fx-faq__grid {
+    .fx-faq,
+    .fx-panel {
       grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-6);
+    }
+    .fx-faq__lado {
+      position: static;
+    }
+    .fx-faq__otra {
+      margin-top: var(--space-5);
     }
   }
   @media (max-width: 720px) {
-    .fx-caminos {
+    .fx-modo__sel {
+      width: 100%;
+    }
+    .fx-modo__sel button {
+      padding-inline: 0.6rem;
+    }
+    .fx-panel {
+      padding: var(--space-5);
+    }
+    .fx-ventajas,
+    .fx-tienda {
       grid-template-columns: minmax(0, 1fr);
+    }
+    .fx-tienda li:first-child a {
+      aspect-ratio: 16 / 9;
+    }
+    .fx-acord__a {
+      padding-inline: 0;
+    }
+    .fx-fin {
+      flex-direction: column;
+      align-items: flex-start;
     }
     .fx-dest__a {
       padding: var(--space-5);
@@ -1335,6 +1780,11 @@ const resmon = detail.incluye.map((x, i) => ({
     }
     .fx-pila__c {
       transition: none;
+    }
+    .fx-panel,
+    .fx-ruta li,
+    .fx-acord__a {
+      animation: none;
     }
   }
 </style>
