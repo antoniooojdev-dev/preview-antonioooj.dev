@@ -202,3 +202,49 @@ export const handling: Ficha = {
     { q: "¿Y si algo no funciona?", a: "Escríbeme por el chat de la web o por Discord con el error de la consola y lo miramos." },
   ],
 };
+
+// ── Centro propio de la ficha (FichaHandling.astro) ──
+// Barras del ajuste rápido y plantillas con los mismos multiplicadores que web/app.js del recurso
+// (MACROS.car y TEMPLATES). La altura va en cm (fSuspensionRaise 0.01 = 1 cm, rango ±15 cm).
+export type HBarra = { id: string; l: string; d: string; abs?: boolean };
+export const handlingBarras: HBarra[] = [
+  { id: "power", l: "Potencia", d: "Aceleración" },
+  { id: "top", l: "Velocidad punta", d: "Hasta dónde llega en llano" },
+  { id: "brake", l: "Frenos", d: "Frena en menos metros" },
+  { id: "grip", l: "Agarre", d: "En curva y al acelerar" },
+  { id: "steer", l: "Giro del volante", d: "Ángulo de las ruedas" },
+  { id: "stiff", l: "Dureza", d: "Muelles y amortiguadores" },
+  { id: "roll", l: "Estabilidad", d: "Se inclina menos al girar" },
+  { id: "mass", l: "Peso", d: "Gana en choques, acelera peor" },
+  { id: "dmg", l: "Daño por choque", d: "Menos = aguanta más" },
+  { id: "height", l: "Altura", d: "Negativo = más bajo", abs: true },
+];
+export type HPlantilla = { id: string; l: string; d: string; v: Record<string, number> };
+export const handlingPlantillas: HPlantilla[] = [
+  { id: "fabrica", l: "Fábrica", d: "Como sale del juego", v: {} },
+  { id: "confort", l: "Confort", d: "Blando y tranquilo", v: { stiff: 0.8, roll: 0.75, brake: 0.95, height: 1 } },
+  { id: "sport", l: "Deportivo", d: "Más motor, más agarre", v: { power: 1.2, top: 1.06, brake: 1.2, grip: 1.1, stiff: 1.25, roll: 1.5, height: -3 } },
+  { id: "drift", l: "Drift", d: "Suelta la trasera", v: { power: 1.25, grip: 0.8, steer: 1.35 } },
+  { id: "rally", l: "Rally", d: "Tierra y saltos", v: { power: 1.1, stiff: 0.8, height: 4 } },
+  { id: "offroad", l: "Todoterreno", d: "No pierde fuera del asfalto", v: { power: 1.1, stiff: 0.75, height: 7 } },
+  { id: "armored", l: "Blindado", d: "Pesado y duro", v: { mass: 1.8, dmg: 0.35, power: 1.25, brake: 1.15 } },
+];
+// Una muestra de los 63 valores del modo avanzado (shared/handling.lua: nombre, apartado y explicación).
+export const handlingValores: { k: string; g: string; l: string; d: string; cambio?: string }[] = [
+  { k: "fInitialDriveForce", g: "Motor", l: "Potencia del motor", d: "Fuerza que empuja el coche. Más alto = acelera más.", cambio: "+20 %" },
+  { k: "fInitialDriveMaxFlatVel", g: "Motor", l: "Velocidad punta", d: "Velocidad máxima en llano." },
+  { k: "fDriveInertia", g: "Motor", l: "Respuesta del motor", d: "Lo rápido que sube de vueltas." },
+  { k: "fClutchChangeRateScaleUpShift", g: "Motor", l: "Rapidez al subir marcha", d: "Más alto = cambios más rápidos." },
+  { k: "fBrakeForce", g: "Frenos", l: "Fuerza de frenado", d: "Más alto = frena antes.", cambio: "+20 %" },
+  { k: "fHandBrakeForce", g: "Frenos", l: "Freno de mano", d: "Fuerza del freno de mano (derrapes)." },
+  { k: "fSteeringLock", g: "Agarre", l: "Giro del volante", d: "Ángulo máximo de las ruedas." },
+  { k: "fTractionCurveMax", g: "Agarre", l: "Agarre en curva", d: "Agarre máximo de las ruedas.", cambio: "+10 %" },
+  { k: "fLowSpeedTractionLossMult", g: "Agarre", l: "Patinar al arrancar", d: "Más alto = quema más rueda al salir." },
+  { k: "fTractionLossMult", g: "Agarre", l: "Pérdida fuera del asfalto", d: "Cuánto agarre pierde en tierra o hierba." },
+  { k: "fSuspensionForce", g: "Suspensión", l: "Dureza", d: "Fuerza de los muelles." },
+  { k: "fSuspensionRaise", g: "Suspensión", l: "Altura", d: "Negativo = más bajo · positivo = más alto.", cambio: "−3 cm" },
+  { k: "fAntiRollBarForce", g: "Suspensión", l: "Barra estabilizadora", d: "Más alto = se inclina menos en curva." },
+  { k: "fMass", g: "Física", l: "Masa (kg)", d: "Peso del coche. Afecta a choques y aceleración." },
+  { k: "fInitialDragCoeff", g: "Física", l: "Resistencia al aire", d: "Más alto = menos velocidad punta." },
+  { k: "fCollisionDamageMult", g: "Daños", l: "Daño por choque", d: "Multiplicador del daño al chocar." },
+];

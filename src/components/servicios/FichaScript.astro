@@ -3,7 +3,8 @@
 // /pruebas-fivem (police, noindex) y /pruebas-bandas (bandas, noindex). Estética
 // de la web: visor de vídeo y capturas + caja de compra, cifras, un bloque por módulo (cada uno
 // con su vídeo; si aún no hay, el hueco «vídeo en grabación»), documentación tipo README y
-// preguntas. Datos en src/data/<script>.ts (tipos en src/data/fichas.ts).
+// preguntas. Datos en src/data/<script>.ts (tipos en src/data/fichas.ts). El centro se puede
+// cambiar entero con el slot «centro» (lo hace FichaHandling.astro).
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import type { Ficha } from "@/data/fichas";
 import { fivemPacks } from "@/data/packs";
@@ -137,6 +138,9 @@ const ordenados = [...medios.slice(primero), ...medios.slice(0, primero)];
         </aside>
       </section>
 
+      <!-- centro (cifras, módulos, documentación): una ficha con diseño propio lo cambia con slot="centro"
+           (FichaHandling.astro); la cabecera y el final se quedan iguales -->
+      <slot name="centro">
       <!-- ── cifras ── -->
       <section class="pf-cifras" data-rv>
         {p.cifras.map((c, i) => (
@@ -233,6 +237,8 @@ const ordenados = [...medios.slice(primero), ...medios.slice(0, primero)];
           </div>
         </div>
       </section>
+
+      </slot>
 
       <!-- ── preguntas ── -->
       <section class="pf-bloque pf-faq-b">

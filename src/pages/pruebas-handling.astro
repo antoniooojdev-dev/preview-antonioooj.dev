@@ -1,9 +1,9 @@
 ---
-// /pruebas-handling: ficha de venta del menú de handling con el diseño del police
-// (FichaScript.astro). Datos en src/data/handling.ts. La ficha real sigue en
+// /pruebas-handling: ficha de venta del menú de handling. Cabecera y final como la del police,
+// centro propio (FichaHandling.astro: cuadro de instrumentos, módulos como marchas y
+// documentación con luces de salida). Datos en src/data/handling.ts. La ficha real sigue en
 // /servicios/fivem/menu-handling hasta que se publique esta.
-import FichaScript from "@/components/servicios/FichaScript.astro";
-import { handling } from "@/data/handling";
+import FichaHandling from "@/components/servicios/FichaHandling.astro";
 ---
 
-<FichaScript ficha={handling} pruebas />
+<FichaHandling pruebas />
