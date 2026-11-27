@@ -20,13 +20,15 @@ export const handling: Ficha = {
   version: "2.0.0",
   frameworks: ["ESX Legacy", "QBCore", "Qbox"],
   fuertes: ["63 valores del handling", "6 plantillas de un clic", "Se aplica a todos sin reiniciar", "En español e inglés"],
+  // contadas en el recurso: shared/handling.lua (63 campos, 9 apartados), web/app.js (6 plantillas),
+  // web/themes.css + el de por defecto (9 estilos), config.lua (6 diseños de tarjetas), server/main.lua (4 tablas)
   cifras: [
     { v: 63, l: "valores del handling" },
     { v: 6, l: "plantillas de un clic" },
+    { v: 9, l: "apartados del modo avanzado" },
     { v: 9, l: "estilos de panel" },
+    { v: 6, l: "diseños de tarjetas" },
     { v: 4, l: "tablas que crea solo" },
-    { v: 0, l: "reinicios para aplicarlo" },
-    { v: 2, l: "idiomas: español e inglés" },
   ],
   modulosTitulo: ["Un panel, ", "cualquier vehículo"],
   modulosSub: "Cambias un valor y lo notas al momento en el coche que conduces; cuando te convence, lo guardas para todo el servidor.",
