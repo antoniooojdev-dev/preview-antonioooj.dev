@@ -35,7 +35,6 @@ export default {
     rules: ch("normas"),
     roles: ch("guia"), // los roles se eligen en la guía
     guide: ch("guia"),
-    projects: ch("proyectos"), // foro de proyectos
     news: ch("novedades"), // canal de novedades
   },
 

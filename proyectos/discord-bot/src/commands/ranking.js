@@ -1,4 +1,4 @@
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
 import config from "../config.js";
 import { leaderboard } from "../features/levels.js";
 
@@ -18,6 +18,6 @@ export default {
       .setTitle(`🏆 RANKING · ${interaction.guild.name.toLocaleUpperCase("es-ES")}`)
       .setDescription(lines.join("\n") || "Todavía nadie tiene XP. ¡Empezad a hablar!");
 
-    await interaction.reply({ embeds: [embed], allowedMentions: { users: [] } });
+    await interaction.reply({ embeds: [embed], allowedMentions: { users: [] }, flags: MessageFlags.Ephemeral });
   },
 };

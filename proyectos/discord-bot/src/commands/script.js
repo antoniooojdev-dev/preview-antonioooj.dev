@@ -1,7 +1,7 @@
 // /script [nombre]: ficha de un script de FiveM de la tienda (o el catálogo si no se elige ninguno).
 // Los datos salen de src/servidor/scripts.js.
 
-import { SlashCommandBuilder } from "discord.js";
+import { MessageFlags, SlashCommandBuilder } from "discord.js";
 import { box, etiqueta, gallery, h1, h3, linkBtn, row, v2 } from "../lib/ui.js";
 import { SITE } from "../servidor/plan.js";
 import { FRAMEWORKS, scripts } from "../servidor/scripts.js";
@@ -60,6 +60,7 @@ export default {
   async execute(interaction) {
     const id = interaction.options.getString("nombre");
     const s = scripts.find((x) => x.id === id);
-    await interaction.reply({ ...(s ? fichaScript(s) : catalogo()), allowedMentions: { parse: [] } });
+    // solo lo ve quien usa el comando
+    await interaction.reply({ ...(s ? fichaScript(s) : catalogo()), allowedMentions: { parse: [] }, flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral });
   },
 };

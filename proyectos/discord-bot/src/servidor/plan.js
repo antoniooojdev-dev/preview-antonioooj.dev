@@ -21,11 +21,12 @@ export const guildSettings = {
 };
 
 // ── Categorías de proyectos (novedades, foro de proyectos, avisos) ──
+// forum: el foro de PROYECTOS donde van los de esa categoría (uno por tipo)
 export const projectCategories = {
-  fivem: { label: "Scripts de FiveM", short: "FiveM", emoji: "🎮", role: "ping_fivem" },
-  web: { label: "Páginas web", short: "Web", emoji: "🌐", role: "ping_web" },
-  app: { label: "Aplicaciones web", short: "App web", emoji: "🧩", role: "ping_apps" },
-  bot: { label: "Bots de Discord", short: "Bot", emoji: "🤖", role: "ping_bots" },
+  web: { label: "Páginas web", short: "Web", emoji: "🌐", role: "ping_web", forum: "proy_web" },
+  bot: { label: "Bots de Discord", short: "Bot", emoji: "🤖", role: "ping_bots", forum: "proy_bot" },
+  fivem: { label: "Scripts de FiveM", short: "FiveM", emoji: "🎮", role: "ping_fivem", forum: "proy_fivem" },
+  app: { label: "Aplicaciones web", short: "App web", emoji: "🧩", role: "ping_apps", forum: "proy_app" },
 };
 
 export const updateTypes = {
@@ -136,16 +137,23 @@ export const categories = [
     name: "PROYECTOS",
     access: "chat",
     channels: [
-      {
-        key: "proyectos",
-        name: "📂・proyectos",
+      // un foro por tipo de proyecto: el staff publica la ficha y la comunidad comenta dentro
+      ...[
+        ["proy_web", "🌐・webs", "Las webs hechas por AntonioooJ: un post por web con su ficha y su historial de cambios."],
+        ["proy_bot", "🤖・bots-discord", "Los bots de Discord: un post por bot con su ficha y su historial de cambios."],
+        ["proy_fivem", "🎮・scripts-fivem", "Los scripts de FiveM: un post por script con su ficha y su historial de cambios."],
+        ["proy_app", "🧩・apps-web", "Las aplicaciones web: un post por app con su ficha y su historial de cambios."],
+      ].map(([key, name, topic]) => ({
+        key,
+        name,
         type: "forum",
         access: "escaparate",
-        topic: "Un post por proyecto con su ficha y todo su historial de cambios. Filtra por categoría con las etiquetas. Puedes comentar dentro de cada post.",
-        tags: ["🎮 FiveM", "🌐 Web", "🧩 App web", "🤖 Bot", "🟢 Activo", "🧪 En desarrollo", "⏸️ Pausado"],
+        topic: topic + " Se puede comentar dentro de cada post.",
+        tags: ["🟢 Activo", "🧪 En desarrollo", "⏸️ Pausado"],
         moderatedAll: true,
         reaction: "🔥",
-      },
+        projects: true,
+      })),
       {
         key: "sugerencias",
         name: "💡・sugerencias",
@@ -163,6 +171,17 @@ export const categories = [
         tags: ["🎮 FiveM", "🌐 Web", "🧩 App web", "🤖 Bot", "🔴 Crítico", "🟡 Confirmado", "✅ Arreglado"],
         bugs: true,
       },
+    ],
+  },
+  {
+    // una red por canal: un panel fijo con la info de esa red y, debajo, sus publicaciones nuevas
+    key: "cat_contenido",
+    name: "CONTENIDO",
+    access: "lectura",
+    channels: [
+      { key: "instagram", name: "📸・instagram", topic: "Instagram de antonioooj.dev: webs, scripts y diseño en imágenes." },
+      { key: "tiktok", name: "🎵・tiktok", topic: "TikTok de antonioooj.dev: clips cortos de webs, scripts y bots." },
+      { key: "github", name: "💻・github", topic: "GitHub de antonioooj.dev: repositorios nuevos y versiones publicadas." },
     ],
   },
   {
@@ -241,7 +260,7 @@ export const socials = {
       name: "GitHub",
       emoji: "💻",
       url: "https://github.com/antonioooj.atom",
-      channel: "novedades",
+      channel: "github",
       // solo lo importante (repos nuevos y releases): el canal es novedades, sin pushes
       include: /(created a repository|released|published)/i,
     },
@@ -256,8 +275,8 @@ export const socials = {
       video: true, // enlace suelto para que Discord muestre el reproductor
       backfill: 5, // al estrenar el canal, publica los 5 últimos vídeos (sin mencionar)
     },
-    { key: "instagram", name: "Instagram", emoji: "📸", url: process.env.INSTAGRAM_FEED || "", channel: "novedades" },
-    { key: "tiktok", name: "TikTok", emoji: "🎵", url: process.env.TIKTOK_FEED || "", channel: "novedades", ping: "ping_videos", video: true },
+    { key: "instagram", name: "Instagram", emoji: "📸", url: process.env.INSTAGRAM_FEED || "", channel: "instagram" },
+    { key: "tiktok", name: "TikTok", emoji: "🎵", url: process.env.TIKTOK_FEED || "", channel: "tiktok", ping: "ping_videos", video: true },
   ],
   // Directos de Twitch: TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET y TWITCH_USER en .env
   twitch: { channel: "novedades", ping: "ping_videos" },

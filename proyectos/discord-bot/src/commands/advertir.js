@@ -58,7 +58,7 @@ export default {
       );
     if (sanction) embed.addFields({ name: "SANCIÓN AUTOMÁTICA", value: `__${sanction}__` });
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     await sendLog(interaction.guild, {
       title: "⚠️ Advertencia",
       color: config.colors.warning,

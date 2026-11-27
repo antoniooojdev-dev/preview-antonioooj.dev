@@ -44,17 +44,17 @@ async function imageFile(url, base) {
   }
 }
 
-function forum(guild) {
-  const ch = guild.channels.cache.get(config.channels.projects);
+/** Foro de PROYECTOS de una categoría (webs, bots, scripts de FiveM, apps) */
+export function forum(guild, category) {
+  const ch = guild.channels.cache.get(config.ids.channels[projectCategories[category]?.forum]);
   return ch?.type === ChannelType.GuildForum ? ch : null;
 }
 
 const tagId = (forumChannel, name) => forumChannel.availableTags.find((t) => t.name === name)?.id;
 
 function tagsFor(forumChannel, p) {
-  const cat = projectCategories[p.category];
   const st = projectStatus[p.status];
-  return [tagId(forumChannel, cat.short), st && tagId(forumChannel, st.label)].filter(Boolean);
+  return [st && tagId(forumChannel, st.label)].filter(Boolean);
 }
 
 // ── Ficha del proyecto (primer mensaje del post) ─────────────
@@ -124,7 +124,7 @@ export async function refreshCard(guild, p) {
   const starter = await thread?.fetchStarterMessage().catch(() => null);
   if (starter) await starter.edit({ ...projectCard(p), allowedMentions: { parse: [] } }).catch((e) => log.warn("Ficha:", e.message));
   if (thread) {
-    const f = forum(guild);
+    const f = forum(guild, p.category);
     if (f) await thread.setAppliedTags(tagsFor(f, p)).catch(() => {});
     if (thread.name !== p.name) await thread.setName(p.name.slice(0, 100)).catch(() => {});
   }
@@ -134,8 +134,8 @@ export async function refreshCard(guild, p) {
 
 /** @returns {Promise<import("discord.js").ThreadChannel>} */
 export async function createProject(guild, data) {
-  const f = forum(guild);
-  if (!f) throw new Error("No existe el foro de proyectos. Ejecuta `npm run setup`.");
+  const f = forum(guild, data.category);
+  if (!f) throw new Error("No existe el foro de esa categoría. Ejecuta `npm run setup`.");
 
   const img = await imageFile(data.image, "portada");
   const p = {
@@ -167,10 +167,88 @@ export async function createProject(guild, data) {
 export async function editProject(guild, threadId, changes) {
   const p = db.projects[threadId];
   if (!p) throw new Error("Proyecto no encontrado.");
+  const antes = p.category;
   for (const [k, v] of Object.entries(changes)) if (v !== null && v !== undefined) p[k] = v;
   save();
-  await refreshCard(guild, p);
+  // cada categoría tiene su foro: si cambia, el post se rehace en el foro nuevo
+  if (p.category !== antes) await moveProject(guild, p);
+  else await refreshCard(guild, p);
   return p;
+}
+
+// ── Mover un proyecto a su foro ──────────────────────────────
+
+/** Mensaje a partir de su enlace (discord.com/channels/servidor/canal/mensaje) */
+export async function messageFromUrl(guild, url) {
+  const [, canalId, msgId] = url?.match(/channels\/\d+\/(\d+)\/(\d+)/) ?? [];
+  if (!canalId) return null;
+  const canal = await guild.channels.fetch(canalId).catch(() => null);
+  return canal?.messages?.fetch(msgId).catch(() => null) ?? null;
+}
+
+/** Texto de cambios de una tarjeta ya publicada: el bloque que es una lista «- …» */
+export function bodyFromMessage(msg) {
+  const textos = [];
+  const recorrer = (c) => {
+    const j = c.toJSON ? c.toJSON() : c;
+    if (j.type === 10) textos.push(j.content);
+    (j.components ?? []).forEach(recorrer);
+  };
+  msg.components.forEach(recorrer);
+  return textos.find((t) => t.split("\n").every((l) => l.startsWith("- "))) ?? "";
+}
+
+/**
+ * Publica otra vez el post del proyecto en el foro de su categoría (ficha, portada y todas sus
+ * novedades), apunta las tarjetas de #novedades al post nuevo y borra el antiguo.
+ */
+export async function moveProject(guild, p) {
+  const f = forum(guild, p.category);
+  if (!f) throw new Error("No existe el foro de esa categoría. Ejecuta `npm run setup`.");
+  const oldId = p.threadId;
+  const old = await guild.channels.fetch(oldId).catch(() => null);
+  const starter = await old?.fetchStarterMessage().catch(() => null);
+  const portada = starter?.attachments.first();
+  const img = portada ? await imageFile(portada.url, "portada") : null;
+  p.imageRef = img?.ref ?? null;
+
+  const thread = await f.threads.create({
+    name: p.name.slice(0, 100),
+    appliedTags: tagsFor(f, p),
+    message: { ...projectCard({ ...p, threadId: "0" }), files: img ? [img.file] : [], allowedMentions: { parse: [] } },
+  });
+
+  const ping = config.ids.roles[projectCategories[p.category].role];
+  for (const [i, u] of p.updates.entries()) {
+    const prev = await messageFromUrl(guild, u.messageUrl);
+    if (!u.body && prev) u.body = bodyFromMessage(prev);
+    const adj = prev?.attachments.first();
+    const imgU = adj ? await imageFile(adj.url, `novedad-${i + 1}`) : null;
+    const nuevo = await thread.send({
+      ...updateCard({ p, u, body: u.body ?? "", imageRef: imgU?.ref, link: u.link, author: u.author }),
+      files: imgU ? [imgU.file] : [],
+      allowedMentions: { parse: [] },
+    });
+    u.messageUrl = nuevo.url;
+    const enNovedades = await messageFromUrl(guild, u.newsUrl);
+    if (enNovedades) {
+      const adjN = enNovedades.attachments.first();
+      await enNovedades
+        .edit({
+          ...updateCard({ p, u, body: u.body ?? "", imageRef: adjN ? `attachment://${adjN.name}` : null, link: u.link, author: u.author, threadUrl: nuevo.url, ping }),
+          allowedMentions: { parse: [] },
+        })
+        .catch((e) => log.warn("Novedad:", e.message));
+    }
+  }
+
+  delete db.projects[oldId];
+  p.threadId = thread.id;
+  db.projects[thread.id] = p;
+  save();
+  await refreshCard(guild, p); // ya con el id real (botón de historial)
+  if (old) await old.delete("Proyecto movido al foro de su categoría").catch(() => {});
+  return thread;
 }
 
 // ── Novedades ────────────────────────────────────────────────

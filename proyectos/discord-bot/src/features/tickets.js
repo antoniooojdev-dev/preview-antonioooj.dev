@@ -28,21 +28,22 @@ const pad = (n) => String(n).padStart(4, "0");
 export function panelMessage() {
   return v2(
     box([
-      h1("Soporte", "🎫"),
-      "Elige el tipo, rellena el formulario y se abre un canal __privado__ con el equipo.",
+      h1("Soporte"),
+      "Cada tipo abre un formulario corto y, al enviarlo, un canal __privado__ con el equipo.",
       "---",
       Object.values(ticketTypes)
-        .map((t) => `${t.emoji} **${t.label.toLocaleUpperCase("es-ES")}** — ${t.desc}`)
+        .map((t, i) => `**\`${String(i + 1).padStart(2, "0")}\`**  ${t.emoji} **${t.label.toLocaleUpperCase("es-ES")}**\n-# ${t.desc}`)
         .join("\n"),
-      row(
-        new StringSelectMenuBuilder()
-          .setCustomId("ticket:menu")
-          .setPlaceholder("📩 Abrir un ticket…")
-          .addOptions(Object.entries(ticketTypes).map(([value, t]) => ({ value, label: t.label, emoji: t.emoji, description: t.desc }))),
-      ),
       "---",
-      "-# **Un ticket a la vez**  ·  Al cerrarlo recibes la conversación por privado  ·  El equipo __nunca__ pide pagos ni contraseñas fuera de un ticket",
+      "-# **Un ticket a la vez**  ·  al cerrarlo, la conversación llega por privado  ·  el equipo __nunca__ pide pagos ni contraseñas fuera de un ticket",
     ]),
+    // el menú va debajo, fuera del recuadro (como el botón de las normas)
+    row(
+      new StringSelectMenuBuilder()
+        .setCustomId("ticket:menu")
+        .setPlaceholder("📩 Abrir un ticket…")
+        .addOptions(Object.entries(ticketTypes).map(([value, t]) => ({ value, label: t.label, emoji: t.emoji, description: t.desc }))),
+    ),
   );
 }
 
@@ -50,22 +51,24 @@ export function panelMessage() {
 function ticketMessage(t, type, { claimedName = null } = {}) {
   return v2(
     box([
-      etiqueta(`${type.emoji} ${type.label}`, `**#${pad(t.number)}**`, discordTime(t.openedAt)),
-      h2(`Hola <@${t.ownerId}>`, "👋"),
-      "El equipo te responde **lo antes posible**. Mientras, añade capturas o cualquier detalle útil.",
+      etiqueta(`${type.emoji} Ticket`, `**#${pad(t.number)}**`, discordTime(t.openedAt)),
+      h1(type.label),
+      `Hola <@${t.ownerId}> 👋 El equipo responde **lo antes posible**; mientras, cualquier captura o detalle ayuda.`,
       "---",
-      t.answers.map((a) => `**__${a.name.toLocaleUpperCase("es-ES")}__**\n${a.value}`).join("\n\n"),
+      t.answers.map((a, i) => `**\`${String(i + 1).padStart(2, "0")}\`  ${a.name.toLocaleUpperCase("es-ES")}**\n${a.value}`).join("\n\n"),
       "---",
-      row(
-        btn("ticket:claim", claimedName ? `Atendido por ${claimedName}`.slice(0, 80) : "Reclamar", {
-          emoji: "🙋",
-          style: ButtonStyle.Success,
-          disabled: !!claimedName,
-        }),
-        btn("ticket:close", "Cerrar", { emoji: "🔒", style: ButtonStyle.Danger }),
-      ),
+      claimedName ? `-# 🙋 Atendido por **${claimedName}**` : "-# ⏳ **Pendiente**: en cuanto alguien del equipo lo reclame, aparece aquí",
       t.pings?.length && `-# Aviso al equipo: ${t.pings.map((r) => `<@&${r}>`).join(" ")}`,
     ]),
+    // botones debajo, fuera del recuadro
+    row(
+      btn("ticket:claim", claimedName ? `Atendido por ${claimedName}`.slice(0, 80) : "Reclamar", {
+        emoji: "🙋",
+        style: ButtonStyle.Success,
+        disabled: !!claimedName,
+      }),
+      btn("ticket:close", "Cerrar", { emoji: "🔒", style: ButtonStyle.Danger }),
+    ),
   );
 }
 
@@ -274,13 +277,13 @@ async function close(interaction) {
     ?.send({
       ...v2(
         box([
-          etiqueta(guild.name),
-          h2("Tu ticket se ha cerrado", "🔒"),
-          `${type.emoji} **${type.label}**  ·  #${pad(ticket.number)}`,
+          etiqueta(`${type.emoji} Ticket`, `**#${pad(ticket.number)}**`, guild.name),
+          h1("Ticket cerrado"),
+          `**${type.label}**`,
           "---",
-          `**__MOTIVO__** — ${reason}`,
-          `**__ATENDIDO POR__** — ${ticket.claimedBy ? `<@${ticket.claimedBy}>` : "el equipo"}`,
-          "-# Tienes la conversación completa adjunta. Si necesitas algo más, abre otro ticket cuando quieras.",
+          [`**MOTIVO** · ${reason}`, `**ATENDIDO POR** · ${ticket.claimedBy ? `<@${ticket.claimedBy}>` : "el equipo"}`].join("\n"),
+          "---",
+          "-# La conversación completa va **adjunta**. Para cualquier otra cosa, se puede abrir otro ticket cuando haga falta.",
         ]),
       ),
       files: [new AttachmentBuilder(Buffer.from(transcript, "utf8"), { name: fileName })],

@@ -61,9 +61,20 @@ const GUIA_CATEGORIAS = [
   {
     t: "Proyectos",
     canales: [
-      ["proyectos", "Un post por proyecto con su ficha y __todo su historial__."],
+      ["proy_web", "Las **webs**, cada una con su ficha y __su historial__."],
+      ["proy_bot", "Los **bots de Discord**."],
+      ["proy_fivem", "Los **scripts de FiveM**."],
+      ["proy_app", "Las **aplicaciones web**."],
       ["sugerencias", "Ideas para el servidor o los proyectos, con **votos**."],
       ["bugs", "Fallos encontrados, uno por post."],
+    ],
+  },
+  {
+    t: "Contenido",
+    canales: [
+      ["instagram", "Webs, scripts y diseño en **imágenes**."],
+      ["tiktok", "**Clips** cortos de lo que se va construyendo."],
+      ["github", "**Código**: repositorios nuevos y versiones."],
     ],
   },
   {
@@ -104,7 +115,7 @@ function guia() {
       "---",
       [
         "**`01`**  Los **avisos** e **intereses** se eligen al final de esta guía",
-        `**\`02\`**  Los proyectos están en ${chan("proyectos")}`,
+        `**\`02\`**  Los proyectos están en ${chan("proy_web")} ${chan("proy_bot")} ${chan("proy_fivem")} ${chan("proy_app")}`,
         `**\`03\`**  La conversación, en ${chan("general")}`,
       ].join("\n"),
     ]),
@@ -183,12 +194,107 @@ function comandos() {
   );
 }
 
+// ── CONTENIDO: un panel por red ──────────────────────────────
+// El enlace sale de socials.links; si una red aún no tiene enlace (TikTok: TIKTOK_URL en .env),
+// el panel sale igual pero sin botón. «Llega aquí solo» solo se dice si su feed está configurado.
+const red = (label) => socials.links.find((l) => l.label === label)?.url ?? "";
+const conFeed = (key) => !!socials.feeds.find((f) => f.key === key)?.url;
+const TIKTOK = (process.env.TIKTOK_URL || "").trim();
+
+function panelRed({ titulo, emoji, usuario, intro, apartados, feed, boton, url }) {
+  return v2(
+    box([
+      withThumb(LOGO, `-# **${emoji} ${MAYUS(titulo)}**${usuario ? `  ·  **${usuario}**` : ""}`, h1(titulo), intro),
+      ...apartados.flatMap(([t, e, lineas]) => [
+        "---",
+        [h3(t, e), ...lineas.map((l, i) => `**\`${String(i + 1).padStart(2, "0")}\`**  ${l}`)].join("\n"),
+      ]),
+      "---",
+      feed ? `-# 🔔 Cada publicación nueva llega **sola** a este canal` : "-# Las publicaciones destacadas se comparten en este canal",
+    ]),
+    url ? row(linkBtn(boton, url, emoji), linkBtn("antonioooj.dev", SITE, "🌐")) : row(linkBtn("antonioooj.dev", SITE, "🌐")),
+  );
+}
+
+function instagram() {
+  const url = red("Instagram");
+  return panelRed({
+    titulo: "Instagram",
+    emoji: "📸",
+    usuario: "@" + (url.split("/").filter(Boolean).pop() || "antonioooj.dev"),
+    intro: "El lado **visual** de antonioooj.dev: lo que se diseña y se programa, contado en imágenes.",
+    apartados: [
+      ["Qué se publica", "🖼️", [
+        "**Webs** recién terminadas: portadas, móvil y detalles del diseño",
+        "Interfaces de **scripts de FiveM**: tablets, MDT, menús y HUD",
+        "El **antes y después** de cada rediseño",
+        "Pequeños trucos de **diseño** y desarrollo web",
+      ]],
+      ["Para quién", "🎯", [
+        "Negocios que buscan **web propia** y quieren ver resultados reales",
+        "Servidores de **FiveM** que buscan scripts con interfaz cuidada",
+      ]],
+    ],
+    feed: conFeed("instagram"),
+    boton: "Seguir en Instagram",
+    url,
+  });
+}
+
+function tiktok() {
+  return panelRed({
+    titulo: "TikTok",
+    emoji: "🎵",
+    usuario: TIKTOK ? "@" + TIKTOK.split("@").pop().split(/[/?]/)[0] : "",
+    intro: "**Clips cortos** de lo que se va construyendo: del código a la pantalla en segundos.",
+    apartados: [
+      ["Qué se publica", "🎬", [
+        "**Scripts de FiveM** funcionando dentro del juego",
+        "**Webs** en movimiento: animaciones, transiciones y versión móvil",
+        "**Bots de Discord** en acción, como el de este servidor",
+        "El proceso: de la **idea** al resultado final",
+      ]],
+    ],
+    feed: conFeed("tiktok"),
+    boton: "Seguir en TikTok",
+    url: TIKTOK,
+  });
+}
+
+function github() {
+  const url = red("GitHub");
+  return panelRed({
+    titulo: "GitHub",
+    emoji: "💻",
+    usuario: "@" + (url.split("/").filter(Boolean).pop() || "antonioooj"),
+    intro: "El **código** detrás de antonioooj.dev: repositorios, versiones y experimentos.",
+    apartados: [
+      ["Con qué se trabaja", "🧰", [
+        "**Webs**: Astro, TypeScript, HTML y CSS a mano",
+        "**Backend**: Python con FastAPI y Node.js",
+        "**FiveM**: Lua para ESX Legacy, QBCore y Qbox, con interfaces NUI",
+        "**Bots**: discord.js y discord.py",
+      ]],
+      ["Qué llega aquí", "📦", [
+        "**Repositorios nuevos** cuando se publican",
+        "**Versiones** (releases) de los proyectos",
+      ]],
+    ],
+    feed: conFeed("github"),
+    boton: "Ver en GitHub",
+    url,
+  });
+}
+
 /** canal (key del plano) → función que construye el/los mensaje(s) */
 export const paneles = {
   normas,
   guia,
   servicios,
   comandos,
+  instagram,
+  tiktok,
+  github,
   abrir_ticket: ticketPanel,
   verificacion: verificationPanel,
 };

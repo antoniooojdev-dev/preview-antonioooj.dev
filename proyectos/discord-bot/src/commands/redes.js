@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
 import config from "../config.js";
 import { LOGO, socials } from "../servidor/plan.js";
 
@@ -14,6 +14,6 @@ export default {
     const row = new ActionRowBuilder().addComponents(
       socials.links.slice(0, 5).map((l) => new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel(l.label).setEmoji(l.emoji).setURL(l.url)),
     );
-    await interaction.reply({ embeds: [embed], components: [row] });
+    await interaction.reply({ embeds: [embed], components: [row], flags: MessageFlags.Ephemeral });
   },
 };

@@ -15,7 +15,8 @@
     "setup": "node --env-file=.env src/setup.js",
     "revisar": "node --env-file=.env src/setup.js --revisar",
     "semilla": "node --env-file=.env src/servidor/semilla.js",
-    "rehacer": "node --env-file=.env src/servidor/rehacer.js"
+    "rehacer": "node --env-file=.env src/servidor/rehacer.js",
+    "migrar-proyectos": "node --env-file=.env src/servidor/migrar-proyectos.js"
   },
   "dependencies": {
     "discord.js": "^14.19.0"

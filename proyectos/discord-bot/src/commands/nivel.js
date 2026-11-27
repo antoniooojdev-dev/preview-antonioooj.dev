@@ -1,4 +1,4 @@
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import { EmbedBuilder, MessageFlags, SlashCommandBuilder } from "discord.js";
 import config from "../config.js";
 import { leaderboard, peekProfile, xpForLevel } from "../features/levels.js";
 import { progressBar } from "../lib/embeds.js";
@@ -25,6 +25,6 @@ export default {
         { name: `PROGRESO · ${profile.xp}/${need} XP`, value: progressBar(profile.xp, need, 16) },
       );
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   },
 };
