@@ -129,7 +129,7 @@ export const handling: Ficha = {
       id: "instalacion",
       t: "Instalación",
       pasos: [
-        "Copia la carpeta antoniooojdev_admincar en resources. No le cambies el nombre.",
+        "Descarga el recurso desde tu cuenta de Cfx.re (portal.cfx.re › Assets) y copia la carpeta antoniooojdev_admincar en resources. No le cambies el nombre.",
         "Añádelo al server.cfg después del framework y de oxmysql.",
         "Arranca el servidor: las 4 tablas se crean solas, sin importar ningún .sql.",
         "Pon al primer fundador desde la consola con admincar_owner y su ID.",
@@ -183,6 +183,17 @@ export const handling: Ficha = {
           ["Config.FuelResource", "Script de gasolina para los coches de prueba"],
         ],
       },
+    },
+    {
+      id: "actualizar",
+      t: "Actualizaciones",
+      pasos: [
+        "Descarga la versión nueva desde Cfx.re.",
+        "Guarda tu config.lua y data/presets.json (tus presets).",
+        "Sustituye el recurso y vuelve a poner esos dos archivos.",
+        "Reinicia el servidor.",
+      ],
+      nota: "Los handlings guardados, el historial de versiones y los permisos están en la base de datos, así que no se pierden al actualizar.",
     },
     {
       id: "problemas",

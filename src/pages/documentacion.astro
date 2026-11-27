@@ -1,0 +1,269 @@
+---
+// /documentacion (pie › Legal): buscador de los scripts de la tienda y su documentación.
+// Primero la guía común de instalación; cada script con su documentación completa, la misma
+// que en su ficha (DocsReadme.astro, diseño del police). Datos en src/data/documentacion.ts.
+// Enlaces directos: /documentacion#policia, /documentacion#doc-policia-instalacion…
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import DocsReadme from "@/components/servicios/DocsReadme.astro";
+import { scriptsFivem } from "@/data/scripts-fivem";
+import { fichasDocs, guiaGeneral } from "@/data/documentacion";
+import type { DocSeccion } from "@/data/fichas";
+
+const scripts = scriptsFivem
+  .filter((s) => s.estado === "disponible" && fichasDocs[s.id])
+  .map((s) => ({ ...s, ficha: fichasDocs[s.id] }));
+
+// texto plano de cada sección para el buscador
+const plano = (d: DocSeccion) =>
+  [d.t, d.intro, ...(d.pasos ?? []), ...(d.tabla?.filas.flat() ?? []), d.codigo?.txt, d.nota].filter(Boolean).join(" · ");
+
+const indice = [
+  ...guiaGeneral.map((d) => ({ p: "general", n: "Instalación general", s: d.id, t: d.t, x: plano(d) })),
+  ...scripts.flatMap((s) => s.ficha.docs.map((d) => ({ p: s.id, n: s.nombre, s: d.id, t: d.t, x: plano(d) }))),
+];
+const buscable = (s: (typeof scripts)[number]) =>
+  [s.nombre, s.recurso, s.categoria, s.resumen, ...s.ficha.frameworks, ...s.ficha.docs.map(plano)].join(" ").toLowerCase();
+---
+
+<BaseLayout
+  title="Documentación"
+  description="Documentación de los scripts de FiveM de la tienda: instalación, requisitos, configuración, comandos, permisos y actualizaciones."
+  intro={false}
+>
+  <div class="dc" data-no-i18n>
+    <script is:inline type="application/json" id="dc-indice" set:html={JSON.stringify(indice)} />
+    <div class="container">
+      <header class="dc-top">
+        <nav class="dc-migas mono" aria-label="Migas"><span>legal</span><span>/</span><b>documentacion</b></nav>
+        <h1 class="dc-h1">Documentación</h1>
+        <p class="dc-lead">
+          Cómo instalar, configurar y actualizar los scripts de la tienda. Busca el tuyo o cualquier cosa que
+          necesites: un comando, un permiso, un archivo de configuración…
+        </p>
+
+        <div class="dc-busca">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2" /><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+          <input type="search" placeholder="Busca un script, un comando, «instalación», «permisos»…" aria-label="Buscar en la documentación" autocomplete="off" data-busca />
+          <kbd class="mono" aria-hidden="true">/</kbd>
+        </div>
+        <div class="dc-res" data-res hidden>
+          <p class="mono dc-res__k" data-res-k></p>
+          <ul data-res-lista></ul>
+        </div>
+      </header>
+
+      <!-- ── tarjetas: guía general + un script cada una ── -->
+      <div class="dc-cartas" role="tablist" aria-label="Documentación">
+        <button type="button" class="dc-carta dc-carta--guia is-on" role="tab" aria-selected="true" data-ir="general" data-txt={guiaGeneral.map(plano).join(" ").toLowerCase() + " instalación general"}>
+          <span class="dc-carta__guia" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="28" height="28"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM13 4h5.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H13z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /><path d="M6.5 8h2M6.5 11h2M15.5 8h2M15.5 11h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg>
+          </span>
+          <span class="mono dc-carta__k">Para todos los scripts</span>
+          <b>Instalación general</b>
+          <span class="dc-carta__d">Recibir el script, requisitos, server.cfg, actualizaciones y problemas típicos.</span>
+          <span class="mono dc-carta__pie">{guiaGeneral.length} apartados</span>
+        </button>
+        {scripts.map((s) => (
+          <button type="button" class="dc-carta" role="tab" aria-selected="false" data-ir={s.id} data-txt={buscable(s)}>
+            <span class="dc-carta__img"><img src={s.portada} alt="" loading="lazy" /></span>
+            <span class="mono dc-carta__k">{s.categoria} · v{s.ficha.version}</span>
+            <b>{s.nombre}</b>
+            <span class="dc-carta__d">{s.resumen}</span>
+            <span class="mono dc-carta__pie">{s.recurso} · {s.ficha.docs.length} apartados</span>
+          </button>
+        ))}
+        <p class="dc-vacio" data-vacio hidden>Ningún script coincide con la búsqueda.</p>
+      </div>
+
+      <!-- ── paneles ── -->
+      <section class="dc-panel is-on" id="general" data-panel="general" role="tabpanel">
+        <div class="dc-panel__cab">
+          <div>
+            <p class="mono dc-k">Para todos los scripts</p>
+            <h2 class="dc-h2">Instalación general</h2>
+            <p class="dc-sub">Lo común a todos. Lo propio de cada script (requisitos extra, comandos, permisos, configuración) está en su documentación.</p>
+          </div>
+        </div>
+        <DocsReadme recurso="scripts-fivem" docs={guiaGeneral} prefijo="general" />
+      </section>
+
+      {scripts.map((s) => (
+        <section class="dc-panel" id={s.id} data-panel={s.id} role="tabpanel" hidden>
+          <div class="dc-panel__cab">
+            <div>
+              <p class="mono dc-k">{s.recurso} · v{s.ficha.version}</p>
+              <h2 class="dc-h2">{s.nombre}</h2>
+              <p class="dc-sub">{s.ficha.lema}</p>
+              <div class="dc-fw">{s.ficha.frameworks.map((f) => <span class="mono">{f}</span>)}</div>
+            </div>
+            <a class="btn btn-ghost" href={`/servicios/fivem/${s.id}`}>Ver ficha <span aria-hidden="true">→</span></a>
+          </div>
+          <DocsReadme recurso={s.recurso} docs={s.ficha.docs} prefijo={s.id} />
+        </section>
+      ))}
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  type Hit = { p: string; n: string; s: string; t: string; x: string };
+  const indice: Hit[] = JSON.parse(document.getElementById("dc-indice")?.textContent ?? "[]");
+  const busca = document.querySelector<HTMLInputElement>("[data-busca]")!;
+  const cartas = [...document.querySelectorAll<HTMLButtonElement>("[data-ir]")];
+  const paneles = [...document.querySelectorAll<HTMLElement>("[data-panel]")];
+  const vacio = document.querySelector<HTMLElement>("[data-vacio]")!;
+  const res = document.querySelector<HTMLElement>("[data-res]")!;
+  const resK = document.querySelector<HTMLElement>("[data-res-k]")!;
+  const resLista = document.querySelector<HTMLElement>("[data-res-lista]")!;
+  const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+
+  // ── abrir un panel (y, si se pide, ir a una sección) ──
+  const abrir = (id: string, seccion?: string, hash = true) => {
+    if (!paneles.some((p) => p.dataset.panel === id)) return;
+    cartas.forEach((c) => {
+      const on = c.dataset.ir === id;
+      c.classList.toggle("is-on", on);
+      c.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    paneles.forEach((p) => {
+      const on = p.dataset.panel === id;
+      p.hidden = !on;
+      p.classList.toggle("is-on", on);
+    });
+    const destino = seccion ? document.getElementById(`doc-${id}-${seccion}`) : document.getElementById(id);
+    if (hash) history.replaceState(null, "", `#${seccion ? `doc-${id}-${seccion}` : id}`);
+    destino?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  cartas.forEach((c) => c.addEventListener("click", () => abrir(c.dataset.ir!)));
+
+  // enlace directo: #policia o #doc-policia-instalacion
+  const desdeHash = () => {
+    const h = decodeURIComponent(location.hash.slice(1));
+    if (!h) return;
+    if (h.startsWith("doc-")) {
+      const p = paneles.find((x) => h.startsWith(`doc-${x.dataset.panel}-`));
+      if (p) abrir(p.dataset.panel!, h.slice(`doc-${p.dataset.panel}-`.length), false);
+    } else abrir(h, undefined, false);
+  };
+  desdeHash();
+  addEventListener("hashchange", desdeHash);
+
+  // ── buscador: filtra las tarjetas y lista las secciones que coinciden ──
+  const recorte = (x: string, q: string) => {
+    const i = norm(x).indexOf(q);
+    if (i < 0) return esc(x.slice(0, 110)) + (x.length > 110 ? "…" : "");
+    const ini = Math.max(0, i - 40);
+    const fin = Math.min(x.length, i + q.length + 70);
+    return (ini > 0 ? "…" : "") + esc(x.slice(ini, i)) + "<mark>" + esc(x.slice(i, i + q.length)) + "</mark>" + esc(x.slice(i + q.length, fin)) + (fin < x.length ? "…" : "");
+  };
+  const buscar = () => {
+    const q = norm(busca.value.trim());
+    let visibles = 0;
+    cartas.forEach((c) => {
+      const ok = !q || norm(c.dataset.txt ?? "").includes(q) || norm(c.textContent ?? "").includes(q);
+      c.hidden = !ok;
+      if (ok) visibles++;
+    });
+    vacio.hidden = visibles > 0;
+    if (!q) { res.hidden = true; return; }
+    const hits = indice.filter((h) => norm(`${h.n} ${h.t} ${h.x}`).includes(q)).slice(0, 8);
+    res.hidden = false;
+    resK.textContent = hits.length ? `${hits.length === 8 ? "Primeras 8" : hits.length} ${hits.length === 1 ? "sección" : "secciones"} con «${busca.value.trim()}»` : `Nada con «${busca.value.trim()}» en la documentación`;
+    resLista.innerHTML = hits
+      .map((h) => `<li><button type="button" data-p="${esc(h.p)}" data-s="${esc(h.s)}"><span class="mono">${esc(h.n)} › ${esc(h.t)}</span><span>${recorte(h.x, q)}</span></button></li>`)
+      .join("");
+  };
+  busca.addEventListener("input", buscar);
+  resLista.addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button[data-p]");
+    if (b) abrir(b.dataset.p!, b.dataset.s!);
+  });
+  busca.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") resLista.querySelector<HTMLButtonElement>("button")?.click();
+    if (e.key === "Escape") { busca.value = ""; buscar(); }
+  });
+  // «/» lleva al buscador
+  addEventListener("keydown", (e) => {
+    if (e.key !== "/" || (e.target as HTMLElement).closest("input, textarea, [contenteditable]")) return;
+    e.preventDefault();
+    busca.focus();
+  });
+</script>
+
+<style>
+  .dc { padding-bottom: var(--space-9); }
+  @keyframes dc-in { from { opacity: 0; transform: translateY(18px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+  .dc-top > * { animation: dc-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .dc-top > :nth-child(2) { animation-delay: 0.06s; }
+  .dc-top > :nth-child(3) { animation-delay: 0.12s; }
+  .dc-top > :nth-child(4) { animation-delay: 0.18s; }
+
+  .dc-top { display: grid; gap: var(--space-4); max-width: 52rem; padding-top: var(--space-6); }
+  .dc-migas { display: flex; gap: 0.5rem; font-size: var(--fs-xs); color: var(--fg-subtle); }
+  .dc-migas b { color: var(--fg); font-weight: 500; }
+  .dc-h1 { margin: 0; font-size: clamp(2.4rem, 1.2rem + 3.4vw, 4rem); font-weight: 600; letter-spacing: -0.045em; line-height: 1; }
+  .dc-lead { margin: 0; color: var(--fg-muted); font-size: var(--fs-md); line-height: 1.6; max-width: 44rem; }
+
+  .dc-busca {
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.9rem 1.1rem; margin-top: var(--space-2);
+    border-radius: 16px; border: 1px solid var(--border-strong); background: var(--bg-elev); color: var(--fg-subtle);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .dc-busca:focus-within { border-color: var(--fg); box-shadow: 0 0 0 4px color-mix(in srgb, var(--fg) 8%, transparent); }
+  .dc-busca input { flex: 1; min-width: 0; border: 0; background: none; color: var(--fg); font: inherit; font-size: var(--fs-md); outline: none; }
+  .dc-busca input::placeholder { color: var(--fg-subtle); }
+  .dc-busca kbd { padding: 0.1rem 0.45rem; border-radius: 6px; border: 1px solid var(--border-strong); font-size: 0.75rem; }
+
+  .dc-res { border: 1px solid var(--border); border-radius: 16px; background: var(--bg-elev); padding: var(--space-3); }
+  .dc-res[hidden] { display: none; }
+  .dc-res__k { margin: 0 0 var(--space-2); padding: 0 0.5rem; font-size: var(--fs-xs); color: var(--fg-subtle); }
+  .dc-res ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .dc-res :global(button) {
+    display: grid; gap: 0.2rem; width: 100%; padding: 0.6rem 0.7rem; border: 0; border-radius: 10px; background: none;
+    color: var(--fg-muted); font: inherit; font-size: var(--fs-sm); text-align: left; cursor: pointer; transition: background 0.2s;
+  }
+  .dc-res :global(button:hover), .dc-res :global(button:focus-visible) { background: color-mix(in srgb, var(--fg) 6%, transparent); }
+  .dc-res :global(button .mono) { font-size: var(--fs-xs); color: var(--fg); }
+  .dc-res :global(mark) { background: var(--fg); color: var(--bg); border-radius: 3px; padding: 0 2px; }
+
+  /* tarjetas */
+  .dc-cartas { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-4); margin-top: var(--space-8); }
+  .dc-carta {
+    display: flex; flex-direction: column; gap: 0.4rem; padding: 0.75rem 0.75rem var(--space-4);
+    border-radius: var(--radius-tile); border: 1px solid var(--border); background: var(--bg-elev); color: var(--fg);
+    font: inherit; text-align: left; cursor: pointer;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, box-shadow 0.3s;
+    animation: dc-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .dc-carta:nth-child(2) { animation-delay: 0.05s; }
+  .dc-carta:nth-child(3) { animation-delay: 0.1s; }
+  .dc-carta:nth-child(4) { animation-delay: 0.15s; }
+  .dc-carta[hidden] { display: none; }
+  .dc-carta:hover { transform: translateY(-3px); border-color: var(--border-strong); }
+  .dc-carta.is-on { border-color: var(--fg); box-shadow: 0 0 0 1px var(--fg); }
+  .dc-carta__img, .dc-carta__guia { display: block; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 14px; margin-bottom: 0.5rem; background: #0b0b0b; }
+  .dc-carta__img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+  .dc-carta:hover .dc-carta__img img { transform: scale(1.05); }
+  .dc-carta__guia { display: grid; place-items: center; color: #fff; background: radial-gradient(ellipse at 30% 20%, #2a2a2e, #0b0b0b 70%); }
+  .dc-carta__k, .dc-carta__pie { font-size: 0.6875rem; color: var(--fg-subtle); padding: 0 0.5rem; }
+  .dc-carta b { font-size: var(--fs-md); font-weight: 600; letter-spacing: -0.02em; padding: 0 0.5rem; }
+  .dc-carta__d { font-size: var(--fs-xs); color: var(--fg-muted); line-height: 1.55; padding: 0 0.5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .dc-carta__pie { margin-top: auto; padding-top: var(--space-2); }
+  .dc-vacio { grid-column: 1 / -1; margin: 0; color: var(--fg-muted); font-size: var(--fs-sm); }
+
+  /* paneles */
+  .dc-panel { margin-top: var(--space-9); scroll-margin-top: calc(var(--header-h) + var(--space-5)); }
+  .dc-panel.is-on { animation: dc-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .dc-panel__cab { display: flex; justify-content: space-between; align-items: end; gap: var(--space-5); flex-wrap: wrap; margin-bottom: var(--space-7); }
+  .dc-panel__cab > div { display: grid; gap: var(--space-2); max-width: 46rem; }
+  .dc-k { margin: 0; font-size: var(--fs-xs); color: var(--fg-subtle); }
+  .dc-h2 { margin: 0; font-size: var(--fs-xl); font-weight: 600; letter-spacing: -0.03em; line-height: 1.05; }
+  .dc-sub { margin: 0; color: var(--fg-muted); }
+  .dc-fw { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: var(--space-1); }
+  .dc-fw span { padding: 0.25rem 0.65rem; border-radius: 999px; border: 1px solid var(--border-strong); font-size: 0.6875rem; color: var(--fg-muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dc-top > *, .dc-carta, .dc-panel.is-on { animation: none; }
+  }
+</style>

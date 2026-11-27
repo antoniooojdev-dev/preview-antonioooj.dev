@@ -54,6 +54,7 @@ const D: Record<string, Trad> = {
   "bots de Discord": { en: "Discord bots", pt: "bots de Discord" },
   "Aviso legal": { en: "Legal notice", pt: "Aviso legal" },
   Privacidad: { en: "Privacy", pt: "Privacidade" },
+  Documentación: { en: "Documentation", pt: "Documentação" },
   "Saltar al contenido": { en: "Skip to content", pt: "Pular para o conteúdo" },
 
   // ── bento: presentación ──
