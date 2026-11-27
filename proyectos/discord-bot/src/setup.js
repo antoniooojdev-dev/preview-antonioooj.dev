@@ -124,13 +124,26 @@ for (const def of planRoles) {
 }
 
 // orden: justo debajo del rol del bot, en el orden del plano
+// Discord solo acepta el reordenado si se le manda la lista COMPLETA de roles (también los que
+// están por encima del bot y el suyo propio, en su sitio): se calcula el orden final entero.
 {
   await me.fetch(true);
-  let pos = me.roles.highest.position - 1;
-  const positions = planRoles.map((def) => ({ role: ids.roles[def.key], position: pos-- })).filter((p) => p.position > 0);
-  const current = planRoles.map((def) => guild.roles.cache.get(ids.roles[def.key])?.position ?? 0);
-  const ordered = current.every((p, i) => i === 0 || p < current[i - 1]);
-  if (!ordered) await guild.roles.setPositions(positions).catch((err) => say("  ⚠️", `No pude ordenar los roles: ${err.message}`));
+  await guild.roles.fetch();
+  const tope = me.roles.highest.position;
+  const delPlano = planRoles.map((def) => ids.roles[def.key]).filter(Boolean);
+  const todos = [...guild.roles.cache.values()].filter((r) => r.id !== guild.id).sort((a, b) => b.position - a.position);
+  // arriba: lo que está por encima del bot y los roles del propio bot (no se mueven del principio)
+  const arriba = todos.filter((r) => r.position >= tope || me.roles.cache.has(r.id));
+  const resto = todos.filter((r) => !arriba.includes(r) && !delPlano.includes(r.id)); // lo que no es del plano, debajo
+  const orden = [...arriba.map((r) => r.id), ...delPlano, ...resto.map((r) => r.id)];
+  const current = delPlano.map((id) => guild.roles.cache.get(id)?.position ?? 0);
+  const ordered = current.every((p, i) => i === 0 || p < current[i - 1]) && current[0] === tope - me.roles.cache.filter((r) => r.position < tope && r.id !== guild.id).size - 1;
+  if (!ordered) {
+    await guild.roles
+      .setPositions(orden.map((role, i) => ({ role, position: orden.length - i })))
+      .then(() => say("  ↕️", "Roles ordenados"))
+      .catch((err) => say("  ⚠️", `No pude ordenar los roles: ${err.message}`));
+  }
 }
 
 // permisos base de @everyone (lo que se ve lo controlan los canales)

@@ -105,7 +105,7 @@ async function showForm(interaction, typeKey) {
 
   const existing = openTicketOf(interaction.guild, interaction.user.id);
   if (existing) {
-    return interaction.reply({ embeds: [fail(`Ya tienes un ticket abierto: <#${existing[0]}>`)], flags: MessageFlags.Ephemeral });
+    return interaction.reply({ embeds: [fail(`Solo se puede tener **un ticket a la vez**, y ya hay uno abierto: <#${existing[0]}>`, "Ticket ya abierto")], flags: MessageFlags.Ephemeral });
   }
 
   const modal = new ModalBuilder().setCustomId(`ticket:create:${typeKey}`).setTitle(`${type.emoji} ${type.label}`.slice(0, 45));
@@ -129,7 +129,7 @@ async function create(interaction, typeKey) {
 
   // doble envío del formulario
   const existing = openTicketOf(guild, user.id);
-  if (existing) return interaction.editReply({ embeds: [fail(`Ya tienes un ticket abierto: <#${existing[0]}>`)] });
+  if (existing) return interaction.editReply({ embeds: [fail(`Solo se puede tener **un ticket a la vez**, y ya hay uno abierto: <#${existing[0]}>`, "Ticket ya abierto")] });
 
   const number = ++db.counters.ticket;
   const userPerms = [
@@ -193,7 +193,7 @@ async function create(interaction, typeKey) {
     "ticketLogs",
   );
 
-  return interaction.editReply({ embeds: [ok(`Ticket creado: ${channel}`)] });
+  return interaction.editReply({ embeds: [ok(`El canal privado con el equipo ya está abierto: ${channel}`, "Ticket abierto", "Allí se puede añadir cualquier captura o detalle")] });
 }
 
 // ── Reclamar ─────────────────────────────────────────────────

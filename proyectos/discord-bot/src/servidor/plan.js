@@ -43,13 +43,16 @@ export const projectStatus = {
 };
 
 // ── Roles (de arriba abajo) ──────────────────────────────────
-// separator: rol divisor decorativo · group: rol auto-asignable desde #guía
+// Estilo AJ: nombres en MAYÚSCULAS con un solo emoji y separadores finos por bloques.
+// separator: rol divisor decorativo · group: rol auto-asignable desde #guía (label: texto del menú)
+const sep = (key, t) => ({ key, name: `────  ${t}  ────`, separator: true });
+
 export const roles = [
-  { key: "fundador", name: "👑 Fundador", color: 0xffffff, hoist: true, perms: ["Administrator"] },
-  { key: "administrador", name: "🛡️ Administrador", color: 0xe0e0e0, hoist: true, perms: ["Administrator"] },
+  { key: "fundador", name: "👑 FUNDADOR", color: 0xffffff, hoist: true, perms: ["Administrator"] },
+  { key: "administrador", name: "🛡️ ADMINISTRADOR", color: 0xe0e0e0, hoist: true, perms: ["Administrator"] },
   {
     key: "moderador",
-    name: "⚔️ Moderador",
+    name: "⚔️ MODERADOR",
     color: 0xc2c2c2,
     hoist: true,
     perms: [
@@ -57,40 +60,40 @@ export const roles = [
       "MuteMembers", "DeafenMembers", "MoveMembers", "ViewAuditLog", "MentionEveryone",
     ],
   },
-  { key: "soporte", name: "🎧 Soporte", color: 0xa3a3a3, hoist: true, perms: ["ManageThreads"] },
+  { key: "soporte", name: "🎧 SOPORTE", color: 0xa3a3a3, hoist: true, perms: ["ManageThreads"] },
 
-  { key: "sep_especiales", name: "━━━━━ ESPECIALES ━━━━━", separator: true },
-  { key: "partner", name: "🤝 Partner", color: 0xd6d6d6, hoist: true },
-  { key: "cliente", name: "💼 Cliente", color: 0xbababa, hoist: true },
-  { key: "creador", name: "🎥 Creador de contenido", color: 0x9e9e9e },
+  sep("sep_especiales", "ESPECIALES"),
+  { key: "partner", name: "🤝 PARTNER", color: 0xd6d6d6, hoist: true },
+  { key: "cliente", name: "💼 CLIENTE", color: 0xbababa, hoist: true },
+  { key: "creador", name: "🎥 CREADOR", color: 0x9e9e9e },
 
-  { key: "sep_niveles", name: "━━━━━ NIVELES ━━━━━", separator: true },
-  { key: "nivel50", name: "👾 Élite · Nv 50", color: 0xf5f5f5, level: 50 },
-  { key: "nivel35", name: "🏆 Leyenda · Nv 35", color: 0xdcdcdc, level: 35 },
-  { key: "nivel20", name: "⚡ Veterano · Nv 20", color: 0xc4c4c4, level: 20 },
-  { key: "nivel10", name: "🔥 Activo · Nv 10", color: 0xababab, level: 10 },
-  { key: "nivel5", name: "🌱 Novato · Nv 5", color: 0x929292, level: 5 },
+  sep("sep_niveles", "NIVELES"),
+  { key: "nivel50", name: "👾 ÉLITE · NV 50", color: 0xf5f5f5, level: 50 },
+  { key: "nivel35", name: "🏆 LEYENDA · NV 35", color: 0xdcdcdc, level: 35 },
+  { key: "nivel20", name: "⚡ VETERANO · NV 20", color: 0xc4c4c4, level: 20 },
+  { key: "nivel10", name: "🔥 ACTIVO · NV 10", color: 0xababab, level: 10 },
+  { key: "nivel5", name: "🌱 NOVATO · NV 5", color: 0x929292, level: 5 },
 
-  { key: "sep_comunidad", name: "━━━━━ COMUNIDAD ━━━━━", separator: true },
-  { key: "miembro", name: "✅ Miembro", color: 0x7a7a7a, hoist: true },
+  sep("sep_comunidad", "COMUNIDAD"),
+  { key: "miembro", name: "✅ MIEMBRO", color: 0x7a7a7a, hoist: true },
 
-  { key: "sep_avisos", name: "━━━━━ AVISOS ━━━━━", separator: true },
-  { key: "ping_anuncios", name: "🔔 Anuncios", group: "avisos", emoji: "🔔", desc: "Anuncios importantes del servidor" },
-  { key: "ping_fivem", name: "🎮 Novedades FiveM", group: "avisos", emoji: "🎮", desc: "Scripts de FiveM nuevos y actualizados" },
-  { key: "ping_web", name: "🌐 Novedades Web", group: "avisos", emoji: "🌐", desc: "Páginas web nuevas y cambios" },
-  { key: "ping_apps", name: "🧩 Novedades Apps", group: "avisos", emoji: "🧩", desc: "Aplicaciones web nuevas y cambios" },
-  { key: "ping_bots", name: "🤖 Novedades Bots", group: "avisos", emoji: "🤖", desc: "Bots de Discord nuevos y cambios" },
-  { key: "ping_videos", name: "🎬 Vídeos y directos", group: "avisos", emoji: "🎬", desc: "Vídeos nuevos y directos" },
-  { key: "ping_eventos", name: "📅 Eventos y sorteos", group: "avisos", emoji: "📅", desc: "Eventos, sorteos y encuestas" },
+  sep("sep_avisos", "AVISOS"),
+  { key: "ping_anuncios", name: "🔔 ANUNCIOS", label: "Anuncios", group: "avisos", emoji: "🔔", desc: "Anuncios importantes del servidor" },
+  { key: "ping_fivem", name: "🎮 NOVEDADES FIVEM", label: "Novedades de FiveM", group: "avisos", emoji: "🎮", desc: "Scripts de FiveM nuevos y actualizados" },
+  { key: "ping_web", name: "🌐 NOVEDADES WEB", label: "Novedades de webs", group: "avisos", emoji: "🌐", desc: "Páginas web nuevas y cambios" },
+  { key: "ping_apps", name: "🧩 NOVEDADES APPS", label: "Novedades de apps web", group: "avisos", emoji: "🧩", desc: "Aplicaciones web nuevas y cambios" },
+  { key: "ping_bots", name: "🤖 NOVEDADES BOTS", label: "Novedades de bots", group: "avisos", emoji: "🤖", desc: "Bots de Discord nuevos y cambios" },
+  { key: "ping_videos", name: "🎬 VÍDEOS Y DIRECTOS", label: "Vídeos y directos", group: "avisos", emoji: "🎬", desc: "Vídeos nuevos y directos" },
+  { key: "ping_eventos", name: "📅 EVENTOS Y SORTEOS", label: "Eventos y sorteos", group: "avisos", emoji: "📅", desc: "Eventos, sorteos y encuestas" },
 
-  { key: "sep_intereses", name: "━━━━━ INTERESES ━━━━━", separator: true },
-  { key: "int_web", name: "🌐 Desarrollo web", group: "intereses", emoji: "🌐", desc: "HTML, CSS, Astro, React…" },
-  { key: "int_js", name: "⚛️ JavaScript", group: "intereses", emoji: "⚛️", desc: "JS, TypeScript, Node" },
-  { key: "int_python", name: "🐍 Python", group: "intereses", emoji: "🐍", desc: "Python, FastAPI, bots" },
-  { key: "int_php", name: "🐘 PHP", group: "intereses", emoji: "🐘", desc: "PHP y backend clásico" },
-  { key: "int_fivem", name: "🎮 FiveM", group: "intereses", emoji: "🎮", desc: "Scripts Lua, ESX, servidores RP" },
-  { key: "int_diseno", name: "🎨 Diseño", group: "intereses", emoji: "🎨", desc: "UI/UX, Figma, branding" },
-  { key: "int_gaming", name: "🕹️ Gaming", group: "intereses", emoji: "🕹️", desc: "Jugar con la comunidad" },
+  sep("sep_intereses", "INTERESES"),
+  { key: "int_web", name: "🌐 DESARROLLO WEB", label: "Desarrollo web", group: "intereses", emoji: "🌐", desc: "HTML, CSS, Astro, React…" },
+  { key: "int_js", name: "⚛️ JAVASCRIPT", label: "JavaScript", group: "intereses", emoji: "⚛️", desc: "JS, TypeScript, Node" },
+  { key: "int_python", name: "🐍 PYTHON", label: "Python", group: "intereses", emoji: "🐍", desc: "Python, FastAPI, bots" },
+  { key: "int_php", name: "🐘 PHP", label: "PHP", group: "intereses", emoji: "🐘", desc: "PHP y backend clásico" },
+  { key: "int_fivem", name: "🎮 FIVEM", label: "FiveM", group: "intereses", emoji: "🎮", desc: "Scripts Lua, ESX, QBCore, Qbox" },
+  { key: "int_diseno", name: "🎨 DISEÑO", label: "Diseño", group: "intereses", emoji: "🎨", desc: "UI/UX, Figma, branding" },
+  { key: "int_gaming", name: "🕹️ GAMING", label: "Gaming", group: "intereses", emoji: "🕹️", desc: "Jugar con la comunidad" },
 ];
 
 export const STAFF = ["fundador", "administrador", "moderador"];

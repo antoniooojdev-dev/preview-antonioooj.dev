@@ -100,5 +100,5 @@ export async function onModal(interaction, action, destino, mencion, estilo) {
   });
   if (message.crosspostable) await message.crosspost().catch(() => {});
 
-  return interaction.reply({ embeds: [ok(`Anuncio publicado en ${channel}: ${message.url}`)], flags: MessageFlags.Ephemeral });
+  return interaction.reply({ embeds: [ok(`Publicado en ${channel}: ${message.url}`, "Anuncio publicado")], flags: MessageFlags.Ephemeral });
 }

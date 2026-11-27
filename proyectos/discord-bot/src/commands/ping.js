@@ -9,7 +9,7 @@ export default {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const roundtrip = Date.now() - sent;
     await interaction.editReply({
-      embeds: [info(`🏓 **Pong!**\nAPI: \`${roundtrip} ms\` · WebSocket: \`${interaction.client.ws.ping} ms\``)],
+      embeds: [info(`**API** · \`${roundtrip} ms\`\n**WEBSOCKET** · \`${interaction.client.ws.ping} ms\``, "Pong 🏓")],
     });
   },
 };

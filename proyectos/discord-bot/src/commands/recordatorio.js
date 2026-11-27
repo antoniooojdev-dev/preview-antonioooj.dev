@@ -27,8 +27,8 @@ export default {
     const reply = (embed) => interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 
     if (sub === "lista") {
-      if (!mine.length) return reply(info("No tienes recordatorios pendientes."));
-      return reply(info(mine.map((r, i) => `**${i + 1}.** ${discordTime(r.at)} — ${r.text}`).join("\n")));
+      if (!mine.length) return reply(info("**Ninguno pendiente** por ahora.", "Tus recordatorios"));
+      return reply(info(mine.map((r, i) => `**\`${String(i + 1).padStart(2, "0")}\`**  **${r.text}**\n-# ${discordTime(r.at)}`).join("\n"), "Tus recordatorios"));
     }
 
     if (sub === "borrar") {
@@ -50,6 +50,6 @@ export default {
       at,
     });
     save();
-    return reply(ok(`Te lo recuerdo en **${formatDuration(ms)}** (${discordTime(at, "f")}).`));
+    return reply(ok(`Llegará por privado en **${formatDuration(ms)}**.`, "Recordatorio guardado", discordTime(at, "f")));
   },
 };

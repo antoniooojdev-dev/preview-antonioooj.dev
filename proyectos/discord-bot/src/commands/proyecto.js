@@ -89,7 +89,7 @@ export default {
         stack: interaction.options.getString("tecnologias"),
         name: interaction.options.getString("nombre"),
       });
-      return interaction.editReply({ embeds: [ok(`Ficha de **${p.name}** actualizada: <#${p.threadId}>`)] });
+      return interaction.editReply({ embeds: [ok(`**${p.name}**: <#${p.threadId}>`, "Ficha actualizada")] });
     }
 
     // lista
@@ -130,5 +130,5 @@ export async function onModal(interaction, action) {
     link,
     version: get("version"),
   });
-  return interaction.editReply({ embeds: [ok(`Proyecto creado: ${thread}. Publica su primera novedad con \`/novedad\`.`)] });
+  return interaction.editReply({ embeds: [ok(`Su ficha ya está en ${thread}.`, "Proyecto creado", "La primera novedad se publica con /novedad")] });
 }

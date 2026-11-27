@@ -3,7 +3,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlag
 import config from "../config.js";
 import { db, save } from "../lib/store.js";
 import { discordTime } from "../lib/duration.js";
-import { fail, ok } from "../lib/embeds.js";
+import { fail, info, ok } from "../lib/embeds.js";
 import { log } from "../lib/logger.js";
 
 function buildEmbed(g, winners = null) {
@@ -58,7 +58,7 @@ export async function onButton(interaction) {
 
   await interaction.update({ components: [buildButton(g)] });
   await interaction.followUp({
-    embeds: [joined ? fail("Ya no participas en el sorteo.") : ok("¡Estás dentro! Mucha suerte 🍀")],
+    embeds: [joined ? info("Ya **no participas** en el sorteo. Se puede volver a entrar con el mismo botón.", "Fuera del sorteo") : ok("**¡Dentro!** Mucha suerte 🍀", "Participando")],
     flags: MessageFlags.Ephemeral,
   });
 }

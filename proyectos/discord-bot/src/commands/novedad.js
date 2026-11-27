@@ -86,5 +86,6 @@ export async function onModal(interaction, action) {
     },
     interaction.user.toString(),
   );
-  return interaction.editReply({ embeds: [ok(`Novedad publicada en ${inThread.url}${newsMsg ? ` y en ${newsMsg.url}` : ""}`)] });
+  return interaction.editReply({ embeds: [ok(`En su post: ${inThread.url}${newsMsg ? `
+En novedades: ${newsMsg.url}` : ""}`, "Novedad publicada")] });
 }
