@@ -42,45 +42,89 @@ function normas() {
   );
 }
 
-// ── #guía (guía + elección de roles) ─────────────────────────
+// ── #guía: un recuadro por categoría del servidor + elección de roles ──
+// Todo va en un mismo mensaje con varios contenedores (máx. 40 piezas por mensaje).
+const GUIA_CATEGORIAS = [
+  {
+    t: "Inicio",
+    canales: [
+      ["normas", "Cómo funciona la comunidad y la verificación."],
+      ["anuncios", "Avisos **oficiales** del servidor."],
+      ["novedades", "Proyectos nuevos y actualizados, **vídeos** y **directos**."],
+    ],
+  },
+  {
+    t: "Comunidad",
+    canales: [
+      ["general", "La charla de siempre. Un buen sitio para **presentarse**."],
+      ["media", "Capturas, clips y memes."],
+      ["comandos", "`/nivel`, `/ranking`, `/recordatorio` y las **subidas de nivel**."],
+    ],
+  },
+  {
+    t: "Proyectos",
+    canales: [
+      ["proyectos", "Un post por proyecto con su ficha y __todo su historial__."],
+      ["sugerencias", "Ideas para el servidor o los proyectos, con **votos**."],
+      ["bugs", "Fallos encontrados, uno por post."],
+    ],
+  },
+  {
+    t: "Desarrollo",
+    canales: [
+      ["programacion", "Webs, FiveM, bots… cualquier tema de **desarrollo**."],
+      ["ayuda", "Un post por duda, con el **código** y el **error**."],
+      ["tus_proyectos", "Lo que está construyendo la comunidad."],
+    ],
+  },
+  {
+    t: "Servicios",
+    canales: [
+      ["servicios", "Webs, apps, scripts de FiveM y bots **a medida**."],
+      ["abrir_ticket", "Tickets **privados** con el equipo: soporte y presupuestos."],
+    ],
+  },
+  {
+    t: "Voz",
+    canales: [
+      ["crear_sala", "Al entrar se crea una sala __solo tuya__, que se borra al vaciarse."],
+      ["voz_general", "Para hablar con quien esté conectado."],
+    ],
+  },
+];
+
 function guia() {
   const cats = Object.values(projectCategories);
   const guide = v2(
+    // portada
     box([
       withThumb(
         LOGO,
-        h1("AJ · Dev"),
+        h1("Guía"),
         "**Webs**, **aplicaciones web**, **scripts de FiveM** y **bots de Discord**.",
         `-# La comunidad de [antonioooj.dev](${SITE})`,
       ),
       "---",
-      h3("Empieza aquí", "🧭"),
       [
-        "**`01`**  Elige tus **avisos** e **intereses** aquí debajo",
-        `**\`02\`**  Mira los proyectos en ${chan("proyectos")}`,
-        `**\`03\`**  Saluda en ${chan("general")}`,
+        "**`01`**  Los **avisos** e **intereses** se eligen al final de esta guía",
+        `**\`02\`**  Los proyectos están en ${chan("proyectos")}`,
+        `**\`03\`**  La conversación, en ${chan("general")}`,
       ].join("\n"),
-      "---",
-      h3("Canales", "🗺️"),
-      [
-        `**INICIO** — ${chan("anuncios")} ${chan("novedades")}`,
-        `**COMUNIDAD** — ${chan("general")} ${chan("media")} ${chan("comandos")}`,
-        `**PROYECTOS** — ${chan("proyectos")} ${chan("sugerencias")} ${chan("bugs")}`,
-        `**DESARROLLO** — ${chan("programacion")} ${chan("ayuda")} ${chan("tus_proyectos")}`,
-        `**SERVICIOS** — ${chan("servicios")} ${chan("abrir_ticket")}`,
-        "**VOZ** — entra en *➕ Crear sala* y tendrás una sala __solo tuya__",
-      ].join("\n"),
-      "---",
+    ]),
+    // una caja por categoría
+    GUIA_CATEGORIAS.map((c) =>
+      box([[h3(c.t), ...c.canales.map(([k, d]) => `${chan(k)}\n-# ${d}`)].join("\n")]),
+    ),
+    // novedades, niveles y redes
+    box([
       h3("Novedades", "🚀"),
-      `Cada proyecto tiene su post en ${chan("proyectos")} con __todo su historial__. Solo te avisamos de lo que elijas:`,
+      `Cada proyecto anuncia sus cambios en ${chan("novedades")}. Solo llegan avisos de lo que se elija:`,
       cats.map((c) => `${c.emoji} **${c.label}** → ${role(c.role)}`).join("\n"),
       "---",
       h3("Niveles", "🏅"),
-      `Hablar da **XP** y al subir ganas rol:
-${levelRoles()
+      `Hablar da **XP** y cada nivel trae su rol:\n${levelRoles()
         .map((r) => `**${r.level}** ${role(r.key)}`)
-        .join("  ·  ")}
--# \`/nivel\` tu progreso  ·  \`/ranking\` el top 10`,
+        .join("  ·  ")}\n-# \`/nivel\` muestra el progreso  ·  \`/ranking\` el top 10`,
       "---",
       row(socials.links.slice(0, 5).map((l) => linkBtn(l.label, l.url, l.emoji))),
     ]),

@@ -335,7 +335,7 @@ await guild
     reason: "Setup AJ",
   })
   .catch((err) => say("  ⚠️", `Ajustes: ${err.message}`));
-await me.setNickname("AJ Bot").catch(() => {});
+await me.setNickname("antonioooj.dev").catch(() => {});
 
 // ── 8. AutoMod nativo de Discord ─────────────────────────────
 say("🛡️", "AutoMod de Discord…");

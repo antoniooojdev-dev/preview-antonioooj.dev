@@ -8,7 +8,7 @@ export default {
   async execute(interaction) {
     const embed = new EmbedBuilder()
       .setColor(config.colors.primary)
-      .setAuthor({ name: "AJ · DEV", iconURL: LOGO })
+      .setAuthor({ name: "antonioooj.dev", iconURL: LOGO })
       .setTitle("🔗 REDES")
       .setDescription(socials.links.map((l) => `${l.emoji} **[${l.label}](${l.url})**`).join("\n"));
     const row = new ActionRowBuilder().addComponents(

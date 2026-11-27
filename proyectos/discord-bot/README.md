@@ -98,7 +98,7 @@ Todos los mensajes fijos y automáticos usan los **componentes v2** de Discord (
 | 💬 **Foros** | Ayuda con el código, tus proyectos, sugerencias (votación 👍/👎) y bugs, con etiquetas |
 | 🧾 **Paneles** | Guía, normas, verificación, auto-roles, redes, servicios, niveles, partners y tickets |
 | 🛡️ **AutoMod de Discord** | Contenido sexual, insultos, spam y spam de menciones (además del automod del bot) |
-| ⚙️ **Ajustes** | Icono, descripción, canal AFK, verificación media, notificaciones solo con menciones, apodo «AJ Bot» |
+| ⚙️ **Ajustes** | Icono, descripción, canal AFK, verificación media, notificaciones solo con menciones, apodo «antonioooj.dev» |
 
 ```bash
 npm run revisar            # solo enseña lo que hay, no cambia nada
