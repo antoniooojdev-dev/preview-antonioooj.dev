@@ -1,5 +1,5 @@
 // Tipos de las fichas de venta de scripts FiveM (FichaScript.astro).
-// Datos de cada una: src/data/policia.ts, src/data/bandas.ts.
+// Datos de cada una: src/data/policia.ts, src/data/bandas.ts, src/data/handling.ts.
 
 export interface FichaModulo {
   id: string;
