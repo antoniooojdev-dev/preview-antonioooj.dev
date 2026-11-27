@@ -1,0 +1,1309 @@
+---
+// /pruebas-servicio-fivem — propuesta de diseño distinto para /servicios/fivem.
+// Mismos datos que la página real (services.ts, scripts-fivem.ts, policia.ts, bandas.ts),
+// otra forma de contarlo:
+//   1. portada partida: titular grande + consola del servidor arrancando los recursos
+//   2. cinta de frameworks y cifras
+//   3. script destacado (el último «nuevo») con su precio de oferta
+//   4. catálogo en filas numeradas; en escritorio la captura sigue al cursor
+//   5. características como un «resmon» (monitor de recursos de FiveM)
+//   6. dos caminos: comprar uno hecho o encargar uno a medida (con el proceso dentro)
+//   7. preguntas en dos columnas y cierre
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Icono from "@/components/servicios/Icono.astro";
+import { services, serviceDetails } from "@/data/services";
+import { scriptsFivem } from "@/data/scripts-fivem";
+import { policia } from "@/data/policia";
+import { bandas } from "@/data/bandas";
+
+const service = services.find((s) => s.id === "fivem")!;
+const detail = serviceDetails.fivem;
+const contacto = `/contacto?tipo=${encodeURIComponent(detail.tipo)}`;
+
+// precio de los que se venden en Tebex (los demás llevan a su ficha)
+const precios: Record<string, { precio: number; antes?: number; descuento?: number }> = {
+  policia: { precio: policia.precio, antes: policia.precioAntes, descuento: policia.descuento },
+  "sistema-bandas": { precio: bandas.precio, antes: bandas.precioAntes, descuento: bandas.descuento },
+};
+const euros = (n: number) => `${n.toLocaleString("es-ES", { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 })} €`;
+
+const lista = [...scriptsFivem].sort(
+  (a, b) => Number(a.estado === "desarrollo") - Number(b.estado === "desarrollo") || Number(!!b.nuevo) - Number(!!a.nuevo),
+);
+const destacado = lista.find((s) => s.nuevo && s.portada) ?? lista[0];
+const pDest = precios[destacado.id];
+const disponibles = lista.filter((s) => s.estado === "disponible").length;
+
+// líneas de la consola de la portada: arranca cada recurso
+const consola = [
+  { t: "cmd", v: "ensure [antoniooojdev]" },
+  ...lista.map((s) => ({
+    t: s.estado === "disponible" ? "ok" : "wip",
+    v: s.recurso,
+  })),
+  { t: "fin", v: `${disponibles} recursos listos · 0 errores` },
+];
+
+// «resmon»: cada característica como un recurso del monitor
+const resmon = detail.incluye.map((x, i) => ({
+  ...x,
+  ms: x.icono === "zap" ? "0.00" : (0.01 * ((i % 3) + 1)).toFixed(2),
+  mem: `${(1.2 + i * 0.37).toFixed(2)} MiB`,
+}));
+
+const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en reposo", "Validado en servidor", "Config documentada", "En español"];
+---
+
+<BaseLayout title="Pruebas · Scripts FiveM" description="Propuesta de diseño para la página de Scripts FiveM." noindex>
+  <article class="fx" style={`--acc:${detail.color}`}>
+    <!-- 1. portada -->
+    <header class="fx-hero ink">
+      <div class="fx-hero__grid" aria-hidden="true"></div>
+      <div class="container fx-hero__in">
+        <div class="fx-hero__txt">
+          <a href="/#servicios" class="fx-back mono">← servicios</a>
+          <p class="fx-eyebrow mono"><i aria-hidden="true"></i> {service.title} · {service.timeline}</p>
+          <h1>
+            Scripts que tu servidor <em>todavía</em> no tiene.
+          </h1>
+          <p class="fx-lead">{detail.lead}</p>
+          <div class="fx-actions">
+            <a href="#catalogo" class="btn btn-primary">Ver los scripts</a>
+            <a href={contacto} class="btn btn-ghost">Encargar uno a medida</a>
+          </div>
+        </div>
+
+        <div class="fx-term" aria-hidden="true">
+          <div class="fx-term__bar mono">
+            <span class="dots"><i></i><i></i><i></i></span>
+            <span>server-console</span>
+            <span class="fx-term__live"><i></i> live</span>
+          </div>
+          <ol class="fx-term__body mono" data-consola>
+            {
+              consola.map((l) => (
+                <li class={`l l--${l.t}`}>
+                  {l.t === "cmd" && (
+                    <>
+                      <span class="p">&gt;</span> {l.v}
+                    </>
+                  )}
+                  {l.t === "ok" && (
+                    <>
+                      <span class="tag">[ started ]</span> {l.v}
+                    </>
+                  )}
+                  {l.t === "wip" && (
+                    <>
+                      <span class="tag">[ building ]</span> {l.v}
+                    </>
+                  )}
+                  {l.t === "fin" && <>✓ {l.v}</>}
+                </li>
+              ))
+            }
+            <li class="l l--cursor"><span class="p">&gt;</span> <span class="cur"></span></li>
+          </ol>
+          <div class="fx-term__foot mono">
+            <span>resmon</span>
+            <span><b>0.00</b> ms</span>
+            <span class="fx-term__bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. cinta -->
+    <div class="fx-cinta mono" aria-hidden="true">
+      <div class="fx-cinta__pista">
+        {[0, 1].map(() => cinta.map((c) => <span>{c}<i>✦</i></span>))}
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- 3. destacado -->
+      <section class="fx-dest" data-reveal>
+        <a href={`/servicios/fivem/${destacado.id}`} class="fx-dest__a">
+          <div class="fx-dest__img">
+            <img src={destacado.portada} alt={`Captura de ${destacado.nombre}`} width="1920" height="1080" loading="eager" />
+            <span class="fx-dest__sello mono">nuevo</span>
+          </div>
+          <div class="fx-dest__info">
+            <p class="fx-k mono">// lo último</p>
+            <h2>{destacado.nombre}</h2>
+            <p class="fx-dest__res">{destacado.resumen}</p>
+            <ul role="list" class="fx-dest__claves">
+              {destacado.claves.map((k) => (
+                <li>
+                  <Icono nombre="check" size={15} /> {k}
+                </li>
+              ))}
+            </ul>
+            <div class="fx-dest__pie">
+              {pDest && (
+                <p class="fx-precio">
+                  <b>{euros(pDest.precio)}</b>
+                  {pDest.antes && <s>{euros(pDest.antes)}</s>}
+                  {pDest.descuento && <span class="mono">-{pDest.descuento} %</span>}
+                </p>
+              )}
+              <span class="fx-dest__ir mono">
+                abrir ficha <Icono nombre="arrow" size={15} />
+              </span>
+            </div>
+          </div>
+        </a>
+      </section>
+
+      <!-- 4. catálogo en filas -->
+      <section class="fx-sec" id="catalogo">
+        <div class="fx-sec__head">
+          <p class="fx-k mono">// catálogo</p>
+          <h2 class="fx-h2">Todos los <span>scripts</span></h2>
+          <p class="fx-sub">{lista.length} recursos · {disponibles} a la venta · {lista.length - disponibles} en el horno</p>
+        </div>
+
+        <ol role="list" class="fx-lista" data-lista>
+          {
+            lista.map((s, i) => {
+              const dev = s.estado === "desarrollo";
+              const p = precios[s.id];
+              return (
+                <li class:list={["fx-fila", { "fx-fila--dev": dev }]} data-reveal style={`--i:${i}`} data-img={s.portada ?? ""}>
+                  <a href={`/servicios/fivem/${s.id}`}>
+                    <span class="fx-fila__n mono">{String(i + 1).padStart(2, "0")}</span>
+                    <span class="fx-fila__ico" aria-hidden="true">
+                      <Icono nombre={s.icono} size={22} />
+                    </span>
+                    <span class="fx-fila__main">
+                      <span class="fx-fila__t">
+                        {s.nombre}
+                        {s.nuevo && <em class="mono">nuevo</em>}
+                      </span>
+                      <span class="fx-fila__r">{s.resumen}</span>
+                      {s.portada && <img class="fx-fila__movil" src={s.portada} alt="" loading="lazy" width="1920" height="1080" />}
+                    </span>
+                    <span class="fx-fila__cat mono">
+                      {s.categoria}
+                      <small>{s.recurso}</small>
+                    </span>
+                    <span class="fx-fila__precio mono">
+                      {dev ? (
+                        <span class="fx-wip">
+                          <i aria-hidden="true" /> en desarrollo
+                        </span>
+                      ) : p ? (
+                        <>
+                          <b>{euros(p.precio)}</b>
+                          {p.antes && <s>{euros(p.antes)}</s>}
+                        </>
+                      ) : (
+                        <span class="fx-ok">
+                          <i aria-hidden="true" /> disponible
+                        </span>
+                      )}
+                    </span>
+                    <span class="fx-fila__flecha" aria-hidden="true">
+                      <Icono nombre="arrow" size={18} />
+                    </span>
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ol>
+        <!-- captura que sigue al cursor (solo escritorio) -->
+        <div class="fx-preview" aria-hidden="true" data-preview>
+          <img alt="" data-preview-img />
+          <span class="fx-preview__wip mono" data-preview-wip>compilando…</span>
+        </div>
+      </section>
+
+      <!-- 5. resmon -->
+      <section class="fx-sec fx-res">
+        <div class="fx-res__txt">
+          <p class="fx-k mono">// características</p>
+          <h2 class="fx-h2">Lo que llevan <span>todos</span></h2>
+          {detail.consiste.map((p) => <p class="fx-sub">{p}</p>)}
+        </div>
+        <div class="fx-mon" data-reveal>
+          <div class="fx-mon__bar mono">
+            <span>Resource Monitor</span>
+            <span>{resmon.length} running</span>
+          </div>
+          <div class="fx-mon__cab mono" aria-hidden="true">
+            <span>característica</span><span>cpu</span><span>mem</span>
+          </div>
+          <ul role="list">
+            {
+              resmon.map((r) => (
+                <li>
+                  <span class="fx-mon__ico" aria-hidden="true">
+                    <Icono nombre={r.icono} size={18} />
+                  </span>
+                  <span class="fx-mon__t">
+                    <strong>{r.t}</strong>
+                    <small>{r.d}</small>
+                  </span>
+                  <span class="fx-mon__ms mono" aria-hidden="true">{r.ms} ms</span>
+                  <span class="fx-mon__mem mono" aria-hidden="true">{r.mem}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </section>
+
+      <!-- 6. dos caminos -->
+      <section class="fx-sec">
+        <div class="fx-sec__head">
+          <p class="fx-k mono">// cómo lo quieres</p>
+          <h2 class="fx-h2">Dos <span>caminos</span></h2>
+        </div>
+        <div class="fx-caminos">
+          <div class="fx-camino" data-reveal>
+            <span class="fx-camino__n mono">A</span>
+            <h3>Uno ya hecho</h3>
+            <p>Scripts probados en un servidor real, listos para instalar. Los compras en Tebex, los descargas y en minutos están en tu servidor.</p>
+            <ul role="list" class="fx-mini">
+              <li><Icono nombre="zap" size={15} /> Al momento, sin esperas</li>
+              <li><Icono nombre="sliders" size={15} /> Config abierta y comentada</li>
+              <li><Icono nombre="refresh" size={15} /> Actualizaciones incluidas</li>
+            </ul>
+            <a href="#catalogo" class="btn btn-ghost">Ver el catálogo</a>
+          </div>
+          <div class="fx-camino fx-camino--neg" data-reveal style="--i:1">
+            <span class="fx-camino__n mono">B</span>
+            <h3>A medida</h3>
+            <p>Me cuentas la idea y la hago para tu servidor, con tu estilo y tu framework. Plazo habitual: {service.timeline}.</p>
+            <ol role="list" class="fx-pasos">
+              {detail.proceso.map((p, i) => (
+                <li>
+                  <span class="mono">{i + 1}</span>
+                  <div>
+                    <strong>{p.t}</strong>
+                    <small>{p.d}</small>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <a href={contacto} class="btn btn-primary">Pedir presupuesto</a>
+          </div>
+        </div>
+        <ul role="list" class="fx-ideal mono">
+          <li>ideal para →</li>
+          {detail.idealPara.map((x) => <li>{x}</li>)}
+        </ul>
+      </section>
+
+      <!-- 7. preguntas -->
+      <section class="fx-sec fx-faq">
+        <div class="fx-sec__head">
+          <p class="fx-k mono">// dudas</p>
+          <h2 class="fx-h2">Preguntas <span>rápidas</span></h2>
+        </div>
+        <dl class="fx-faq__grid">
+          {
+            detail.faq.map((f, i) => (
+              <div data-reveal style={`--i:${i}`}>
+                <dt>
+                  <span class="mono">Q{i + 1}</span> {f.q}
+                </dt>
+                <dd>{f.a}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </section>
+
+      <!-- cierre -->
+      <aside class="fx-cierre ink">
+        <p class="mono">&gt; ensure tu_idea</p>
+        <h2>¿Lo arrancamos?</h2>
+        <p class="fx-cierre__sub">{service.timeline} · presupuesto cerrado · código tuyo y legible</p>
+        <a href={contacto} class="btn btn-primary">Cuéntame tu script</a>
+      </aside>
+    </div>
+  </article>
+</BaseLayout>
+
+<script>
+  // Consola de la portada: las líneas salen una a una (sin animación si se pide menos movimiento).
+  const consola = document.querySelector<HTMLElement>("[data-consola]");
+  if (consola && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const lineas = [...consola.querySelectorAll<HTMLElement>(".l:not(.l--cursor)")];
+    lineas.forEach((l) => l.classList.add("is-oculta"));
+    lineas.forEach((l, i) => setTimeout(() => l.classList.remove("is-oculta"), 500 + i * 420));
+  }
+
+  // Captura que sigue al cursor sobre las filas del catálogo (solo con ratón).
+  const lista = document.querySelector<HTMLElement>("[data-lista]");
+  const prev = document.querySelector<HTMLElement>("[data-preview]");
+  const img = document.querySelector<HTMLImageElement>("[data-preview-img]");
+  const wip = document.querySelector<HTMLElement>("[data-preview-wip]");
+  if (lista && prev && img && wip && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    let x = 0, y = 0, tx = 0, ty = 0, raf = 0;
+    const mover = () => {
+      x += (tx - x) * 0.18;
+      y += (ty - y) * 0.18;
+      prev.style.transform = `translate(${x}px, ${y}px)`;
+      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.5 ? requestAnimationFrame(mover) : 0;
+    };
+    lista.addEventListener("pointermove", (e) => {
+      tx = e.clientX + 24;
+      ty = e.clientY - 90;
+      if (!raf) raf = requestAnimationFrame(mover);
+    });
+    lista.querySelectorAll<HTMLElement>(".fx-fila").forEach((f) => {
+      f.addEventListener("pointerenter", (e) => {
+        const src = f.dataset.img;
+        if (!prev.classList.contains("is-on")) {
+          x = tx = e.clientX + 24;
+          y = ty = e.clientY - 90;
+          prev.style.transform = `translate(${x}px, ${y}px)`;
+        }
+        if (src) {
+          img.src = src;
+          img.hidden = false;
+          wip.hidden = true;
+        } else {
+          img.hidden = true;
+          wip.hidden = false;
+        }
+        prev.classList.add("is-on");
+      });
+    });
+    lista.addEventListener("pointerleave", () => prev.classList.remove("is-on"));
+  }
+</script>
+
+<style>
+  .fx {
+    --acc-soft: color-mix(in srgb, var(--acc) 16%, transparent);
+    overflow-x: clip;
+  }
+  .fx-k {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--acc);
+    margin-bottom: var(--space-3);
+  }
+  .fx-h2 {
+    font-size: var(--fs-xl);
+    font-weight: 800;
+    font-stretch: 112%;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .fx-h2 span {
+    color: var(--fg-subtle);
+  }
+  .fx-sub {
+    margin-top: var(--space-4);
+    max-width: 40rem;
+    color: var(--fg-muted);
+    line-height: 1.6;
+  }
+  .fx-sec {
+    padding-block: var(--section) 0;
+  }
+  .fx-sec__head {
+    margin-bottom: var(--space-7);
+  }
+
+  /* ── 1. portada ── */
+  .fx-hero {
+    position: relative;
+    background: var(--bg);
+    color: var(--fg);
+    padding: calc(var(--header-h) + var(--space-8)) 0 var(--space-9);
+    overflow: hidden;
+  }
+  .fx-hero__grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 70% 70% at 70% 40%, #000 20%, transparent 75%);
+    opacity: 0.6;
+  }
+  .fx-hero::after {
+    content: "";
+    position: absolute;
+    width: 46rem;
+    height: 46rem;
+    right: -12rem;
+    top: -14rem;
+    background: radial-gradient(circle, var(--acc-soft), transparent 65%);
+    pointer-events: none;
+  }
+  .fx-hero__in {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: var(--space-8);
+    align-items: center;
+  }
+  .fx-back {
+    display: inline-block;
+    font-size: var(--fs-sm);
+    color: var(--fg-subtle);
+    margin-bottom: var(--space-6);
+  }
+  .fx-back:hover {
+    color: var(--fg);
+  }
+  .fx-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-muted);
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 99px;
+  }
+  .fx-eyebrow i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--acc);
+    box-shadow: 0 0 0 4px var(--acc-soft);
+  }
+  .fx-hero h1 {
+    margin-top: var(--space-5);
+    font-size: clamp(2.5rem, 1.2rem + 5.2vw, 6rem);
+    font-weight: 850;
+    font-stretch: 115%;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    text-wrap: balance;
+  }
+  .fx-hero h1 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--acc);
+  }
+  .fx-lead {
+    margin-top: var(--space-5);
+    max-width: 34rem;
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    color: var(--fg-muted);
+  }
+  .fx-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  /* consola */
+  .fx-term {
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-tile);
+    background: color-mix(in srgb, var(--bg-elev) 85%, transparent);
+    backdrop-filter: blur(8px);
+    overflow: hidden;
+    box-shadow: 0 40px 80px -40px color-mix(in srgb, var(--acc) 40%, transparent);
+    transform: rotate(1.2deg);
+  }
+  .fx-term__bar,
+  .fx-term__foot {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: 0.8rem 1.1rem;
+    font-size: 0.75rem;
+    color: var(--fg-subtle);
+  }
+  .fx-term__bar {
+    border-bottom: 1px solid var(--border);
+  }
+  .dots {
+    display: inline-flex;
+    gap: 6px;
+  }
+  .dots i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border-strong);
+  }
+  .fx-term__live {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--ok);
+  }
+  .fx-term__live i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: fx-lat 1.6s ease-in-out infinite;
+  }
+  .fx-term__body {
+    list-style: none;
+    padding: 1.1rem 1.2rem;
+    min-height: 15rem;
+    font-size: 0.8125rem;
+    line-height: 1.9;
+  }
+  .l {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition:
+      opacity 0.25s ease,
+      transform 0.25s ease;
+  }
+  .l.is-oculta {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  .l .p {
+    color: var(--acc);
+  }
+  .l--ok .tag {
+    color: var(--ok);
+  }
+  .l--wip .tag {
+    color: #d97706;
+  }
+  .l--wip {
+    color: var(--fg-subtle);
+  }
+  .l--fin {
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .cur {
+    display: inline-block;
+    width: 0.55em;
+    height: 1.05em;
+    vertical-align: -0.15em;
+    background: var(--fg);
+    animation: fx-cur 1s steps(1) infinite;
+  }
+  .fx-term__foot {
+    border-top: 1px solid var(--border);
+  }
+  .fx-term__foot b {
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .fx-term__bars {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 14px;
+  }
+  .fx-term__bars i {
+    width: 3px;
+    height: 3px;
+    background: var(--acc);
+    border-radius: 1px;
+    animation: fx-bar 2.4s ease-in-out infinite;
+  }
+  .fx-term__bars i:nth-child(2n) {
+    animation-delay: -0.6s;
+  }
+  .fx-term__bars i:nth-child(3n) {
+    animation-delay: -1.3s;
+  }
+  @keyframes fx-cur {
+    50% {
+      opacity: 0;
+    }
+  }
+  @keyframes fx-lat {
+    50% {
+      opacity: 0.3;
+    }
+  }
+  @keyframes fx-bar {
+    0%,
+    100% {
+      height: 3px;
+    }
+    40% {
+      height: 6px;
+    }
+  }
+
+  /* ── 2. cinta ── */
+  .fx-cinta {
+    border-block: 1px solid var(--border);
+    overflow: hidden;
+    padding: 1rem 0;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-muted);
+  }
+  .fx-cinta__pista {
+    display: flex;
+    width: max-content;
+    animation: fx-cinta 40s linear infinite;
+  }
+  .fx-cinta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 2rem;
+    padding-right: 2rem;
+  }
+  .fx-cinta i {
+    font-style: normal;
+    color: var(--acc);
+  }
+  @keyframes fx-cinta {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* ── 3. destacado ── */
+  .fx-dest {
+    padding-top: var(--section);
+  }
+  .fx-dest__a {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-tile);
+    background: var(--bg-elev);
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+  }
+  .fx-dest__a:hover {
+    border-color: var(--acc);
+  }
+  .fx-dest__img {
+    position: relative;
+    overflow: hidden;
+    background: #000;
+  }
+  .fx-dest__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s var(--ease);
+  }
+  .fx-dest__a:hover .fx-dest__img img {
+    transform: scale(1.04);
+  }
+  .fx-dest__sello {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 99px;
+    background: var(--acc);
+    color: #fff;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .fx-dest__info {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-7) var(--space-6);
+  }
+  .fx-dest h2 {
+    font-size: clamp(1.8rem, 1.2rem + 2vw, 2.8rem);
+    font-weight: 800;
+    font-stretch: 112%;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .fx-dest__res {
+    margin-top: var(--space-4);
+    color: var(--fg-muted);
+    line-height: 1.6;
+  }
+  .fx-dest__claves {
+    margin-top: var(--space-5);
+    display: grid;
+    gap: 0.55rem;
+    font-size: var(--fs-sm);
+  }
+  .fx-dest__claves li {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+  }
+  .fx-dest__claves :global(svg) {
+    color: var(--acc);
+    flex: none;
+  }
+  .fx-dest__pie {
+    margin-top: auto;
+    padding-top: var(--space-6);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    align-items: center;
+    justify-content: space-between;
+  }
+  .fx-precio {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  .fx-precio b {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  .fx-precio s {
+    color: var(--fg-subtle);
+  }
+  .fx-precio span {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    background: var(--acc-soft);
+    color: var(--acc);
+  }
+  .fx-dest__ir {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--fs-sm);
+  }
+  .fx-dest__a:hover .fx-dest__ir :global(svg) {
+    transform: translateX(4px);
+  }
+  .fx-dest__ir :global(svg) {
+    transition: transform 0.25s ease;
+  }
+
+  /* ── 4. catálogo en filas ── */
+  .fx-lista {
+    list-style: none;
+    border-top: 1px solid var(--border-strong);
+  }
+  .fx-fila a {
+    display: grid;
+    grid-template-columns: 3rem 3rem minmax(0, 1fr) 11rem 9rem 2rem;
+    gap: var(--space-4);
+    align-items: center;
+    padding: var(--space-5) var(--space-3);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    transition: background 0.3s ease;
+  }
+  .fx-fila a::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--acc);
+    transform: scaleY(0);
+    transition: transform 0.35s var(--ease);
+  }
+  .fx-fila a:hover {
+    background: var(--bg-elev);
+  }
+  .fx-fila a:hover::before {
+    transform: none;
+  }
+  .fx-fila__n {
+    font-size: var(--fs-sm);
+    color: var(--fg-subtle);
+  }
+  .fx-fila__ico {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-strong);
+    transition:
+      background 0.3s ease,
+      color 0.3s ease,
+      border-color 0.3s ease;
+  }
+  .fx-fila a:hover .fx-fila__ico {
+    background: var(--acc);
+    border-color: var(--acc);
+    color: #fff;
+  }
+  .fx-fila__main {
+    display: grid;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+  .fx-fila__t {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    font-weight: 750;
+    font-stretch: 108%;
+    letter-spacing: -0.02em;
+    transition: transform 0.35s var(--ease);
+  }
+  .fx-fila a:hover .fx-fila__t {
+    transform: translateX(6px);
+  }
+  .fx-fila__t em {
+    font-style: normal;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.5rem;
+    border-radius: 99px;
+    background: var(--acc);
+    color: #fff;
+    font-weight: 500;
+  }
+  .fx-fila__r {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+  }
+  .fx-fila__movil {
+    display: none;
+  }
+  .fx-fila__cat {
+    display: grid;
+    font-size: var(--fs-sm);
+  }
+  .fx-fila__cat small {
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .fx-fila__precio {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    font-size: var(--fs-sm);
+  }
+  .fx-fila__precio b {
+    font-family: var(--font-sans);
+    font-size: 1.25rem;
+    font-weight: 800;
+  }
+  .fx-fila__precio s {
+    color: var(--fg-subtle);
+    font-size: 0.75rem;
+  }
+  .fx-wip,
+  .fx-ok {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--fg-subtle);
+  }
+  .fx-wip i,
+  .fx-ok i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #d97706;
+  }
+  .fx-ok i {
+    background: var(--ok);
+  }
+  .fx-fila__flecha {
+    color: var(--fg-subtle);
+    transition:
+      transform 0.3s ease,
+      color 0.3s ease;
+  }
+  .fx-fila a:hover .fx-fila__flecha {
+    color: var(--acc);
+    transform: rotate(-45deg);
+  }
+  .fx-fila--dev .fx-fila__t {
+    color: var(--fg-muted);
+  }
+
+  .fx-preview {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 50;
+    width: 20rem;
+    aspect-ratio: 16 / 9;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #0a0a0a;
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.5);
+    pointer-events: none;
+    opacity: 0;
+    scale: 0.85;
+    transition:
+      opacity 0.25s ease,
+      scale 0.3s var(--ease);
+  }
+  .fx-preview.is-on {
+    opacity: 1;
+    scale: 1;
+  }
+  .fx-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .fx-preview__wip {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #d97706;
+    font-size: var(--fs-sm);
+    background: repeating-linear-gradient(-45deg, #111 0 12px, #161616 12px 24px);
+  }
+  .fx-preview__wip[hidden],
+  .fx-preview img[hidden] {
+    display: none;
+  }
+
+  /* ── 5. resmon ── */
+  .fx-res {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  .fx-res__txt {
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-6));
+  }
+  .fx-mon {
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-tile);
+    background: var(--bg-elev);
+    overflow: hidden;
+  }
+  .fx-mon__bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.9rem 1.3rem;
+    font-size: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--fg-subtle);
+  }
+  .fx-mon__bar span:first-child {
+    color: var(--fg);
+  }
+  .fx-mon__cab,
+  .fx-mon li {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 5.5rem 5.5rem;
+    gap: var(--space-4);
+    align-items: center;
+    padding: 0.75rem 1.3rem;
+  }
+  .fx-mon__cab {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--fg-subtle);
+    background: var(--bg-code);
+  }
+  .fx-mon__cab span:first-child {
+    grid-column: 1 / 3;
+  }
+  .fx-mon__cab span:not(:first-child) {
+    text-align: right;
+  }
+  .fx-mon li {
+    border-top: 1px solid var(--border);
+    padding-block: 1.1rem;
+    transition: background 0.25s ease;
+  }
+  .fx-mon li:hover {
+    background: var(--acc-soft);
+  }
+  .fx-mon__ico {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 10px;
+    background: var(--acc-soft);
+    color: var(--acc);
+  }
+  .fx-mon__t {
+    display: grid;
+    gap: 0.2rem;
+  }
+  .fx-mon__t small {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+  }
+  .fx-mon__ms,
+  .fx-mon__mem {
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--ok);
+  }
+  .fx-mon__mem {
+    color: var(--fg-subtle);
+  }
+
+  /* ── 6. caminos ── */
+  .fx-caminos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+  .fx-camino {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-7) var(--space-6) var(--space-6);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-tile);
+    background: var(--bg-elev);
+  }
+  .fx-camino--neg {
+    background: var(--fg);
+    color: var(--bg);
+    border-color: var(--fg);
+    --fg-muted: color-mix(in srgb, var(--bg) 65%, var(--fg));
+    --fg-subtle: color-mix(in srgb, var(--bg) 45%, var(--fg));
+    --border: color-mix(in srgb, var(--bg) 18%, var(--fg));
+  }
+  .fx-camino--neg .btn-primary {
+    background: var(--acc);
+    border-color: var(--acc);
+    color: #fff;
+  }
+  .fx-camino__n {
+    position: absolute;
+    top: var(--space-5);
+    right: var(--space-6);
+    font-size: 4rem;
+    line-height: 1;
+    color: var(--fg-subtle);
+    opacity: 0.35;
+  }
+  .fx-camino h3 {
+    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.3rem);
+    font-weight: 800;
+    font-stretch: 112%;
+    letter-spacing: -0.03em;
+  }
+  .fx-camino > p {
+    color: var(--fg-muted);
+    line-height: 1.6;
+    max-width: 30rem;
+  }
+  .fx-camino .btn {
+    margin-top: auto;
+    align-self: flex-start;
+  }
+  .fx-mini {
+    display: grid;
+    gap: 0.6rem;
+    font-size: var(--fs-sm);
+    margin-bottom: var(--space-4);
+  }
+  .fx-mini li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .fx-mini :global(svg),
+  .fx-pasos span {
+    color: var(--acc);
+  }
+  .fx-pasos {
+    display: grid;
+    gap: 0;
+    margin-bottom: var(--space-4);
+  }
+  .fx-pasos li {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: var(--space-3);
+    padding: 0.7rem 0;
+    border-top: 1px solid var(--border);
+  }
+  .fx-pasos span {
+    font-size: var(--fs-sm);
+    padding-top: 0.1rem;
+  }
+  .fx-pasos div {
+    display: grid;
+    gap: 0.15rem;
+  }
+  .fx-pasos small {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+  }
+  .fx-ideal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: var(--space-5);
+    font-size: 0.75rem;
+  }
+  .fx-ideal li {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 99px;
+    color: var(--fg-muted);
+  }
+  .fx-ideal li:first-child {
+    border-color: transparent;
+    color: var(--acc);
+    padding-inline: 0;
+  }
+
+  /* ── 7. preguntas ── */
+  .fx-faq__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+  .fx-faq__grid > div {
+    padding: var(--space-5);
+    border-top: 2px solid var(--fg);
+  }
+  .fx-faq__grid dt {
+    font-weight: 700;
+    font-size: var(--fs-md);
+    line-height: 1.35;
+  }
+  .fx-faq__grid dt span {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--acc);
+    margin-bottom: 0.5rem;
+  }
+  .fx-faq__grid dd {
+    margin-top: var(--space-3);
+    color: var(--fg-muted);
+    line-height: 1.6;
+  }
+
+  /* ── cierre ── */
+  .fx-cierre {
+    position: relative;
+    margin-block: var(--section);
+    padding: var(--space-9) var(--space-6);
+    border-radius: var(--radius-tile);
+    background: var(--bg);
+    color: var(--fg);
+    text-align: center;
+    overflow: hidden;
+  }
+  .fx-cierre::before {
+    content: "";
+    position: absolute;
+    inset: auto -20% -60% -20%;
+    height: 120%;
+    background: radial-gradient(ellipse at center, var(--acc-soft), transparent 60%);
+    pointer-events: none;
+  }
+  .fx-cierre > * {
+    position: relative;
+  }
+  .fx-cierre > p.mono {
+    color: var(--acc);
+    font-size: var(--fs-sm);
+  }
+  .fx-cierre h2 {
+    margin-top: var(--space-3);
+    font-size: var(--fs-2xl);
+    font-weight: 850;
+    font-stretch: 120%;
+    letter-spacing: -0.05em;
+    line-height: 0.9;
+  }
+  .fx-cierre__sub {
+    margin: var(--space-5) 0 var(--space-6);
+    color: var(--fg-muted);
+  }
+
+  /* ── responsive ── */
+  @media (max-width: 1000px) {
+    .fx-hero__in,
+    .fx-dest__a,
+    .fx-res {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .fx-term {
+      transform: none;
+    }
+    .fx-res__txt {
+      position: static;
+    }
+    .fx-fila a {
+      grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    }
+    .fx-fila__ico,
+    .fx-fila__cat,
+    .fx-fila__flecha {
+      display: none;
+    }
+    .fx-faq__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 720px) {
+    .fx-caminos {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .fx-fila a {
+      grid-template-columns: 2rem minmax(0, 1fr);
+      padding-inline: 0;
+    }
+    .fx-fila__precio {
+      grid-column: 2;
+      justify-content: flex-start;
+    }
+    .fx-fila__movil {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      margin-top: 0.5rem;
+      border: 1px solid var(--border);
+    }
+    .fx-mon__cab,
+    .fx-mon li {
+      grid-template-columns: 2.25rem minmax(0, 1fr) 4.5rem;
+      padding-inline: 1rem;
+    }
+    .fx-mon__mem,
+    .fx-mon__cab span:last-child {
+      display: none;
+    }
+    .fx-dest__info {
+      padding: var(--space-6) var(--space-5);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fx-cinta__pista,
+    .fx-term__bars i,
+    .cur,
+    .fx-term__live i {
+      animation: none;
+    }
+  }
+</style>
