@@ -2,10 +2,10 @@
 // /pruebas-servicio-fivem — propuesta de diseño distinto para /servicios/fivem.
 // Mismos datos que la página real (services.ts, scripts-fivem.ts, policia.ts, bandas.ts),
 // otra forma de contarlo:
-//   1. portada partida: titular grande + consola del servidor arrancando los recursos
-//   2. cinta de frameworks y cifras
-//   3. script destacado (el último «nuevo») con su precio de oferta
-//   4. catálogo en filas numeradas; en escritorio la captura sigue al cursor
+//   1. portada partida: titular grande + pila de capturas que va rotando sola
+//   3. «lo último»: el script nuevo a sangre, captura de fondo y caja de compra
+//   4. catálogo en tarjetas anchas con captura, alternando lado
+//   (todos los scripts van en español e inglés: chips ES / EN)
 //   5. características como un «resmon» (monitor de recursos de FiveM)
 //   6. dos caminos: comprar uno hecho o encargar uno a medida (con el proceso dentro)
 //   7. preguntas en dos columnas y cierre
@@ -32,17 +32,14 @@ const lista = [...scriptsFivem].sort(
 );
 const destacado = lista.find((s) => s.nuevo && s.portada) ?? lista[0];
 const pDest = precios[destacado.id];
-const disponibles = lista.filter((s) => s.estado === "disponible").length;
-
-// líneas de la consola de la portada: arranca cada recurso
-const consola = [
-  { t: "cmd", v: "ensure [antoniooojdev]" },
-  ...lista.map((s) => ({
-    t: s.estado === "disponible" ? "ok" : "wip",
-    v: s.recurso,
-  })),
-  { t: "fin", v: `${disponibles} recursos listos · 0 errores` },
+// todos los scripts vienen traducidos al español y al inglés
+const idiomas = [
+  { c: "ES", t: "Español" },
+  { c: "EN", t: "English" },
 ];
+
+// pila de capturas de la portada: los disponibles con captura, el destacado delante
+const pila = [destacado, ...lista.filter((s) => s.portada && s.id !== destacado.id)].slice(0, 3);
 
 // «resmon»: cada característica como un recurso del monitor
 const resmon = detail.incluye.map((x, i) => ({
@@ -51,7 +48,6 @@ const resmon = detail.incluye.map((x, i) => ({
   mem: `${(1.2 + i * 0.37).toFixed(2)} MiB`,
 }));
 
-const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en reposo", "Validado en servidor", "Config documentada", "En español"];
 ---
 
 <BaseLayout title="Pruebas · Scripts FiveM" description="Propuesta de diseño para la página de Scripts FiveM." noindex>
@@ -61,8 +57,6 @@ const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en rep
       <div class="fx-hero__grid" aria-hidden="true"></div>
       <div class="container fx-hero__in">
         <div class="fx-hero__txt">
-          <a href="/#servicios" class="fx-back mono">← servicios</a>
-          <p class="fx-eyebrow mono"><i aria-hidden="true"></i> {service.title} · {service.timeline}</p>
           <h1>
             Scripts que tu servidor <em>todavía</em> no tiene.
           </h1>
@@ -71,140 +65,155 @@ const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en rep
             <a href="#catalogo" class="btn btn-primary">Ver los scripts</a>
             <a href={contacto} class="btn btn-ghost">Encargar uno a medida</a>
           </div>
+          <p class="fx-hero__idiomas mono">
+            {idiomas.map((l) => <span><b>{l.c}</b> {l.t}</span>)}
+            <span class="fx-hero__idiomas-t">todos los scripts, en los dos idiomas</span>
+          </p>
         </div>
 
-        <div class="fx-term" aria-hidden="true">
-          <div class="fx-term__bar mono">
-            <span class="dots"><i></i><i></i><i></i></span>
-            <span>server-console</span>
-            <span class="fx-term__live"><i></i> live</span>
-          </div>
-          <ol class="fx-term__body mono" data-consola>
-            {
-              consola.map((l) => (
-                <li class={`l l--${l.t}`}>
-                  {l.t === "cmd" && (
-                    <>
-                      <span class="p">&gt;</span> {l.v}
-                    </>
-                  )}
-                  {l.t === "ok" && (
-                    <>
-                      <span class="tag">[ started ]</span> {l.v}
-                    </>
-                  )}
-                  {l.t === "wip" && (
-                    <>
-                      <span class="tag">[ building ]</span> {l.v}
-                    </>
-                  )}
-                  {l.t === "fin" && <>✓ {l.v}</>}
-                </li>
-              ))
-            }
-            <li class="l l--cursor"><span class="p">&gt;</span> <span class="cur"></span></li>
-          </ol>
-          <div class="fx-term__foot mono">
-            <span>resmon</span>
-            <span><b>0.00</b> ms</span>
-            <span class="fx-term__bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-          </div>
+        <!-- pila de capturas: la de delante cambia sola; se puede pulsar -->
+        <div class="fx-pila" data-pila>
+          {
+            pila.map((s, i) => (
+              <a href={`/servicios/fivem/${s.id}`} class="fx-pila__c" data-pos={i} aria-label={s.nombre} tabindex={i === 0 ? 0 : -1}>
+                <img src={s.portada} alt="" width="1920" height="1080" loading={i === 0 ? "eager" : "lazy"} />
+                <span class="fx-pila__pie">
+                  <span class="fx-pila__ico" aria-hidden="true">
+                    <Icono nombre={s.icono} size={16} />
+                  </span>
+                  <span>
+                    <b>{s.nombre}</b>
+                    <small class="mono">{s.categoria}</small>
+                  </span>
+                  {precios[s.id] && <span class="fx-pila__precio">{euros(precios[s.id].precio)}</span>}
+                </span>
+              </a>
+            ))
+          }
+          <span class="fx-pila__puntos" aria-hidden="true">
+            {pila.map((_, i) => <i class:list={{ "is-on": i === 0 }} />)}
+          </span>
         </div>
       </div>
     </header>
-
-    <!-- 2. cinta -->
-    <div class="fx-cinta mono" aria-hidden="true">
-      <div class="fx-cinta__pista">
-        {[0, 1].map(() => cinta.map((c) => <span>{c}<i>✦</i></span>))}
-      </div>
-    </div>
 
     <div class="container">
       <!-- 3. destacado -->
       <section class="fx-dest" data-reveal>
         <a href={`/servicios/fivem/${destacado.id}`} class="fx-dest__a">
-          <div class="fx-dest__img">
-            <img src={destacado.portada} alt={`Captura de ${destacado.nombre}`} width="1920" height="1080" loading="eager" />
-            <span class="fx-dest__sello mono">nuevo</span>
-          </div>
-          <div class="fx-dest__info">
-            <p class="fx-k mono">// lo último</p>
-            <h2>{destacado.nombre}</h2>
-            <p class="fx-dest__res">{destacado.resumen}</p>
-            <ul role="list" class="fx-dest__claves">
+          <img class="fx-dest__bg" src={destacado.portada} alt={`Captura de ${destacado.nombre}`} width="1920" height="1080" loading="eager" />
+          <span class="fx-dest__velo" aria-hidden="true"></span>
+
+          <span class="fx-dest__top">
+            <span class="fx-dest__sello mono"><i aria-hidden="true"></i> Lo último</span>
+            <span class="fx-dest__recurso mono">{destacado.recurso}</span>
+          </span>
+
+          <span class="fx-dest__info">
+            <span class="fx-dest__ico" aria-hidden="true">
+              <Icono nombre={destacado.icono} size={26} />
+            </span>
+            <span class="fx-dest__h">{destacado.nombre}</span>
+            <span class="fx-dest__res">{destacado.resumen}</span>
+            <span class="fx-chips">
+              {destacado.frameworks.map((f) => <span>{f}</span>)}
+              {idiomas.map((l) => <span class="fx-chip--idioma">{l.c}</span>)}
+            </span>
+          </span>
+
+          <span class="fx-dest__caja">
+            <span class="fx-dest__claves">
               {destacado.claves.map((k) => (
-                <li>
+                <span>
                   <Icono nombre="check" size={15} /> {k}
-                </li>
+                </span>
               ))}
-            </ul>
-            <div class="fx-dest__pie">
+            </span>
+            <span class="fx-dest__compra">
               {pDest && (
-                <p class="fx-precio">
+                <span class="fx-precio">
                   <b>{euros(pDest.precio)}</b>
                   {pDest.antes && <s>{euros(pDest.antes)}</s>}
-                  {pDest.descuento && <span class="mono">-{pDest.descuento} %</span>}
-                </p>
+                  {pDest.descuento && <em class="mono">-{pDest.descuento} %</em>}
+                </span>
               )}
-              <span class="fx-dest__ir mono">
-                abrir ficha <Icono nombre="arrow" size={15} />
+              <span class="fx-dest__ir">
+                Ver el script <Icono nombre="arrow" size={16} />
               </span>
-            </div>
-          </div>
+            </span>
+          </span>
         </a>
       </section>
 
-      <!-- 4. catálogo en filas -->
+      <!-- 4. catálogo -->
       <section class="fx-sec" id="catalogo">
         <div class="fx-sec__head">
           <p class="fx-k mono">// catálogo</p>
           <h2 class="fx-h2">Todos los <span>scripts</span></h2>
-          <p class="fx-sub">{lista.length} recursos · {disponibles} a la venta · {lista.length - disponibles} en el horno</p>
         </div>
 
-        <ol role="list" class="fx-lista" data-lista>
+        <ol role="list" class="fx-lista">
           {
             lista.map((s, i) => {
               const dev = s.estado === "desarrollo";
               const p = precios[s.id];
               return (
-                <li class:list={["fx-fila", { "fx-fila--dev": dev }]} data-reveal style={`--i:${i}`} data-img={s.portada ?? ""}>
+                <li class:list={["fx-sc", { "fx-sc--dev": dev }]} data-reveal style={`--i:${i}`}>
                   <a href={`/servicios/fivem/${s.id}`}>
-                    <span class="fx-fila__n mono">{String(i + 1).padStart(2, "0")}</span>
-                    <span class="fx-fila__ico" aria-hidden="true">
-                      <Icono nombre={s.icono} size={22} />
-                    </span>
-                    <span class="fx-fila__main">
-                      <span class="fx-fila__t">
-                        {s.nombre}
-                        {s.nuevo && <em class="mono">nuevo</em>}
-                      </span>
-                      <span class="fx-fila__r">{s.resumen}</span>
-                      {s.portada && <img class="fx-fila__movil" src={s.portada} alt="" loading="lazy" width="1920" height="1080" />}
-                    </span>
-                    <span class="fx-fila__cat mono">
-                      {s.categoria}
-                      <small>{s.recurso}</small>
-                    </span>
-                    <span class="fx-fila__precio mono">
-                      {dev ? (
-                        <span class="fx-wip">
-                          <i aria-hidden="true" /> en desarrollo
-                        </span>
-                      ) : p ? (
-                        <>
-                          <b>{euros(p.precio)}</b>
-                          {p.antes && <s>{euros(p.antes)}</s>}
-                        </>
+                    <span class="fx-sc__media">
+                      {s.portada ? (
+                        <img src={s.portada} alt="" loading="lazy" width="1920" height="1080" />
                       ) : (
-                        <span class="fx-ok">
-                          <i aria-hidden="true" /> disponible
+                        <span class="fx-sc__wip" aria-hidden="true">
+                          <Icono nombre={s.icono} size={38} />
+                          <small class="mono">en desarrollo</small>
                         </span>
                       )}
+                      <span class="fx-sc__n mono">{String(i + 1).padStart(2, "0")}</span>
+                      {s.nuevo && <span class="fx-sc__nuevo mono">nuevo</span>}
                     </span>
-                    <span class="fx-fila__flecha" aria-hidden="true">
-                      <Icono nombre="arrow" size={18} />
+
+                    <span class="fx-sc__body">
+                      <span class="fx-sc__cab">
+                        <span class="fx-sc__ico" aria-hidden="true">
+                          <Icono nombre={s.icono} size={18} />
+                        </span>
+                        <span class="fx-sc__cat mono">{s.categoria}</span>
+                        <span class="fx-sc__idiomas mono" title="Español e inglés">
+                          {idiomas.map((l) => <span>{l.c}</span>)}
+                        </span>
+                      </span>
+                      <span class="fx-sc__t">{s.nombre}</span>
+                      <span class="fx-sc__r">{s.resumen}</span>
+                      <span class="fx-sc__claves">
+                        {s.claves.map((k) => (
+                          <span>
+                            <Icono nombre={dev ? "hourglass" : "check"} size={14} /> {k}
+                          </span>
+                        ))}
+                      </span>
+                      <span class="fx-sc__pie">
+                        <span class="fx-sc__fw mono">{s.frameworks.join(" · ")}</span>
+                        <span class="fx-sc__precio">
+                          {dev ? (
+                            <span class="fx-wip">
+                              <i aria-hidden="true" /> próximamente
+                            </span>
+                          ) : p ? (
+                            <>
+                              {p.antes && <s>{euros(p.antes)}</s>}
+                              <b>{euros(p.precio)}</b>
+                            </>
+                          ) : (
+                            <span class="fx-ok">
+                              <i aria-hidden="true" /> disponible
+                            </span>
+                          )}
+                          <span class="fx-sc__flecha" aria-hidden="true">
+                            <Icono nombre="arrow" size={16} />
+                          </span>
+                        </span>
+                      </span>
                     </span>
                   </a>
                 </li>
@@ -212,11 +221,6 @@ const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en rep
             })
           }
         </ol>
-        <!-- captura que sigue al cursor (solo escritorio) -->
-        <div class="fx-preview" aria-hidden="true" data-preview>
-          <img alt="" data-preview-img />
-          <span class="fx-preview__wip mono" data-preview-wip>compilando…</span>
-        </div>
       </section>
 
       <!-- 5. resmon -->
@@ -269,6 +273,7 @@ const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en rep
               <li><Icono nombre="zap" size={15} /> Al momento, sin esperas</li>
               <li><Icono nombre="sliders" size={15} /> Config abierta y comentada</li>
               <li><Icono nombre="refresh" size={15} /> Actualizaciones incluidas</li>
+              <li><Icono nombre="message" size={15} /> En español y en inglés</li>
             </ul>
             <a href="#catalogo" class="btn btn-ghost">Ver el catálogo</a>
           </div>
@@ -328,52 +333,29 @@ const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en rep
 </BaseLayout>
 
 <script>
-  // Consola de la portada: las líneas salen una a una (sin animación si se pide menos movimiento).
-  const consola = document.querySelector<HTMLElement>("[data-consola]");
-  if (consola && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    const lineas = [...consola.querySelectorAll<HTMLElement>(".l:not(.l--cursor)")];
-    lineas.forEach((l) => l.classList.add("is-oculta"));
-    lineas.forEach((l, i) => setTimeout(() => l.classList.remove("is-oculta"), 500 + i * 420));
-  }
-
-  // Captura que sigue al cursor sobre las filas del catálogo (solo con ratón).
-  const lista = document.querySelector<HTMLElement>("[data-lista]");
-  const prev = document.querySelector<HTMLElement>("[data-preview]");
-  const img = document.querySelector<HTMLImageElement>("[data-preview-img]");
-  const wip = document.querySelector<HTMLElement>("[data-preview-wip]");
-  if (lista && prev && img && wip && matchMedia("(hover: hover) and (pointer: fine)").matches) {
-    let x = 0, y = 0, tx = 0, ty = 0, raf = 0;
-    const mover = () => {
-      x += (tx - x) * 0.18;
-      y += (ty - y) * 0.18;
-      prev.style.transform = `translate(${x}px, ${y}px)`;
-      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.5 ? requestAnimationFrame(mover) : 0;
-    };
-    lista.addEventListener("pointermove", (e) => {
-      tx = e.clientX + 24;
-      ty = e.clientY - 90;
-      if (!raf) raf = requestAnimationFrame(mover);
-    });
-    lista.querySelectorAll<HTMLElement>(".fx-fila").forEach((f) => {
-      f.addEventListener("pointerenter", (e) => {
-        const src = f.dataset.img;
-        if (!prev.classList.contains("is-on")) {
-          x = tx = e.clientX + 24;
-          y = ty = e.clientY - 90;
-          prev.style.transform = `translate(${x}px, ${y}px)`;
-        }
-        if (src) {
-          img.src = src;
-          img.hidden = false;
-          wip.hidden = true;
-        } else {
-          img.hidden = true;
-          wip.hidden = false;
-        }
-        prev.classList.add("is-on");
+  // Pila de capturas de la portada: cada 4 s la de delante pasa al fondo.
+  // Se para con el ratón encima y no se mueve si se pide menos movimiento.
+  const pila = document.querySelector<HTMLElement>("[data-pila]");
+  if (pila && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const cartas = [...pila.querySelectorAll<HTMLElement>(".fx-pila__c")];
+    const puntos = [...pila.querySelectorAll<HTMLElement>(".fx-pila__puntos i")];
+    let frente = 0;
+    let pausa = false;
+    const pintar = () =>
+      cartas.forEach((c, i) => {
+        const pos = (i - frente + cartas.length) % cartas.length;
+        c.dataset.pos = String(pos);
+        c.tabIndex = pos === 0 ? 0 : -1;
+        puntos[i]?.classList.toggle("is-on", pos === 0);
       });
-    });
-    lista.addEventListener("pointerleave", () => prev.classList.remove("is-on"));
+    pila.addEventListener("pointerenter", () => (pausa = true));
+    pila.addEventListener("pointerleave", () => (pausa = false));
+    if (cartas.length > 1)
+      setInterval(() => {
+        if (pausa || document.hidden) return;
+        frente = (frente + 1) % cartas.length;
+        pintar();
+      }, 4000);
   }
 </script>
 
@@ -448,36 +430,7 @@ const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en rep
     gap: var(--space-8);
     align-items: center;
   }
-  .fx-back {
-    display: inline-block;
-    font-size: var(--fs-sm);
-    color: var(--fg-subtle);
-    margin-bottom: var(--space-6);
-  }
-  .fx-back:hover {
-    color: var(--fg);
-  }
-  .fx-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--fg-muted);
-    padding: 0.4rem 0.8rem;
-    border: 1px solid var(--border-strong);
-    border-radius: 99px;
-  }
-  .fx-eyebrow i {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--acc);
-    box-shadow: 0 0 0 4px var(--acc-soft);
-  }
   .fx-hero h1 {
-    margin-top: var(--space-5);
     font-size: clamp(2.5rem, 1.2rem + 5.2vw, 6rem);
     font-weight: 850;
     font-stretch: 115%;
@@ -503,208 +456,413 @@ const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en rep
     gap: var(--space-3);
     margin-top: var(--space-6);
   }
-
-  /* consola */
-  .fx-term {
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-tile);
-    background: color-mix(in srgb, var(--bg-elev) 85%, transparent);
-    backdrop-filter: blur(8px);
-    overflow: hidden;
-    box-shadow: 0 40px 80px -40px color-mix(in srgb, var(--acc) 40%, transparent);
-    transform: rotate(1.2deg);
-  }
-  .fx-term__bar,
-  .fx-term__foot {
+  .fx-hero__idiomas {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-4);
-    padding: 0.8rem 1.1rem;
+    gap: 0.5rem;
+    margin-top: var(--space-6);
     font-size: 0.75rem;
-    color: var(--fg-subtle);
-  }
-  .fx-term__bar {
-    border-bottom: 1px solid var(--border);
-  }
-  .dots {
-    display: inline-flex;
-    gap: 6px;
-  }
-  .dots i {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--border-strong);
-  }
-  .fx-term__live {
-    margin-left: auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--ok);
-  }
-  .fx-term__live i {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-    animation: fx-lat 1.6s ease-in-out infinite;
-  }
-  .fx-term__body {
-    list-style: none;
-    padding: 1.1rem 1.2rem;
-    min-height: 15rem;
-    font-size: 0.8125rem;
-    line-height: 1.9;
-  }
-  .l {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition:
-      opacity 0.25s ease,
-      transform 0.25s ease;
-  }
-  .l.is-oculta {
-    opacity: 0;
-    transform: translateX(-6px);
-  }
-  .l .p {
-    color: var(--acc);
-  }
-  .l--ok .tag {
-    color: var(--ok);
-  }
-  .l--wip .tag {
-    color: #d97706;
-  }
-  .l--wip {
-    color: var(--fg-subtle);
-  }
-  .l--fin {
-    color: var(--fg);
-    font-weight: 500;
-  }
-  .cur {
-    display: inline-block;
-    width: 0.55em;
-    height: 1.05em;
-    vertical-align: -0.15em;
-    background: var(--fg);
-    animation: fx-cur 1s steps(1) infinite;
-  }
-  .fx-term__foot {
-    border-top: 1px solid var(--border);
-  }
-  .fx-term__foot b {
-    color: var(--fg);
-    font-weight: 500;
-  }
-  .fx-term__bars {
-    margin-left: auto;
-    display: inline-flex;
-    align-items: flex-end;
-    gap: 3px;
-    height: 14px;
-  }
-  .fx-term__bars i {
-    width: 3px;
-    height: 3px;
-    background: var(--acc);
-    border-radius: 1px;
-    animation: fx-bar 2.4s ease-in-out infinite;
-  }
-  .fx-term__bars i:nth-child(2n) {
-    animation-delay: -0.6s;
-  }
-  .fx-term__bars i:nth-child(3n) {
-    animation-delay: -1.3s;
-  }
-  @keyframes fx-cur {
-    50% {
-      opacity: 0;
-    }
-  }
-  @keyframes fx-lat {
-    50% {
-      opacity: 0.3;
-    }
-  }
-  @keyframes fx-bar {
-    0%,
-    100% {
-      height: 3px;
-    }
-    40% {
-      height: 6px;
-    }
-  }
-
-  /* ── 2. cinta ── */
-  .fx-cinta {
-    border-block: 1px solid var(--border);
-    overflow: hidden;
-    padding: 1rem 0;
-    font-size: 0.8125rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
     color: var(--fg-muted);
   }
-  .fx-cinta__pista {
-    display: flex;
-    width: max-content;
-    animation: fx-cinta 40s linear infinite;
-  }
-  .fx-cinta span {
+  .fx-hero__idiomas > span:not(.fx-hero__idiomas-t) {
     display: inline-flex;
     align-items: center;
-    gap: 2rem;
-    padding-right: 2rem;
+    gap: 0.45rem;
+    padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 99px;
   }
-  .fx-cinta i {
-    font-style: normal;
-    color: var(--acc);
+  .fx-hero__idiomas b {
+    padding: 0.15rem 0.4rem;
+    border-radius: 99px;
+    background: var(--acc);
+    color: #fff;
+    font-weight: 500;
   }
-  @keyframes fx-cinta {
-    to {
-      transform: translateX(-50%);
-    }
+  .fx-hero__idiomas-t {
+    color: var(--fg-subtle);
+    margin-left: 0.3rem;
   }
 
-  /* ── 3. destacado ── */
+  /* pila de capturas */
+  .fx-pila {
+    position: relative;
+    aspect-ratio: 16 / 11;
+  }
+  .fx-pila__c {
+    position: absolute;
+    inset: 0 0 12% 0;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--border-strong);
+    background: #000;
+    box-shadow: 0 40px 80px -40px color-mix(in srgb, var(--acc) 55%, transparent);
+    transition:
+      transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+      filter 0.6s ease;
+  }
+  .fx-pila__c[data-pos="0"] {
+    z-index: 3;
+    transform: rotate(-2deg);
+  }
+  .fx-pila__c[data-pos="1"] {
+    z-index: 2;
+    transform: translate(7%, 7%) rotate(3deg) scale(0.92);
+    filter: brightness(0.55);
+  }
+  .fx-pila__c[data-pos="2"] {
+    z-index: 1;
+    transform: translate(13%, 13%) rotate(7deg) scale(0.84);
+    filter: brightness(0.35);
+  }
+  .fx-pila__c:not([data-pos="0"]) {
+    pointer-events: none;
+  }
+  .fx-pila__c img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .fx-pila__pie {
+    position: absolute;
+    left: 0.9rem;
+    right: 0.9rem;
+    bottom: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 14px;
+    background: rgb(10 10 10 / 0.7);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    border: 1px solid rgb(255 255 255 / 0.12);
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 0.4s ease 0.3s,
+      transform 0.4s ease 0.3s;
+  }
+  .fx-pila__c[data-pos="0"] .fx-pila__pie {
+    opacity: 1;
+    transform: none;
+  }
+  .fx-pila__pie b {
+    display: block;
+    font-size: var(--fs-sm);
+  }
+  .fx-pila__pie small {
+    font-size: 0.6875rem;
+    color: rgb(255 255 255 / 0.6);
+  }
+  .fx-pila__ico {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9px;
+    background: var(--acc);
+    flex: none;
+  }
+  .fx-pila__precio {
+    margin-left: auto;
+    font-weight: 800;
+  }
+  .fx-pila__puntos {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    display: flex;
+    gap: 6px;
+  }
+  .fx-pila__puntos i {
+    width: 18px;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--border-strong);
+    transition:
+      width 0.4s ease,
+      background 0.4s ease;
+  }
+  .fx-pila__puntos i.is-on {
+    width: 34px;
+    background: var(--acc);
+  }
+
+  /* ── 3. destacado: «lo último», a sangre con la captura de fondo ── */
   .fx-dest {
     padding-top: var(--section);
   }
   .fx-dest__a {
+    position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    gap: var(--space-6);
+    min-height: clamp(32rem, 60vw, 42rem);
+    padding: var(--space-6);
+    border-radius: var(--radius-tile);
+    overflow: hidden;
+    isolation: isolate;
+    color: #fff;
+    background: #050505;
+    border: 1px solid color-mix(in srgb, var(--acc) 30%, transparent);
+  }
+  .fx-dest__bg {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.02);
+    transition: transform 1.2s var(--ease);
+  }
+  .fx-dest__a:hover .fx-dest__bg {
+    transform: scale(1.07);
+  }
+  .fx-dest__velo {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(90deg, rgb(5 5 5 / 0.92) 0%, rgb(5 5 5 / 0.55) 45%, rgb(5 5 5 / 0.15) 100%),
+      linear-gradient(0deg, rgb(5 5 5 / 0.85) 0%, transparent 55%),
+      radial-gradient(ellipse at 0% 100%, color-mix(in srgb, var(--acc) 35%, transparent), transparent 60%);
+  }
+  .fx-dest__top {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  .fx-dest__sello {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 99px;
+    background: var(--acc);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .fx-dest__sello i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #fff;
+    animation: fx-lat 1.6s ease-in-out infinite;
+  }
+  .fx-dest__recurso {
+    font-size: 0.75rem;
+    color: rgb(255 255 255 / 0.55);
+  }
+  .fx-dest__info {
+    align-self: end;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 36rem;
+  }
+  .fx-dest__ico {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 16px;
+    background: rgb(255 255 255 / 0.1);
+    border: 1px solid rgb(255 255 255 / 0.18);
+    backdrop-filter: blur(8px);
+  }
+  .fx-dest__h {
+    font-size: clamp(2.4rem, 1.4rem + 4vw, 5rem);
+    font-weight: 850;
+    font-stretch: 115%;
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+  }
+  .fx-dest__res {
+    color: rgb(255 255 255 / 0.75);
+    font-size: var(--fs-md);
+    line-height: 1.55;
+  }
+  .fx-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .fx-chips span {
+    padding: 0.3rem 0.7rem;
+    border-radius: 99px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    border: 1px solid rgb(255 255 255 / 0.22);
+    background: rgb(255 255 255 / 0.06);
+  }
+  .fx-chips .fx-chip--idioma {
+    border-color: var(--acc);
+    background: color-mix(in srgb, var(--acc) 30%, transparent);
+  }
+  .fx-dest__caja {
+    align-self: end;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: var(--space-5);
+    border-radius: 20px;
+    background: rgb(15 15 15 / 0.6);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    backdrop-filter: blur(14px);
+  }
+  .fx-dest__claves {
+    display: grid;
+    gap: 0.65rem;
+    font-size: var(--fs-sm);
+  }
+  .fx-dest__claves span {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .fx-dest__claves :global(svg) {
+    color: var(--acc);
+    flex: none;
+  }
+  .fx-dest__compra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid rgb(255 255 255 / 0.14);
+  }
+  .fx-precio {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  .fx-precio b {
+    font-size: 2.4rem;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .fx-precio s {
+    color: rgb(255 255 255 / 0.5);
+  }
+  .fx-precio em {
+    font-style: normal;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    background: var(--acc);
+  }
+  .fx-dest__ir {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.2rem;
+    border-radius: 99px;
+    background: #fff;
+    color: #0a0a0a;
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    transition:
+      background 0.25s ease,
+      color 0.25s ease;
+  }
+  .fx-dest__ir :global(svg) {
+    transition: transform 0.25s ease;
+  }
+  .fx-dest__a:hover .fx-dest__ir {
+    background: var(--acc);
+    color: #fff;
+  }
+  .fx-dest__a:hover .fx-dest__ir :global(svg) {
+    transform: translateX(4px);
+  }
+
+  /* ── 4. catálogo: tarjetas anchas con captura, alternando lado ── */
+  .fx-lista {
+    list-style: none;
+    display: grid;
+    gap: var(--space-4);
+  }
+  .fx-sc a {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
     border: 1px solid var(--border);
     border-radius: var(--radius-tile);
     background: var(--bg-elev);
     overflow: hidden;
-    transition: border-color 0.3s ease;
+    transition:
+      border-color 0.3s ease,
+      transform 0.4s var(--ease),
+      box-shadow 0.4s ease;
   }
-  .fx-dest__a:hover {
-    border-color: var(--acc);
+  .fx-sc:nth-child(even) a {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   }
-  .fx-dest__img {
+  .fx-sc:nth-child(even) .fx-sc__media {
+    order: 2;
+  }
+  .fx-sc a:hover {
+    border-color: color-mix(in srgb, var(--acc) 60%, transparent);
+    transform: translateY(-3px);
+    box-shadow: 0 30px 60px -35px color-mix(in srgb, var(--acc) 60%, transparent);
+  }
+  .fx-sc__media {
     position: relative;
+    min-height: 17rem;
+    background: #0a0a0a;
     overflow: hidden;
-    background: #000;
   }
-  .fx-dest__img img {
+  .fx-sc__media img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.8s var(--ease);
+    transition: transform 0.9s var(--ease);
   }
-  .fx-dest__a:hover .fx-dest__img img {
-    transform: scale(1.04);
+  .fx-sc a:hover .fx-sc__media img {
+    transform: scale(1.05);
   }
-  .fx-dest__sello {
+  .fx-sc__wip {
     position: absolute;
-    top: 1rem;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 0.8rem;
+    color: #d97706;
+    background:
+      radial-gradient(circle at 50% 45%, rgb(217 119 6 / 0.14), transparent 55%),
+      repeating-linear-gradient(-45deg, #101010 0 14px, #151515 14px 28px);
+  }
+  .fx-sc__wip small {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .fx-sc__n {
+    position: absolute;
     left: 1rem;
+    top: 0.8rem;
+    font-size: 2.2rem;
+    font-weight: 500;
+    color: #fff;
+    text-shadow: 0 2px 20px rgb(0 0 0 / 0.6);
+    opacity: 0.9;
+  }
+  .fx-sc__nuevo {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
     padding: 0.3rem 0.7rem;
     border-radius: 99px;
     background: var(--acc);
@@ -713,201 +871,128 @@ const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en rep
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
-  .fx-dest__info {
+  .fx-sc__body {
     display: flex;
     flex-direction: column;
-    padding: var(--space-7) var(--space-6);
+    gap: var(--space-3);
+    padding: var(--space-6);
   }
-  .fx-dest h2 {
-    font-size: clamp(1.8rem, 1.2rem + 2vw, 2.8rem);
-    font-weight: 800;
-    font-stretch: 112%;
-    line-height: 1;
-    letter-spacing: -0.03em;
-  }
-  .fx-dest__res {
-    margin-top: var(--space-4);
-    color: var(--fg-muted);
-    line-height: 1.6;
-  }
-  .fx-dest__claves {
-    margin-top: var(--space-5);
-    display: grid;
-    gap: 0.55rem;
-    font-size: var(--fs-sm);
-  }
-  .fx-dest__claves li {
+  .fx-sc__cab {
     display: flex;
-    gap: 0.55rem;
     align-items: center;
-  }
-  .fx-dest__claves :global(svg) {
-    color: var(--acc);
-    flex: none;
-  }
-  .fx-dest__pie {
-    margin-top: auto;
-    padding-top: var(--space-6);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-4);
-    align-items: center;
-    justify-content: space-between;
-  }
-  .fx-precio {
-    display: flex;
-    align-items: baseline;
     gap: 0.6rem;
   }
-  .fx-precio b {
-    font-size: 2.2rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-  }
-  .fx-precio s {
-    color: var(--fg-subtle);
-  }
-  .fx-precio span {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 6px;
+  .fx-sc__ico {
+    display: grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 10px;
     background: var(--acc-soft);
     color: var(--acc);
   }
-  .fx-dest__ir {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: var(--fs-sm);
-  }
-  .fx-dest__a:hover .fx-dest__ir :global(svg) {
-    transform: translateX(4px);
-  }
-  .fx-dest__ir :global(svg) {
-    transition: transform 0.25s ease;
-  }
-
-  /* ── 4. catálogo en filas ── */
-  .fx-lista {
-    list-style: none;
-    border-top: 1px solid var(--border-strong);
-  }
-  .fx-fila a {
-    display: grid;
-    grid-template-columns: 3rem 3rem minmax(0, 1fr) 11rem 9rem 2rem;
-    gap: var(--space-4);
-    align-items: center;
-    padding: var(--space-5) var(--space-3);
-    border-bottom: 1px solid var(--border);
-    position: relative;
-    transition: background 0.3s ease;
-  }
-  .fx-fila a::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: var(--acc);
-    transform: scaleY(0);
-    transition: transform 0.35s var(--ease);
-  }
-  .fx-fila a:hover {
-    background: var(--bg-elev);
-  }
-  .fx-fila a:hover::before {
-    transform: none;
-  }
-  .fx-fila__n {
-    font-size: var(--fs-sm);
+  .fx-sc__cat {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     color: var(--fg-subtle);
   }
-  .fx-fila__ico {
+  .fx-sc__idiomas {
+    margin-left: auto;
+    display: inline-flex;
+    border: 1px solid var(--border-strong);
+    border-radius: 99px;
+    overflow: hidden;
+    font-size: 0.625rem;
+  }
+  .fx-sc__idiomas span {
+    padding: 0.2rem 0.5rem;
+  }
+  .fx-sc__idiomas span + span {
+    border-left: 1px solid var(--border-strong);
+  }
+  .fx-sc__t {
+    font-size: clamp(1.5rem, 1.1rem + 1.3vw, 2.2rem);
+    font-weight: 800;
+    font-stretch: 110%;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+  .fx-sc__r {
+    color: var(--fg-muted);
+    line-height: 1.55;
+  }
+  .fx-sc__claves {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: var(--space-2);
+    font-size: var(--fs-sm);
+  }
+  .fx-sc__claves span {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+  .fx-sc__claves :global(svg) {
+    color: var(--acc);
+    flex: none;
+  }
+  .fx-sc--dev .fx-sc__claves :global(svg) {
+    color: #d97706;
+  }
+  .fx-sc__pie {
+    margin-top: auto;
+    padding-top: var(--space-5);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    border-top: 1px solid var(--border);
+  }
+  .fx-sc__fw {
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
+  }
+  .fx-sc__precio {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .fx-sc__precio b {
+    font-size: 1.5rem;
+    font-weight: 850;
+    letter-spacing: -0.02em;
+  }
+  .fx-sc__precio s {
+    color: var(--fg-subtle);
+    font-size: var(--fs-sm);
+  }
+  .fx-sc__flecha {
     display: grid;
     place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 12px;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
     border: 1px solid var(--border-strong);
     transition:
       background 0.3s ease,
+      border-color 0.3s ease,
       color 0.3s ease,
-      border-color 0.3s ease;
+      transform 0.35s var(--ease);
   }
-  .fx-fila a:hover .fx-fila__ico {
+  .fx-sc a:hover .fx-sc__flecha {
     background: var(--acc);
     border-color: var(--acc);
     color: #fff;
-  }
-  .fx-fila__main {
-    display: grid;
-    gap: 0.3rem;
-    min-width: 0;
-  }
-  .fx-fila__t {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
-    font-weight: 750;
-    font-stretch: 108%;
-    letter-spacing: -0.02em;
-    transition: transform 0.35s var(--ease);
-  }
-  .fx-fila a:hover .fx-fila__t {
-    transform: translateX(6px);
-  }
-  .fx-fila__t em {
-    font-style: normal;
-    font-size: 0.625rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 0.2rem 0.5rem;
-    border-radius: 99px;
-    background: var(--acc);
-    color: #fff;
-    font-weight: 500;
-  }
-  .fx-fila__r {
-    color: var(--fg-muted);
-    font-size: var(--fs-sm);
-    line-height: 1.5;
-  }
-  .fx-fila__movil {
-    display: none;
-  }
-  .fx-fila__cat {
-    display: grid;
-    font-size: var(--fs-sm);
-  }
-  .fx-fila__cat small {
-    font-size: 0.6875rem;
-    color: var(--fg-subtle);
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .fx-fila__precio {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    justify-content: flex-end;
-    font-size: var(--fs-sm);
-  }
-  .fx-fila__precio b {
-    font-family: var(--font-sans);
-    font-size: 1.25rem;
-    font-weight: 800;
-  }
-  .fx-fila__precio s {
-    color: var(--fg-subtle);
-    font-size: 0.75rem;
+    transform: rotate(-45deg);
   }
   .fx-wip,
   .fx-ok {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+    font-family: var(--font-mono);
     font-size: 0.75rem;
     color: var(--fg-subtle);
   }
@@ -921,60 +1006,10 @@ const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en rep
   .fx-ok i {
     background: var(--ok);
   }
-  .fx-fila__flecha {
-    color: var(--fg-subtle);
-    transition:
-      transform 0.3s ease,
-      color 0.3s ease;
-  }
-  .fx-fila a:hover .fx-fila__flecha {
-    color: var(--acc);
-    transform: rotate(-45deg);
-  }
-  .fx-fila--dev .fx-fila__t {
-    color: var(--fg-muted);
-  }
-
-  .fx-preview {
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 50;
-    width: 20rem;
-    aspect-ratio: 16 / 9;
-    border-radius: 14px;
-    overflow: hidden;
-    background: #0a0a0a;
-    border: 1px solid var(--border-strong);
-    box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.5);
-    pointer-events: none;
-    opacity: 0;
-    scale: 0.85;
-    transition:
-      opacity 0.25s ease,
-      scale 0.3s var(--ease);
-  }
-  .fx-preview.is-on {
-    opacity: 1;
-    scale: 1;
-  }
-  .fx-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .fx-preview__wip {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    color: #d97706;
-    font-size: var(--fs-sm);
-    background: repeating-linear-gradient(-45deg, #111 0 12px, #161616 12px 24px);
-  }
-  .fx-preview__wip[hidden],
-  .fx-preview img[hidden] {
-    display: none;
+  @keyframes fx-lat {
+    50% {
+      opacity: 0.3;
+    }
   }
 
   /* ── 5. resmon ── */
@@ -1247,19 +1282,25 @@ const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en rep
     .fx-res {
       grid-template-columns: minmax(0, 1fr);
     }
-    .fx-term {
-      transform: none;
+    .fx-pila {
+      max-width: 36rem;
+    }
+    .fx-dest__a {
+      grid-template-rows: auto;
     }
     .fx-res__txt {
       position: static;
     }
-    .fx-fila a {
-      grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    .fx-sc a,
+    .fx-sc:nth-child(even) a {
+      grid-template-columns: minmax(0, 1fr);
     }
-    .fx-fila__ico,
-    .fx-fila__cat,
-    .fx-fila__flecha {
-      display: none;
+    .fx-sc:nth-child(even) .fx-sc__media {
+      order: 0;
+    }
+    .fx-sc__media {
+      min-height: 0;
+      aspect-ratio: 16 / 9;
     }
     .fx-faq__grid {
       grid-template-columns: minmax(0, 1fr);
@@ -1269,21 +1310,14 @@ const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en rep
     .fx-caminos {
       grid-template-columns: minmax(0, 1fr);
     }
-    .fx-fila a {
-      grid-template-columns: 2rem minmax(0, 1fr);
-      padding-inline: 0;
+    .fx-dest__a {
+      padding: var(--space-5);
     }
-    .fx-fila__precio {
-      grid-column: 2;
-      justify-content: flex-start;
+    .fx-dest__velo {
+      background: linear-gradient(0deg, rgb(5 5 5 / 0.95) 0%, rgb(5 5 5 / 0.7) 55%, rgb(5 5 5 / 0.35) 100%);
     }
-    .fx-fila__movil {
-      display: block;
-      width: 100%;
-      height: auto;
-      border-radius: 10px;
-      margin-top: 0.5rem;
-      border: 1px solid var(--border);
+    .fx-sc__body {
+      padding: var(--space-5);
     }
     .fx-mon__cab,
     .fx-mon li {
@@ -1294,16 +1328,13 @@ const cinta = ["ESX Legacy", "QBCore", "Qbox", "Interfaces NUI", "0.00 ms en rep
     .fx-mon__cab span:last-child {
       display: none;
     }
-    .fx-dest__info {
-      padding: var(--space-6) var(--space-5);
-    }
   }
   @media (prefers-reduced-motion: reduce) {
-    .fx-cinta__pista,
-    .fx-term__bars i,
-    .cur,
-    .fx-term__live i {
+    .fx-dest__sello i {
       animation: none;
+    }
+    .fx-pila__c {
+      transition: none;
     }
   }
 </style>
