@@ -8,13 +8,14 @@
 //   (todos los scripts van en español e inglés: chips ES / EN)
 //   5. características como un «resmon» (monitor de recursos de FiveM)
 //   6. «hecho o a medida»: selector que cambia entre el escaparate y la ruta del encargo
-//   7. preguntas en acordeón con el título fijo al lado, y cierre en color con botón «imán»
+//   7. dudas: lista de preguntas + un chat que las va respondiendo, y cierre en color con botón «imán»
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Icono from "@/components/servicios/Icono.astro";
 import { services, serviceDetails } from "@/data/services";
 import { scriptsFivem } from "@/data/scripts-fivem";
 import { policia } from "@/data/policia";
 import { bandas } from "@/data/bandas";
+import logoMask from "@/assets/logo-mask.png";
 
 const service = services.find((s) => s.id === "fivem")!;
 const detail = serviceDetails.fivem;
@@ -334,37 +335,57 @@ const resmon = detail.incluye.map((x, i) => ({
         </div>
       </section>
 
-      <!-- 7. preguntas: acordeón con el título fijo a la izquierda -->
-      <section class="fx-sec fx-faq">
+      <!-- 7. dudas: lista de preguntas a la izquierda y un chat que las responde -->
+      <section class="fx-sec fx-faq" data-faq>
         <div class="fx-faq__lado">
           <p class="fx-k mono">// dudas</p>
-          <h2 class="fx-h2">Preguntas <span>frecuentes</span></h2>
-          <div class="fx-faq__otra">
-            <span class="fx-faq__otra-ico" aria-hidden="true"><Icono nombre="message" size={20} /></span>
-            <div>
-              <b>¿Tienes otra duda?</b>
-              <p>Escríbeme y te respondo en el día, en español o en inglés.</p>
-            </div>
-            <a href={contacto} class="fx-faq__otra-a" aria-label="Escribirme">
-              <Icono nombre="arrow" size={18} />
-            </a>
-          </div>
+          <h2 class="fx-h2">Pregúntame <span>lo que quieras</span></h2>
+          <p class="fx-sub">Las que más me llegan, respondidas. Pulsa una y te contesto.</p>
+          <ol role="list" class="fx-preg">
+            {
+              detail.faq.map((f, i) => (
+                <li>
+                  <button type="button" class:list={["fx-preg__b", { "is-on": i === 0 }]} aria-pressed={i === 0 ? "true" : "false"} data-preg={i}>
+                    <span class="fx-preg__n mono">{String(i + 1).padStart(2, "0")}</span>
+                    <span class="fx-preg__q">{f.q}</span>
+                    <span class="fx-preg__ir" aria-hidden="true"><Icono nombre="arrow" size={16} /></span>
+                  </button>
+                </li>
+              ))
+            }
+          </ol>
         </div>
-        <div class="fx-acord">
-          {
-            detail.faq.map((f, i) => (
-              <details class="fx-acord__i" open={i === 0}>
-                <summary>
-                  <span class="fx-acord__n mono">{String(i + 1).padStart(2, "0")}</span>
-                  <span class="fx-acord__q">{f.q}</span>
-                  <span class="fx-acord__mas" aria-hidden="true" />
-                </summary>
-                <div class="fx-acord__a">
-                  <p>{f.a}</p>
+
+        <div class="fx-chat">
+          <div class="fx-chat__cab">
+            <span class="fx-chat__av" style={`--logo:url("${logoMask.src}")`} aria-hidden="true"></span>
+            <span class="fx-chat__quien">
+              <b>AntonioooJ</b>
+              <small class="mono"><i aria-hidden="true"></i> responde en el día · ES / EN</small>
+            </span>
+            <span class="fx-chat__n mono" aria-hidden="true"><b data-chat-n>01</b> / {String(detail.faq.length).padStart(2, "0")}</span>
+          </div>
+
+          <div class="fx-chat__cuerpo" aria-live="polite">
+            {
+              detail.faq.map((f, i) => (
+                <div class="fx-chat__par" data-par={i}>
+                  <p class="fx-burbuja fx-burbuja--tu">{f.q}</p>
+                  <span class="fx-escribe" aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <p class="fx-burbuja fx-burbuja--yo">{f.a}</p>
                 </div>
-              </details>
-            ))
-          }
+              ))
+            }
+          </div>
+
+          <a href={contacto} class="fx-chat__input">
+            <span>Escribe tu duda…</span>
+            <span class="fx-chat__enviar" aria-hidden="true"><Icono nombre="send" size={17} /></span>
+          </a>
         </div>
       </section>
 
@@ -372,7 +393,6 @@ const resmon = detail.incluye.map((x, i) => ({
       <aside class="fx-fin">
         <span class="fx-fin__fondo" aria-hidden="true">FIVEM</span>
         <div class="fx-fin__txt">
-          <p class="fx-k mono">// siguiente paso</p>
           <h2>¿Lo <em>arrancamos</em>?</h2>
           <ul role="list" class="fx-fin__lista mono">
             <li><Icono nombre="check" size={15} /> Presupuesto cerrado</li>
@@ -439,6 +459,36 @@ const resmon = detail.incluye.map((x, i) => ({
       });
     });
     elegir("hecho");
+  }
+
+  // Dudas: sin JS se ven todas las respuestas en el chat; con JS, la de la pregunta elegida,
+  // con un «escribiendo…» corto antes de la respuesta.
+  const faq = document.querySelector<HTMLElement>("[data-faq]");
+  if (faq) {
+    const botones = [...faq.querySelectorAll<HTMLButtonElement>("[data-preg]")];
+    const pares = [...faq.querySelectorAll<HTMLElement>("[data-par]")];
+    const num = faq.querySelector<HTMLElement>("[data-chat-n]");
+    const quieto = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let espera = 0;
+    const mostrar = (n: number, animar: boolean) => {
+      clearTimeout(espera);
+      botones.forEach((b, i) => {
+        b.classList.toggle("is-on", i === n);
+        b.setAttribute("aria-pressed", String(i === n));
+      });
+      pares.forEach((par, i) => {
+        par.hidden = i !== n;
+        par.classList.remove("is-anim", "is-escribiendo");
+      });
+      if (num) num.textContent = String(n + 1).padStart(2, "0");
+      const par = pares[n];
+      if (!animar || quieto || !par) return;
+      void par.offsetWidth;
+      par.classList.add("is-anim", "is-escribiendo");
+      espera = window.setTimeout(() => par.classList.remove("is-escribiendo"), 900);
+    };
+    botones.forEach((b) => b.addEventListener("click", () => mostrar(Number(b.dataset.preg), true)));
+    mostrar(0, false);
   }
 
   // Botón redondo del cierre: se acerca un poco al cursor (solo con ratón).
@@ -1469,130 +1519,249 @@ const resmon = detail.incluye.map((x, i) => ({
     color: var(--fg-muted);
   }
 
-  /* ── 7. preguntas ── */
+  /* ── 7. dudas: preguntas + chat ── */
   .fx-faq {
     display: grid;
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-8);
-    align-items: start;
-  }
-  .fx-faq__lado {
-    position: sticky;
-    top: calc(var(--header-h) + var(--space-6));
-  }
-  .fx-faq__otra {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: var(--space-4);
     align-items: center;
-    margin-top: var(--space-7);
-    padding: var(--space-5);
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: var(--bg-elev);
   }
-  .fx-faq__otra-ico {
+  .fx-preg {
     display: grid;
-    place-items: center;
-    width: 2.8rem;
-    height: 2.8rem;
-    border-radius: 14px;
+    gap: var(--space-2);
+    margin-top: var(--space-6);
+  }
+  .fx-preg__b {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 2.2rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--bg-elev);
+    color: var(--fg);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color 0.3s ease,
+      background 0.3s ease,
+      transform 0.35s var(--ease);
+  }
+  .fx-preg__b:hover {
+    border-color: var(--border-strong);
+    transform: translateX(4px);
+  }
+  .fx-preg__b:focus-visible {
+    outline: 2px solid var(--acc);
+    outline-offset: 2px;
+  }
+  .fx-preg__b.is-on {
+    border-color: var(--acc);
     background: var(--acc-soft);
+  }
+  .fx-preg__n {
+    font-size: 0.75rem;
+    color: var(--fg-subtle);
+  }
+  .fx-preg__b.is-on .fx-preg__n {
     color: var(--acc);
   }
-  .fx-faq__otra p {
-    margin-top: 0.2rem;
-    font-size: var(--fs-sm);
-    color: var(--fg-muted);
+  .fx-preg__q {
+    font-weight: 650;
+    line-height: 1.35;
   }
-  .fx-faq__otra-a {
+  .fx-preg__ir {
     display: grid;
     place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    color: var(--fg-subtle);
+    transition:
+      background 0.3s ease,
+      color 0.3s ease;
+  }
+  .fx-preg__b.is-on .fx-preg__ir {
+    background: var(--acc);
+    color: #fff;
+  }
+
+  .fx-chat {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-tile);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-elev);
+    overflow: hidden;
+    box-shadow: 0 40px 80px -50px color-mix(in srgb, var(--acc) 70%, transparent);
+  }
+  .fx-chat__cab {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .fx-chat__av {
+    flex: none;
     width: 2.6rem;
     height: 2.6rem;
     border-radius: 50%;
     background: var(--fg);
-    color: var(--bg);
-    transition:
-      transform 0.35s var(--ease),
-      background 0.3s ease;
-  }
-  .fx-faq__otra-a:hover {
-    background: var(--acc);
-    color: #fff;
-    transform: rotate(-45deg);
-  }
-  .fx-acord {
-    border-top: 1px solid var(--border-strong);
-  }
-  .fx-acord__i {
-    border-bottom: 1px solid var(--border-strong);
-  }
-  .fx-acord__i summary {
-    display: grid;
-    grid-template-columns: 2.5rem minmax(0, 1fr) 2rem;
-    align-items: center;
-    gap: var(--space-4);
-    padding: var(--space-5) 0;
-    cursor: pointer;
-    list-style: none;
-  }
-  .fx-acord__i summary::-webkit-details-marker {
-    display: none;
-  }
-  .fx-acord__n {
-    font-size: 0.75rem;
-    color: var(--fg-subtle);
-    transition: color 0.3s ease;
-  }
-  .fx-acord__q {
-    font-size: clamp(1.1rem, 0.95rem + 0.6vw, 1.45rem);
-    font-weight: 700;
-    letter-spacing: -0.015em;
-    transition: transform 0.35s var(--ease);
-  }
-  .fx-acord__i summary:hover .fx-acord__q {
-    transform: translateX(4px);
-  }
-  .fx-acord__mas {
     position: relative;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 50%;
-    border: 1px solid var(--border-strong);
-    transition:
-      background 0.3s ease,
-      border-color 0.3s ease,
-      transform 0.4s var(--ease);
   }
-  .fx-acord__mas::before,
-  .fx-acord__mas::after {
+  .fx-chat__av::before {
     content: "";
     position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 10px;
-    height: 1.5px;
-    background: currentColor;
-    translate: -50% -50%;
+    inset: 22%;
+    background: var(--bg);
+    mask: var(--logo) center / contain no-repeat;
+    -webkit-mask: var(--logo) center / contain no-repeat;
   }
-  .fx-acord__mas::after {
-    rotate: 90deg;
+  .fx-chat__quien {
+    display: grid;
   }
-  .fx-acord__i[open] .fx-acord__mas {
-    background: var(--acc);
-    border-color: var(--acc);
-    color: #fff;
-    transform: rotate(45deg);
+  .fx-chat__quien small {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.6875rem;
+    color: var(--fg-subtle);
   }
-  .fx-acord__i[open] .fx-acord__n {
+  .fx-chat__quien small i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ok);
+  }
+  .fx-chat__n {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--fg-subtle);
+  }
+  .fx-chat__n b {
     color: var(--acc);
+    font-weight: 500;
   }
-  .fx-acord__a {
-    padding: 0 3rem var(--space-5) calc(2.5rem + var(--space-4));
-    color: var(--fg-muted);
-    line-height: 1.65;
+  .fx-chat__cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    min-height: 19rem;
+    padding: var(--space-5);
+    background-image: radial-gradient(var(--border) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+  .fx-chat__par {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .fx-chat__par[hidden] {
+    display: none;
+  }
+  .fx-burbuja {
+    max-width: 85%;
+    padding: 0.8rem 1rem;
+    border-radius: 18px;
+    line-height: 1.55;
+    font-size: var(--fs-sm);
+  }
+  .fx-burbuja--tu {
+    align-self: flex-end;
+    background: var(--fg);
+    color: var(--bg);
+    border-bottom-right-radius: 6px;
+    font-weight: 600;
+  }
+  .fx-burbuja--yo {
+    align-self: flex-start;
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-bottom-left-radius: 6px;
+    color: var(--fg);
+  }
+  .fx-escribe {
+    display: none;
+    align-self: flex-start;
+    gap: 4px;
+    padding: 0.85rem 1rem;
+    border-radius: 18px;
+    border-bottom-left-radius: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+  }
+  .fx-escribe i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--fg-subtle);
+    animation: fx-punto 1s ease-in-out infinite;
+  }
+  .fx-escribe i:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .fx-escribe i:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  @keyframes fx-punto {
+    0%,
+    60%,
+    100% {
+      transform: none;
+      opacity: 0.5;
+    }
+    30% {
+      transform: translateY(-4px);
+      opacity: 1;
+    }
+  }
+  /* al cambiar de pregunta: sale la tuya, luego «escribiendo…» y luego la respuesta */
+  .fx-chat__par.is-anim .fx-burbuja--tu {
+    animation: fx-entra 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .fx-chat__par.is-escribiendo .fx-escribe {
+    display: inline-flex;
+  }
+  .fx-chat__par.is-escribiendo .fx-burbuja--yo {
+    display: none;
+  }
+  .fx-chat__par.is-anim:not(.is-escribiendo) .fx-burbuja--yo {
     animation: fx-entra 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .fx-chat__input {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin: 0 var(--space-4) var(--space-4);
+    padding: 0.45rem 0.45rem 0.45rem 1.1rem;
+    border-radius: 99px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg);
+    color: var(--fg-subtle);
+    font-size: var(--fs-sm);
+    transition: border-color 0.3s ease;
+  }
+  .fx-chat__input:hover {
+    border-color: var(--acc);
+    color: var(--fg);
+  }
+  .fx-chat__enviar {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    background: var(--acc);
+    color: #fff;
+    transition: transform 0.35s var(--ease);
+  }
+  .fx-chat__input:hover .fx-chat__enviar {
+    transform: rotate(-20deg) scale(1.06);
   }
 
   /* ── cierre ── */
@@ -1724,12 +1893,6 @@ const resmon = detail.incluye.map((x, i) => ({
       grid-template-columns: minmax(0, 1fr);
       gap: var(--space-6);
     }
-    .fx-faq__lado {
-      position: static;
-    }
-    .fx-faq__otra {
-      margin-top: var(--space-5);
-    }
   }
   @media (max-width: 720px) {
     .fx-modo__sel {
@@ -1748,8 +1911,12 @@ const resmon = detail.incluye.map((x, i) => ({
     .fx-tienda li:first-child a {
       aspect-ratio: 16 / 9;
     }
-    .fx-acord__a {
-      padding-inline: 0;
+    .fx-chat__cuerpo {
+      min-height: 0;
+      padding: var(--space-4);
+    }
+    .fx-burbuja {
+      max-width: 92%;
     }
     .fx-fin {
       flex-direction: column;
@@ -1783,8 +1950,9 @@ const resmon = detail.incluye.map((x, i) => ({
     }
     .fx-panel,
     .fx-ruta li,
-    .fx-acord__a {
-      animation: none;
+    .fx-escribe i,
+    .fx-chat__par .fx-burbuja {
+      animation: none !important;
     }
   }
 </style>
