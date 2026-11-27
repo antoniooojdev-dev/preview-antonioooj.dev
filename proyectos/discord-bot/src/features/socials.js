@@ -3,7 +3,7 @@
 //  · Directos de Twitch (opcional, con TWITCH_CLIENT_ID / TWITCH_CLIENT_SECRET / TWITCH_USER)
 // La primera lectura de cada feed solo memoriza lo que ya existe: no inunda el canal con lo antiguo.
 
-import { box, etiqueta, gallery, h3, linkBtn, MAYUS, row, v2 } from "../lib/ui.js";
+import { box, etiqueta, gallery, h2, linkBtn, row, v2 } from "../lib/ui.js";
 import config from "../config.js";
 import { db, save } from "../lib/store.js";
 import { log } from "../lib/logger.js";
@@ -62,7 +62,7 @@ const when = (date) => `<t:${Math.floor((date ? new Date(date) : new Date()).get
 /** Vídeo: texto con el enlace suelto para que Discord muestre el reproductor */
 function videoPayload(feed, item, ping) {
   return {
-    content: [etiqueta(`${feed.emoji} ${feed.name}`, ping && `<@&${ping}>`, when(item.date)), h3(item.title), item.link].join("\n"),
+    content: [etiqueta(`${feed.emoji} ${feed.name}`, "**vídeo nuevo**", ping && `<@&${ping}>`), h2(item.title), item.link].join("\n"),
     allowedMentions: { roles: ping ? [ping] : [] },
   };
 }
@@ -72,11 +72,15 @@ function cardPayload(feed, item, ping) {
   return {
     ...v2(
       box([
-        etiqueta(`${feed.emoji} ${feed.name}`, ping && `<@&${ping}>`, when(item.date)),
-        item.link ? `### [__${MAYUS(item.title)}__](${item.link})` : h3(item.title),
-        item.summary && `*${item.summary}*`,
         item.image && gallery(item.image),
+        etiqueta(`${feed.emoji} ${feed.name}`, ping && `<@&${ping}>`),
+        h2(item.title),
+        item.summary && "---",
+        item.summary,
+        "---",
+        `-# Publicado ${when(item.date)}`,
       ]),
+      item.link ? row(linkBtn(`Ver en ${feed.name}`, item.link, feed.emoji)) : [],
     ),
     allowedMentions: { roles: ping ? [ping] : [] },
   };
@@ -144,14 +148,15 @@ async function checkTwitch(client) {
       ...v2(
         box(
           [
-            etiqueta("🔴 Twitch", "**en directo**", ping && `<@&${ping}>`),
-            `## [__${MAYUS(stream.title)}__](${url})`,
-            `*${stream.game_name || "Sin categoría"}*`,
             gallery(`${stream.thumbnail_url.replace("{width}", "1280").replace("{height}", "720")}?t=${Date.now()}`),
-            row(linkBtn("Ver directo", url, "🔴")),
+            etiqueta("🔴 Twitch", "**en directo**", ping && `<@&${ping}>`),
+            h2(stream.title),
+            "---",
+            `-# ${stream.game_name || "Sin categoría"}`,
           ],
           0x9146ff,
         ),
+        row(linkBtn("Ver directo", url, "🔴")),
       ),
       allowedMentions: { roles: ping ? [ping] : [] },
     });

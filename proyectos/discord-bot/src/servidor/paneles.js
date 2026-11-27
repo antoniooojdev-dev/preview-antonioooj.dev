@@ -155,11 +155,40 @@ ${d}`).join("\n\n"),
   );
 }
 
+// ── #comandos ────────────────────────────────────────────────
+// Solo los que puede usar cualquiera (los de staff no se anuncian).
+function comandos() {
+  const grupos = [
+    ["Scripts y web", "🛒", [
+      ["/script", "Ficha de un script de FiveM: qué incluye, **precio** y enlaces. Sin nombre, el catálogo entero."],
+      ["/redes", "La web y las redes de **antonioooj.dev**."],
+    ]],
+    ["Niveles", "🏅", [
+      ["/nivel", "El nivel y la **XP**, propios o de otra persona."],
+      ["/ranking", "El **top 10** de la comunidad."],
+    ]],
+    ["Utilidades", "🧰", [
+      ["/recordatorio", "Un aviso por **privado** cuando toque (`crear`, `lista`, `borrar`)."],
+      ["/encuesta", "Una votación con **botones** que se cierra sola."],
+      ["/ayuda", "Los comandos disponibles para cada persona."],
+      ["/ping", "La latencia del bot."],
+    ]],
+  ];
+  return v2(
+    box([
+      h1("Comandos"),
+      "Los comandos del bot se usan en este canal, donde también se anuncian las **subidas de nivel**.",
+      ...grupos.flatMap(([t, e, cmds]) => ["---", [h3(t, e), ...cmds.map(([c, d]) => `**\`${c}\`**\n-# ${d}`)].join("\n")]),
+    ]),
+  );
+}
+
 /** canal (key del plano) → función que construye el/los mensaje(s) */
 export const paneles = {
   normas,
   guia,
   servicios,
+  comandos,
   abrir_ticket: ticketPanel,
   verificacion: verificationPanel,
 };

@@ -63,6 +63,7 @@ export function projectCard(p) {
   const cat = projectCategories[p.category];
   const st = projectStatus[p.status] ?? projectStatus.activo;
   const last = p.updates.at(-1);
+  const rol = roleMention(cat.role);
   const buttons = [
     p.link && linkBtn("Ver proyecto", p.link, "🔗"),
     btn(`proyecto:historial:${p.threadId}`, "Historial", { emoji: "📜" }),
@@ -70,25 +71,55 @@ export function projectCard(p) {
 
   return v2(
     box([
+      p.imageRef && gallery(p.imageRef),
       etiqueta(`${cat.emoji} ${cat.label}`, `${st.emoji} **${st.label}**`),
       h1(p.name),
-      p.summary && `*${p.summary}*`,
+      p.summary,
       "---",
       [
-        `**__VERSIÓN__** \`${p.version || "—"}\``,
-        `**__NOVEDADES__** ${p.updates.length}`,
-        `**__ACTUALIZADO__** ${ts(last?.at ?? p.createdAt)}`,
-      ].join("  ·  "),
-      p.stack && `**__TECNOLOGÍAS__** — ${p.stack}`,
-      p.imageRef && gallery(p.imageRef),
-      row(buttons),
+        `**VERSIÓN** · \`${p.version || "—"}\``,
+        `**NOVEDADES** · ${p.updates.length}`,
+        `**ACTUALIZADO** · ${ts(last?.at ?? p.createdAt)}`,
+        p.stack && `**TECNOLOGÍAS** · ${p.stack}`,
+      ]
+        .filter(Boolean)
+        .join("\n"),
       "---",
-      `-# Los **cambios** aparecen en este post ↓  ·  Avisos de ${cat.short} con ${roleMention(cat.role) || "su rol"} en <#${config.channels.guide}>`,
+      `-# Los **cambios** se publican en este post, debajo de la ficha${rol ? `  ·  avisos con ${rol}` : ""}`,
     ]),
+    row(buttons),
   );
 }
 
-async function refreshCard(guild, p) {
+/**
+ * Tarjeta de una novedad: en el post del proyecto o, con `threadUrl`, en #novedades
+ * (con la categoría, el proyecto y la mención al rol de avisos).
+ */
+export function updateCard({ p, u, body, imageRef, link, author, threadUrl, ping }) {
+  const cat = projectCategories[p.category];
+  const kind = updateTypes[u.type] ?? updateTypes.funcion;
+  const enNovedades = !!threadUrl;
+  const texto = enNovedades && body.length > 1400 ? `${body.slice(0, 1400)}\n- *…y más en el post del proyecto*` : body;
+  const meta = [`${kind.emoji} **${kind.label}**`, u.version && `\`${u.version}\``, ts(u.at, "D"), author && `por **${author}**`];
+  const botones = [
+    enNovedades && linkBtn("Ver proyecto", threadUrl, "📂"),
+    link && linkBtn(enNovedades ? "Enlace" : "Ver cambios", link, "🔗"),
+  ].filter(Boolean);
+  return v2(
+    box([
+      imageRef && gallery(imageRef),
+      enNovedades ? etiqueta(`${cat.emoji} ${cat.label}`, `**${p.name}**`, ping && `<@&${ping}>`) : etiqueta("Novedad", `**${p.name}**`),
+      enNovedades ? h1(u.title) : h2(u.title, kind.emoji),
+      "---",
+      texto,
+      "---",
+      `-# ${meta.filter(Boolean).join("  ·  ")}`,
+    ]),
+    botones.length ? row(botones) : [],
+  );
+}
+
+export async function refreshCard(guild, p) {
   const thread = await guild.channels.fetch(p.threadId).catch(() => null);
   const starter = await thread?.fetchStarterMessage().catch(() => null);
   if (starter) await starter.edit({ ...projectCard(p), allowedMentions: { parse: [] } }).catch((e) => log.warn("Ficha:", e.message));
@@ -148,26 +179,16 @@ export async function postUpdate(guild, threadId, { type, title, changes, versio
   const p = db.projects[threadId];
   if (!p) throw new Error("Proyecto no encontrado.");
   const cat = projectCategories[p.category];
-  const kind = updateTypes[type] ?? updateTypes.funcion;
   const at = Date.now();
   const body = formatChanges(changes);
-  const meta = [`${kind.emoji} **${kind.label}**`, version && `\`${version}\``, ts(at, "D")].filter(Boolean).join("  ·  ");
+  const u = { type, title, version: version || null, at };
 
   const thread = await guild.channels.fetch(threadId);
 
   // 1) en el post del proyecto
   const imgThread = await imageFile(image, `novedad-${p.updates.length + 1}`);
   const inThread = await thread.send({
-    ...v2(
-      box([
-        `-# ${meta}`,
-        h2(title),
-        body,
-        imgThread && gallery(imgThread.ref),
-        link && row(linkBtn("Ver cambios", link, "🔗")),
-        author && `-# Publicado por **${author}**`,
-      ]),
-    ),
+    ...updateCard({ p, u, body, imageRef: imgThread?.ref, link, author }),
     files: imgThread ? [imgThread.file] : [],
     allowedMentions: { parse: [] },
   });
@@ -179,16 +200,7 @@ export async function postUpdate(guild, threadId, { type, title, changes, versio
     const imgNews = await imageFile(image, "novedad");
     const ping = config.ids.roles[cat.role];
     newsMsg = await news.send({
-      ...v2(
-        box([
-          etiqueta(`${cat.emoji} ${cat.label}`, `**${p.name}**`, ping && `<@&${ping}>`),
-          h2(title, kind.emoji),
-          body.length > 1400 ? `${body.slice(0, 1400)}\n- *…y más en el post del proyecto*` : body,
-          imgNews && gallery(imgNews.ref),
-          row([linkBtn("Ver proyecto", inThread.url, "📂"), link && linkBtn("Enlace", link, "🔗")].filter(Boolean)),
-          `-# ${meta}`,
-        ]),
-      ),
+      ...updateCard({ p, u, body, imageRef: imgNews?.ref, link, author, threadUrl: inThread.url, ping }),
       files: imgNews ? [imgNews.file] : [],
       allowedMentions: { roles: ping ? [ping] : [] },
     });
@@ -196,7 +208,8 @@ export async function postUpdate(guild, threadId, { type, title, changes, versio
   }
 
   // 3) historial y ficha
-  p.updates.push({ type, title, version: version || null, at, messageUrl: inThread.url, newsUrl: newsMsg?.url ?? null });
+  // texto, enlace y autor se guardan para poder rehacer las tarjetas si cambia el diseño
+  p.updates.push({ ...u, body, link: link || null, author: author || null, messageUrl: inThread.url, newsUrl: newsMsg?.url ?? null });
   if (version) p.version = version;
   if (type === "lanzamiento" && p.status === "desarrollo") p.status = "activo";
   save();
@@ -224,8 +237,17 @@ export function historyMessage(p) {
   const lines = p.updates
     .slice(-20)
     .reverse()
-    .map((u) => `- ${kinds[u.type] ?? "•"} [${u.title}](${u.messageUrl})${u.version ? ` \`${u.version}\`` : ""} — ${ts(u.at, "d")}`);
-  return box([h2(`Historial · ${p.name}`, "📜"), lines.length ? lines.join("\n") : "*Todavía no hay novedades.*", p.updates.length > 20 && `-# Mostrando las 20 últimas de ${p.updates.length}`]);
+    .map(
+      (u, i) =>
+        `**\`${String(i + 1).padStart(2, "0")}\`**  ${kinds[u.type] ?? "•"} **[${u.title}](${u.messageUrl})**${u.version ? ` \`${u.version}\`` : ""}\n-# ${ts(u.at, "d")}`,
+    );
+  return box([
+    etiqueta("Historial", `**${p.name}**`),
+    h2("Novedades", "📜"),
+    "---",
+    lines.length ? lines.join("\n") : "Todavía no hay novedades.",
+    p.updates.length > 20 && `-# Las 20 últimas de ${p.updates.length}`,
+  ]);
 }
 
 export async function onButton(interaction, action, threadId) {
